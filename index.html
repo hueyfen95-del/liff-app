@@ -2306,7 +2306,7 @@ updateDayTot();calcProg();
 <script>
 // ── Google Sheets 連動 ──
 var API_URL = "https://script.google.com/macros/s/AKfycbwEZoWd-xvcUYRNMvnpS99gbJ-ToR07gbHmBoh8aeg7ahBn8BoYgT8zSWr4hOL_a92P/exec";
-var CLIENT_ID = "C001";
+var CLIENT_ID = "C001"; var API_URL = "https://script.google.com/macros/s/AKfycbwEZoWd-xvcUYRNMvnpS99gbJ-ToR07gbHmBoh8aeg7ahBn8BoYgT8zSWr4hOL_a92P/exec"; function submitDailyRecord(){   var k=document.getElementById('k-inp')?document.getElementById('k-inp').value:'';   var w=document.getElementById('w-inp')?document.getElementById('w-inp').value:'';   var f=[];document.querySelectorAll('.chip.on').forEach(function(c){f.push(c.textContent);});   var e=[];document.querySelectorAll('.t-box.on').forEach(function(c){e.push(c.textContent);});   toast('⏳ 儲存中...');   fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'addDailyRecord',clientId:CLIENT_ID,ketone:k,weight:w,feeling:f.join(','),electrolyte:e.join(',')})}).then(function(r){return r.json();}).then(function(d){toast(d.status==='ok'?'✅ 已同步到秘書後台！':'⚠️ 請稍後再試');}).catch(function(){toast('✅ 已儲存！');}); }
 
 function submitDailyRecord(){
   var ketone = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
