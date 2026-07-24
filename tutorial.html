@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>元代謝系統・操作教學</title>
+<style>
+:root{
+  --ink:#0F6E56; --ink-deep:#0A4A3A; --mint:#EFF7F3; --paper:#FDFDFB;
+  --dark:#1E2B27; --amber:#C97A2B; --amber-bg:#FBF0E1; --mist:#8A9992;
+  --red:#B4443C; --red-bg:#FAE8E6; --line:#DCE8E2;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;background:var(--ink-deep);color:var(--dark);overflow:hidden}
+
+/* ── 劇場舞台 ── */
+#theater{height:100%;display:flex;flex-direction:column}
+#stage-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:18px 14px 6px;min-height:0}
+#stage{position:relative;width:min(920px,100%);height:100%;max-height:560px;background:var(--mint);border-radius:22px;box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:hidden}
+.chapter-eyebrow{position:absolute;top:14px;left:18px;font-size:12px;letter-spacing:.14em;color:var(--ink);font-weight:700;background:rgba(255,255,255,.85);padding:5px 12px;border-radius:999px;z-index:40;border:1px solid var(--line)}
+
+/* ── 場景容器 ── */
+.scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:26px;opacity:0;transition:opacity .5s;pointer-events:none;padding:40px 24px 20px;flex-wrap:wrap}
+.scene.on{opacity:1}
+
+/* ── 手機模型 ── */
+.phone{width:250px;height:470px;background:#fff;border-radius:28px;border:7px solid #2A3733;box-shadow:0 12px 34px rgba(0,0,0,.22);overflow:hidden;position:relative;flex-shrink:0}
+.phone .screen{height:100%;overflow:hidden;background:#F6FAF8;display:flex;flex-direction:column}
+.p-head{background:linear-gradient(135deg,var(--ink),#158066);color:#fff;padding:16px 14px 13px;flex-shrink:0}
+.p-head .hi{font-size:15px;font-weight:800}
+.p-head .sub{font-size:10px;opacity:.85;margin-top:3px}
+.p-body{flex:1;overflow:hidden;padding:10px 10px 12px;display:flex;flex-direction:column;gap:8px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 11px;font-size:11px;transition:all .4s}
+.pcard .t{font-weight:800;font-size:11.5px;margin-bottom:4px;color:var(--dark)}
+.pcard .s{color:var(--mist);font-size:10px;line-height:1.5}
+.task{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:8px;background:#F2F8F5;margin-top:5px;font-size:10.5px;transition:all .4s}
+.task .ck{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--mist);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;transition:all .3s}
+.task.done .ck{background:var(--ink);border-color:var(--ink)}
+.task.done{background:#E4F2EC}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gbtn{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 4px;text-align:center;font-size:10px;font-weight:700;color:var(--dark);transition:all .3s}
+.gbtn .em{font-size:16px;display:block;margin-bottom:2px}
+.inp{border:1.5px solid var(--line);border-radius:8px;padding:7px 9px;font-size:12px;background:#fff;color:var(--mist);transition:all .3s;margin-top:5px}
+.inp.filled{color:var(--dark);border-color:var(--ink);font-weight:700}
+.sendbtn{background:var(--ink);color:#fff;border-radius:9px;padding:9px;text-align:center;font-size:11.5px;font-weight:800;margin-top:7px;transition:all .3s}
+.toastp{position:absolute;left:50%;bottom:60px;transform:translateX(-50%) translateY(16px);background:#243430;color:#fff;font-size:10.5px;padding:8px 14px;border-radius:999px;opacity:0;transition:all .4s;white-space:nowrap;z-index:5}
+.toastp.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 後台模型 ── */
+.admin{width:440px;max-width:96%;height:430px;background:#fff;border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.22);overflow:hidden;display:flex;flex-shrink:0;border:1px solid #C9D8D1}
+.a-side{width:104px;background:#12332A;color:#CFE4DB;padding:12px 0;font-size:10.5px;flex-shrink:0}
+.a-side .logo{color:#fff;font-weight:800;font-size:11px;padding:0 12px 10px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px}
+.a-side .it{padding:7px 12px;transition:all .3s;border-left:3px solid transparent}
+.a-side .it.on{background:rgba(255,255,255,.1);color:#fff;border-left-color:#4CC39A;font-weight:700}
+.a-main{flex:1;padding:13px 14px;overflow:hidden;background:#F7FAF8;position:relative}
+.a-title{font-size:13px;font-weight:800;color:var(--dark);margin-bottom:9px}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.stat .n{font-size:19px;font-weight:800;color:var(--ink)}
+.stat .l{font-size:9px;color:var(--mist);margin-top:1px}
+.acard{background:#fff;border:1px solid var(--line);border-radius:11px;padding:9px 11px;font-size:11px;margin-bottom:7px;transition:all .5s}
+.acard.alert{border-left:4px solid var(--red);background:var(--red-bg)}
+.acard.alert .t{color:var(--red)}
+.acard .t{font-weight:800;font-size:11px;margin-bottom:3px}
+.acard .s{font-size:10px;color:var(--mist);line-height:1.5}
+.abtns{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.abtn{border:1px solid #D8C4B4;background:#fff;border-radius:7px;padding:4px 9px;font-size:9.5px;font-weight:700;color:#7A5A3E;transition:all .3s}
+.abtn.g{background:var(--ink);color:#fff;border-color:var(--ink)}
+.acard.faded{opacity:.42}
+.rowline{display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #EDF3EF;font-size:10.5px}
+.rowline .av{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.badge{font-size:8.5px;padding:2px 7px;border-radius:999px;font-weight:800}
+.badge.g{background:#DCEFE6;color:var(--ink)}
+.badge.a{background:var(--amber-bg);color:var(--amber)}
+.aform .inp{margin-top:4px;font-size:10.5px;padding:6px 8px}
+.checkline{display:flex;align-items:center;gap:7px;font-size:10.5px;padding:5px 2px;color:var(--dark)}
+.checkline .ok{color:var(--ink);font-weight:800}
+
+/* ── Google 表卡片 ── */
+.sheetcard{width:250px;background:#fff;border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.18);overflow:hidden;font-size:10px;flex-shrink:0;border:1px solid #C9D8D1}
+.sheetcard .bar{background:#188253;color:#fff;padding:8px 11px;font-weight:800;font-size:11px;display:flex;align-items:center;gap:6px}
+.sheetcard table{width:100%;border-collapse:collapse}
+.sheetcard td,.sheetcard th{border:1px solid #E3EDE7;padding:4.5px 6px;text-align:left;font-size:9.5px}
+.sheetcard th{background:#F0F7F3;font-weight:700;color:var(--ink)}
+.sheetcard tr.newrow td{background:#FFF7DF;animation:rowin .6s ease}
+@keyframes rowin{from{background:#FFE79A}to{background:#FFF7DF}}
+
+/* ── 連接線動畫 ── */
+.flowline{position:absolute;height:3px;background:linear-gradient(90deg,var(--ink),#4CC39A);border-radius:3px;opacity:0;transition:opacity .4s;z-index:2}
+.flowline.show{opacity:1}
+.flowline .dot{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;background:#4CC39A;transform:translateY(-50%);animation:travel 1.4s linear infinite;box-shadow:0 0 10px #4CC39A}
+@keyframes travel{from{left:-4px}to{left:calc(100% - 5px)}}
+
+/* ── 指尖光點 ── */
+#tap{position:absolute;width:30px;height:30px;border-radius:50%;background:rgba(15,110,86,.28);border:2.5px solid var(--ink);z-index:60;pointer-events:none;transform:translate(-50%,-50%);transition:left .8s cubic-bezier(.5,0,.3,1),top .8s cubic-bezier(.5,0,.3,1),opacity .3s;opacity:0}
+#tap.show{opacity:1}
+#tap.press{animation:press .5s ease}
+@keyframes press{0%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-50%) scale(.62)}100%{transform:translate(-50%,-50%) scale(1)}}
+#tap .ripple{position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--ink);opacity:0}
+#tap.press .ripple{animation:rip .55s ease}
+@keyframes rip{from{transform:scale(.7);opacity:.8}to{transform:scale(2.1);opacity:0}}
+
+/* ── 字幕與控制列 ── */
+#caption-bar{padding:4px 16px 2px;text-align:center}
+#caption{display:inline-block;background:rgba(10,40,32,.92);color:#F2FBF7;font-size:clamp(13px,2.4vw,16.5px);line-height:1.65;padding:10px 22px;border-radius:12px;max-width:860px;min-height:44px;font-weight:500;letter-spacing:.02em}
+#caption b{color:#7FE0BC;font-weight:800}
+#controls{display:flex;align-items:center;gap:12px;padding:10px 18px 16px;max-width:960px;margin:0 auto;width:100%}
+.cbtn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.cbtn:hover{background:rgba(255,255,255,.22)}
+.cbtn:focus-visible{outline:2px solid #7FE0BC;outline-offset:2px}
+#playbtn{min-width:86px}
+#chapters{flex:1;display:flex;gap:6px;align-items:center}
+.chdot{flex:1;height:7px;border-radius:99px;background:rgba(255,255,255,.18);cursor:pointer;position:relative;overflow:hidden;border:none;padding:0}
+.chdot:focus-visible{outline:2px solid #7FE0BC;outline-offset:2px}
+.chdot .fill{position:absolute;inset:0;width:0%;background:#4CC39A;border-radius:99px;transition:width .3s linear}
+.chdot.done .fill{width:100%}
+#chlabel{color:rgba(255,255,255,.75);font-size:12px;min-width:118px;text-align:right;letter-spacing:.03em}
+
+/* ── 片頭片尾 ── */
+.title-scene{flex-direction:column;text-align:center;gap:14px}
+.title-scene h1{font-family:"Noto Serif TC","Microsoft JhengHei",serif;font-size:clamp(26px,5vw,42px);color:var(--ink);font-weight:900;letter-spacing:.06em}
+.title-scene .sub{font-size:clamp(13px,2.5vw,17px);color:var(--mist);letter-spacing:.12em}
+.trio{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+.trio .tcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;font-size:13px;font-weight:700;color:var(--dark);box-shadow:0 6px 18px rgba(15,110,86,.1);opacity:0;transform:translateY(14px);transition:all .6s}
+.trio .tcard.in{opacity:1;transform:none}
+.trio .tcard .em{font-size:26px;display:block;margin-bottom:5px}
+.endlist{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 22px;text-align:left;font-size:13px;line-height:2;box-shadow:0 6px 18px rgba(15,110,86,.1)}
+
+
+/* ── 花園場景 ── */
+.garden-sky{background:linear-gradient(180deg,#BFE3F5 0%,#E8F6EE 60%,#D8EFD9 100%);flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:14px}
+.g-sun{position:absolute;top:12px;right:16px;font-size:26px;animation:sunspin 14s linear infinite}
+@keyframes sunspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.g-cloud{position:absolute;top:26px;left:-40px;font-size:20px;opacity:.8;animation:cloudmove 18s linear infinite}
+@keyframes cloudmove{from{left:-40px}to{left:110%}}
+.g-tree{font-size:56px;transition:all .8s cubic-bezier(.34,1.56,.64,1);transform-origin:bottom center;position:relative;z-index:3;filter:drop-shadow(0 4px 8px rgba(15,110,86,.25))}
+.g-tree.wiggle{animation:wiggle .9s ease}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-5deg)}60%{transform:rotate(4deg)}}
+.g-tree.grown{font-size:76px}
+.g-tree.glow{filter:drop-shadow(0 0 18px #FFD75E) drop-shadow(0 4px 8px rgba(15,110,86,.25))}
+.g-ground{width:100%;height:22px;background:linear-gradient(180deg,#9CCB9A,#7FB07E);border-radius:50% 50% 0 0/100% 100% 0 0}
+.g-label{position:absolute;top:12px;left:12px;background:rgba(255,255,255,.9);border-radius:999px;padding:4px 10px;font-size:9.5px;font-weight:800;color:var(--ink);z-index:4}
+.g-drops{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);z-index:5;pointer-events:none}
+.g-drops span{position:absolute;font-size:15px;opacity:0}
+.g-drops.rain span{animation:drop 1s ease forwards}
+.g-drops span:nth-child(1){left:-24px;animation-delay:0s}
+.g-drops span:nth-child(2){left:0;animation-delay:.18s}
+.g-drops span:nth-child(3){left:22px;animation-delay:.36s}
+@keyframes drop{0%{transform:translateY(-46px);opacity:0}30%{opacity:1}100%{transform:translateY(16px);opacity:0}}
+.g-spark{position:absolute;font-size:14px;opacity:0;z-index:6;pointer-events:none}
+.g-spark.pop{animation:sparkpop 1.3s ease forwards}
+@keyframes sparkpop{0%{transform:scale(.3) translateY(6px);opacity:0}35%{opacity:1;transform:scale(1.25) translateY(-8px)}100%{transform:scale(.9) translateY(-26px);opacity:0}}
+.g-butterfly{position:absolute;font-size:20px;top:46%;left:-30px;opacity:0;z-index:6}
+.g-butterfly.fly{animation:flyin 3.2s ease forwards}
+@keyframes flyin{0%{left:-30px;top:52%;opacity:0}15%{opacity:1}40%{left:38%;top:34%}70%{left:60%;top:44%}100%{left:56%;top:38%;opacity:1}}
+.g-star{position:absolute;font-size:30px;top:-44px;left:50%;transform:translateX(-50%);opacity:0;z-index:7;filter:drop-shadow(0 0 10px #FFD75E)}
+.g-star.fall{animation:starfall 1.6s cubic-bezier(.35,.1,.4,1.3) forwards}
+@keyframes starfall{0%{top:-44px;opacity:0;transform:translateX(-50%) rotate(0)}20%{opacity:1}100%{top:44%;opacity:1;transform:translateX(-50%) rotate(340deg)}}
+.g-tasks{position:absolute;left:10px;right:10px;bottom:34px;background:rgba(255,255,255,.94);border-radius:11px;padding:8px 10px;font-size:10px;z-index:8;border:1px solid var(--line)}
+.g-tasks .tt{font-weight:800;margin-bottom:4px;display:flex;justify-content:space-between}
+.travelbtn{position:absolute;top:12px;right:48px;background:rgba(255,255,255,.9);border-radius:999px;padding:4px 9px;font-size:9px;font-weight:800;color:var(--ink);z-index:4;transition:all .3s}
+.travelbtn.on{background:var(--ink);color:#fff}
+
+@media (max-width:760px){
+  .scene{gap:14px;padding:38px 10px 12px}
+  .phone{width:200px;height:380px}
+  .admin{width:96%;height:360px}
+  .a-side{width:84px}
+  .sheetcard{width:210px}
+  #chlabel{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01s!important;animation-duration:.01s!important}
+.toc-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}
+.toc-btn:hover{background:rgba(255,255,255,.22)}
+#toc-panel{position:fixed;inset:0;background:rgba(10,30,25,.55);z-index:500;display:none;align-items:center;justify-content:center;padding:24px}
+#toc-panel.open{display:flex}
+#toc-box{background:var(--paper);border-radius:16px;max-width:520px;width:100%;max-height:82vh;overflow-y:auto;padding:18px 10px 18px 18px}
+#toc-box h2{font-size:16px;font-weight:800;color:var(--ink-deep);margin:0 0 4px;padding-right:8px}
+#toc-box .toc-sub{font-size:11.5px;color:var(--mist);margin-bottom:12px;padding-right:8px}
+.toc-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--dark);transition:background .15s}
+.toc-item:hover{background:var(--mint)}
+.toc-item.cur{background:var(--mint);font-weight:800;color:var(--ink-deep)}
+.toc-item .toc-n{width:22px;height:22px;border-radius:50%;background:var(--mist);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toc-item.cur .toc-n{background:var(--ink)}
+.toc-item.toc-new .toc-n{background:var(--amber)}
+#toc-close{position:sticky;top:0;float:right;background:none;border:none;font-size:20px;color:var(--mist);cursor:pointer;line-height:1}
+</style>
+</head>
+<body>
+<div id="theater">
+  <div id="stage-wrap">
+    <div id="stage">
+      <div class="chapter-eyebrow" id="eyebrow">操作教學</div>
+      <div id="tap"><div class="ripple"></div></div>
+      <div id="scenes"></div>
+    </div>
+  </div>
+  <div id="caption-bar"><div id="caption">歡迎收看元代謝系統操作教學</div></div>
+  <div id="controls">
+    <button class="cbtn" id="playbtn" onclick="togglePlay()">▶ 播放</button>
+    <button class="cbtn" id="soundbtn" onclick="toggleSound()" aria-label="語音旁白開關">🔊 語音</button>
+    <button class="cbtn" onclick="prevChapter()" aria-label="上一章">⟨ 上一章</button>
+    <button class="cbtn" onclick="nextChapter()" aria-label="下一章">下一章 ⟩</button>
+    <button class="toc-btn" onclick="openToc()" aria-label="章節目錄">📑 章節目錄</button>
+    <div id="chapters" role="tablist" aria-label="章節"></div>
+    <div id="chlabel">按播放開始</div>
+  </div>
+</div>
+<div id="toc-panel" onclick="if(event.target.id==='toc-panel')closeToc()">
+  <div id="toc-box">
+    <button id="toc-close" onclick="closeToc()" aria-label="關閉">✕</button>
+    <h2>📑 完整章節目錄</h2>
+    <div class="toc-sub">共 <span id="toc-count"></span> 章・點選任一章節直接跳過去</div>
+    <div id="toc-list"></div>
+  </div>
+</div>
+<script>
+/* ═══════════ 場景 HTML 模板 ═══════════ */
+const SCENES = {};
+
+SCENES.intro = `
+<div class="scene title-scene" id="sc-intro">
+  <h1>元代謝健康管理系統</h1>
+  <div class="sub">操 作 教 學・給 第 一 次 使 用 的 你</div>
+  <div class="trio">
+    <div class="tcard" id="tri1"><span class="em">📱</span>前台<br><span style="font-size:11px;color:var(--mist);font-weight:500">客人使用</span></div>
+    <div class="tcard" id="tri2"><span class="em">🖥️</span>後台<br><span style="font-size:11px;color:var(--mist);font-weight:500">秘書工作台</span></div>
+    <div class="tcard" id="tri3"><span class="em">📊</span>Google 試算表<br><span style="font-size:11px;color:var(--mist);font-weight:500">所有資料的家</span></div>
+  </div>
+</div>`;
+
+SCENES.fhome = `
+<div class="scene" id="sc-fhome">
+  <div class="phone"><div class="screen">
+    <div class="p-head"><div class="hi">嗨，陳小美 🌱</div><div class="sub">粒腺體期・第 32 天｜連續打卡 12 天</div></div>
+    <div class="p-body">
+      <div class="pcard" id="fh-video"><div class="t">📽 了解這趟旅程的目標</div><div class="s">5 分鐘影片＋「開始試用」按鈕</div></div>
+      <div class="pcard"><div class="t">今日花園任務</div>
+        <div class="task" id="fh-task1"><div class="ck">✓</div>🩸 血酮記錄</div>
+        <div class="task"><div class="ck">✓</div>📏 體重腰圍</div>
+      </div>
+      <div class="pcard"><div class="t">功能入口</div>
+        <div class="grid2">
+          <div class="gbtn" id="fh-qa"><span class="em">💬</span>問答</div>
+          <div class="gbtn"><span class="em">🍱</span>外食速查</div>
+          <div class="gbtn" id="fh-garden"><span class="em">🌱</span>代謝花園</div>
+          <div class="gbtn"><span class="em">🛒</span>好物推薦</div>
+        </div>
+      </div>
+    </div>
+    <div class="toastp" id="fh-toast">✅ 記錄已送出</div>
+  </div></div>
+</div>`;
+
+SCENES.frecord = `
+<div class="scene" id="sc-frecord">
+  <div class="phone"><div class="screen">
+    <div class="p-head"><div class="hi">每日記錄</div><div class="sub">今天的身體，記下來</div></div>
+    <div class="p-body">
+      <div class="pcard"><div class="t">🩸 血酮 mmol/L</div><div class="inp" id="fr-ketone">點擊輸入…</div></div>
+      <div class="pcard"><div class="t">⚖️ 體重 kg</div><div class="inp" id="fr-weight">點擊輸入…</div></div>
+      <div class="pcard"><div class="t">💭 今日感受</div><div class="inp" id="fr-feel">點擊輸入…</div></div>
+      <div class="sendbtn" id="fr-send">送出記錄</div>
+      <div class="pcard" id="fr-plate" style="opacity:0;transition:all .5s;margin-top:9px">
+        <div class="t">🍽 餐盤快記（選填，10 秒）</div>
+        <div style="font-size:9.5px;color:var(--mist);margin-bottom:7px">拍照看不出油放了多少，點一下告訴秘書</div>
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">🕐 這是哪一餐？</div>
+        <div style="display:flex;gap:5px;margin-bottom:8px">
+          <span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">早餐</span><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">午餐</span><span id="fr-meal-on" style="border:1px solid var(--ink);border-radius:16px;padding:4px 9px;font-size:9.5px;color:#fff;background:var(--ink);font-weight:700">晚餐</span><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">點心</span>
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">🫒 這一餐的油脂 <span style="color:#0F6E56;font-weight:400">ⓘ 怎麼吃</span></div>
+        <div id="fr-oil-tip" style="display:none;background:#F3F9F6;border-radius:7px;padding:7px 9px;margin-bottom:6px;font-size:9px;color:var(--dark);line-height:1.6">吃油身體才敢燒油，勇敢吃！煮菜用橄欖油、酪梨油輪流；調整初期最好 80% 熱量來自好油脂 💪</div>
+        <div style="display:flex;gap:5px;margin-bottom:8px"><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">不太夠</span><span id="fr-oil-on" style="border:1px solid var(--ink);border-radius:16px;padding:4px 9px;font-size:9.5px;color:#fff;background:var(--ink);font-weight:700">剛剛好</span><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">加好加滿</span></div>
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">🍖 這一餐的蛋白質</div>
+        <div style="display:flex;gap:5px;margin-bottom:8px"><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">未滿掌心</span><span id="fr-protein-on" style="border:1px solid var(--ink);border-radius:16px;padding:4px 9px;font-size:9.5px;color:#fff;background:var(--ink);font-weight:700">約一掌心</span><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">超過掌心</span></div>
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">🍚 這一餐的澱粉或含糖醬料</div>
+        <div style="display:flex;gap:5px;margin-bottom:9px"><span id="fr-starch-on" style="border:1px solid var(--ink);border-radius:16px;padding:4px 9px;font-size:9.5px;color:#fff;background:var(--ink);font-weight:700">沒有</span><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">有一點</span><span style="border:1px solid var(--line);border-radius:16px;padding:4px 9px;font-size:9.5px;color:var(--mist);background:#fff">有</span></div>
+        <div class="sendbtn" id="fr-plate-send" style="margin-top:0">傳給秘書</div>
+      </div>
+    </div>
+    <div class="toastp" id="fr-toast">✅ 已存進 Google 表</div>
+    <div class="toastp" id="fr-plate-toast">🍽 餐盤快記已傳給秘書！</div>
+  </div></div>
+  <div class="sheetcard" id="fr-sheet" style="opacity:0;transition:all .5s">
+    <div class="bar">📊 👤 每日記錄</div>
+    <table><tr><th>時間</th><th>客人</th><th>血酮</th><th>體重</th></tr>
+      <tr id="fr-row" style="display:none" class="newrow"><td>今天</td><td>C001</td><td>1.8</td><td>62</td></tr>
+    </table>
+  </div>
+</div>`;
+
+SCENES.adash = `
+<div class="scene" id="sc-adash">
+  <div class="admin" style="width:290px;height:480px">
+    <div class="a-main" style="border-radius:14px;overflow-y:auto">
+      <div class="a-title">📊 儀表板</div>
+      <div class="acard" id="ad-duty" style="opacity:0;transition:all .5s;background:linear-gradient(135deg,#0F6E56,#158066);border:none">
+        <div style="font-size:11px;font-weight:700;color:#fff">✅ 今日待辦・07/20</div>
+        <div style="font-size:9.5px;color:#fff;opacity:.85;margin-top:3px">系統自動偵測，登入第一眼就看到</div>
+      </div>
+      <div class="acard" id="ad-book" style="opacity:0;transition:all .5s;border:1px solid #D9C9F2">
+        <div style="font-size:11px;font-weight:700;color:#6D4AA8">📅 新預約・待聯繫確認日期</div>
+        <div style="font-size:9.5px;color:var(--mist);margin-top:2px">測試客人B・瑞絲得診所・07-18 送出</div>
+      </div>
+      <div class="acard" id="ad-proxy" style="opacity:0;transition:all .5s;border:1px solid #C9DEF2">
+        <div style="font-size:11px;font-weight:700;color:#2465A8">🛒 代購需求</div>
+        <div style="font-size:9.5px;color:var(--mist);margin-top:2px">李美麗・魚油 x2・王藥師</div>
+      </div>
+      <div class="acard" id="ad-disc" style="opacity:0;transition:all .5s;border:1px solid #EAD9B8">
+        <div style="font-size:11px;font-weight:700;color:#B26A00">💬 個案討論・等你的意見</div>
+        <div style="font-size:9.5px;color:var(--mist);margin-top:2px">血酮偏高但體重停滯・2則回覆</div>
+      </div>
+      <div class="acard" id="ad-symptom" style="opacity:0;transition:all .5s;border:1px solid #F0C0B0">
+        <div style="font-size:11px;font-weight:700;color:#A32D2D">⚠️ 症狀提醒（近 7 天）</div>
+      </div>
+      <div class="acard" id="ad-bday" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink)">🎂 生日提醒</div>
+      </div>
+      <div class="acard" id="ad-award" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:#0F6E56">💚 這個月，值得被稱讚的客人</div>
+      </div>
+      <div class="acard" id="ad-today" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink)">📋 今日客人記錄</div>
+        <div class="rowline" style="margin-top:5px"><div class="av">A</div><div style="flex:1;font-size:10px">測試客人A</div><span class="badge g">已填</span></div>
+        <div class="rowline"><div class="av" style="background:var(--red)">B</div><div style="flex:1;font-size:10px">測試客人B</div><span class="badge a">未填</span></div>
+      </div>
+      <div class="acard" id="ad-stats" style="opacity:0;transition:all .5s;background:#F8FAF9">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--ink)">2</div><div style="font-size:8.5px;color:var(--mist)">服務中客人</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:var(--ink)">1/2</div><div style="font-size:8.5px;color:var(--mist)">今日已填</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:#A32D2D">1</div><div style="font-size:8.5px;color:var(--mist)">需要關心</div></div>
+          <div style="text-align:center"><div style="font-size:16px;font-weight:800;color:#0F6E56">1</div><div style="font-size:8.5px;color:var(--mist)">狀態正常</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.aalert = `
+<div class="scene" id="sc-aalert">
+  <div class="admin">
+    <div class="a-side"><div class="logo">元代謝後台</div>
+      <div class="it">📊 儀表板</div><div class="it on">🚨 警示看板</div><div class="it">👥 客戶管理</div><div class="it">💬 QA編輯</div><div class="it">🌱 花園管理</div>
+    </div>
+    <div class="a-main">
+      <div class="a-title">警示看板・客人待處理事項</div>
+      <div class="acard" id="aa-quiz" style="opacity:0;transition:all .5s">
+        <div class="t">📋 問卷未填客人</div>
+        <div class="s">這些客人跳過了入會健康問卷，建議主動了解他們的健康背景</div>
+        <div style="font-size:10px;color:var(--dark);margin-top:5px">測試客人C・07-15 加入・尚未填寫</div>
+      </div>
+      <div class="acard" id="aa-slot" style="opacity:0;transition:all .5s">
+        <div class="t">📅 本月可預約時間管理</div>
+        <div class="s">每月底更新下個月開放給客人預約的時段</div>
+        <div style="font-size:10px;color:var(--dark);margin-top:5px">08/02（六）09:00・08/09（六）09:00　<span style="color:var(--b3)">+新增時段</span></div>
+      </div>
+      <div class="acard" id="aa-irct" style="opacity:0;transition:all .5s">
+        <div class="t">📄 IRCT 報告狀態</div>
+        <div class="s">追蹤報告從檢測完成到寄送給客人的每一步</div>
+        <div style="font-size:10px;color:var(--dark);margin-top:5px">測試客人B・報告已出爐・<span style="color:#B26A00;font-weight:700">尚未寄送</span></div>
+      </div>
+      <div class="a-title" style="margin-top:12px" id="aa-title2">紅色・立即處理</div>
+      <div class="acard alert" id="aa-card">
+        <div class="t">🚨 測試客人B・連續 5 天未填記錄</div>
+        <div class="s">最後記錄：5 天前</div>
+        <div class="abtns">
+          <button class="abtn" id="aa-copy">複製訊息</button>
+          <button class="abtn">查看記錄</button>
+          <button class="abtn g" id="aa-resolve">標記處理中</button>
+        </div>
+      </div>
+      <div class="acard" id="aa-note" style="opacity:0;transition:all .5s;border-left:4px solid var(--ink)">
+        <div class="t" style="color:var(--ink)">📋 已複製關心訊息</div>
+        <div class="s">「測試客人B 您好 😊 這幾天沒看到您的記錄，有點想念您～」→ 貼到 LINE 就能傳</div>
+      </div>
+    </div>
+  </div>
+  <div class="sheetcard" id="aa-sheet" style="opacity:0;transition:all .5s">
+    <div class="bar">📊 ⚙️ 警示處理記錄 <span style="font-size:9px;background:#fff3;padding:1px 6px;border-radius:99px">新分頁！</span></div>
+    <table><tr><th>時間</th><th>客人</th><th>動作</th></tr>
+      <tr id="aa-row" style="display:none" class="newrow"><td>剛剛</td><td>C002</td><td>已標記處理中</td></tr>
+    </table>
+  </div>
+</div>`;
+
+SCENES.asupp = `
+<div class="scene" id="sc-asupp">
+  <div class="admin" style="width:400px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">測試客人A・近期記錄</div>
+      <div class="rowline"><div style="flex:1">今天</div><div style="font-weight:800;color:var(--ink)">血酮 1.8</div><div>62 kg</div></div>
+      <div class="rowline"><div style="flex:1">昨天</div><div style="font-weight:800;color:var(--ink)">血酮 2.0</div><div>62.2 kg</div></div>
+      <div class="acard aform" style="margin-top:9px;border-left:4px solid var(--ink)">
+        <div class="t">💊 推薦補充品</div>
+        <div class="inp" id="as-sel">選擇補充品…</div>
+        <div class="inp" id="as-reason">推薦原因（選填）</div>
+        <div class="abtns"><button class="abtn g" id="as-btn">記錄推薦</button></div>
+      </div>
+      <div class="acard" id="as-hist" style="opacity:0;transition:all .5s">
+        <div class="t" style="font-size:10px;color:var(--mist)">推薦歷史</div>
+        <div class="rowline"><div style="flex:1">鎂（甘胺酸鎂）<br><span style="font-size:9px;color:var(--mist)">今天・夜間抽筋</span></div>
+        <button class="abtn g" id="as-rebtn">再次推薦</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="sheetcard" id="as-sheet" style="opacity:0;transition:all .5s">
+    <div class="bar">📊 💊 補充品推薦記錄 <span style="font-size:9px;background:#fff3;padding:1px 6px;border-radius:99px">新分頁！</span></div>
+    <table><tr><th>客人</th><th>品項</th><th>原因</th></tr>
+      <tr id="as-row" style="display:none" class="newrow"><td>C001</td><td>鎂（甘胺酸鎂）</td><td>夜間抽筋</td></tr>
+    </table>
+  </div>
+</div>`;
+
+SCENES.sync = `
+<div class="scene" id="sc-sync">
+  <div class="admin" style="width:330px;height:400px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">💬 QA 症狀編輯（後台）</div>
+      <div class="acard aform">
+        <div class="t">新增症狀 QA</div>
+        <div class="inp" id="sy-symptom">症狀名稱…</div>
+        <div class="inp" id="sy-answer">回答內容…</div>
+        <div class="abtns"><button class="abtn g" id="sy-save">新增</button></div>
+      </div>
+      <div class="acard" id="sy-added" style="opacity:0;transition:all .5s">
+        <div class="t">💬 抽筋 <span class="badge g">上線中</span></div>
+        <div class="s">腳抽筋怎麼辦？→ 補充鎂與足量水分</div>
+      </div>
+    </div>
+  </div>
+  <div class="flowline" id="sy-flow" style="width:60px"><div class="dot"></div></div>
+  <div class="phone" style="width:220px;height:400px"><div class="screen">
+    <div class="p-head"><div class="hi">問答（前台）</div><div class="sub">客人這一端</div></div>
+    <div class="p-body">
+      <div class="inp" id="sy-search">搜尋症狀…</div>
+      <div class="pcard" id="sy-result" style="opacity:0;transition:all .5s;border-left:3px solid var(--ink)">
+        <div class="t">💬 腳抽筋怎麼辦？</div>
+        <div class="s">補充鎂與足量水分，睡前拉筋</div>
+      </div>
+      <div id="sy-article" style="opacity:0;transition:all .5s;margin-top:8px">
+        <div style="font-size:10px;color:#8A9992;margin-bottom:5px">📝 相關文章</div>
+        <div style="background:#F3F9F6;border-radius:8px;padding:8px 10px;border:0.5px solid #DCE9E3;font-size:11px;color:#2B3A35">電解質補充完整指南｜元代謝部落格 ›</div>
+      </div>
+      <div id="sy-video" style="opacity:0;transition:all .5s;margin-top:6px">
+        <div style="font-size:10px;color:#8A9992;margin-bottom:5px">▶️ 相關影片</div>
+        <div style="background:#F3F9F6;border-radius:8px;padding:8px 10px;border:0.5px solid #DCE9E3;font-size:11px;color:#2B3A35">🎬 抽筋與電解質的關係（YouTube）›</div>
+      </div>
+      <div id="sy-podcast" style="opacity:0;transition:all .5s;margin-top:6px">
+        <div style="font-size:10px;color:#8A9992;margin-bottom:5px">🎧 相關節目</div>
+        <div style="background:#F3F9F6;border-radius:8px;padding:8px 10px;border:0.5px solid #DCE9E3;font-size:11px;color:#2B3A35">🎙 聊聊電解質與斷食（Podcast）›</div>
+      </div>
+    </div>
+  </div></div>
+</div>`;
+
+SCENES.gift = `
+<div class="scene" id="sc-gift">
+  <div class="admin" style="width:330px;height:400px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">🌱 花園管理（後台）</div>
+      <div class="rowline"><div class="av">A</div><div style="flex:1">測試客人A<br><span style="font-size:9px;color:var(--mist)">今日完成 2 個任務</span></div>
+        <button class="abtn g" id="gf-btn">送禮物 ▾</button></div>
+      <div class="acard" id="gf-menu" style="opacity:0;transition:all .4s">
+        <div class="checkline">☀️ 陽光</div>
+        <div class="checkline">🌧 下雨</div>
+        <div class="checkline" id="gf-star" style="background:#FFF6DE;border-radius:7px;font-weight:800">⭐ 星星</div>
+      </div>
+    </div>
+  </div>
+  <div class="flowline" id="gf-flow" style="width:60px"><div class="dot"></div></div>
+  <div class="phone" style="width:220px;height:400px"><div class="screen">
+    <div class="p-head"><div class="hi">代謝花園（前台）</div><div class="sub">客人這一端</div></div>
+    <div class="p-body" style="align-items:center;justify-content:center;text-align:center">
+      <div style="font-size:52px;transition:transform .6s" id="gf-tree">🌿</div>
+      <div class="pcard" id="gf-recv" style="opacity:0;transform:scale(.8);transition:all .5s;text-align:center">
+        <div style="font-size:26px" id="gf-staricon">⭐</div>
+        <div class="t">秘書送你星星！</div>
+        <div class="s">這週你真的很棒，這是你應得的</div>
+      </div>
+    </div>
+    <div class="toastp" id="gf-toast">🎁 秘書送你禮物</div>
+  </div></div>
+</div>`;
+
+
+SCENES.fgarden = `
+<div class="scene" id="sc-fgarden">
+  <div class="phone" style="width:262px;height:480px"><div class="screen">
+    <div class="p-head" style="padding:12px 14px 10px"><div class="hi">🌱 代謝花園</div><div class="sub">肥胖減脂型・燃脂花園</div></div>
+    <div class="garden-sky">
+      <div class="g-label" id="gd-daylabel">第 32 天・小樹成長中</div>
+      <div class="travelbtn" id="gd-travel">✈️ 旅行模式</div>
+      <div class="g-sun">☀️</div>
+      <div class="g-cloud">☁️</div>
+      <div class="g-butterfly" id="gd-butterfly">🦋</div>
+      <div class="g-star" id="gd-star">⭐</div>
+      <div class="g-drops" id="gd-drops"><span>💧</span><span>💧</span><span>💧</span></div>
+      <div class="g-spark" id="gd-sp1" style="bottom:150px;left:36%">✨</div>
+      <div class="g-spark" id="gd-sp2" style="bottom:165px;left:58%">✨</div>
+      <div class="g-tree" id="gd-tree">🌿</div>
+      <div class="g-ground"></div>
+      <div class="g-tasks">
+        <div class="tt">今日花園任務 <span id="gd-count">2 / 5</span></div>
+        <div class="task done"><div class="ck">✓</div>🩸 血酮記錄</div>
+        <div class="task done"><div class="ck">✓</div>📏 體重腰圍</div>
+        <div class="task" id="gd-task3"><div class="ck">✓</div>💦 補電解質</div>
+      </div>
+    </div>
+    <div class="toastp" id="gd-toast" style="bottom:130px">💧 澆水成功！小樹喝飽了</div>
+  </div></div>
+</div>`;
+
+SCENES.fmore = `
+<div class="scene" id="sc-fmore">
+  <div class="phone" style="width:230px;height:440px"><div class="screen">
+    <div class="p-head" style="background:linear-gradient(135deg,#0F6E56,#158066)"><div class="hi">🍽 外食指南</div><div class="sub">找餐廳＋查食物，一頁到底</div></div>
+    <div class="p-body">
+      <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">🍽 找餐廳・選地區</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+        <div class="badge b" id="kr-rg1" style="opacity:.5">台北</div>
+        <div class="badge g" id="kr-rg2" style="opacity:0;transition:all .4s">新竹</div>
+        <div class="badge b" id="kr-rg3" style="opacity:.5">台中</div>
+        <div class="badge b" style="opacity:.5">高雄</div>
+      </div>
+      <div class="pcard" id="kr-c1" style="opacity:0;transition:all .5s">
+        <div class="t">Trattoria 義式餐廳 <span class="badge a">🟡 可調整</span></div>
+        <div class="s">💡 選烤肉海鮮＋沙拉，避開義大利麵</div>
+        <div style="font-size:9px;color:var(--b3);margin-top:3px">🗺 導航</div>
+      </div>
+      <div class="pcard" id="kr-c2" style="opacity:0;transition:all .5s">
+        <div class="t">原味鵝肉店 <span class="badge g">🟢 完全友善</span></div>
+        <div class="s">💡 鵝肉好蛋白，配燙青菜，不飯不麵</div>
+      </div>
+      <div style="height:1px;background:var(--line);margin:10px 0"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">🍱 查食物・搜尋</div>
+      <div class="inp" id="fm-search">搜尋食物…</div>
+      <div class="pcard" id="fm-r1" style="opacity:0;transition:all .5s;border-left:3px solid var(--ink)">
+        <div class="t">🥗 蔬菜沙拉盒 <span class="badge g">✅ 可以吃</span></div>
+        <div class="s">挑掉玉米地瓜等根莖類</div>
+      </div>
+      <div class="pcard" id="fm-r2" style="opacity:0;transition:all .5s;border-left:3px solid var(--red)">
+        <div class="t">🍬 麥芽糊精 <span class="badge a">❌ 避免</span></div>
+        <div class="s">隱藏碳水，成分表要看</div>
+      </div>
+    </div>
+  </div></div>
+  <div class="admin" style="width:250px;height:440px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">🍽 新增粒腺體友善餐廳（後台）</div>
+      <div class="acard" id="kr-form" style="opacity:0;transition:all .5s">
+        <div style="font-size:10px;color:var(--mist)">地區</div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-size:11px;margin-bottom:4px">新竹</div>
+        <div style="font-size:10px;color:var(--mist)">店名</div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-size:11px;margin-bottom:4px">你們實際去過的好店</div>
+        <div style="font-size:10px;color:var(--mist)">推薦點法</div>
+        <div style="background:#fff;border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-size:10px;margin-bottom:5px">點什麼、避開什麼…</div>
+      </div>
+      <div class="acard" id="kr-added" style="opacity:0;transition:all .5s;background:var(--mint);text-align:center;font-size:11px;color:var(--ink);font-weight:700">✅ 客人端該地區立刻多一家</div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.atrack = `
+<div class="scene" id="sc-atrack">
+  <div class="admin">
+    <div class="a-side"><div class="logo">元代謝後台</div>
+      <div class="it">📊 儀表板</div><div class="it on" id="at-nav1">💉 追蹤模組</div><div class="it" id="at-nav2">🔔 複檢提醒</div>
+    </div>
+    <div class="a-main">
+      <div class="a-title" id="at-title">追蹤模組・新增追蹤設定</div>
+      <div class="acard aform" id="at-form">
+        <div class="inp" id="at-client">客人：測試客人A</div>
+        <div class="inp" id="at-type">類型：IRCT複檢提醒・每 8 週</div>
+        <div class="inp" id="at-date">下次複驗：選日期…</div>
+        <div class="abtns"><button class="abtn g" id="at-save">新增追蹤</button></div>
+      </div>
+      <div class="acard" id="at-remind" style="opacity:0;transition:all .5s;border-left:4px solid var(--amber);background:var(--amber-bg)">
+        <div class="t" id="at-remind-title" style="color:var(--amber)">🔔 測試客人A・IRCT複檢提醒（5 天後到期）</div>
+        <div class="s">週期：依設定的追蹤類型自動判斷｜到期會自動出現在這裡</div>
+        <div class="abtns"><button class="abtn" id="at-copy">複製提醒訊息</button><button class="abtn">調整日期</button><button class="abtn g">標記處理</button></div>
+      </div>
+      <div class="acard" id="at-copied" style="opacity:0;transition:all .5s">
+        <div class="s">📋 「提醒您 IRCT 複檢時間到囉，需要幫您預約隨時說！」→ 貼到 LINE</div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.areport = `
+<div class="scene" id="sc-areport">
+  <div class="admin" style="width:420px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">📄 月報生成</div>
+      <div class="acard aform">
+        <div class="inp" id="ar-client">客人：測試客人A・本月</div>
+        <div class="abtns"><button class="abtn g" id="ar-gen">產生月報草稿</button></div>
+      </div>
+      <div class="acard" id="ar-draft" style="opacity:0;transition:all .6s;border-left:4px solid var(--ink)">
+        <div class="t">測試客人A 的健康月報 🌱</div>
+        <div class="s">記錄天數：<b>22 天</b>｜平均血酮：<b>1.74</b><br>體重變化：<b>−1.8 kg</b>｜腰圍變化：<b>−2 cm</b></div>
+        <div class="inp" id="ar-comment" style="margin-top:6px">秘書評語…</div>
+        <div class="abtns"><button class="abtn" id="ar-copy">複製月報文字</button><button class="abtn g">標記已發送</button></div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.aduty = `
+<div class="scene" id="sc-aduty">
+  <div class="admin" style="width:420px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">🤝 排班交接 <span class="badge g" id="du-label" style="margin-left:8px;transition:all .3s">值班：婷婷・09:30–11:30</span></div>
+      <div class="acard aform">
+        <div class="t">今日交接備註</div>
+        <div class="inp" id="du-note" style="min-height:36px">輸入交接內容…</div>
+        <div class="abtns"><button class="abtn g" id="du-save">儲存交接</button></div>
+      </div>
+      <div class="acard" id="du-ok" style="opacity:0;transition:all .5s">
+        <div class="s">✅ 已寫入 ⚙️ 交接記錄——晚班秘書打開就看得到，客人的狀況不會斷線</div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+
+SCENES.alab = `
+<div class="scene" id="sc-alab">
+  <div class="admin" style="width:360px;height:430px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">💉 加測檢測（客人面板內）</div>
+      <div class="acard aform" style="border-left:4px solid var(--ink)">
+        <div class="inp" id="al-sel">選擇檢測項目…</div>
+        <div id="al-t2opts" style="display:none;gap:10px;font-size:10px;color:var(--dark);margin-top:5px;font-weight:700">
+          <span style="color:#7A5A3E">t2 可加驗：</span><span id="al-ck1">☐ sdLDL</span><span id="al-ck2">☐ 同半胱胺酸</span>
+        </div>
+        <div id="al-desc" style="display:none;margin-top:5px;font-size:9.5px;background:#E8F1FB;color:#2B5E8C;border-radius:7px;padding:6px 8px;line-height:1.5">📋 採檢注意：血液&尿液・依項目指示採檢</div>
+        <div class="abtns"><button class="abtn g" id="al-btn">記錄加測</button></div>
+      </div>
+      <div class="acard" id="al-fm" style="opacity:0;transition:all .5s;background:#EAF2FB;border-left:4px solid #2465A8">
+        <div style="font-size:9.5px;font-weight:800;color:#2465A8;margin-bottom:3px">🔬 功能醫學・常用精選置頂（完整74項分組收在下面）</div>
+        <div style="font-size:10.5px;font-weight:700;color:var(--ink)">1131 氧化壓力分析 Oxy-META</div>
+        <div style="font-size:9px;color:var(--mist)">血液&尿液・NT$6,100</div>
+      </div>
+      <div class="acard" id="al-h1" style="opacity:0;transition:all .5s;padding:7px 10px">
+        <div class="rowline" style="border:none;padding:3px 0"><span class="badge g" style="font-size:8px">一般</span>
+          <div style="flex:1;font-size:10px;font-weight:700">IRT-t2 首次檢測＋sdLDL</div>
+          <span class="badge a" style="font-size:8px">⏳ 已安排</span></div>
+      </div>
+      <div class="acard" id="al-h2" style="opacity:0;transition:all .5s;padding:7px 10px">
+        <div class="rowline" style="border:none;padding:3px 0"><span class="badge b" style="font-size:8px">功醫</span>
+          <div style="flex:1;font-size:10px;font-weight:700">1131 氧化壓力分析<br><span style="font-size:8.5px;color:var(--mist);font-weight:400" id="al-histsub">今天</span></div>
+          <span class="badge a" id="al-status" style="font-size:8px">⏳ 已安排</span>
+          <button class="abtn" id="al-fill" style="font-size:8.5px;padding:3px 7px">填結果</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="sheetcard" id="al-sheet" style="opacity:0;transition:all .5s;width:265px">
+    <div class="bar">📊 💉 檢體記錄</div>
+    <table><tr><th>客人</th><th>檢體類型</th></tr>
+      <tr id="al-row1" style="display:none" class="newrow"><td>C001</td><td>IRT-t2 首次＋sdLDL</td></tr>
+    </table>
+    <div class="bar" style="margin-top:2px">📊 💉 功能醫學記錄</div>
+    <table><tr><th>檢測項目</th><th>檢測結果</th></tr>
+      <tr id="al-row2" style="display:none" class="newrow"><td>1131 氧化壓力</td><td id="al-result"></td></tr>
+    </table>
+  </div>
+</div>`;
+
+
+SCENES.labOverdue = `
+<div class="scene" id="sc-labOverdue">
+  <div class="admin" style="width:300px;height:460px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title" style="color:#A32D2D">🔬 檢測逾期未回報・該去催了</div>
+      <div class="acard" id="lo-1" style="opacity:0;transition:all .5s;border-left:4px solid #A32D2D">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px">
+          <span style="background:#A32D2D;color:#fff;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700">逾 25 天</span>
+          <b style="font-size:11px">測試客人A</b><span style="font-size:10.5px;color:var(--dark)">1131 氧化壓力分析</span>
+        </div>
+        <div style="font-size:9.5px;color:var(--mist)">送往：功能醫學實驗室・06-27 送檢</div>
+      </div>
+      <div class="acard" id="lo-2" style="opacity:0;transition:all .5s;border-left:4px solid var(--amber)">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px">
+          <span style="background:var(--amber);color:#fff;border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700">逾 12 天</span>
+          <b style="font-size:11px">測試客人B</b><span style="font-size:10.5px;color:var(--dark)">IRT-t2 首次檢測</span>
+        </div>
+        <div style="font-size:9.5px;color:var(--mist)">送往：東泰檢驗所・07-10 送檢</div>
+        <div class="abtns" style="margin-top:6px">
+          <button class="abtn" id="lo-copy" style="font-size:9.5px">📋 複製催收訊息</button>
+          <button class="abtn g" id="lo-follow" style="font-size:9.5px">已跟催</button>
+        </div>
+      </div>
+      <div class="acard" id="lo-note" style="opacity:0;transition:all .5s;border-left:4px solid var(--ink);background:var(--mint)">
+        <div style="font-size:9.5px;color:var(--ink-deep);line-height:1.6">📋 已複製：「陳醫師您好，跟您確認一下測試客人B（C002）的「IRT-t2 首次檢測」檢測報告，07-10 送檢的，已經 12 天了，麻煩幫忙查詢一下進度，謝謝！」</div>
+      </div>
+      <div class="acard" id="lo-done" style="opacity:0;transition:all .5s;padding:7px 10px">
+        <div style="font-size:10px;color:var(--ink)">✅ 今天已跟催（婷婷）</div>
+      </div>
+      <div class="acard" id="lo-lab" style="opacity:0;transition:all .5s">
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">🏥 分帳角色名單・新增診所/實驗室</div>
+        <div style="font-size:9.5px;color:var(--mist);line-height:1.7">角色名稱：東泰檢驗所<br>對接人：陳醫師　聯絡方式：0912-345-678<br>預設回報天數：7 天</div>
+      </div>
+      <div class="acard" id="lo-sendto" style="opacity:0;transition:all .5s;border-left:4px solid var(--ink)">
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">💉 加測檢測・送往</div>
+        <div style="font-size:9.5px;color:var(--mist);margin-bottom:5px">🏥 東泰檢驗所（預設7天回報）</div>
+        <div style="font-size:9px;color:var(--ink);background:var(--mint);border-radius:6px;padding:5px 8px;line-height:1.6">判斷順序：① 這個項目自己設定過嗎？② 沒有→這間單位的預設天數？③ 都沒有→通用門檻</div>
+      </div>
+      <div class="acard" id="lo-clinic-link" style="opacity:0;transition:all .5s;background:var(--mint)">
+        <div style="font-size:10px;color:var(--ink-deep)">✓ 已自動帶入這位客人預約時選的診所——不用重選，名稱也不會兜不起來</div>
+      </div>
+      <div class="acard" id="lo-med-req" style="opacity:0;transition:all .5s;border-left:4px solid #A32D2D">
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:3px">💊 客人預約 IRCT-t2</div>
+        <div style="font-size:9.5px;color:var(--mist);margin-bottom:4px">請填寫你目前服用的慢性病藥物（可選常見藥物快選）</div>
+        <div style="font-size:9px;color:#A32D2D">⚠️ 沒填不能按下一步——藥師需要這個資訊評估檢測前是否暫停用藥</div>
+        <div style="font-size:9px;color:var(--ink);background:var(--mint);border-radius:6px;padding:4px 7px;margin-top:5px">☑ 我沒有服用慢性病藥物，只是自己想加測 sdLDL／同半胱胺酸——勾這個就能跳過必填</div>
+      </div>
+      <div class="acard" id="lo-exercise" style="opacity:0;transition:all .5s">
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">🏃 每週會讓你喘的運動，大概幾次？</div>
+        <div style="display:flex;gap:5px">
+          <span style="font-size:9px;background:var(--ink);color:#fff;border-radius:12px;padding:3px 8px;font-weight:700">0次</span>
+          <span style="font-size:9px;border:1px solid var(--line);border-radius:12px;padding:3px 8px;color:var(--mist)">1-2次</span>
+          <span style="font-size:9px;border:1px solid var(--line);border-radius:12px;padding:3px 8px;color:var(--mist)">3-4次</span>
+          <span style="font-size:9px;border:1px solid var(--line);border-radius:12px;padding:3px 8px;color:var(--mist)">5次以上</span>
+        </div>
+      </div>
+      <div class="acard" id="lo-med-dash" style="opacity:0;transition:all .5s">
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:4px">📅 新預約看板・直接看到用藥</div>
+        <div style="font-size:9.5px;background:var(--mint);color:var(--g3);border-radius:6px;padding:4px 8px;margin-bottom:4px">💊 用藥：Metformin、Amlodipine</div>
+        <div style="font-size:9px;color:#A32D2D">⚠️（若選t2卻沒填）選了慢性病用藥方案，但沒填用藥資訊——請跟客人確認</div>
+      </div>
+      <div class="acard" id="lo-setting" style="opacity:0;transition:all .5s;background:#F8FAF9">
+        <div style="font-size:10px;font-weight:700;color:var(--dark);margin-bottom:3px">⚙️ 調整逾期天數</div>
+        <div style="font-size:9.5px;color:var(--mist)">一般加項：5 天　功能醫學：12 天</div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.ameds = `
+<div class="scene" id="sc-ameds">
+  <div class="admin" style="width:370px;height:420px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">💊 用藥記錄（客人面板內）</div>
+      <div class="acard aform" style="border-left:4px solid var(--ink)">
+        <div class="inp" id="md-name">藥物名稱…</div>
+        <div class="inp" id="md-dose">劑量／頻率…</div>
+        <div class="abtns"><button class="abtn g" id="md-btn">記錄用藥</button></div>
+      </div>
+      <div class="acard" id="md-card" style="opacity:0;transition:all .5s">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;font-size:11px;font-weight:800">Metformin <span style="font-size:9px;color:var(--mist)" id="md-dosenow">500mg 早晚</span></div>
+          <span class="badge a" id="md-status" style="font-size:8.5px">服用中</span>
+          <button class="abtn" id="md-reduce" style="font-size:8.5px;padding:3px 7px">記錄減量</button>
+          <button class="abtn g" id="md-stop" style="font-size:8.5px;padding:3px 7px">記錄停藥</button>
+        </div>
+        <div style="font-size:9px;color:var(--mist);margin-top:4px;line-height:1.8" id="md-timeline">05-10 服用中（500mg 早晚）</div>
+      </div>
+    </div>
+  </div>
+  <div class="sheetcard" style="width:255px;opacity:0;transition:all .5s" id="md-sheet">
+    <div class="bar">📊 💊 用藥記錄</div>
+    <table><tr><th>日期</th><th>藥物</th><th>狀態</th></tr>
+      <tr><td>05-10</td><td>Metformin</td><td>服用中</td></tr>
+      <tr id="md-row2" style="display:none" class="newrow"><td>06-14</td><td>Metformin</td><td>減量</td></tr>
+      <tr id="md-row3" style="display:none" class="newrow"><td>07-08</td><td>Metformin</td><td>已停藥</td></tr>
+    </table>
+  </div>
+</div>`;
+
+
+SCENES.dashalert = `
+<div class="scene" id="sc-dashalert">
+  <div class="admin" style="width:380px;height:430px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">📊 儀表板・自動提醒</div>
+      <div class="acard" id="da-symptom" style="opacity:0;transition:all .5s;border-left:4px solid #C0392B;background:#FDEDEC">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-weight:800;color:#C0392B;font-size:11px">🚨 緊急</span>
+          <span style="font-weight:700;font-size:12px">王小華</span>
+          <span style="font-size:9px;color:var(--mist)">💉胰島素客人</span>
+        </div>
+        <div style="font-size:10px;color:#C0392B;margin-top:3px" id="da-sympmsg">血酮偏高＋噁心，酮酸風險，請立即聯繫</div>
+      </div>
+      <div class="acard" id="da-bday" style="opacity:0;transition:all .5s;background:#FDF3F7">
+        <div style="font-size:11px"><span style="font-weight:800;color:#C2185B">🎂 今天生日！</span> 陳美美</div>
+      </div>
+      <div class="acard" id="da-award" style="opacity:0;transition:all .5s;background:var(--mint)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:22px">💚</span>
+          <div style="flex:1"><div style="font-weight:800;color:var(--ink);font-size:12px">最疼愛自己的客人</div>
+          <div style="font-size:10px;color:var(--dark)">陳美美・這個月幾乎天天記錄</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+
+SCENES.backmore = `
+<div class="scene" id="sc-backmore">
+  <div class="admin" style="width:270px;height:450px">
+    <div class="a-main" style="border-radius:14px;overflow-y:auto">
+      <div class="a-title">⚙️ 後台其他管理功能</div>
+      <div class="acard" id="bm-irct" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">📊 IRCT 區間設定</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.7">設定各項健康指標的「最佳健康區間」（空腹血糖、胰島素等），客人報告判讀時對照用</div>
+      </div>
+      <div class="acard" id="bm-diet" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">🍽 飲食模式對照</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.7">管理客人的飲食模式與 IRCT 前問卷，掌握每位客人的飲食狀況</div>
+      </div>
+      <div class="acard" id="bm-clinic" style="opacity:0;transition:all .5s;background:var(--mint)">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">🏥 診所時間表管理</div>
+        <div style="font-size:10px;color:var(--ink);line-height:1.7">每月 25 日更新各診所可預約時段，客人預約時就看到正確時間</div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.frontmore = `
+<div class="scene" id="sc-frontmore">
+  <div class="phone" style="width:240px;height:450px"><div class="screen">
+    <div class="p-head" style="background:linear-gradient(135deg,#0F6E56,#158066)"><div class="hi" id="fm-title">📈 健康趨勢</div><div class="sub" id="fm-sub">看得到自己的進步</div></div>
+    <div class="p-body">
+      <div class="pcard" id="fm-trend" style="opacity:0;transition:all .5s">
+        <div class="t">📈 健康趨勢圖</div>
+        <div class="s">血酮、體重、腰圍的變化曲線，客人一眼看到自己的進步</div>
+      </div>
+      <div class="pcard" id="fm-card" style="opacity:0;transition:all .5s;border-left:3px solid #C88A2E">
+        <div class="t">🎨 分享圖卡</div>
+        <div class="s">把成果做成漂亮圖卡，客人可分享到社群，順便幫你宣傳</div>
+      </div>
+      <div class="pcard" id="fm-intro" style="opacity:0;transition:all .5s;background:var(--mint)">
+        <div class="t">🎬 簡介影片（含背景音樂）</div>
+        <div class="s">90 秒動畫介紹元代謝，配溫柔背景音樂，可靜音</div>
+      </div>
+    </div>
+  </div></div>
+</div>`;
+
+SCENES.newfeat = `
+<div class="scene" id="sc-newfeat">
+  <div class="admin" style="width:280px;height:470px">
+    <div class="a-main" style="border-radius:14px;overflow-y:auto">
+      <div class="a-title">🆕 新功能總覽</div>
+      <div class="acard" id="nf-lab" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">🔬 檢測整合</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.7">輸入客人檢測數據，看個人趨勢、一家人比較。項目可無限擴充，數值自動紅綠標示（綠=達標、紅=超標），還會對照當時用藥狀態</div>
+      </div>
+      <div class="acard" id="nf-stored" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">💳 儲值消費</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.7">客人儲值後，在各服務點（陪跑、診所、美業…）消費扣款。系統記帳、算餘額、自動分潤</div>
+      </div>
+      <div class="acard" id="nf-review" style="opacity:0;transition:all .5s;background:var(--mint)">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">💰 會計核查</div>
+        <div style="font-size:10px;color:var(--ink);line-height:1.7">秘書登錄的儲值和消費，要會計核查通過後才生效（算餘額、算分潤）。登錄和核查是不同的人，錢才安全</div>
+      </div>
+      <div class="acard" id="nf-perm" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">🔐 登入與權限</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.7">後台要登入。創始人看全部、秘書管客人、會計核金流、行政管庶務，各看各的</div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.login = `
+<div class="scene" id="sc-login">
+  <div class="phone"><div class="screen">
+    <div class="p-head"><div class="hi">🔐 登入與安全</div><div class="sub">身分驗證上線</div></div>
+    <div class="p-body">
+      <div class="pcard" id="lg-form" style="opacity:0;transition:all .5s;text-align:center">
+        <div style="font-size:20px">🌱</div><div class="t" style="text-align:center">歡迎回來</div>
+        <div style="background:#F4F8F6;border-radius:8px;padding:7px;font-size:10px;color:#8A9992;margin:6px 0">客人編號（例：C001）</div>
+        <div style="background:#F4F8F6;border-radius:8px;padding:7px;font-size:10px;color:#8A9992;margin-bottom:7px">姓名（與登記資料相同）</div>
+        <div style="background:#0F6E56;color:#fff;border-radius:8px;padding:8px;font-size:11px;font-weight:700">開始使用</div>
+      </div>
+      <div class="pcard" id="lg-line" style="opacity:0;transition:all .5s"><div class="t">💬 有設定 LINE 登入時</div><div class="s">在 LINE 裡打開自動認得是誰，連編號都不用輸</div></div>
+      <div class="pcard" id="lg-admin" style="opacity:0;transition:all .5s"><div class="t">🖥 後台也上鎖了</div><div class="s">每筆資料傳輸都驗證身分；重新整理不會登出，閒置 6 小時才需重登</div></div>
+      <div class="pcard" id="lg-vendor" style="opacity:0;transition:all .5s"><div class="t">🧾 廠商對帳頁</div><div class="s">廠商代碼＋查詢密碼（創始人在「分帳角色名單」設定）</div></div>
+      <div class="pcard" id="lg-accmgmt" style="opacity:0;transition:all .5s"><div class="t">🔐 帳號管理（只有創始人看得到）</div><div class="s">填帳號、密碼、姓名、角色（秘書/會計/行政），按新增；也能隨時停用/啟用某個帳號</div></div>
+      <div class="pcard" id="lg-todo" style="opacity:0;transition:all .5s;background:#FDF1E2"><div class="t">⚠️ 創始人記得</div><div class="s">把自己的預設密碼 admin1234 改掉、幫每家廠商設查詢密碼</div></div>
+    </div>
+  </div></div>
+</div>`;
+
+SCENES.adisc = `
+<div class="scene" id="sc-adisc">
+  <div class="admin" style="width:280px;height:470px">
+    <div class="a-main" style="border-radius:14px;overflow-y:auto">
+      <div class="a-title">💬 個案討論</div>
+      <div class="acard" id="ds-thread" style="opacity:0;transition:all .5s">
+        <div style="font-size:10.5px"><span style="background:#FDF1E2;color:#B26A00;border-radius:5px;padding:1px 5px;font-weight:700;font-size:9px">討論中</span> <b>血酮偏高但體重停滯</b></div>
+        <div style="font-size:9.5px;color:var(--mist);margin-top:2px">婷婷 發起・全部秘書都看得到</div>
+      </div>
+      <div class="acard" id="ds-r1" style="opacity:0;transition:all .5s"><div style="font-size:10px"><span style="background:#E8F5EF;color:#0F6E56;border-radius:5px;padding:1px 5px;font-weight:700;font-size:9px">💬 秘書</span> 小美：建議先看飲食記錄</div></div>
+      <div class="acard" id="ds-r2" style="opacity:0;transition:all .5s"><div style="font-size:10px"><span style="background:#EAF2FB;color:#2465A8;border-radius:5px;padding:1px 5px;font-weight:700;font-size:9px">🩺 醫師意見</span> 婷婷轉述：可安排回診驗胰島素</div></div>
+      <div class="acard" id="ds-concl" style="opacity:0;transition:all .5s;background:var(--mint)"><div style="font-size:10px"><b>📌 結論</b>：安排回診驗胰島素，兩週後追蹤</div></div>
+      <div class="acard" id="ds-msg" style="opacity:0;transition:all .5s;background:var(--mint)"><div style="font-size:10px"><b>💬 給客人的訊息範本</b><div style="color:var(--mist);margin-top:2px">您好😊 看到您血酮表現很棒…</div><div style="text-align:right;margin-top:3px"><span style="background:#0F6E56;color:#fff;border-radius:6px;padding:2px 8px;font-size:9px;font-weight:700">📋 複製傳給客人</span></div></div></div>
+      <div class="acard" id="ds-search" style="opacity:0;transition:all .5s"><div style="font-size:10px">🔍 <b>搜過往案例</b>：輸入「血酮」→ 所有客人的歷史結論＋話術都搜得到</div></div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.vcharge = `
+<div class="scene" id="sc-vcharge">
+  <div class="phone"><div class="screen">
+    <div class="p-head" style="background:linear-gradient(135deg,#0F6E56,#158066);color:#fff"><div class="hi" style="color:#fff">元代謝・店家工作台</div><div class="sub" style="color:#D9EEE6">認證店家專用</div></div>
+    <div class="p-body">
+      <div class="pcard" id="vc-login" style="opacity:0;transition:all .5s"><div class="t">🔑 登入一次就記住</div><div class="s">廠商代碼＋查詢密碼，建議加到手機主畫面</div></div>
+      <div class="pcard" id="vc-cid" style="opacity:0;transition:all .5s"><div class="t">STEP 1</div><div style="background:#F4F8F6;border-radius:8px;padding:7px;font-size:10px;color:#8A9992">客人編號（客人出示會員卡）</div></div>
+      <div class="pcard" id="vc-mask" style="opacity:0;transition:all .5s"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">李○麗</b><div style="text-align:right"><div style="font-size:8.5px;color:#8A9992">可用餘額</div><div style="font-size:14px;font-weight:800;color:#0F6E56">$5,000</div></div></div><div class="s" style="margin-top:3px">只看得到遮罩姓名，健康資料完全看不到 🔒</div></div>
+      <div class="pcard" id="vc-ok" style="opacity:0;transition:all .5s;background:#F0F7F4;text-align:center"><div style="font-size:18px">✅</div><div style="font-size:11px;font-weight:800">扣款成功</div><div style="font-size:10px;color:#556">頭皮護理・$1,200｜剩餘 <b style="color:#0F6E56">$3,800</b></div></div>
+      <div class="pcard" id="vc-guard" style="opacity:0;transition:all .5s;background:#FCEBEB"><div style="font-size:10px;color:#791F1F"><b>防超刷</b>：餘額不足直接擋下；確認中的消費也先保留額度</div></div>
+      <div class="pcard" id="vc-settle" style="opacity:0;transition:all .5s"><div class="t">🧾 月底怎麼結</div><div class="s">扣款→待核查→會計通過→分潤→對帳單。認證三步：名單＋密碼＋分潤規則</div></div>
+    </div>
+  </div></div>
+</div>`;
+
+SCENES.suppshop = `
+<div class="scene" id="sc-suppshop">
+  <div class="admin" style="width:280px;height:470px">
+    <div class="a-main" style="border-radius:14px;overflow-y:auto">
+      <div class="a-title">💊 保健品與代購</div>
+      <div class="acard" id="ss-db" style="opacity:0;transition:all .5s"><div style="font-size:10.5px"><b>📚 補充品資料庫</b><div style="color:var(--mist);margin-top:2px">創始人的參考表已灌入：品名、來源、價格、推薦理由</div></div></div>
+      <div class="acard" id="ss-shop" style="opacity:0;transition:all .5s"><div style="font-size:10.5px"><b>🛍 前台「💊 保健品」專區</b><div style="display:flex;justify-content:space-between;margin-top:3px;font-size:10px"><span>魚油（王藥師）</span><b style="color:#B23A48">NT$1,200</b></div><div style="text-align:right;margin-top:3px"><span style="background:#0F6E56;color:#fff;border-radius:6px;padding:2px 8px;font-size:9px;font-weight:700">🛒 請秘書代購</span></div></div></div>
+      <div class="acard" id="ss-board" style="opacity:0;transition:all .5s;background:#EAF2FB"><div style="font-size:10.5px"><b>🛒 儀表板・代購需求</b><div style="color:var(--mist);margin-top:2px">李美麗｜魚油 x2｜王藥師｜約$2,400</div></div></div>
+      <div class="acard" id="ss-finish" style="opacity:0;transition:all .5s"><div style="font-size:10.5px"><b>📦 已下單 → 到貨結帳</b><div style="color:var(--mist);margin-top:2px">輸入實際金額 → 從儲值扣款 或 已收現金</div></div></div>
+      <div class="acard" id="ss-rail" style="opacity:0;transition:all .5s;background:var(--mint)"><div style="font-size:10.5px"><b>🚉 同一條軌道</b>：消費記錄（待核查）→ 會計核查 → 分潤 → 月結。餘額不足會擋下</div></div>
+      <div class="acard" id="ss-rule" style="opacity:0;transition:all .5s;background:#FDF1E2"><div style="font-size:10.5px"><b>⚠️ 記得</b>：幫「保健品代購」等服務點設分潤規則，廠商月結才算得出來</div></div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.carbplan = `
+<div class="scene" id="sc-carbplan">
+  <div class="phone"><div class="screen">
+    <div class="p-head"><div class="hi">🍚 碳水計畫</div><div class="sub">外食指南・最上方</div></div>
+    <div class="p-body">
+      <div class="pcard" id="cp-admin" style="opacity:0;transition:all .5s"><div class="t">🖥 秘書端勾選</div><div class="s">嚴格期・不吃碳水／回補期・每天 15g～90g（15g一階）</div></div>
+      <div class="pcard" id="cp-strict" style="opacity:0;transition:all .5s;background:linear-gradient(135deg,#7A4F1D,#A8742E);color:#fff"><div style="font-size:10.5px;font-weight:700">🍚 我的碳水計畫</div><div style="font-size:9.5px;margin-top:2px;opacity:.95">嚴格期：暫時不吃碳水，讓身體專心燃脂 💪</div></div>
+      <div class="pcard" id="cp-recover" style="opacity:0;transition:all .5s;background:linear-gradient(135deg,#7A4F1D,#A8742E);color:#fff"><div style="font-size:10.5px;font-weight:700">🍚 我的碳水計畫</div><div style="font-size:9.5px;margin-top:2px;opacity:.95">碳水回補期：每天 30g（約2份）・找你的碳水甜蜜點</div></div>
+      <div class="pcard" id="cp-guide" style="opacity:0;transition:all .5s"><div class="t">📖 份量圖鑑（1份=15g）</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:9px;margin-top:3px"><div style="background:#F4F8F6;border-radius:6px;padding:4px 6px">地瓜 55g｜1/3碗</div><div style="background:#F4F8F6;border-radius:6px;padding:4px 6px">白麵條 60g｜1/2碗</div><div style="background:#F4F8F6;border-radius:6px;padding:4px 6px">燕麥片 20g｜3匙</div><div style="background:#F4F8F6;border-radius:6px;padding:4px 6px">南瓜 85g｜1/2碗</div></div></div>
+      <div class="pcard" id="cp-domi" style="opacity:0;transition:all .5s"><div class="t">🍪 朵蜜點心換算</div><div class="s">黑巧克力酥餅 約3片=1份・起司酥餅 約7顆=1份</div></div>
+      <div class="pcard" id="cp-note" style="opacity:0;transition:all .5s;background:#F0F7F4"><div class="s" style="color:#0F6E56">秘書改一下選單，客人前台馬上更新 ⚡（份量參考：三軍總醫院食物代換圖鑑）</div></div>
+    </div>
+  </div></div>
+</div>`;
+
+SCENES.regdetail = `
+<div class="scene" id="sc-regdetail">
+  <div class="admin" style="width:270px;height:460px">
+    <div class="a-main" style="border-radius:14px;overflow-y:auto">
+      <div class="a-title">📝 登錄內容示範</div>
+
+      <!-- 排班登录 -->
+      <div class="acard" id="rd-shift" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">🗓 排班登錄</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.9">
+          日期：2026/07/20<br>
+          秘書：婷婷<br>
+          班別：早班　時間：09:00–17:00<br>
+          計薪：時薪　費率：200 元/時
+        </div>
+      </div>
+
+      <!-- 分帐角色登录 -->
+      <div class="acard" id="rd-role" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">👥 分帳角色登錄</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.9">
+          角色名稱：婷婷<br>
+          角色類型：💁 秘書<br>
+          <span style="color:var(--b3)">（類型可選：診所／實驗室／醫師／秘書／行政／講師／元代謝內部）</span>
+        </div>
+      </div>
+
+      <!-- 分帐规则登录 -->
+      <div class="acard" id="rd-rule" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">⚖️ 分帳規則登錄</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.9">
+          服務類型：IRCT-t1（4,800 元）<br>
+          分給：診所 60%、秘書 30%、元代謝 10%<br>
+          <span style="color:var(--b3)">（設定一次，之後自動套用）</span>
+        </div>
+      </div>
+
+      <!-- 医师药师登录 -->
+      <div class="acard" id="rd-doctor" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">👨‍⚕️ 醫師／藥師登錄</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.9">
+          姓名：游正臨　職稱：藥師<br>
+          姓名：嚴美瑜　職稱：醫師<br>
+          <span style="color:var(--b3)">（用藥、補充品建議時可選這些人）</span>
+        </div>
+      </div>
+
+      <!-- 客人方案（包套）登录 -->
+      <div class="acard" id="rd-plan" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:5px">📦 客人方案（包套）登錄</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.9">
+          方案名稱：3個月陪跑方案<br>
+          月數：3　費用：24,000<br>
+          折扣：無<br>
+          <span style="color:var(--b3)">（存檔後自動算出到期日，快到期會出現在儀表板提醒）</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>`;
+
+SCENES.settle = `
+<div class="scene" id="sc-settle">
+  <div class="admin" style="width:250px;height:440px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">💰 分帳三步驟</div>
+      <div class="acard" id="st-role" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">① 分帳角色名單</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.6">設定誰參與分帳：<br>💁 秘書・🏥 診所・👨‍⚕️ 醫師・🌱 元代謝內部</div>
+      </div>
+      <div class="acard" id="st-rule" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">② 分帳規則設定</div>
+        <div style="font-size:10px;color:var(--mist);line-height:1.6">每種服務（IRCT-t1/t2、陪跑費）<br>要分給哪些角色、各分多少</div>
+      </div>
+      <div class="acard" id="st-calc" style="opacity:0;transition:all .5s;background:var(--mint)">
+        <div style="font-size:11px;font-weight:700;color:var(--ink);margin-bottom:4px">③ 月結算</div>
+        <div style="font-size:10px;color:var(--ink);line-height:1.6">選月份→產生結算<br>系統自動算出各角色分到多少 💰</div>
+      </div>
+    </div>
+  </div>
+  <div class="phone" style="width:230px;height:440px"><div class="screen">
+    <div class="p-head" style="background:linear-gradient(135deg,#C88A2E,#A06A1E)"><div class="hi">💰 本月結算</div><div class="sub">系統自動彙總</div></div>
+    <div class="p-body">
+      <div class="pcard" id="st-sum" style="opacity:0;transition:all .5s">
+        <div class="t">本月總金額 NT$ 96,000</div>
+        <div class="s">共 20 筆服務</div>
+      </div>
+      <div class="pcard" id="st-r1" style="opacity:0;transition:all .5s">
+        <div class="t">💁 秘書</div><div class="s">分得 NT$ 28,800</div>
+      </div>
+      <div class="pcard" id="st-r2" style="opacity:0;transition:all .5s">
+        <div class="t">🌱 元代謝內部</div><div class="s">分得 NT$ 48,000</div>
+      </div>
+    </div>
+  </div></div>
+</div>`;
+
+SCENES.sales = `
+<div class="scene" id="sc-sales">
+  <div class="admin" style="width:250px;height:440px">
+    <div class="a-main" style="border-radius:14px">
+      <div class="a-title">🎯 成交話術・三段式發送</div>
+      <div style="font-size:10px;color:var(--mist);margin-bottom:8px">講解完 IRCT 報告後，依序發送給有意願的客人</div>
+      <div class="acard" id="sl-1" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink)">第一段・確認時機</div>
+        <div style="font-size:10px;color:var(--mist);margin-top:3px">「請問您方便現在確認嗎？」</div>
+        <div style="font-size:9px;color:var(--b3);margin-top:3px">📋 複製第一段</div>
+      </div>
+      <div class="acard" id="sl-2" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink)">第二段・說明方案</div>
+        <div style="font-size:10px;color:var(--mist);margin-top:3px">介紹陪跑計畫內容與價值</div>
+      </div>
+      <div class="acard" id="sl-3" style="opacity:0;transition:all .5s">
+        <div style="font-size:11px;font-weight:700;color:var(--ink)">第三段・引導行動</div>
+        <div style="font-size:10px;color:var(--mist);margin-top:3px">引導客人完成報名</div>
+      </div>
+      <div class="acard" id="sl-send" style="opacity:0;transition:all .5s;background:var(--mint);text-align:center;font-size:11px;color:var(--ink);font-weight:700">✅ 依序發送三段，不怕漏詞</div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.funnel = `
+<div class="scene" id="sc-funnel">
+  <div class="phone" style="width:230px;height:440px"><div class="screen">
+    <div class="p-head" style="background:linear-gradient(150deg,#0A4A3A,#158066)"><div class="hi">🌱 代謝健康小提醒</div><div class="sub">60 秒免費自測</div></div>
+    <div class="p-body">
+      <div class="pcard" id="fn-q" style="opacity:0;transition:all .5s">
+        <div class="t">7 個簡單問題</div>
+        <div class="s">症狀＋健檢指標，算出值得留意的項目</div>
+      </div>
+      <div class="pcard" id="fn-result" style="opacity:0;transition:all .5s;border-left:3px solid #C88A2E">
+        <div class="t">🟠 有一些值得留意的項目</div>
+        <div class="s">建議諮詢醫師了解（非診斷）</div>
+      </div>
+      <div class="pcard" id="fn-cta" style="opacity:0;transition:all .5s;background:var(--mint);text-align:center">
+        <div class="t">💚 加入 LINE・問健康秘書</div>
+      </div>
+    </div>
+  </div></div>
+  <div class="phone" style="width:230px;height:440px"><div class="screen">
+    <div class="p-head" style="background:linear-gradient(135deg,#0F6E56,#158066)"><div class="hi">💚 關心身邊的人</div></div>
+    <div class="p-body">
+      <div class="pcard" id="fn-share" style="opacity:0;transition:all .5s">
+        <div class="t">分享代謝自測給親友</div>
+        <div class="s">客人一鍵分享給家人朋友</div>
+      </div>
+      <div class="pcard" id="fn-new" style="opacity:0;transition:all .5s;background:var(--mint)">
+        <div class="t">🔄 老客帶新客</div>
+        <div class="s">朋友測完→加 LINE→成為新客源</div>
+      </div>
+    </div>
+  </div></div>
+</div>`;
+
+SCENES.check = `
+<div class="scene" id="sc-check">
+  <div class="admin" style="width:420px">
+    <div class="a-side"><div class="logo">元代謝後台</div>
+      <div class="it">📊 儀表板</div><div class="it">🚨 警示看板</div><div class="it on">⚙️ 全域設定</div>
+    </div>
+    <div class="a-main">
+      <div class="a-title">系統體檢</div>
+      <div class="acard">
+        <div class="abtns" style="margin-top:0"><button class="abtn g" id="ck-btn">開始體檢</button></div>
+        <div id="ck-list" style="margin-top:8px">
+          <div class="checkline" style="opacity:0" id="ck1"><span class="ok">✅</span> 👤 客人名單・👤 每日記錄・💬 QA設定…</div>
+          <div class="checkline" style="opacity:0" id="ck2"><span class="ok">✅</span> ⚙️ 外食速查・⚙️ 好物商品・💬 FAQ設定…</div>
+          <div class="checkline" style="opacity:0" id="ck3"><span class="ok">✅</span> 全部 39 張工作表檢查通過 🎉</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+SCENES.ending = `
+<div class="scene title-scene" id="sc-ending">
+  <h1 style="font-size:clamp(22px,4vw,32px)">換你動手了！</h1>
+  <div class="endlist">
+    ✅ 前台：填每日記錄・逛花園・查外食・看好物<br>
+    ✅ 後台：處理警示・推薦補充品（可一鍵再推薦）<br>
+    ✅ 加測檢測：點選項目 → 填結果，醫師點開即看<br>
+    ✅ 用藥記錄：登記 → 減量 → 停藥，時間軸留存<br>
+    ✅ 後台改內容 → 前台馬上變（連動）<br>
+    ✅ 送一顆星星 → 客人花園收到<br>
+    ✅ 排追蹤提醒・產生月報・寫交接<br>
+    ✅ 跑一次系統體檢，看到全綠
+  </div>
+  <div class="sub" style="letter-spacing:.05em">詳細步驟請看《測試練習操作手冊》・卡住就截圖回報 💚</div>
+</div>`;
+</script>
+<script>
+/* ═══════════ 播放引擎 ═══════════ */
+const CHAPTERS = [
+  { id:'intro', title:'序・這是什麼系統', steps:[
+    {cap:'歡迎！這套系統由 <b>三個部分</b> 組成——', act:()=>{}},
+    {cap:'<b>前台</b> 給客人用：記錄、查症狀、逛花園', act:()=>show('tri1'), dur:2600},
+    {cap:'<b>後台</b> 是秘書工作台：儀表板、警示、內容管理', act:()=>show('tri2'), dur:2800},
+    {cap:'所有資料都住在 <b>Google 試算表</b>，前後台改什麼，表裡馬上看得到', act:()=>show('tri3'), dur:3400},
+  ]},
+  { id:'login', title:'第 0 章・登入與安全（新）', steps:[
+    {cap:'系統現在有 <b>身分驗證</b> 了！客人第一次打開前台，會看到登入畫面', dur:4000},
+    {cap:'客人輸入 <b>秘書給的客人編號＋姓名</b>，一次綁定，之後打開就直接進入，不用再輸入', act:()=>{show('lg-form')}, dur:4600},
+    {cap:'如果已設定 LINE 登入（LIFF），客人在 LINE 裡打開會 <b>自動認得是誰</b>，連編號都不用輸', act:()=>{show('lg-line')}, dur:4600},
+    {cap:'後台一樣要 <b>帳號密碼登入</b>——而且現在每筆資料傳輸都會驗證身分，別人拿到網址也看不到客人資料 🔒', act:()=>{show('lg-admin')}, dur:5000},
+    {cap:'秘書重新整理頁面 <b>不會被登出</b>；閒置超過 6 小時才需要重新登入', act:()=>{show('lg-admin')}, dur:4200},
+    {cap:'廠商對帳頁也升級了：除了廠商代碼，還要輸入 <b>查詢密碼</b>（創始人在「分帳角色名單」表的「查詢密碼」欄設定）', act:()=>{show('lg-vendor')}, dur:5200},
+    {cap:'秘書要用後台，<b>創始人在「帳號管理」頁</b>幫他建一組帳號密碼就好——這頁只有創始人看得到，秘書登入後在選單裡完全看不到這個選項', act:()=>{show('lg-accmgmt')}, dur:5600},
+    {cap:'⚠️ 創始人記得做一件事：把預設密碼 admin1234 <b>改掉</b>（自己也是一組帳號，一樣在「帳號管理」頁改）；廠商查詢密碼記得每家都設定', act:()=>{show('lg-todo')}, dur:5600},
+  ]},
+  { id:'fhome', title:'第 1 章・前台首頁', steps:[
+    {cap:'打開前台網址，第一眼是 <b>首頁</b>。上面的「陳小美」是示範文字，看到它是正常的', dur:3800},
+    {cap:'首頁有介紹影片卡，第一次可以點開看 5 分鐘的旅程說明', act:()=>tapEl('fh-video'), dur:3000},
+    {cap:'往下是 <b>今日花園任務</b>——客人每天要做的事都在這裡', act:()=>tapEl('fh-task1'), dur:3000},
+    {cap:'最下面是功能入口：問答、外食速查、代謝花園、好物推薦', act:()=>tapEl('fh-qa'), dur:3200},
+  ]},
+  { id:'funnel', title:'第 1.5 章・免費自測與轉介', steps:[
+    {cap:'系統有一個 <b>免費代謝自測</b>（60 秒、7 題），這是給<b>還沒成為客人的陌生人</b>用的引流工具', act:()=>{show('fn-q')}, dur:4400},
+    {cap:'測完會給結果——但完全 <b>合規、不做診斷</b>，只說「有值得留意的項目、建議諮詢醫師」', act:()=>{show('fn-result')}, dur:4400},
+    {cap:'結果頁引導 <b>加入 LINE 問健康秘書</b>——測出有狀況的人，正是最有動機加 LINE 的人', act:()=>{show('fn-cta')}, dur:4400},
+    {cap:'更棒的是，<b>客人前台也能「分享自測給親友」</b>', act:()=>{show('fn-share')}, dur:3600},
+    {cap:'朋友測完→加 LINE→變成新客源。<b>每個滿意的客人，都是免費的轉介渠道</b> 🔄', act:()=>{show('fn-new')}, dur:4600},
+  ]},
+  { id:'frecord', title:'第 2 章・填每日記錄', steps:[
+    {cap:'點首頁任務的「🩸 血酮記錄」會跳到這裡。先填血酮——', act:()=>tapThen('fr-ketone',()=>fill('fr-ketone','1.8')), dur:3000},
+    {cap:'再填體重和今日感受', act:()=>{tapThen('fr-weight',()=>fill('fr-weight','62'));setTimeout(()=>fill('fr-feel','精神不錯 😊'),900)}, dur:3000},
+    {cap:'按 <b>送出記錄</b>', act:()=>tapThen('fr-send',()=>{pop('fr-toast')}), dur:2600},
+    {cap:'看右邊！這筆記錄 <b>立刻寫進 Google 試算表</b>——這就是整套系統的運作方式', act:()=>{show('fr-sheet');setTimeout(()=>showRow('fr-row'),500)}, dur:4000},
+    {cap:'記錄頁還有 <b>🍽 餐盤快記</b>：油脂、蛋白質、澱粉各點一下（10 秒）——因為拍照看不出油放了多少，<b>自己點選比 AI 猜更準</b>，秘書的建議也會更到位', act:()=>{show('fr-plate')}, dur:5400},
+    {cap:'貼心的是，餐盤的<b>油脂、蛋白質、澱粉</b>每個旁邊都有「ⓘ 怎麼吃」——客人勾選時有疑問，<b>點一下當場看到答案</b>（例如蛋白質一掌心、油脂勇敢吃、澱粉判斷三原則），不用另外查', act:()=>{const t=g('fr-oil-tip');if(t)t.style.display='block';setTimeout(()=>tapThen('fr-plate-send',()=>pop('fr-plate-toast')),2200)}, dur:5600},
+  ]},
+  { id:'fgarden', title:'第 3 章・代謝花園', steps:[
+    {cap:'這是客人 <b>每天回來的理由</b>：代謝花園。每一天照顧身體，這棵樹就會長大', dur:3800},
+    {cap:'完成一個任務，就是幫花園 <b>澆一次水</b>——看，補電解質打勾了', act:()=>tapThen('gd-task3',()=>{const t=g('gd-task3');if(t)t.classList.add('done');const c=g('gd-count');if(c)c.textContent='3 / 5';const d=g('gd-drops');if(d)d.classList.add('rain');const tr=g('gd-tree');if(tr)tr.classList.add('wiggle');pop('gd-toast')}), dur:3600},
+    {cap:'持續照顧，小樹會 <b>越長越大</b>，還會解鎖新的花園階段', act:()=>{const tr=g('gd-tree');if(tr){tr.classList.remove('wiggle');tr.textContent='🌳';tr.classList.add('grown')}const l=g('gd-daylabel');if(l)l.textContent='小樹長大了！🌳';const s1=g('gd-sp1'),s2=g('gd-sp2');if(s1)s1.classList.add('pop');if(s2)setTimeout(()=>s2.classList.add('pop'),350)}, dur:3800},
+    {cap:'花園裡還藏著 <b>神秘小驚喜</b>——任務做得越多，越多小生物會悄悄現身 🦋', act:()=>{const b=g('gd-butterfly');if(b)b.classList.add('fly')}, dur:3800},
+    {cap:'秘書送的禮物也會 <b>掉進花園</b>——像這顆星星！（怎麼送，第 9 章示範）', act:()=>{const st=g('gd-star');if(st)st.classList.add('fall');setTimeout(()=>{const tr=g('gd-tree');if(tr)tr.classList.add('glow')},1400)}, dur:4000},
+    {cap:'客人出差旅遊？按 <b>✈️ 旅行模式</b>，任務自動維持，連續紀錄不中斷、花園不會枯', act:()=>tapThen('gd-travel',()=>{const t=g('gd-travel');if(t){t.classList.add('on');t.textContent='✈️ 旅行中'}}), dur:4200},
+    {cap:'花園是 <b>真實反映</b> 記錄的：天天記錄就生氣盎然、連續天數是真的。<b>久沒記錄花園會「沒精神」</b>（變淡、小動物躲起來），但不會枯死、不會責備——只溫柔說「有點想你了」，客人一回來就恢復', dur:5400}
+  ]},
+  { id:'fmore', title:'第 4 章・外食指南（找餐廳＋查食物）', steps:[
+    {cap:'客人出門在外，最需要的就是「吃什麼」——前台把它整合成一個入口 <b>🍽 外食指南</b>，點進去 <b>找餐廳、查食物兩區一起看到</b>，不用切來切去', dur:4600},
+    {cap:'上面是 <b>找粒腺體友善餐廳</b>：全台 8 個地區、200 多家。客人先選自己的地區', act:()=>{show('kr-c1');show('kr-rg2')}, dur:4200},
+    {cap:'每家都有 <b>推薦點法</b>（點什麼、避開什麼）、友善度標記、一鍵 <b>導航</b>——鵝肉、羊肉這種原型肉品是綠色「完全友善」', act:()=>{show('kr-c2')}, dur:4600},
+    {cap:'往下滑是 <b>查食物怎麼點</b>：不確定某種食物能不能吃，搜尋「沙拉」馬上查到', act:()=>tapThen('fm-search',()=>{fill('fm-search','沙拉');setTimeout(()=>show('fm-r1'),500)}), dur:3800},
+    {cap:'每樣食物都有 <b>✅ 可以吃／❌ 避免</b> 的標籤和說明，不用猜', act:()=>show('fm-r2'), dur:3400},
+    {cap:'後台 <b>「粒腺體友善餐廳」</b> 頁可以自己新增餐廳（填地區、店名、推薦點法），<b>客人端該地區立刻多一家</b>。食物速查的內容也一樣由後台管理', act:()=>{show('kr-form');show('kr-added')}, dur:5000},
+  ]},
+  { id:'adash', title:'第 5 章・秘書儀表板', steps:[
+    {cap:'換到 <b>後台</b>。秘書登入第一眼看到的就是儀表板——不用自己記該做什麼，系統把待處理的事一張張排好', act:()=>{show('ad-duty')}, dur:4200},
+    {cap:'最上面永遠是 <b>「今日待辦」</b>（綠色）：今天幾位生日、幾位還沒記錄、幾位有症狀警示、幾位方案快到期，<b>點一下就跳去處理</b>', act:()=>{show('ad-duty')}, dur:5000},
+    {cap:'客人在前台送出預約後，<b>「新預約」卡片</b>（紫框）就會出現——秘書打電話跟客人確認實際日期，按「已聯繫確認」結案', act:()=>{show('ad-book')}, dur:4800},
+    {cap:'客人按「請秘書代購」後，<b>「代購需求」卡片</b>（藍框）出現——誰要買什麼、幾份、跟哪個廠商買，一目了然', act:()=>{show('ad-proxy')}, dur:4600},
+    {cap:'有秘書發起的個案討論在等回覆時，<b>「個案討論」卡片</b>（橘框）會提醒你，點「去回覆」直接跳到那位客人的討論串', act:()=>{show('ad-disc')}, dur:4600},
+    {cap:'再來是 <b>「症狀提醒」</b>（紅框，近7天症狀關鍵字自動抓）、<b>「生日提醒」</b>、<b>「值得被稱讚的客人」</b>（綠色暖心獎項）——都是系統自動篩出來的', act:()=>{show('ad-symptom');show('ad-bday');show('ad-award')}, dur:5600},
+    {cap:'往下是 <b>「今日客人記錄」</b>：誰填了、誰還沒填，一眼看清楚', act:()=>{show('ad-today')}, dur:3800},
+    {cap:'最後是整體數字：<b>服務中客人、今日已填、需要關心、狀態正常</b>——這幾張卡片全部是 <b>只在有內容時才出現</b>，沒事的話畫面很乾淨，不會每天被一堆空卡片洗版', act:()=>{show('ad-stats')}, dur:5400},
+  ]},
+  { id:'aalert', title:'第 6 章・處理警示', steps:[
+    {cap:'警示看板不是只有紅色警示——上面還有三塊<b>客人待處理事項</b>。先看 <b>📋 問卷未填客人</b>：跳過入會健康問卷的人會列在這，建議秘書主動了解背景', act:()=>show('aa-quiz'), dur:5000},
+    {cap:'再來是 <b>📅 本月可預約時間管理</b>——每月底在這裡更新下個月開放給客人預約的時段，客人在前台預約 IRCT 時看到的就是這裡設定的時間', act:()=>show('aa-slot'), dur:5200},
+    {cap:'還有 <b>📄 IRCT 報告狀態</b>：追蹤每份報告從「檢測完成」到「已經寄給客人」的每一步，不會漏寄', act:()=>show('aa-irct'), dur:4600},
+    {cap:'往下才是 <b>紅色・立即處理</b>：系統自動抓「連續 5 天未填記錄」的客人。先按 <b>複製訊息</b>——', act:()=>{show('aa-title2');tapEl('aa-copy')}, dur:3400},
+    {cap:'系統已經寫好一段溫暖的關心文案，<b>貼到 LINE 就能傳</b>給客人', act:()=>show('aa-note'), dur:3600},
+    {cap:'關心完，按 <b>標記處理中</b>', act:()=>tapThen('aa-resolve',()=>{const c=g('aa-card'),b=g('aa-resolve');if(c)c.classList.add('faded');if(b)b.textContent='已處理 ✓'}), dur:2800},
+    {cap:'Google 表會 <b>自動多出一張「警示處理記錄」</b>，換班秘書一看就知道誰處理過了', act:()=>{show('aa-sheet');setTimeout(()=>showRow('aa-row'),500)}, dur:4200},
+  ]},
+  { id:'asupp', title:'第 7 章・推薦補充品', steps:[
+    {cap:'在儀表板點任何客人，會打開他的 <b>詳細面板</b>——近期血酮、體重一目了然', dur:3400},
+    {cap:'面板裡可以直接推薦補充品：選品項——', act:()=>tapThen('as-sel',()=>fill('as-sel','鎂（甘胺酸鎂）・基礎')), dur:2800},
+    {cap:'推薦原因 <b>用點的</b>：夜間抽筋、電解質補充、抗發炎…12 個常用原因一鍵選，按 <b>記錄推薦</b>', act:()=>{fill('as-reason','夜間抽筋・肌肉緊繃');setTimeout(()=>tapEl('as-btn'),700)}, dur:3600},
+    {cap:'客人傳補充品照片來？按 <b>📷 拍補充品辨識</b>——資料庫裡的品項會自動比對出來，勾選一鍵批次推薦', dur:4400},
+    {cap:'同樣自動寫進 Google 表的 <b>「補充品推薦記錄」</b>——推薦過什麼，永遠查得到', act:()=>{show('as-sheet');setTimeout(()=>showRow('as-row'),500)}, dur:3800},
+    {cap:'而且每筆都留在 <b>推薦歷史</b>——下次按「再次推薦」，一鍵重複、不用重打', act:()=>{show('as-hist');setTimeout(()=>tapEl('as-rebtn'),900)}, dur:4200},
+    {cap:'推薦補充品時，可以註記 <b>「建議醫師／藥師」</b>——醫師或藥師在 LINE 群交代的建議，秘書記錄時選一下是誰建議的，<b>系統就留下醫療把關的軌跡</b>，對醫師零負擔', dur:5000},
+  ]},
+  { id:'alab', title:'第 8 章・加測檢測', steps:[
+    {cap:'客人要做 IRCT？<b>不用逐項勾選</b>——下拉選套組。選「IRT-t2 首次檢測（慢性病用藥者・6800）」', act:()=>tapThen('al-sel',()=>{fill('al-sel','IRT-t2 首次檢測（慢性病用藥者・6800）');const t=g('al-t2opts');if(t)t.style.display='flex'}), dur:4200},
+    {cap:'t2 套組可以加驗——勾個 <b>sdLDL</b>，按記錄，整組一筆寫進「💉 檢體記錄」', act:()=>{const c=g('al-ck1');if(c){c.textContent='☑ sdLDL';c.style.color='#0F6E56'}setTimeout(()=>tapThen('al-btn',()=>{show('al-h1');show('al-sheet');setTimeout(()=>showRow('al-row1'),400)}),900)}, dur:4400},
+    {cap:'除了 IRCT，還有 <b>🔬 功能醫學</b> 下拉：常用精選置頂，完整 74 項 REDOX 檢測分組收在下面，價格全部帶好', act:()=>{const t=g('al-t2opts');if(t)t.style.display='none';fill('al-sel','1131 氧化壓力分析（NT$6100）');show('al-fm')}, dur:4800},
+    {cap:'選好後，<b>採檢注意事項自動浮出</b>——不用再回頭查資料', act:()=>{const d2=g('al-desc');if(d2)d2.style.display='block'}, dur:3400},
+    {cap:'記錄後狀態「⏳ 已安排」；報告出來按 <b>填結果</b> 輸入數值，醫師點開客人就看得到', act:()=>{tapThen('al-btn',()=>{show('al-h2');setTimeout(()=>showRow('al-row2'),300)});setTimeout(()=>tapThen('al-fill',()=>{const st=g('al-status');if(st){st.textContent='✅ 已完成';st.className='badge g'}const f=g('al-fill');if(f)f.style.display='none';const r=g('al-result');if(r)r.textContent='正常';const sub=g('al-histsub');if(sub)sub.innerHTML='今天・<b style="color:#0F6E56">結果已填</b>'}),2200)}, dur:5200},
+    {cap:'價格與採檢提示都存在「加測項目清單」分頁——想調價、加新項目，<b>直接改表</b>就行，不用改程式', dur:4400},
+    {cap:'功醫報告 <b>數值太複雜、辨識不準</b>？別硬幹——加測區下方填報告名稱，按 <b>📷 上傳報告圖</b>，整張存進雲端，醫師從歷史點「📄 檢視報告圖」看原圖最準', dur:5200},
+  ]},
+  { id:'labOverdue', title:'第 8.5 章・檢測逾期提醒（新）', steps:[
+    {cap:'IRCT、其他加項、功能醫學，送檢後難免會漏——報告該回來卻沒回來。<b>系統會自動幫你盯</b>，不用自己記日期', dur:5000},
+    {cap:'儀表板出現橘紅色卡片 <b>「檢測逾期未回報・該去催了」</b>——一般加項超過 5 天、功能醫學超過 12 天沒回報就會列出來（功醫本來就比較久，門檻分開算）', act:()=>{show('lo-1');show('lo-2')}, dur:5600},
+    {cap:'每一筆看得到：<b>客人、項目、送往哪個實驗室/診所、送檢幾天了</b>。超過門檻 1.5 倍顯示紅色，兩類天數基準不同，用比例判斷比較準', dur:4200},
+    {cap:'按 <b>📋 複製催收訊息</b>，系統已經寫好一段話，貼到 LINE 或 Email 傳給實驗室/診所就能催', act:()=>tapThen('lo-copy',()=>show('lo-note')), dur:4600},
+    {cap:'催完按 <b>已跟催</b>，卡片會顯示「今天已跟催」——提醒還在（畢竟報告還沒回來），但至少知道今天已經問過了，不會同一天催兩次', act:()=>tapThen('lo-follow',()=>show('lo-done')), dur:5200},
+    {cap:'覺得預設天數不合適？按卡片右上角 <b>⚙️ 調整天數</b> 隨時改，一般加項和功能醫學可以分開設定', act:()=>show('lo-setting'), dur:4400},
+    {cap:'不同實驗室、不同項目的規定本來就不一樣——<b>單一項目也可以個別設定</b>。在「加測檢測」選好項目後，下面會顯示「⏱ 逾期提醒：沿用類別預設值」，點 <b>修改</b> 就能單獨改這一項要等幾天', dur:5800},
+    {cap:'例如某些基因檢測本來就要等 3～4 週，設成 25 天；某些血液常規當天就有結果，設成 2 天——<b>設定過的項目優先於類別預設值</b>，沒設定的才用一般/功醫的通用門檻', dur:5800},
+    {cap:'更進一步：每間<b>診所/實驗室</b>的規定也不一樣。到「分帳角色名單」新增診所或實驗室時，多了 <b>對接人、聯絡方式、預設回報天數</b> 三個欄位——一次登錄，同時給分潤結算、店家查帳、和這裡的逾期提醒共用', act:()=>show('lo-lab'), dur:6000},
+    {cap:'記錄檢測時多一個 <b>「送往哪個診所/實驗室」</b> 下拉選單——選好之後，逾期天數的判斷順序變成：<b>這個項目自己有沒有設定 → 沒有就看這間單位的預設天數 → 都沒有才用一般/功醫的通用門檻</b>，三層一層比一層準', act:()=>show('lo-sendto'), dur:6400},
+    {cap:'催收訊息也更貼心了：知道對接人是誰，複製出來的訊息會自動變成「陳醫師您好，跟您確認…」，不再是制式的「您好」', dur:5000},
+    {cap:'順帶一提：客人前台預約 IRCT 時選的診所，跟秘書後台「加測檢測」的送往下拉選單，<b>現在是同一份名單</b>——秘書打開這位客人的加測檢測，如果他有預約中的 IRCT，送往會<b>自動帶入</b>他當初選的診所，不用重選、名稱也不會兜不起來', act:()=>show('lo-clinic-link'), dur:6200},
+    {cap:'客人選 <b>IRCT-t2（已有慢性病用藥）</b>時，預約流程會多要求填「目前服用的慢性病藥物」——沒填不能按下一步，系統會擋下來提醒。藥名清單跟秘書後台「用藥記錄」用的是<b>同一份</b>，客人選過的藥名，藥師記錄時也選得到', act:()=>show('lo-med-req'), dur:6400},
+    {cap:'但也有客人<b>沒有慢性病用藥，卻想加測</b> t2 多驗的 sdLDL／同半胱胺酸——這種情況勾選「我沒有服用慢性病藥物，只是自己想加測」就能跳過必填，不會被卡住', dur:5600},
+    {cap:'預約流程也多了一題：<b>「每週會讓你喘的運動，大概幾次？」</b>——走路逛街不算，要有點喘、心跳變快的強度才算。這是給客人的健康基礎資料，t1、t2 都會問', act:()=>show('lo-exercise'), dur:6000},
+    {cap:'客人預約送出後，秘書儀表板「新預約」卡片會直接顯示客人填的用藥——<b>不用再等客人另外傳藥袋照片</b>。如果客人選了 t2 卻沒填，卡片會用紅色提醒「請跟客人確認」', act:()=>show('lo-med-dash'), dur:6200},
+  ]},
+  { id:'ameds', title:'第 9 章・用藥記錄', steps:[
+    {cap:'客人回報用藥？<b>登記下來</b>——藥名、劑量，按記錄用藥', act:()=>{tapThen('md-name',()=>{fill('md-name','Metformin');fill('md-dose','500mg 早晚')});setTimeout(()=>tapThen('md-btn',()=>{show('md-card');show('md-sheet')}),1400)}, dur:4600},
+    {cap:'醫師調整後按 <b>記錄減量</b>——時間軸自動多一筆，原本的保留', act:()=>tapThen('md-reduce',()=>{const st=g('md-status');if(st){st.textContent='減量';st.className='badge b'}const d2=g('md-dosenow');if(d2)d2.textContent='250mg 早';const t=g('md-timeline');if(t)t.innerHTML='05-10 服用中（500mg 早晚）<br>06-14 減量（250mg 早）';showRow('md-row2')}), dur:4400},
+    {cap:'停藥時按 <b>記錄停藥</b>——<b>什麼時候減、什麼時候停，日期全部留存</b>，這就是「慢性用藥減量」成效的證據', act:()=>tapThen('md-stop',()=>{const st=g('md-status');if(st){st.textContent='已停藥';st.className='badge g'}const r=g('md-reduce'),s2=g('md-stop');if(r)r.style.display='none';if(s2)s2.style.display='none';const t=g('md-timeline');if(t)t.innerHTML='05-10 服用中（500mg 早晚）<br>06-14 減量（250mg 早）<br><b style="color:#0F6E56">07-08 已停藥 🎉</b>';showRow('md-row3')}), dur:5200},
+    {cap:'更快的登記法：<b>📷 拍藥袋辨識</b>——拍照自動抓藥名劑量，核對後一鍵登記；遇到 SGLT2 類降糖藥還會 <b>自動警示</b>（與粒腺體併行需醫師評估）', dur:5200},
+    {cap:'提醒：劑量調整都由客人的 <b>醫師決定</b>，我們負責把時間軸忠實記下來。當月的用藥變化也會 <b>自動帶進月報</b>', dur:4600},
+    {cap:'用藥調整時，記得填 <b>「醫囑來源」</b>——哪位醫師交代的減藥／停藥，選一下醫師名字。這樣<b>醫療決策有醫師背書、留下紀錄</b>，合規又安全（醫師照常在 LINE 講，不用碰系統）', dur:5200},
+  ]},
+  { id:'adisc', title:'第 9.5 章・個案討論（新）', steps:[
+    {cap:'遇到 <b>特殊情況</b>（例如數據怪怪的、不確定要不要建議回診），以前只能在 LINE 群裡問，問完就沉了', dur:4600},
+    {cap:'現在打開客人面板，有一區 <b>💬 個案討論</b>——填主題和狀況，按「發起討論」，全部秘書都看得到', act:()=>{show('ds-thread')}, dur:4600},
+    {cap:'其他秘書登入後，<b>儀表板會出現「個案討論・等你的意見」</b>，點「去回覆」就能接話', act:()=>{show('ds-r1')}, dur:4400},
+    {cap:'問過醫師之後，把醫師在 LINE 說的話 <b>貼回討論串、選「🩺 醫師意見」</b>——這樣意見就留底了', act:()=>{show('ds-r2')}, dur:4800},
+    {cap:'討論出結果後按 <b>「📌 標記結論」</b>，填最終處理方式。接著會再問一句：<b>要不要存一段「可以直接傳給客人的訊息」？</b>', act:()=>{show('ds-concl')}, dur:5000},
+    {cap:'存了話術之後，討論串會出現 <b>「📋 複製傳給客人」</b>——一鍵複製、貼到 LINE 就能傳，不用重新想措辭', act:()=>{show('ds-msg')}, dur:4600},
+    {cap:'最強的是：以後遇到 <b>類似情境的新客人</b>，在討論區打關鍵字「<b>搜過往案例</b>」，所有客人的歷史結論和話術都搜得到，直接套用 🎯', act:()=>{show('ds-search')}, dur:5400},
+    {cap:'半年後別的秘書遇到類似狀況，打開這位客人就看得到 <b>當時的討論過程＋結論</b>，不用重新問一輪 🎯', dur:5000},
+  ]},
+  { id:'sync', title:'第 10 章・前後台連動', steps:[
+    {cap:'這是全系統 <b>最重要的一招</b>：後台改內容，前台馬上變。看好——', dur:3200},
+    {cap:'QA 還能 <b>一鍵匯入補充包</b>：24 題實戰問答（含 sdLDL 飲食、亂流期安撫）一次上線。也能手動新增：症狀「抽筋」', act:()=>{tapThen('sy-symptom',()=>fill('sy-symptom','抽筋'));setTimeout(()=>fill('sy-answer','補充鎂與足量水分'),900)}, dur:3000},
+    {cap:'按新增——上線了', act:()=>tapThen('sy-save',()=>show('sy-added')), dur:2400},
+    {cap:'客人在前台搜尋「抽筋」……<b>馬上查得到！</b>外食、FAQ、商品的管理也全是同一套邏輯', act:()=>{placeFlow('sy-flow');fill('sy-search','抽筋');setTimeout(()=>{show('sy-result')},800)}, dur:4400},
+    {cap:'秘書自己也能用：QA 列表每題都有 <b>複製回覆</b> 按鈕——點一下、貼到 LINE，再加上自己的話就能回客人', dur:4400},
+    {cap:'還有一個貼心設計：客人在問答區問問題、得到回答後，<b>系統會自動附上「相關文章」</b>——這些是元代謝部落格（方格子）的文章', act:()=>{show('sy-article')}, dur:4600},
+    {cap:'還會自動帶出 <b>「相關影片」</b>，連到元代謝的 YouTube 頻道', act:()=>{show('sy-video')}, dur:3800},
+    {cap:'也會帶出 <b>「相關節目」</b>，連到元代謝的 Podcast——客人通勤、做家事時就能用聽的', act:()=>{show('sy-podcast')}, dur:4400},
+    {cap:'所以你們的<b>部落格、YouTube、Podcast 三種內容，都會自動融入客人的問答裡</b>——不用你手動貼，客人問到相關問題就自然看到', dur:4800},
+    {cap:'另外在<b>前台首頁</b>還有一張「📣 追蹤元代謝」卡，把四個管道都放在一起：<b>方格子部落格、YouTube、Podcast、Facebook 粉絲專頁</b>。客人想追蹤你們，一個地方全都有', dur:5200},
+  ]},
+  { id:'gift', title:'第 11 章・花園送禮', steps:[
+    {cap:'秘書的暖心武器：<b>花園禮物</b>。在花園管理找到客人，按送禮物——', act:()=>tapThen('gf-btn',()=>show('gf-menu')), dur:3000},
+    {cap:'選一顆 <b>⭐ 星星</b>', act:()=>tapEl('gf-star'), dur:2200},
+    {cap:'客人打開前台……收到了！鼓勵透過 App 直接送達，<b>不用另外傳訊息</b>', act:()=>{placeFlow('gf-flow');pop('gf-toast');setTimeout(()=>{const r=g('gf-recv'),t=g('gf-tree');if(r){r.style.opacity='1';r.style.transform='scale(1)'}if(t)t.style.transform='scale(1.25)'},700)}, dur:4200},
+  ]},
+  { id:'atrack', title:'第 12 章・追蹤與複檢提醒', steps:[
+    {cap:'客人需要定期複檢（IRCT、腎臟、甲狀腺…），<b>不用靠腦袋記</b>——用追蹤模組。類型下拉除了 IRCT複檢提醒，還有 <b>腎臟追蹤（Na/K/Mg/P/eGFR）</b>、甲狀腺追蹤（TSH/T3/T4）、電解質追蹤', act:()=>{fill('at-type','類型：腎臟追蹤（Na/K/Mg/P/eGFR）')}, dur:5000},
+    {cap:'選好客人和類型，挑日期', act:()=>tapThen('at-date',()=>fill('at-date','下次複驗：2026-09-01')), dur:3200},
+    {cap:'按 <b>新增追蹤</b>。時間快到時，「複檢提醒」頁會 <b>自動列出來</b>——逾期的排最前面', act:()=>tapThen('at-save',()=>{fill('at-remind-title','🔔 測試客人A・腎臟追蹤提醒（5 天後到期）');show('at-remind')}), dur:4200},
+    {cap:'按 <b>複製提醒訊息</b>，貼到 LINE 就能提醒客人。處理完標記，提醒就消失', act:()=>tapThen('at-copy',()=>show('at-copied')), dur:4000},
+  ]},
+  { id:'areport', title:'第 13 章・月報生成', steps:[
+    {cap:'每月給客人的健康月報，<b>不用手算</b>。選客人和月份，按產生——', act:()=>tapThen('ar-gen',()=>show('ar-draft')), dur:3200},
+    {cap:'記錄天數、平均血酮、體重腰圍變化，<b>全部自動統計</b>。加一句自己的評語——', act:()=>fill('ar-comment','這個月很穩定，繼續保持！💪'), dur:3600},
+    {cap:'按 <b>複製月報文字</b> 傳給客人，再標記已發送。每月流程五分鐘搞定', act:()=>tapEl('ar-copy'), dur:3600},
+    {cap:'評語不用自己想破頭——點 <b>💬 評語快選</b> 的詞條（可多選），自動加進評語欄，再改成你自己的話就好', dur:4400},
+  ]},
+  { id:'regdetail', title:'第 13.4 章・登錄內容詳解（排班/分潤/醫師/包套）', steps:[
+    {cap:'這一章仔細示範幾個重要的<b>登錄內容</b>：排班、分潤、醫師藥師、客人包套方案。先看 <b>🗓 排班登錄</b>', act:()=>{show('rd-shift')}, dur:4600},
+    {cap:'排班要填：<b>日期、秘書、班別、時間、計薪方式（時薪/月薪）、費率</b>。填完系統會依這個算薪水', dur:5000},
+    {cap:'接著是 <b>👥 分帳角色登錄</b>——先建立所有會參與分潤的人或單位', act:()=>{show('rd-role')}, dur:4200},
+    {cap:'每個角色填：<b>角色名稱</b>（例如婷婷）、<b>角色類型</b>。類型可選診所、實驗室、醫師、秘書、行政、講師、元代謝內部', dur:5200},
+    {cap:'再來是 <b>⚖️ 分帳規則登錄</b>——設定每種服務怎麼分潤', act:()=>{show('rd-rule')}, dur:4200},
+    {cap:'例如 IRCT-t1 收 4,800 元，設定分給：<b>診所 60%、秘書 30%、元代謝 10%</b>。設定一次，之後每筆自動套用，月底結算就照這個算', dur:5400},
+    {cap:'最後是 <b>👨‍⚕️ 醫師／藥師登錄</b>——建立醫師和藥師名單', act:()=>{show('rd-doctor')}, dur:4200},
+    {cap:'每位填 <b>姓名</b> 和 <b>職稱（醫師或藥師）</b>。建好之後，秘書在記錄用藥、推薦補充品時，就能從下拉選單選「是哪位醫師或藥師交代/建議的」', dur:5600},
+    {cap:'客人買了 <b>包套方案</b>（例如陪跑）？在客人面板填 <b>📦 客人方案登錄</b>——方案名稱、月數、費用、折扣（沒有就填無）', act:()=>{show('rd-plan')}, dur:5000},
+    {cap:'存檔後系統<b>自動算出到期日</b>，快到期時會出現在儀表板「今日待辦」提醒你續約，不用自己排日曆', dur:4800},
+    {cap:'這些登錄是分潤和醫療把關的<b>基礎資料</b>，一開始建好、之後維護就好。接下來看實際怎麼收款分帳 →', dur:4600},
+  ]},
+  { id:'settle', title:'第 13.5 章・收款與分帳', steps:[
+    {cap:'系統有一整套 <b>收款與分帳</b> 功能，很多秘書不知道——這關係到你的收入怎麼算。分三步驟', act:()=>{show('st-role')}, dur:4600},
+    {cap:'① <b>分帳角色名單</b>：先設定誰參與分帳——秘書、診所、醫師、元代謝內部都可以', act:()=>{show('st-role')}, dur:4000},
+    {cap:'② <b>分帳規則設定</b>：每種服務（IRCT-t1/t2、每月陪跑費）要分給哪些角色、各分多少，設定一次就自動套用', act:()=>{show('st-rule')}, dur:4600},
+    {cap:'③ <b>月結算</b>：選月份、按「產生結算」，系統就 <b>自動算出這個月每個角色分到多少錢</b>', act:()=>{show('st-calc');show('st-sum')}, dur:4600},
+    {cap:'例如這個月總額 96,000，系統直接算出秘書分 28,800、元代謝內部分 48,000——<b>不用自己算、不會算錯</b>', act:()=>{show('st-r1');show('st-r2')}, dur:5000},
+  ]},
+  { id:'sales', title:'第 13.6 章・成交話術', steps:[
+    {cap:'講解完 IRCT 報告、客人有意願時，後台有 <b>「銷售話術」</b> 幫你成交——三段式發送，不怕漏詞或緊張', act:()=>{show('sl-1')}, dur:4600},
+    {cap:'<b>第一段・確認時機</b>：先確認客人現在方便嗎，一鍵複製貼到 LINE', act:()=>{show('sl-1')}, dur:3800},
+    {cap:'<b>第二段・說明方案</b>：介紹陪跑計畫的內容與價值', act:()=>{show('sl-2')}, dur:3600},
+    {cap:'<b>第三段・引導行動</b>：引導客人完成報名。三段依序發送，<b>新手秘書也能穩穩成交</b>', act:()=>{show('sl-3');show('sl-send')}, dur:4600},
+  ]},
+  { id:'frontmore', title:'第 14 章・前台其他功能（趨勢・圖卡・簡介）', steps:[
+    {cap:'前台還有幾個貼心功能。<b>📈 健康趨勢圖</b>：客人看得到自己血酮、體重、腰圍的變化曲線，進步一目了然', act:()=>{show('fm-trend')}, dur:4600},
+    {cap:'<b>🎨 分享圖卡</b>：把客人的成果做成漂亮圖卡，他們可以分享到社群，順便幫你宣傳、帶來新客', act:()=>{show('fm-card')}, dur:4600},
+    {cap:'<b>🎬 簡介影片</b>：90 秒動畫介紹元代謝，還配了溫柔的背景音樂（客人可以按靜音）。適合傳給還在考慮的人看', act:()=>{show('fm-intro')}, dur:4800},
+  ]},
+  { id:'backmore', title:'第 14.5 章・後台其他管理', steps:[
+    {cap:'後台還有幾個進階管理功能。<b>📊 IRCT 區間設定</b>：設定各項健康指標的「最佳健康區間」，客人報告判讀時對照用', act:()=>{show('bm-irct')}, dur:4600},
+    {cap:'<b>🍽 飲食模式對照</b>：管理客人的飲食模式和 IRCT 前問卷，掌握每位客人的飲食狀況', act:()=>{show('bm-diet')}, dur:4400},
+    {cap:'<b>🏥 診所時間表管理</b>：每月 25 日在這裡更新各診所的可預約時段，客人在前台預約時就會看到正確的時間', act:()=>{show('bm-clinic')}, dur:4800},
+  ]},
+  { id:'aduty', title:'第 15 章・交接與值班', steps:[
+    {cap:'秘書換班前，寫一句 <b>交接備註</b>——', act:()=>tapThen('du-note',()=>fill('du-note','客人B已電聯，明日回訪；客人A推薦了鎂')), dur:3200},
+    {cap:'按儲存，寫進 Google 表的交接記錄——<b>晚班秘書打開就看得到</b>，客人的狀況不斷線', act:()=>tapThen('du-save',()=>show('du-ok')), dur:3800},
+    {cap:'右上角還能 <b>切換值班</b>——換班後，所有人的後台都會顯示現在是誰值班', act:()=>{const l=g('du-label');if(l){l.textContent='值班：小芳・19:00–21:00';l.style.background='#FBF0E1';l.style.color='#92400E'}}, dur:3800},
+  ]},
+  { id:'dashalert', title:'第 15.5 章・儀表板自動提醒', steps:[
+    {cap:'打開後台儀表板，系統會自動把 <b>該注意的客人</b> 浮到最上面——先看 <b>🚨 症狀提醒</b>', act:()=>{show('da-symptom')}, dur:4200},
+    {cap:'打胰島素的客人若 <b>血酮偏高又噁心</b>，會升級成紅色緊急警示——因為這類客人有 <b>酮酸中毒</b> 風險，最需要優先處理，提醒立即聯繫、建議就醫', dur:4800},
+    {cap:'再來是 <b>🎂 生日提醒</b>——今天生日、7 天內生日的客人都會列出，記得送暖心訊息', act:()=>{show('da-bday')}, dur:4000},
+    {cap:'最後是 <b>💚 鼓勵獎項</b>——依客人照顧自己的行為給溫柔稱讚（最疼愛自己、最保護自己…），按「複製祝賀」貼到 LINE 打氣。<b>獎項和生日祝福語都能在「全域設定」自己新增</b>', act:()=>{show('da-award')}, dur:5000},
+    {cap:'這些都是 <b>自動</b> 的，你只要打開儀表板就看得到，不用自己一個個翻記錄', dur:3800},
+  ]},
+  { id:'check', title:'第 16 章・系統體檢', steps:[
+    {cap:'最後一個好用工具：<b>系統體檢</b>。在全域設定頁，按開始——', act:()=>tapEl('ck-btn'), dur:2600},
+    {cap:'一鍵檢查全部 39 張工作表', act:()=>{show('ck1');setTimeout(()=>show('ck2'),700)}, dur:2600},
+    {cap:'全綠就代表系統健康。哪天覺得怪怪的，<b>先跑體檢</b>就知道問題在哪', act:()=>show('ck3'), dur:3800},
+  ]},
+  { id:'newfeat', title:'第 17 章・新功能：檢測整合與儲值消費', steps:[
+    {cap:'系統有幾個重要新功能。<b>🔬 檢測整合</b>：把客人的檢測數據輸進去，就能看個人歷次趨勢、一家人比較。數值自動紅綠標示（綠=達標、紅=超標）', act:()=>{show('nf-lab')}, dur:5200},
+    {cap:'檢測項目可以無限擴充——有人加測新項目直接打上去。而且會自動對照「當時的用藥狀態」，看得出是不是減藥後還持續改善', dur:5400},
+    {cap:'<b>💳 儲值消費</b>：客人儲值後，在各服務點（陪跑、診所、美業、瑜珈…）消費扣款，系統自動算餘額、算分潤', act:()=>{show('nf-stored')}, dur:5000},
+    {cap:'<b>💰 會計核查（重要）</b>：秘書登錄的儲值和消費，<b>要會計核查通過後才生效</b>。登錄的人和核查的人不同，這樣錢才安全', act:()=>{show('nf-review')}, dur:5400},
+    {cap:'所以秘書登錄儲值/消費後，會計要到「會計核查」頁按通過，那筆才算進餘額、才算分潤。這是財務把關的關鍵', dur:5000},
+    {cap:'<b>🔐 登入與權限</b>：後台現在要登入。創始人看全部、秘書管客人、會計核金流、行政管庶務。你只會看到自己該做的功能', act:()=>{show('nf-perm')}, dur:5200},
+    {cap:'第一次用請找管理員拿你的帳號密碼。登入後左上角會顯示你的名字和角色，旁邊可以登出', dur:4600},
+  ]},
+  { id:'vcharge', title:'第 17.5 章・店家扣款（新）', steps:[
+    {cap:'儲值閉環的最後一塊拼圖：<b>認證店家可以自己幫客人扣款了</b>，不用再等秘書手動登錄', dur:4600},
+    {cap:'店家打開 <b>vendor.html（店家工作台）</b>，用元代謝發的「廠商代碼＋查詢密碼」登入一次，這台裝置就會記住——建議店家把網頁加到手機主畫面，一鍵開啟', act:()=>{show('vc-login')}, dur:5600},
+    {cap:'客人消費時：出示前台首頁的 <b>💳 儲值會員卡</b>（上面有大大的客人編號和餘額）→ 店家輸入編號查詢', act:()=>{show('vc-cid')}, dur:5000},
+    {cap:'店家只會看到 <b>遮罩後的姓名</b>（例：李○麗）和可用餘額——客人的健康資料店家完全看不到 🔒', act:()=>{show('vc-mask')}, dur:4800},
+    {cap:'輸入項目和金額按「確認扣款」→ 成功畫面顯示剩餘餘額，<b>拿給客人看</b>，客人自己的前台餘額也同步更新', act:()=>{show('vc-ok')}, dur:5200},
+    {cap:'<b>防超刷</b>：餘額不夠會直接擋下；確認中的消費也先保留額度，不會發生「兩家店同時刷爆」', act:()=>{show('vc-guard')}, dur:5000},
+    {cap:'扣款進 <b>🧾 消費記錄（待核查）</b>——會計核查通過才算分潤、才進店家的月結對帳單。認證一家店固定三步：<b>① 加入分帳角色名單 ② 設查詢密碼 ③ 設分潤規則</b>。漏了第③步系統會在核查時跳警告提醒 ⚠️', act:()=>{show('vc-settle')}, dur:6400},
+  ]},
+  { id:'suppshop', title:'第 17.6 章・保健品與代購（新）', steps:[
+    {cap:'創始人整理的 <b>保健品參考表已經灌進「💊 補充品資料庫」</b>——品名、來源、價格、推薦理由都在裡面，秘書推薦時直接從清單選', act:()=>{show('ss-db')}, dur:5200},
+    {cap:'客人打開前台「好物推薦」，最上面多了 <b>💊 保健品（秘書嚴選）</b> 專區：有通路連結的可以自己買，也可以按 <b>🛒 請秘書代購</b>', act:()=>{show('ss-shop')}, dur:5400},
+    {cap:'客人按下代購後，秘書儀表板會出現 <b>🛒 代購需求</b> 卡片——誰要買什麼、幾份、來源、大約多少錢，一目了然', act:()=>{show('ss-board')}, dur:5000},
+    {cap:'秘書下單後按「已幫客人下單」；<b>到貨時按「到貨結帳」</b>：輸入實際金額，選「從儲值扣款」或「已收現金」', act:()=>{show('ss-finish')}, dur:5400},
+    {cap:'選儲值扣款會自動寫入 <b>🧾 消費記錄（服務點＝保健品代購）</b>——經會計核查、算分潤，跟其他消費完全同一條軌道。餘額不足會直接擋下並提示', act:()=>{show('ss-rail')}, dur:5800},
+    {cap:'記得到「儲值消費」幫「<b>保健品代購</b>」這個服務點設分潤規則，供貨廠商（如王藥師）的月結才算得出來 ⚠️', act:()=>{show('ss-rule')}, dur:5200},
+  ]},
+  { id:'carbplan', title:'第 17.7 章・碳水計畫（新）', steps:[
+    {cap:'<b>代謝靈活性調整期間</b>分兩段：<b>嚴格期不吃碳水</b>；<b>碳水回補期</b>以 15g 為單位往上加，幫客人找自己的<b>碳水甜蜜點</b>——系統會依每個人的階段顯示不同內容', dur:6200},
+    {cap:'秘書在客人面板的 <b>🍚 碳水計畫</b> 選擇：「嚴格期・不吃碳水」或「回補期・每天 15g～90g（15g一階）」，按儲存', act:()=>{show('cp-admin')}, dur:5200},
+    {cap:'客人打開前台「外食指南」，最上方出現個人化卡片：嚴格期的人看到「<b>暫時不吃碳水，讓身體專心燃脂</b>」', act:()=>{show('cp-strict')}, dur:5200},
+    {cap:'考慮到碳水計畫是<b>每天都該注意的事</b>，<b>首頁</b>現在也會顯示一張精簡摘要卡（設定過才出現）——點一下直接跳到外食指南看完整份量圖鑑，不用特地翻頁才看得到', dur:5600},
+    {cap:'回補期的人看到「<b>每天 Xg 碳水</b>」和甜蜜點說明——打開圖鑑就知道 1 份（15g）是多少：地瓜約1/3碗、白麵條約1/2碗、燕麥片約3匙…', act:()=>{show('cp-recover')}, dur:5800},
+    {cap:'圖鑑裡也有 <b>朵蜜點心的換算</b>：黑巧克力酥餅約3片=1份、起司酥餅約7顆=1份——客人想吃點心時自己就會抓量 🎯', act:()=>{show('cp-recover');show('cp-guide')}, dur:5400},
+    {cap:'份量單位參考三軍總醫院營養部食物代換圖鑑。之後要調整份數，秘書改一下選單，客人前台<b>馬上更新</b>', act:()=>{show('cp-domi')}, dur:5000},
+  ]},
+  { id:'ending', title:'結語・換你了', steps:[
+    {cap:'教學結束！手冊上的每一項練習，剛剛都示範過一遍了', dur:3400},
+    {cap:'照著做一輪：<b>前台</b> 填記錄、逛花園、查外食；<b>後台</b> 處理警示、推薦補充品、加測檢測、改 QA、送禮物、排追蹤、產月報、寫交接、跑體檢', dur:5400},
+    {cap:'詳細步驟在《測試練習操作手冊》裡，<b>卡住就截圖回報</b>。開始吧 💚', dur:4200},
+  ]},
+];
+
+/* ── 工具函數 ── */
+const g = id => document.getElementById(id);
+function show(id){const el=g(id);if(!el)return;el.style.opacity='1';el.classList.add('in')}
+function fill(id,text){const el=g(id);if(!el)return;el.textContent=text;el.classList.add('filled')}
+function pop(id){const el=g(id);if(!el)return;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200)}
+function showRow(id){const el=g(id);if(el)el.style.display=''}
+function tapEl(id){
+  const el=g(id);if(!el)return;
+  const st=g('stage').getBoundingClientRect(), r=el.getBoundingClientRect();
+  const tap=g('tap');
+  tap.style.left=(r.left-st.left+r.width/2)+'px';
+  tap.style.top=(r.top-st.top+r.height/2)+'px';
+  tap.classList.add('show');
+  setTimeout(()=>{tap.classList.add('press');setTimeout(()=>tap.classList.remove('press'),560)},780);
+}
+function tapThen(id,fn){tapEl(id);setTimeout(fn,1250)}
+function placeFlow(id){
+  const fl=g(id);if(!fl)return;
+  const scene=fl.parentElement, kids=[...scene.children].filter(c=>c!==fl&&!c.classList.contains('flowline'));
+  if(kids.length>=2){
+    const st=g('stage').getBoundingClientRect();
+    const a=kids[0].getBoundingClientRect(), b=kids[1].getBoundingClientRect();
+    fl.style.left=(a.right-st.left+4)+'px';
+    fl.style.top=((a.top+a.height/2)-st.top)+'px';
+    fl.style.width=Math.max(24,(b.left-a.right-8))+'px';
+  }
+  fl.classList.add('show');
+}
+
+/* ── 語音旁白 ── */
+let soundOn = true, voicePick = null, advanceToken = 0, speakTimer = null;
+function initVoices(){
+  if(!('speechSynthesis' in window)) { soundOn=false; const b=g('soundbtn'); if(b){b.textContent='🔇 此裝置不支援'; b.disabled=true;} return; }
+  const pick=()=>{
+    const vs=speechSynthesis.getVoices();
+    voicePick = vs.find(v=>/zh[-_]TW/i.test(v.lang)) || vs.find(v=>/zh[-_]HK/i.test(v.lang)) || vs.find(v=>/^zh/i.test(v.lang)) || null;
+  };
+  pick();
+  speechSynthesis.onvoiceschanged = pick;
+}
+function speakCaption(html, onDone, fallbackMs){
+  if(!soundOn || !('speechSynthesis' in window)){ return false; }
+  const text = html.replace(/<[^>]+>/g,'').replace(/[💚🎬👋⭐🌱🩸✈️🦋🔔📋✅❌📽💊🌳🌿☀️🌧💧⚖️💭😊💪🍲🫒🥗🍬🍱🛒🤝📄]/g,'');
+  try{
+    speechSynthesis.cancel();
+    let done=false, keepAlive=null;
+    const finish=()=>{ if(done)return; done=true; if(keepAlive)clearInterval(keepAlive); onDone(); };
+    // Chrome 有個已知 bug：cancel() 後立刻 speak() 常常整句被吃掉、onend 幾乎馬上觸發（字幕還沒唸完就跳下一句）。
+    // 延遲一小段再開口，讓 cancel() 真正生效。
+    speakTimer = setTimeout(()=>{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang='zh-TW'; u.rate=1.02; u.pitch=1;
+      if(voicePick) u.voice=voicePick;
+      u.onend=finish;
+      u.onerror=finish;
+      speechSynthesis.speak(u);
+      // Chrome 另一個已知 bug：講超過約 15 秒會自動停住但不觸發 onend。
+      // 每 5 秒暫停再恢復一次，把它「叫醒」，長字幕才唸得完。
+      keepAlive = setInterval(()=>{
+        if(!speechSynthesis.speaking){ clearInterval(keepAlive); return; }
+        speechSynthesis.pause(); speechSynthesis.resume();
+      }, 5000);
+    }, 120);
+    // 安全網：語音真的卡住也會前進（等足夠久，不搶在正常唸完之前）
+    timer=setTimeout(finish, fallbackMs+15000);
+    return true;
+  }catch(e){ return false; }
+}
+function toggleSound(){
+  soundOn=!soundOn;
+  const b=g('soundbtn'); if(b)b.textContent=soundOn?'🔊 語音':'🔇 靜音';
+  if(!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+}
+
+/* ── 引擎狀態 ── */
+let chIdx=0, stepIdx=0, playing=false, timer=null;
+const scenesBox=g('scenes'), captionEl=g('caption'), eyebrow=g('eyebrow'), chlabel=g('chlabel');
+
+function buildChapterDots(){
+  const box=g('chapters');
+  CHAPTERS.forEach((c,i)=>{
+    const b=document.createElement('button');
+    b.className='chdot';b.setAttribute('role','tab');b.title=c.title;b.setAttribute('aria-label',c.title);
+    b.innerHTML='<div class="fill"></div>';
+    b.onclick=()=>{gotoChapter(i);if(!playing)togglePlay()};
+    box.appendChild(b);
+  });
+  buildTocList();
+}
+function buildTocList(){
+  const list=g('toc-list'); if(!list) return;
+  g('toc-count').textContent = CHAPTERS.length;
+  list.innerHTML='';
+  CHAPTERS.forEach((c,i)=>{
+    const row=document.createElement('div');
+    row.className='toc-item'+(i===chIdx?' cur':'')+(c.title.indexOf('（新）')>=0?' toc-new':'');
+    row.setAttribute('data-idx', i);
+    row.innerHTML='<div class="toc-n">'+(i+1)+'</div><div>'+c.title.replace(/（新）/,' <span style="color:var(--amber);font-weight:800">・新</span>')+'</div>';
+    row.onclick=()=>{ closeToc(); gotoChapter(i); if(!playing) togglePlay(); };
+    list.appendChild(row);
+  });
+}
+function openToc(){
+  buildTocList();
+  g('toc-panel').classList.add('open');
+  const cur=g('toc-list').querySelector('.cur');
+  if(cur) cur.scrollIntoView({block:'center'});
+}
+function closeToc(){ g('toc-panel').classList.remove('open'); }
+function renderScene(i){
+  const c=CHAPTERS[i];
+  scenesBox.innerHTML=SCENES[c.id];
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const sc=scenesBox.querySelector('.scene');if(sc)sc.classList.add('on');
+  }));
+  eyebrow.textContent=c.title;
+  chlabel.textContent=(i+1)+' / '+CHAPTERS.length+' 章';
+  g('tap').classList.remove('show');
+  updateDots();
+  const tl=g('toc-list');
+  if(tl){ [...tl.children].forEach((el,idx)=>el.classList.toggle('cur', idx===i)); }
+}
+function updateDots(){
+  [...document.querySelectorAll('.chdot')].forEach((d,i)=>{
+    d.classList.toggle('done',i<chIdx);
+    const f=d.querySelector('.fill');
+    if(i===chIdx){const steps=CHAPTERS[chIdx].steps.length;f.style.width=Math.round(stepIdx/steps*100)+'%'}
+    else if(i>chIdx){f.style.width='0%'}
+  });
+}
+function playStep(){
+  if(!playing)return;
+  const c=CHAPTERS[chIdx];
+  if(stepIdx>=c.steps.length){ // 章節結束
+    if(chIdx>=CHAPTERS.length-1){pause();captionEl.innerHTML='🎬 播放完畢——按任一章節可重看';return}
+    chIdx++;stepIdx=0;renderScene(chIdx);
+    timer=setTimeout(playStep,700);return;
+  }
+  const s=c.steps[stepIdx];
+  captionEl.innerHTML=s.cap;
+  if(s.act)try{s.act()}catch(e){}
+  stepIdx++;updateDots();
+  const myToken = ++advanceToken;
+  const goNext=()=>{ if(playing && myToken===advanceToken) playStep(); };
+  const dur = s.dur||3000;
+  // 有語音：唸完＋緩衝再前進（動作動畫至少跑滿 dur 的 6 成）；沒語音：照原節奏
+  const spoke = speakCaption(s.cap, ()=>{ timer=setTimeout(goNext, Math.max(600, dur*0.25)); }, dur);
+  if(!spoke) timer=setTimeout(goNext, dur);
+}
+function togglePlay(){
+  playing=!playing;
+  g('playbtn').textContent=playing?'⏸ 暫停':'▶ 播放';
+  if(playing){if(stepIdx===0&&chIdx===0&&!scenesBox.innerHTML)renderScene(0);playStep()}
+  else clearTimeout(timer);
+}
+function pause(){playing=false;clearTimeout(timer);clearTimeout(speakTimer);advanceToken++;if('speechSynthesis' in window)try{speechSynthesis.cancel()}catch(e){};g('playbtn').textContent='▶ 播放'}
+function gotoChapter(i){pause();chIdx=Math.max(0,Math.min(CHAPTERS.length-1,i));stepIdx=0;renderScene(chIdx);captionEl.innerHTML=CHAPTERS[chIdx].title}
+function nextChapter(){gotoChapter(chIdx+1);if(!playing)togglePlay()}
+function prevChapter(){gotoChapter(chIdx-1);if(!playing)togglePlay()}
+
+buildChapterDots();
+initVoices();
+renderScene(0);
+captionEl.innerHTML='👋 按 <b>▶ 播放</b> 開始教學（約 6 分鐘，含語音旁白，可點 🔊 關閉、點章節跳轉）';
+document.addEventListener('keydown',e=>{
+  if(e.key===' '){e.preventDefault();togglePlay()}
+  if(e.key==='ArrowRight')nextChapter();
+  if(e.key==='ArrowLeft')prevChapter();
+});
+</script>
+</body>
+</html>
