@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>代謝健康小提醒・元代謝</title>
+<style>
+:root{
+  --ink:#0F6E56; --deep:#0A4A3A; --gold:#C88A2E; --red:#C0392B; --orange:#D8843A;
+  --mint:#EFF7F3; --mint2:#F3F9F6; --paper:#F7FBF9; --border:#DCE9E3;
+  --text:#2B3A35; --text2:#5A6B64; --text3:#94A39C;
+  --green:#1D9E75;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;background:var(--paper);color:var(--text);line-height:1.65;min-height:100vh}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--paper);position:relative}
+
+/* 封面 */
+.cover{padding:0;min-height:100vh;display:flex;flex-direction:column}
+.cover-hero{background:linear-gradient(150deg,#0A4A3A,#158066);color:#fff;padding:48px 26px 40px;border-radius:0 0 30px 30px;text-align:center;flex:0 0 auto}
+.cover-hero .leaf{font-size:44px;margin-bottom:10px}
+.cover-hero h1{font-size:25px;font-weight:800;letter-spacing:.01em;margin-bottom:10px}
+.cover-hero p{font-size:14px;opacity:.9;line-height:1.75}
+.cover-body{flex:1;padding:30px 26px;display:flex;flex-direction:column;justify-content:center}
+.feat{display:flex;gap:12px;align-items:flex-start;margin-bottom:18px}
+.feat .ic{font-size:22px;flex-shrink:0}
+.feat .tx b{display:block;font-size:15px;font-weight:700;color:var(--text)}
+.feat .tx span{font-size:12.5px;color:var(--text2)}
+.cover-cta{padding:20px 26px 40px}
+.btn{display:block;width:100%;background:var(--ink);color:#fff;border:none;border-radius:15px;padding:17px;font-size:17px;font-weight:800;cursor:pointer;font-family:inherit;transition:transform .1s}
+.btn:active{transform:scale(.98)}
+.btn.gold{background:var(--gold)}
+.btn-sub{text-align:center;font-size:11.5px;color:var(--text3);margin-top:12px}
+
+/* 測驗 */
+.quiz{padding:0;min-height:100vh;display:none;flex-direction:column}
+.quiz.active{display:flex}
+.qbar{background:#fff;padding:16px 22px 14px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.qbar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.qbar-top .step{font-size:12px;color:var(--text3);font-weight:600}
+.qbar-top .brand{font-size:12px;color:var(--ink);font-weight:800}
+.qprog{height:6px;background:var(--mint);border-radius:3px;overflow:hidden}
+.qprog-fill{height:100%;background:var(--green);border-radius:3px;transition:width .4s;width:0%}
+.qbody{flex:1;padding:30px 24px;display:flex;flex-direction:column}
+.qnum{font-size:12px;color:var(--gold);font-weight:800;letter-spacing:.05em;margin-bottom:8px}
+.qtext{font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px;line-height:1.5}
+.qhint{font-size:12px;color:var(--text3);margin-bottom:22px}
+.opts{display:flex;flex-direction:column;gap:11px}
+.opt{background:#fff;border:2px solid var(--border);border-radius:14px;padding:15px 17px;font-size:15px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.opt:active{transform:scale(.99)}
+.opt.sel{border-color:var(--ink);background:var(--mint)}
+.opt .dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.opt.sel .dot{border-color:var(--ink);background:var(--ink)}
+.opt.sel .dot::after{content:'✓';color:#fff;font-size:12px}
+.opt-multi .dot{border-radius:6px}
+.qfoot{padding:18px 24px 32px}
+.qnext{display:block;width:100%;background:var(--ink);color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;opacity:.4;pointer-events:none;transition:opacity .2s}
+.qnext.on{opacity:1;pointer-events:auto}
+.multi-hint{font-size:11px;color:var(--text3);text-align:center;margin-bottom:10px}
+
+/* 結果 */
+.result{padding:0;min-height:100vh;display:none;flex-direction:column}
+.result.active{display:flex}
+.res-hero{color:#fff;padding:44px 26px 34px;text-align:center;border-radius:0 0 30px 30px}
+.res-score{font-size:60px;font-weight:800;line-height:1;margin:6px 0}
+.res-level{font-size:22px;font-weight:800;margin-bottom:8px}
+.res-tag{display:inline-block;background:rgba(255,255,255,.22);border-radius:20px;padding:5px 16px;font-size:13px;font-weight:700}
+.res-body{flex:1;padding:26px 24px}
+.res-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px}
+.res-card h3{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.res-card p{font-size:13.5px;color:var(--text2);line-height:1.8}
+.res-factors{list-style:none}
+.res-factors li{font-size:13px;color:var(--text2);padding:7px 0;border-bottom:1px solid var(--mint);display:flex;gap:9px;align-items:flex-start}
+.res-factors li:last-child{border:none}
+.res-factors .fic{color:var(--orange);flex-shrink:0}
+.cta-card{background:linear-gradient(135deg,#0F6E56,#158066);color:#fff;border-radius:18px;padding:22px 20px;text-align:center;margin-top:4px}
+.cta-card h3{font-size:18px;font-weight:800;margin-bottom:8px}
+.cta-card p{font-size:13px;opacity:.92;line-height:1.75;margin-bottom:18px}
+.cta-btn{display:block;width:100%;background:#fff;color:var(--ink);border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;text-decoration:none;margin-bottom:10px}
+.cta-btn.line{background:#06C755;color:#fff}
+.cta-note{font-size:11px;opacity:.8;margin-top:6px}
+.res-foot{padding:16px 24px 34px;text-align:center}
+.retry{background:none;border:none;color:var(--text3);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline}
+.disclaimer{font-size:10.5px;color:var(--text3);line-height:1.7;margin-top:18px;padding:0 6px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 封面 -->
+  <div class="cover active" id="cover">
+    <div class="cover-hero">
+      <div class="leaf">🌱</div>
+      <h1>60 秒・代謝健康小提醒</h1>
+      <p>不用抽血、不用登入<br>認識代謝健康、提早關心自己</p>
+    </div>
+    <div class="cover-body">
+      <div class="feat"><div class="ic">🎯</div><div class="tx"><b>7 個簡單問題</b><span>根據代謝醫學的風險因子設計</span></div></div>
+      <div class="feat"><div class="ic">📊</div><div class="tx"><b>整理你值得留意的項目</b><span>看看有哪些值得留意的地方</span></div></div>
+      <div class="feat"><div class="ic">💡</div><div class="tx"><b>給你下一步建議</b><span>了解自己，適時諮詢專業</span></div></div>
+    </div>
+    <div class="cover-cta">
+      <button class="btn" onclick="startQuiz()">開始自測 →</button>
+      <div class="btn-sub">完全免費・結果只有你看得到</div>
+    </div>
+  </div>
+
+  <!-- 測驗 -->
+  <div class="quiz" id="quiz">
+    <div class="qbar">
+      <div class="qbar-top">
+        <span class="step" id="qstep">第 1 / 7 題</span>
+        <span class="brand">元代謝・代謝風險自測</span>
+      </div>
+      <div class="qprog"><div class="qprog-fill" id="qprog"></div></div>
+    </div>
+    <div class="qbody">
+      <div class="qnum" id="qnum">Q1</div>
+      <div class="qtext" id="qtext"></div>
+      <div class="qhint" id="qhint"></div>
+      <div class="opts" id="qopts"></div>
+    </div>
+    <div class="qfoot">
+      <div class="multi-hint" id="multihint" style="display:none">可複選，選好後按下一題</div>
+      <button class="qnext" id="qnext" onclick="nextQ()">下一題</button>
+    </div>
+  </div>
+
+  <!-- 結果 -->
+  <div class="result" id="result">
+    <div class="res-hero" id="reshero">
+      <div style="font-size:13px;opacity:.85;font-weight:600">值得留意的項目</div>
+      <div class="res-score" id="resscore">0</div>
+      <div style="font-size:13px;opacity:.85;margin-bottom:6px" id="resscoreunit">／6 項值得留意</div>
+      <div class="res-level" id="reslevel"></div>
+      <div class="res-tag" id="restag"></div>
+    </div>
+    <div class="res-body">
+      <div class="res-card">
+        <h3>💬 這代表什麼？</h3>
+        <p id="resdesc"></p>
+      </div>
+      <div class="res-card" id="factorcard">
+        <h3>🔍 你勾選中值得留意的項目</h3>
+        <ul class="res-factors" id="resfactors"></ul>
+      </div>
+      <div id="unknownnote" style="display:none;background:var(--mint);border-radius:12px;padding:13px 15px;font-size:12.5px;color:var(--ink);line-height:1.7;margin-bottom:16px"></div>
+      <div class="cta-card" id="ctacard">
+        <h3 id="ctatitle"></h3>
+        <p id="ctadesc"></p>
+        <a class="cta-btn line" id="ctaline" href="#" onclick="return contactLine()">💚 加入 LINE・問問健康秘書</a>
+        <div class="cta-note">秘書會依你的狀況，給你適合的下一步建議</div>
+      </div>
+    </div>
+    <div class="res-foot">
+      <button class="retry" onclick="restart()">重新測一次</button>
+      <div class="disclaimer">※ 重要說明：本測驗僅為健康識能的參考與衛教，「不是醫療診斷」，也不能取代醫師的專業評估。所有結果僅供你認識代謝健康、提醒你適時關心自己之用。任何健康疑慮、檢查與治療，請務必諮詢您的醫師或專業醫療人員。</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const QUESTIONS = [
+  { layer:"symptom", q:"吃完正餐後，你常常會想睡、昏沉嗎？", hint:"餐後嗜睡是血糖劇烈波動的訊號",
+    opts:[["精神正常，不特別想睡",0],["偶爾會",1],["經常昏沉、很想睡",2]] },
+  { layer:"symptom", q:"你是不是很容易餓、特別想吃甜食或澱粉？", hint:"頻繁飢餓反映血糖不穩、胰島素失衡",
+    opts:[["不太會，能撐到下一餐",0],["有時會",1],["經常，吃飽沒多久又餓",2]] },
+  { layer:"marker", key:"waist", q:"腰圍：男性 > 90 公分／女性 > 80 公分？", hint:"腰圍（肚臍高度量一圈）是腹部肥胖的指標",
+    opts:[["沒有超過",0],["有超過",1],["不知道／沒量過",-1]] },
+  { layer:"marker", key:"bp", q:"血壓偏高？（收縮壓 ≥130 或 舒張壓 ≥85）", hint:"血壓＝血液對血管壁的壓力",
+    opts:[["正常",0],["偏高",1],["不知道",-1]] },
+  { layer:"marker", key:"glucose", q:"空腹血糖偏高？（≥100 mg/dL）", hint:"血糖＝血液中的葡萄糖濃度",
+    opts:[["正常",0],["偏高",1],["不知道",-1]] },
+  { layer:"marker", key:"hdl", q:"HDL 偏低？（男 < 40／女 < 50 mg/dL）", hint:"HDL＝高密度脂蛋白，俗稱「好膽固醇」，越高越好",
+    opts:[["正常或偏高",0],["偏低",1],["不知道",-1]] },
+  { layer:"marker", key:"tg", q:"TG 偏高？（≥150 mg/dL）", hint:"TG＝三酸甘油酯，血液中的中性脂肪，越低越好",
+    opts:[["正常",0],["偏高",1],["不知道",-1]] },
+  { layer:"marker", key:"hba1c", q:"HbA1c 偏高？（≥5.7%）", hint:"HbA1c＝糖化血色素，反映近三個月的平均血糖",
+    opts:[["正常",0],["偏高",1],["不知道",-1]] },
+];
+
+const MARKER_LABELS = {
+  waist:"腰圍超標（腹部肥胖）", bp:"血壓偏高", glucose:"空腹血糖偏高",
+  hdl:"HDL 好膽固醇偏低", tg:"TG 三酸甘油酯偏高", hba1c:"HbA1c 糖化血色素偏高"
+};
+
+let cur=0, answers=[];
+
+function startQuiz(){
+  document.getElementById('cover').classList.remove('active');
+  document.getElementById('quiz').classList.add('active');
+  cur=0; answers=[]; renderQ();
+}
+function renderQ(){
+  const q=QUESTIONS[cur];
+  document.getElementById('qstep').textContent='第 '+(cur+1)+' / '+QUESTIONS.length+' 題';
+  document.getElementById('qprog').style.width=(cur/QUESTIONS.length*100)+'%';
+  document.getElementById('qnum').textContent = q.layer==='symptom' ? '身體訊號 '+(cur+1) : '健檢指標';
+  document.getElementById('qnum').style.color = q.layer==='symptom' ? 'var(--gold)' : 'var(--ink)';
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qhint').textContent=q.hint;
+  const box=document.getElementById('qopts');
+  box.innerHTML=q.opts.map(function(o,i){
+    return '<div class="opt" data-v="'+o[1]+'" onclick="pickOpt(this)"><div class="dot"></div><div>'+o[0]+'</div></div>';
+  }).join('');
+  const nx=document.getElementById('qnext');
+  nx.classList.remove('on');
+  nx.textContent=(cur===QUESTIONS.length-1)?'看我的結果':'下一題';
+  document.getElementById('multihint').style.display='none';
+  answers[cur]=null;
+}
+function pickOpt(el){
+  document.getElementById('qopts').querySelectorAll('.opt').forEach(function(o){o.classList.remove('sel');});
+  el.classList.add('sel');
+  answers[cur]=parseInt(el.getAttribute('data-v'));
+  document.getElementById('qnext').classList.add('on');
+}
+function nextQ(){
+  if(cur<QUESTIONS.length-1){cur++;renderQ();}
+  else{showResult();}
+}
+function showResult(){
+  // 症狀分數 & 指標符合數
+  let symptomScore=0, markerHits=[], unknownCount=0;
+  answers.forEach(function(a,i){
+    const q=QUESTIONS[i];
+    if(q.layer==='symptom'){ symptomScore += (a||0); }
+    else {
+      if(a===1) markerHits.push(q.key);
+      else if(a===-1) unknownCount++;
+    }
+  });
+  const hasSymptom = symptomScore>=2;  // 至少一個「經常」或兩個「偶爾/有時」
+  const nHits = markerHits.length;
+
+  // 分級
+  let lvl;
+  if(nHits>=3){
+    lvl={name:"有較多值得留意的項目", tag:"🔴 建議諮詢醫師了解", color:"#C0392B",
+      desc:"你勾選的項目中，有 <b>"+nHits+" 項</b>是代謝健康常被提到的相關因子。這不是診斷，而是提醒你這些面向值得留意。建議你諮詢醫師或安排健康檢查，用專業的方式了解自己的真實狀況。",
+      ctaTitle:"想更了解自己的代謝健康嗎？",
+      ctaDesc:"歡迎加入 LINE，健康秘書可以陪你認識代謝健康、協助記錄與追蹤，並建議你與醫師討論適合的方向。"};
+  } else if(nHits>=1 && hasSymptom){
+    lvl={name:"有一些值得留意的項目", tag:"🟠 建議多加關心", color:"#D8843A",
+      desc:"你勾選了 <b>"+nHits+" 項</b>相關因子，加上身體有一些日常感受（像餐後想睡、容易餓）。這些是代謝健康常被討論的面向，值得多留意。如有疑問，建議與醫師聊聊。",
+      ctaTitle:"想多關心自己的代謝健康嗎？",
+      ctaDesc:"歡迎加入 LINE，健康秘書可以陪你認識這些面向、協助日常記錄，並建議你與醫師討論。"};
+  } else if(hasSymptom || nHits>=1){
+    lvl={name:"目前大致良好，可多留意", tag:"🟡 保養生活習慣", color:"#C88A2E",
+      desc:"目前你勾選的相關項目不多"+(hasSymptom?"，但身體有一些日常感受值得留意":"")+"。維持均衡飲食、規律作息與運動，是照顧代謝健康的好方法。如有疑問可諮詢專業。",
+      ctaTitle:"想學一些代謝保養方法嗎？",
+      ctaDesc:"歡迎加入 LINE，健康秘書可以分享日常代謝保養的生活知識，陪你一起顧健康。"};
+  } else {
+    lvl={name:"代謝狀態良好", tag:"🟢 繼續保持", color:"#1D9E75",
+      desc:"目前你勾選的相關項目很少，代謝健康的日常維持看起來不錯。繼續保持規律作息、均衡飲食和運動，就是最好的照顧。",
+      ctaTitle:"想維持這個好狀態嗎？",
+      ctaDesc:"加入 LINE，健康秘書可以分享日常代謝保養的小知識，幫你長長久久顧好健康。"};
+  }
+
+  document.getElementById('quiz').classList.remove('active');
+  document.getElementById('result').classList.add('active');
+  document.getElementById('reshero').style.background='linear-gradient(150deg,'+lvl.color+','+shade(lvl.color)+')';
+  document.getElementById('reslevel').textContent=lvl.name;
+  document.getElementById('restag').textContent=lvl.tag;
+  document.getElementById('resdesc').innerHTML=lvl.desc;
+  document.getElementById('ctatitle').textContent=lvl.ctaTitle;
+  document.getElementById('ctadesc').textContent=lvl.ctaDesc;
+  // 大字顯示符合項數
+  document.getElementById('resscore').textContent=nHits;
+  document.getElementById('resscoreunit').textContent='／6 項值得留意';
+
+  // 符合的指標清單
+  const fbox=document.getElementById('resfactors'), fcard=document.getElementById('factorcard');
+  if(markerHits.length===0 && !hasSymptom){ fcard.style.display='none'; }
+  else{
+    fcard.style.display='block';
+    let items = markerHits.map(function(k){ return '<li><span class="fic">▸</span><span>'+MARKER_LABELS[k]+'</span></li>'; });
+    if(hasSymptom) items.unshift('<li><span class="fic">▸</span><span>身體症狀：餐後嗜睡或容易飢餓</span></li>');
+    fbox.innerHTML=items.join('');
+  }
+  // 「不知道」提示
+  const ubox=document.getElementById('unknownnote');
+  if(unknownCount>=2){
+    ubox.style.display='block';
+    ubox.innerHTML='💡 你有 '+unknownCount+' 項「不知道」——這些數值在一般健康檢查就能得知，建議你在下次健檢時多留意，或諮詢醫師。';
+  } else { ubox.style.display='none'; }
+}
+function shade(hex){
+  const m={'#1D9E75':'#0F6E56','#C88A2E':'#A06A1E','#D8843A':'#B0632A','#C0392B':'#96271B'};
+  return m[hex]||hex;
+}
+const LINE_URL="https://line.me/R/ti/p/@your-line-id";
+function contactLine(){
+  if(LINE_URL.indexOf('your-line-id')>=0){
+    alert('（示範）這裡會開啟你們的 LINE 官方帳號加好友頁面。部署時把程式裡的 LINE_URL 換成你們的 LINE 連結即可。');
+    return false;
+  }
+  window.location.href=LINE_URL; return false;
+}
+function restart(){
+  document.getElementById('result').classList.remove('active');
+  document.getElementById('cover').classList.add('active');
+  cur=0; answers=[];
+}
+</script>
+</body>
+</html>
