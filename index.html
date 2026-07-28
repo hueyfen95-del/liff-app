@@ -1076,6 +1076,21 @@ window.openHealthForm = function() {
         <div style="font-size:16px;color:var(--g)">›</div>
       </div>
     </div>
+    <!-- 本次分析結論（簡化版，完整細節只留在醫師/秘書端；加上user-select:none降低隨手複製的機率，但無法防止截圖）-->
+    <div id="irct-summary-card" style="display:none;margin:10px 14px 0;background:linear-gradient(135deg,#085041,#158066);border-radius:14px;padding:16px 18px;color:#fff;user-select:none;-webkit-user-select:none;-moz-user-select:none" oncontextmenu="return false">
+      <div style="font-size:11px;opacity:.8;margin-bottom:4px">🔬 本次檢測分析結論</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:6px" id="irct-summary-classification"></div>
+      <div style="font-size:12px;line-height:1.7;opacity:.95" id="irct-summary-note"></div>
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2);font-size:11px;line-height:2" id="irct-summary-categories"></div>
+      <div onclick="goPage('irct-table','完整檢測數據')" style="margin-top:12px;background:rgba(255,255,255,.15);border-radius:9px;padding:9px 12px;text-align:center;font-size:12px;font-weight:700;cursor:pointer">📊 查看完整檢測數據 ›</div>
+      <div style="font-size:9.5px;opacity:.6;margin-top:6px">完整檢測數值與詳細分析，也可以與健康秘書或醫師約時間討論</div>
+    </div>
+    <!-- 本次檢測時的飲食/運動狀況（跟預約時填的問卷對照，方便分析報告數值時參考生活習慣背景）-->
+    <div id="irct-context-card" style="display:none;margin:10px 14px 0;background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:6px">📋 本次檢測時的狀況（<span id="irct-context-date"></span>預約填寫）</div>
+      <div style="font-size:11.5px;color:#92400E;line-height:1.8" id="irct-context-body"></div>
+      <div style="font-size:9.5px;color:#B45309;margin-top:5px">分析報告數值時，可以對照這些生活習慣背景一起看</div>
+    </div>
     <!-- 子狀態提示（已出/陪跑中/可複檢） -->
     <div style="margin:10px 14px" id="irct-substatus-section">
       <div id="irct-substatus-ready" style="display:none;background:var(--g2);border-radius:12px;padding:13px 15px;border:1px solid var(--g);display:flex;align-items:center;gap:10px">
@@ -1498,6 +1513,20 @@ window.openHealthForm = function() {
 
   </div>
 </div>
+<!-- ══ IRCT 完整檢測數據對照表（多次檢測並排，含理想/正常區間） ══ -->
+<div class="page" id="p-irct-table">
+  <div style="padding:12px 14px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">下面是你每一次 IRCT 檢測的數值紀錄，可以左右滑動看不同次數的對照。紅色數字代表這個數值超出了「現行正常區間」，建議與醫師討論。</div>
+    <div id="irct-table-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
+    <div id="irct-table-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有檢測記錄</div>
+    <div id="irct-table-wrap" style="display:none;overflow-x:auto;-webkit-overflow-scrolling:touch">
+      <table style="border-collapse:collapse;font-size:11px;min-width:100%;white-space:nowrap">
+        <thead><tr id="irct-table-head"></tr></thead>
+        <tbody id="irct-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 <!-- ══ IRCT 預約流程 ══ -->
 <div class="page" id="p-booking">
   <div style="padding:0">
@@ -1508,12 +1537,14 @@ window.openHealthForm = function() {
     <!-- 步驟指示器 -->
     <div style="display:flex;align-items:center;padding:11px 14px;background:var(--bg);border-bottom:1px solid var(--border)">
       <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs1" style="width:24px;height:24px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">1</div><div style="font-size:9px;color:var(--g);font-weight:700;text-align:center">飲食模式</div></div>
-      <div id="bl1" style="flex:1;height:2px;background:var(--border);max-width:30px"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs2" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">2</div><div style="font-size:9px;color:var(--text3);text-align:center">選診所</div></div>
-      <div id="bl2" style="flex:1;height:2px;background:var(--border);max-width:30px"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs3" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">3</div><div style="font-size:9px;color:var(--text3);text-align:center">選時間</div></div>
-      <div id="bl3" style="flex:1;height:2px;background:var(--border);max-width:30px"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs4" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">✓</div><div style="font-size:9px;color:var(--text3);text-align:center">完成</div></div>
+      <div id="bl1" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs2" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">2</div><div style="font-size:9px;color:var(--text3);text-align:center">選方案</div></div>
+      <div id="bl2" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs3" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">3</div><div style="font-size:9px;color:var(--text3);text-align:center">選診所</div></div>
+      <div id="bl3" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs4" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">4</div><div style="font-size:9px;color:var(--text3);text-align:center">選時間</div></div>
+      <div id="bl4" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs5" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">✓</div><div style="font-size:9px;color:var(--text3);text-align:center">完成</div></div>
     </div>
 
     <!-- Step 1：飲食模式 -->
@@ -1568,9 +1599,9 @@ window.openHealthForm = function() {
       <button id="bk-next1" onclick="bkGoStep2()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">下一步：選擇診所 →</button>
     </div>
 
-    <!-- Step 2：選診所 -->
+    <!-- Step 2：選方案 -->
     <div id="bk-step2" style="display:none;padding:13px 16px;padding-bottom:20px">
-      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇 IRCT 方案與診所</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇 IRCT 檢測方案</div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.6">請依你目前的用藥狀況選擇方案，現場也可以再調整</div>
 
       <!-- IRCT方案選擇 -->
@@ -1630,6 +1661,16 @@ window.openHealthForm = function() {
         </label>
         <div id="bk-med-warn" style="display:none;font-size:10.5px;color:#A32D2D;margin-top:6px">⚠️ 選了「已有慢性病用藥」，請至少填寫一項，或勾選「我沒有服用慢性病藥物」</div>
       </div>
+      <div style="display:flex;gap:8px;margin-top:5px">
+        <button onclick="bkGoStep1()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
+        <button onclick="bkGoStep3()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">下一步：選擇診所 →</button>
+      </div>
+    </div>
+
+    <!-- Step 3：選診所 -->
+    <div id="bk-step3" style="display:none;padding:13px 16px;padding-bottom:20px">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測診所</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.6" id="bk-step3-plan-hint">請選擇方便前往的診所或檢測中心</div>
       <div id="bk-clinic-list"><div id="bk-loc1" onclick="bkSelLoc(1)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--g);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--g2)"><span style="font-size:20px">🏥</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--g3)">瑞絲得診所・新竹</div><div style="font-size:10px;color:var(--g3);margin-top:1px">週一二三 9:00起・週六日預約制</div></div><div id="bk-loc1-prev-tag" style="display:none;font-size:10px;color:var(--g3);font-weight:700;flex-shrink:0">上次去過</div></div>
       <div id="bk-loc2" onclick="bkSelLoc(2)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">安生診所・桃園</div><div style="font-size:10px;color:var(--text2);margin-top:1px">每週四 9:00起</div></div></div>
       <div id="bk-loc3" onclick="bkSelLoc(3)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">恆佳診所・高雄</div><div style="font-size:10px;color:var(--text2);margin-top:1px">每週四 9:00起</div></div></div>
@@ -1638,15 +1679,15 @@ window.openHealthForm = function() {
       <div id="bk-loc6" onclick="bkSelLoc(6)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">平鎮-東泰醫事檢驗所・桃園</div><div style="font-size:10px;color:var(--text2);margin-top:1px">週一至週五 9:00起・檢測中心</div></div></div>
       <div id="bk-loc7" onclick="bkSelLoc(7)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">桃園-旭康醫事檢驗所・桃園</div><div style="font-size:10px;color:var(--text2);margin-top:1px">週一至週五 9:00起，每日最多5位・檢測中心</div></div></div></div>
       <div style="display:flex;gap:8px;margin-top:5px">
-        <button onclick="bkGoStep1()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
-        <button onclick="bkGoStep3()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">下一步：選時間 →</button>
+        <button onclick="bkGoStep2()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
+        <button onclick="bkGoStep4()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">下一步：選時間 →</button>
       </div>
     </div>
 
-    <!-- Step 3：選時間 -->
-    <div id="bk-step3" style="display:none;padding:13px 16px;padding-bottom:20px">
+    <!-- Step 4：選時間 -->
+    <div id="bk-step4" style="display:none;padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測時間</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:12px">瑞絲得診所・新竹・IRCT-t2・需空腹 4 小時</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 4 小時</div>
       <div id="bk-time-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/18（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div onclick="bkSelTime(this)" style="border:1.5px solid var(--g);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--g2)"><div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:2px">06/21（六）</div><div style="font-size:11px;color:var(--g3)">08:30–10:30</div></div>
@@ -1655,13 +1696,13 @@ window.openHealthForm = function() {
       </div>
       <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 4 小時，白開水可以喝。</div>
       <div style="display:flex;gap:8px">
-        <button onclick="bkGoStep2()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
-        <button onclick="bkGoStep4()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">確認預約</button>
+        <button onclick="bkGoStep3()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
+        <button onclick="bkGoStep5()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">確認預約</button>
       </div>
     </div>
 
-    <!-- Step 4：完成 -->
-    <div id="bk-step4" style="display:none">
+    <!-- Step 5：完成 -->
+    <div id="bk-step5" style="display:none">
       <div style="background:linear-gradient(135deg,#085041,var(--g));color:#fff;padding:20px 16px;text-align:center">
         <div style="font-size:36px;margin-bottom:7px">🎉</div>
         <div id="bk-confirm-greet" style="font-size:16px;font-weight:700;margin-bottom:3px">預約成功！</div>
@@ -2363,6 +2404,7 @@ function goPage(id,title){
     if (typeof updateGardenHint === 'function') updateGardenHint();
   }
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
+  if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
   // 進入花園時檢查禮物
   if (id === 'garden') {
     if(typeof loadTodayGarden==='function') setTimeout(loadTodayGarden, 250);
@@ -2419,7 +2461,7 @@ function bkGoStep2(){
   document.getElementById('bk-step1').style.display='none';
   document.getElementById('bk-step2').style.display='block';
   document.getElementById('bk-step3').style.display='none';
-  bkSetStep(2); if(typeof bkRenderClinics==='function') bkRenderClinics();
+  bkSetStep(2);
   bkSelectType(_bkType); // 同步用藥欄位顯示狀態，避免預設t2但畫面還沒顯示用藥欄位的不一致
 }
 function bkGoStep3(){
@@ -2437,11 +2479,35 @@ function bkGoStep3(){
   }
   document.getElementById('bk-step2').style.display='none';
   document.getElementById('bk-step3').style.display='block';
-  bkSetStep(3); if(typeof bkRenderTimes==='function') bkRenderTimes(); }
+  bkSetStep(3);
+  var hint = document.getElementById('bk-step3-plan-hint');
+  if(hint) hint.textContent = (_bkType==='t2'?'IRCT-t2・已有慢性病用藥':'IRCT-t1・無慢性病用藥')+'，請選擇方便前往的診所或檢測中心';
+  if(typeof bkRenderClinics==='function') bkRenderClinics();
+}
 function bkGoStep4(){
   document.getElementById('bk-step3').style.display='none';
   document.getElementById('bk-step4').style.display='block';
   bkSetStep(4);
+  // 這一步的摘要文字要跟著實際選擇的診所/方案更新，不能寫死
+  var sumEl = document.getElementById('bk-step4-summary');
+  if(sumEl){
+    var locEl4 = document.getElementById('bk-loc' + (bkLocSelected||1));
+    var locText4 = '';
+    if(locEl4 && locEl4.getAttribute('data-clinic')){
+      var lc4 = locEl4.getAttribute('data-clinic'), lr4 = locEl4.getAttribute('data-region');
+      locText4 = lr4 ? (lc4+'・'+lr4) : lc4;
+    } else if(locEl4){
+      locText4 = locEl4.textContent.trim().replace(/上次去過/,'').replace(/[›〉>]/g,'').trim();
+    }
+    var planText4 = _bkType==='t2' ? 'IRCT-t2' : 'IRCT-t1';
+    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 4 小時';
+  }
+  if(typeof bkRenderTimes==='function') bkRenderTimes();
+}
+function bkGoStep5(){
+  document.getElementById('bk-step4').style.display='none';
+  document.getElementById('bk-step5').style.display='block';
+  bkSetStep(5);
 
   // 整理已選擇的資料
   var planNames = {t1:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t1.toLocaleString(), t2:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t2.toLocaleString()};
@@ -2459,7 +2525,7 @@ function bkGoStep4(){
     locText = '瑞絲得診所・新竹';
   }
 
-  var timeEl = document.querySelector('#bk-step3 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
+  var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
   var timeText = timeEl ? timeEl.textContent.trim() : '';
 
   var dietNames = {1:'🍞 混合飲食（碳水 50%）',2:'🥑 粒腺體飲食（碳水 5%，脂肪 70%）',3:'🥩 低碳飲食',4:'🌾 一般均衡飲食',5:'🥗 其他飲食模式'};
@@ -2504,13 +2570,13 @@ function bkGoStep4(){
   });
 }
 function bkSetStep(n){
-  var labels=['','飲食模式','選診所','選時間','完成'];
-  for(var i=1;i<=4;i++){
+  var labels=['','飲食模式','選方案','選診所','選時間','完成'];
+  for(var i=1;i<=5;i++){
     var s=document.getElementById('bs'+i);if(!s)continue;
     if(i<n){s.style.background='var(--g)';s.style.color='#fff';s.textContent='✓';}
-    else if(i===n){s.style.background='var(--g)';s.style.color='#fff';s.textContent=i;}
-    else{s.style.background='var(--border2)';s.style.color='var(--text3)';s.textContent=i==='4'?'✓':i;}
-    if(i<4){var l=document.getElementById('bl'+i);if(l)l.style.background=i<n?'var(--g)':'var(--border)';}
+    else if(i===n){s.style.background='var(--g)';s.style.color='#fff';s.textContent=i===5?'✓':i;}
+    else{s.style.background='var(--border2)';s.style.color='var(--text3)';s.textContent=i===5?'✓':i;}
+    if(i<5){var l=document.getElementById('bl'+i);if(l)l.style.background=i<n?'var(--g)':'var(--border)';}
   }
   document.getElementById('page-title').textContent='預約 IRCT 複檢';
 }
@@ -2597,7 +2663,7 @@ function bkSelLoc(n){
   }
 }
 function bkSelTime(el){
-  document.querySelectorAll('#bk-step3 [onclick="bkSelTime(this)"]').forEach(function(t){
+  document.querySelectorAll('#bk-step4 [onclick="bkSelTime(this)"]').forEach(function(t){
     t.style.border='1px solid var(--border2)';t.style.background='var(--card)';
     t.querySelector('div').style.color='var(--text)';
   });
@@ -5758,6 +5824,48 @@ function loadReportStatus() {
 }
 
 // 四大情境切換
+var _irctContextLoaded = false;
+var _irctSummaryLoaded = false;
+function loadIrctSummary(){
+  if(_irctSummaryLoaded) return;
+  callAPI({action:'getIRCTAnalysis', clientId:CLIENT_ID}, function(d){
+    var card = document.getElementById('irct-summary-card');
+    if(!card) return;
+    if(!d || d.status!=='ok' || !d.found || !d.overall || !d.overall.classification){ card.style.display='none'; return; }
+    _irctSummaryLoaded = true;
+    card.style.display='';
+    var clsEl = document.getElementById('irct-summary-classification');
+    if(clsEl) clsEl.textContent = d.overall.classification;
+    var noteEl = document.getElementById('irct-summary-note');
+    if(noteEl) noteEl.textContent = d.overall.note || '';
+    var catEl = document.getElementById('irct-summary-categories');
+    if(catEl && d.summary){
+      var lines = [];
+      if(d.summary.glucose) lines.push('🩸 血糖：'+d.summary.glucose);
+      if(d.summary.lipid) lines.push('🫀 血脂：'+d.summary.lipid);
+      if(d.summary.bodyComp) lines.push('📏 體組成：'+d.summary.bodyComp);
+      catEl.innerHTML = lines.join('<br>');
+    }
+  });
+}
+function loadIrctContext(){
+  if(_irctContextLoaded) return; // 這次進報告頁只需要抓一次
+  callAPI({action:'getLatestBookingContext', clientId:CLIENT_ID}, function(d){
+    var card = document.getElementById('irct-context-card');
+    if(!card) return;
+    if(!d || d.status!=='ok' || !d.found || (!d.diet && !d.exerciseFreq)){ card.style.display='none'; return; }
+    _irctContextLoaded = true;
+    card.style.display='';
+    var dateEl = document.getElementById('irct-context-date');
+    if(dateEl) dateEl.textContent = d.date ? d.date+' ' : '';
+    var lines = [];
+    if(d.diet) lines.push('🍽 飲食模式：'+d.diet);
+    if(d.exerciseFreq) lines.push('🏃 每週運動：'+d.exerciseFreq);
+    if(d.medications) lines.push('💊 用藥狀況：'+d.medications);
+    var body = document.getElementById('irct-context-body');
+    if(body) body.innerHTML = lines.join('<br>');
+  });
+}
 function showIRCTScene(status) {
   var scenes = ['never', 'booked', 'processing', 'ready'];
   scenes.forEach(function(s) {
@@ -5782,6 +5890,8 @@ function showIRCTScene(status) {
   var targetScene = sceneMap[status] || 'never';
   var targetEl = document.getElementById('irct-scene-' + targetScene);
   if (targetEl) targetEl.style.display = 'block';
+  if (targetScene === 'ready' && typeof loadIrctContext === 'function') loadIrctContext();
+  if (targetScene === 'ready' && typeof loadIrctSummary === 'function') loadIrctSummary();
 
   // 已預約畫面：填入真實的時間地點
   if (targetScene === 'booked') {
@@ -5880,16 +5990,17 @@ function showBookingDetail() {
 function goToRescheduleStep() {
   goPage('booking', '改期 IRCT 預約');
   setTimeout(function() {
-    // 隱藏第1、2步，直接顯示第3步（選時間）
+    // 隱藏第1~3步，直接顯示第4步（選時間）
     var s1 = document.getElementById('bk-step1');
     var s2 = document.getElementById('bk-step2');
     var s3 = document.getElementById('bk-step3');
     var s4 = document.getElementById('bk-step4');
     if (s1) s1.style.display = 'none';
     if (s2) s2.style.display = 'none';
-    if (s3) s3.style.display = 'block';
-    if (s4) s4.style.display = 'none';
-    if (typeof bkSetStep === 'function') bkSetStep(3);
+    if (s3) s3.style.display = 'none';
+    if (s4) s4.style.display = 'block';
+    if (typeof bkSetStep === 'function') bkSetStep(4);
+    if (typeof bkRenderTimes === 'function') bkRenderTimes();
     toast('📅 請選擇新的檢測時間');
   }, 200);
 }
@@ -6205,6 +6316,50 @@ function applyGardenVitality(vitality, daysSince){
 
 // ══════ 首頁真實統計 ══════
 var _shareText = null;
+function loadIrctTable(){
+  var loadingEl = document.getElementById('irct-table-loading');
+  var emptyEl = document.getElementById('irct-table-empty');
+  var wrapEl = document.getElementById('irct-table-wrap');
+  if(loadingEl) loadingEl.style.display='';
+  if(emptyEl) emptyEl.style.display='none';
+  if(wrapEl) wrapEl.style.display='none';
+  callAPI({action:'getIRCTFullTable', clientId:CLIENT_ID}, function(d){
+    loadingEl = document.getElementById('irct-table-loading');
+    emptyEl = document.getElementById('irct-table-empty');
+    wrapEl = document.getElementById('irct-table-wrap');
+    if(loadingEl) loadingEl.style.display='none';
+    if(!d || d.status!=='ok' || !d.found || !d.tests || d.tests.length===0){
+      if(emptyEl) emptyEl.style.display='';
+      return;
+    }
+    if(wrapEl) wrapEl.style.display='';
+    var thEl = document.getElementById('irct-table-head');
+    if(thEl){
+      var thHtml = '<th style="position:sticky;left:0;background:var(--bg);z-index:1;text-align:left;padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--text3)">項目</th>';
+      d.tests.forEach(function(t){
+        thHtml += '<th style="padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--text2);text-align:center">'+escHtml(t.date)+'</th>';
+      });
+      thHtml += '<th style="padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--g3);text-align:center;background:var(--g2)">治療性生酮後理想區間</th>'
+        + '<th style="padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--b3);text-align:center">現行正常區間</th>';
+      thEl.innerHTML = thHtml;
+    }
+    var tbEl = document.getElementById('irct-table-body');
+    if(tbEl){
+      tbEl.innerHTML = d.rows.map(function(r, i){
+        var bg = i % 2 === 0 ? 'var(--card)' : 'var(--bg)';
+        var cells = '<td style="position:sticky;left:0;background:'+bg+';z-index:1;padding:6px 10px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border)">'+escHtml(r.label)+'</td>';
+        r.values.forEach(function(v){
+          var color = v.watch ? 'var(--r)' : 'var(--text)';
+          var fw = v.watch ? '700' : '400';
+          cells += '<td style="padding:6px 10px;text-align:center;color:'+color+';font-weight:'+fw+';border-bottom:1px solid var(--border);background:'+bg+'">'+(v.value!==''?escHtml(String(v.value)):'—')+'</td>';
+        });
+        cells += '<td style="padding:6px 10px;text-align:center;font-size:10px;color:var(--g3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.therapeutic||'')+'</td>'
+          + '<td style="padding:6px 10px;text-align:center;font-size:10px;color:var(--b3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.normal||'')+'</td>';
+        return '<tr>'+cells+'</tr>';
+      }).join('');
+    }
+  });
+}
 function loadMonthlyLog(){
   var sel = document.getElementById('mw-month-sel');
   var box = document.getElementById('mw-log-list');
@@ -6522,6 +6677,53 @@ function bkRenderClinics(){
     }).join('');
   });
 }
+// 把「每週四 9:00起（1-5位）」這類週期文字說明，解析成接下來幾個真正的可選日期
+function bkParseSlotPattern(text){
+  var weekdayMap = {'日':0,'天':0,'一':1,'二':2,'三':3,'四':4,'五':5,'六':6};
+  var days = [];
+  function addDay(wd){ if(wd !== undefined && days.indexOf(wd) < 0) days.push(wd); }
+  // 先處理「週X至週Y」這種區間寫法（例：週二至週六 → 二三四五六都要），避免只抓到頭尾兩天
+  var rangeRe = /[週周]\s*([一二三四五六日天])\s*[至到~-]\s*[週周]?\s*([一二三四五六日天])/g, rm;
+  var consumedRanges = [];
+  while((rm = rangeRe.exec(text)) !== null){
+    var startWd = weekdayMap[rm[1]], endWd = weekdayMap[rm[2]];
+    if(startWd !== undefined && endWd !== undefined){
+      consumedRanges.push([rm.index, rm.index+rm[0].length]);
+      var cur = startWd;
+      var loopGuard = 0;
+      while(true){
+        addDay(cur);
+        if(cur === endWd || loopGuard > 7) break;
+        cur = (cur+1) % 7; loopGuard++;
+      }
+    }
+  }
+  // 再抓單獨出現的「週X」（排除已經被區間規則吃掉的那段文字，避免週二至週六裡的週二被重複當成單一天處理，其實重複加入也無妨，這裡單純避免混淆）
+  var re = /[週周]\s*([一二三四五六日天])/g, m;
+  while((m = re.exec(text)) !== null){
+    var inRange = consumedRanges.some(function(r){ return m.index >= r[0] && m.index < r[1]; });
+    if(inRange) continue;
+    addDay(weekdayMap[m[1]]);
+  }
+  var timeMatch = text.match(/(\d{1,2})[:：](\d{2})/);
+  var hour = timeMatch ? parseInt(timeMatch[1],10) : 9;
+  var min = timeMatch ? parseInt(timeMatch[2],10) : 0;
+  return { days: days, hour: hour, min: min };
+}
+function bkGenerateDates(pattern, count){
+  if(!pattern.days || pattern.days.length===0) return [];
+  var results = [];
+  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+1); // 從明天開始找
+  var guard = 0;
+  while(results.length < count && guard < 90){
+    if(pattern.days.indexOf(d.getDay()) >= 0){
+      var dt = new Date(d);
+      results.push(dt);
+    }
+    d.setDate(d.getDate()+1); guard++;
+  }
+  return results;
+}
 function bkRenderTimes(){
   var box = document.getElementById('bk-time-list');
   if(!box || !_bkSlots || _bkSlots.length===0) return;
@@ -6530,10 +6732,29 @@ function bkRenderTimes(){
   var clinicName = sel ? sel.getAttribute('data-clinic') : null;
   var times = _bkSlots.filter(function(s){ return !clinicName || s.clinic===clinicName; });
   if(times.length===0) return;
-  box.innerHTML = times.map(function(s){
-    return '<div onclick="bkSelTime(this)" data-dt="'+escAttr(s.datetime)+'" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
-      + '<div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(s.datetime)+'</div></div>';
-  }).join('');
+  var weekdayNames=['日','一','二','三','四','五','六'];
+  var cards = [];
+  times.forEach(function(s){
+    var pattern = bkParseSlotPattern(s.datetime||'');
+    var dates = bkGenerateDates(pattern, 4);
+    if(dates.length > 0){
+      dates.forEach(function(dt){
+        var mm = String(dt.getMonth()+1).padStart(2,'0'), dd = String(dt.getDate()).padStart(2,'0');
+        var hh = String(pattern.hour).padStart(2,'0'), mi = String(pattern.min).padStart(2,'0');
+        var label = mm+'/'+dd+'（'+weekdayNames[dt.getDay()]+'）';
+        var dtValue = mm+'/'+dd+'（'+weekdayNames[dt.getDay()]+'）'+' '+hh+':'+mi;
+        cards.push('<div onclick="bkSelTime(this)" data-dt="'+escAttr(dtValue)+'" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
+          + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">'+label+'</div>'
+          + '<div style="font-size:11px;color:var(--text2)">'+hh+':'+mi+'起</div></div>');
+      });
+    } else {
+      // 解析不出星期規律的，就照原樣顯示文字，至少不會誤導成假日期
+      cards.push('<div onclick="bkSelTime(this)" data-dt="'+escAttr(s.datetime||'')+'" style="grid-column:1/-1;border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(s.datetime||'')+'</div>'
+        + '<div style="font-size:10px;color:var(--text3);margin-top:2px">請選定後再跟秘書確認實際日期</div></div>');
+    }
+  });
+  box.innerHTML = cards.join('');
 }
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 

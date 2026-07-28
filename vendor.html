@@ -50,9 +50,28 @@
 </div>
 
 <div id="workspace" style="display:none">
-  <div class="tabs">
+  <div class="tabs" id="tabs-row">
     <div class="tab on" id="tab-charge" onclick="switchTab('charge')">💳 客人消費扣款</div>
+    <div class="tab" id="tab-upload" onclick="switchTab('upload')" style="display:none">📤 上傳報告</div>
     <div class="tab" id="tab-stmt" onclick="switchTab('stmt')">📄 月結對帳單</div>
+  </div>
+
+  <!-- 上傳報告（只有診所／實驗室帳號看得到）-->
+  <div id="pane-upload" style="display:none">
+    <div class="card">
+      <div class="lbl" style="margin-top:0">送到您這裡、還沒回報的檢測</div>
+      <button style="width:100%;margin-bottom:4px" onclick="loadPendingTests()">重新整理清單</button>
+      <div id="pending-list" style="margin-top:10px"></div>
+    </div>
+    <div class="card" id="upload-form" style="display:none">
+      <div class="lbl" style="margin-top:0">回報結果</div>
+      <div style="font-size:13px;color:#556;margin-bottom:10px" id="upload-target-info"></div>
+      <input id="up-result" placeholder="檢測結果（例：正常 / 詳見附註）" style="margin-bottom:8px">
+      <input id="up-note" placeholder="備註（選填）" style="margin-bottom:10px">
+      <button style="width:100%;font-size:16px;padding:13px" onclick="submitReport()">確認回報</button>
+      <button style="width:100%;margin-top:8px;background:#eee;color:#556" onclick="cancelUpload()">取消</button>
+      <div class="err" id="up-err"></div>
+    </div>
   </div>
 
   <!-- 扣款 -->
@@ -97,6 +116,11 @@
       <div class="err" id="err"></div>
     </div>
     <div id="result"></div>
+    <div class="card" id="confirm-card" style="display:none">
+      <button style="width:100%;font-size:15px;padding:13px" onclick="confirmMyStatement()">✅ 確認本月對帳單無誤</button>
+      <div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">確認後元代謝會知道您已核對過這份金額</div>
+      <div class="err" id="confirm-err"></div>
+    </div>
   </div>
 </div>
 
@@ -107,8 +131,8 @@
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbwq-qqCxSJtzBJAreLCSKuF1UXn8wM90L6E7nIhMlziZTQTxeJzJPEGWxN5t_W59VOl/exec';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-var V_CODE='',V_PW='';
-try{ V_CODE=localStorage.getItem('mx_v_code')||''; V_PW=localStorage.getItem('mx_v_pw')||''; }catch(e){}
+var V_CODE='',V_PW='',V_ROLETYPE='';
+try{ V_CODE=localStorage.getItem('mx_v_code')||''; V_PW=localStorage.getItem('mx_v_pw')||''; V_ROLETYPE=localStorage.getItem('mx_v_roletype')||''; }catch(e){}
 
 function api(params,cb){
   params.vendorCode=V_CODE; params.vendorPw=V_PW;
@@ -120,6 +144,9 @@ function showWorkspace(){
   document.getElementById('workspace').style.display='';
   document.getElementById('logout-btn').style.display='';
   document.getElementById('hd-sub').textContent=V_CODE+'・認證店家';
+  var isLab = (V_ROLETYPE === '診所' || V_ROLETYPE === '實驗室');
+  document.getElementById('tab-upload').style.display = isLab ? '' : 'none';
+  if(isLab) switchTab('upload'); // 診所/實驗室帳號打開直接看待回報清單，比消費扣款更常用
 }
 function vLogin(){
   var code=document.getElementById('vcode').value.trim();
@@ -131,6 +158,8 @@ function vLogin(){
   api({action:'vendorPing'},function(d){
     if(d&&d.status==='ok'){
       try{ localStorage.setItem('mx_v_code',V_CODE); localStorage.setItem('mx_v_pw',V_PW); }catch(e){}
+      V_ROLETYPE = d.roleType || '';
+      try{ localStorage.setItem('mx_v_roletype',V_ROLETYPE); }catch(e){}
       err.textContent=''; showWorkspace();
     } else {
       var m=(d&&d.message)||'連線失敗，請稍後再試';
@@ -140,14 +169,72 @@ function vLogin(){
   });
 }
 function vLogout(){
-  try{ localStorage.removeItem('mx_v_code'); localStorage.removeItem('mx_v_pw'); }catch(e){}
+  try{ localStorage.removeItem('mx_v_code'); localStorage.removeItem('mx_v_pw'); localStorage.removeItem('mx_v_roletype'); }catch(e){}
   location.reload();
 }
 function switchTab(t){
   document.getElementById('tab-charge').className='tab'+(t==='charge'?' on':'');
+  document.getElementById('tab-upload').className='tab'+(t==='upload'?' on':'');
   document.getElementById('tab-stmt').className='tab'+(t==='stmt'?' on':'');
   document.getElementById('pane-charge').style.display=t==='charge'?'':'none';
+  document.getElementById('pane-upload').style.display=t==='upload'?'':'none';
   document.getElementById('pane-stmt').style.display=t==='stmt'?'':'none';
+  if(t==='upload') loadPendingTests();
+}
+var PENDING_CACHE=[], UPLOAD_TARGET=null;
+function loadPendingTests(){
+  var box=document.getElementById('pending-list');
+  box.innerHTML='<div class="muted">載入中…</div>';
+  api({action:'vendorGetPendingTests'},function(d){
+    if(!d||d.status!=='ok'){ box.innerHTML='<div class="muted">'+((d&&d.message)||'查詢失敗')+'</div>'; return; }
+    PENDING_CACHE=d.items||[];
+    if(PENDING_CACHE.length===0){ box.innerHTML='<div class="muted">目前沒有待回報的檢測 🎉</div>'; return; }
+    box.innerHTML=PENDING_CACHE.map(function(it,i){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f0f0">'
+        +'<div style="flex:1"><div style="font-weight:700;font-size:14px">'+esc(it.item)+'</div>'
+        +'<div style="font-size:11px;color:#999">客人 '+esc(it.clientId)+'・'+esc(it.sentDate)+' 送檢</div></div>'
+        +'<button style="font-size:12px;padding:8px 12px" onclick="showUploadForm('+i+')">回報結果</button>'
+        +'</div>';
+    }).join('');
+  });
+}
+function showUploadForm(i){
+  UPLOAD_TARGET=PENDING_CACHE[i];
+  if(!UPLOAD_TARGET) return;
+  document.getElementById('upload-target-info').textContent='客人 '+UPLOAD_TARGET.clientId+'・'+UPLOAD_TARGET.item;
+  document.getElementById('up-result').value='';
+  document.getElementById('up-note').value='';
+  document.getElementById('up-err').textContent='';
+  document.getElementById('upload-form').style.display='';
+}
+function cancelUpload(){
+  UPLOAD_TARGET=null;
+  document.getElementById('upload-form').style.display='none';
+}
+function submitReport(){
+  if(!UPLOAD_TARGET) return;
+  var result=document.getElementById('up-result').value.trim();
+  var note=document.getElementById('up-note').value.trim();
+  var err=document.getElementById('up-err');
+  if(!result){ err.textContent='請填寫檢測結果'; return; }
+  err.textContent='送出中…';
+  api({action:'vendorUploadReport',src:UPLOAD_TARGET.src,row:UPLOAD_TARGET.row,result:result,note:note},function(d){
+    if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'送出失敗，請稍後再試'; return; }
+    err.textContent='';
+    cancelUpload();
+    loadPendingTests();
+  });
+}
+var LAST_STMT_MONTH='', LAST_STMT_TOTAL=0;
+function confirmMyStatement(){
+  var err=document.getElementById('confirm-err');
+  if(!confirm('確認這份對帳單金額（$'+LAST_STMT_TOTAL.toLocaleString()+'）沒有問題嗎？')) return;
+  err.textContent='送出中…';
+  api({action:'vendorConfirmSettlement',month:LAST_STMT_MONTH,total:LAST_STMT_TOTAL},function(d){
+    if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'送出失敗'; return; }
+    err.textContent='';
+    document.getElementById('confirm-card').innerHTML='<div style="text-align:center;color:#0F6E56;font-weight:700">✅ 已確認，謝謝您的核對</div>';
+  });
 }
 var CUR_CID='';
 function lookupClient(){
@@ -210,6 +297,8 @@ function loadStatement(){
 function renderResult(d){
   var box=document.getElementById('result');
   var label=d.month? d.month : '全部期間';
+  LAST_STMT_MONTH=d.month||'';
+  LAST_STMT_TOTAL=d.total||0;
   var html='<div class="card">';
   html+='<div class="total"><div class="total-n">$'+(d.total||0).toLocaleString()+'</div><div class="total-l">'+esc(d.vendor)+'・'+label+' 分潤總額</div></div>';
   if(d.items&&d.items.length){
@@ -223,6 +312,9 @@ function renderResult(d){
   }
   html+='</div>';
   box.innerHTML=html;
+  var cc=document.getElementById('confirm-card');
+  cc.style.display = (d.total||0) > 0 ? '' : 'none';
+  cc.innerHTML='<button style="width:100%;font-size:15px;padding:13px" onclick="confirmMyStatement()">✅ 確認本月對帳單無誤</button><div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">確認後元代謝會知道您已核對過這份金額</div><div class="err" id="confirm-err"></div>';
 }
 if(V_CODE&&V_PW){ showWorkspace(); }
 </script>

@@ -1797,6 +1797,82 @@ function loadInvoiceRequests() {
 }
 
 // ── IRCT記錄填寫（後台秘書填入IRCT結果）──
+function loadIRCTAnalysisFull(clientId){
+  var box = document.getElementById('irct-f-analysis');
+  if(!box) return;
+  box.innerHTML = '載入中…';
+  adminAPI({action:'getIRCTAnalysisFull', clientId:clientId}, function(d){
+    box = document.getElementById('irct-f-analysis');
+    if(!box) return;
+    if(!d || d.status!=='ok' || !d.found){ box.innerHTML = '還沒有可分析的完整記錄'; return; }
+    var statusColor = {ideal:'var(--g)', normal:'var(--b3)', watch:'var(--r)'};
+    var statusLabel = {ideal:'理想', normal:'正常', watch:'需留意'};
+    function renderItems(items){
+      return items.filter(function(it){ return it.status !== null; }).map(function(it){
+        return '<span style="display:inline-block;margin-right:10px">'+it.label+' <b>'+it.value+'</b>'+(it.unit?it.unit:'')
+          + ' <span style="color:'+(statusColor[it.status]||'var(--text3)')+';font-weight:700">['+(statusLabel[it.status]||'')+']</span></span>';
+      }).join('');
+    }
+    var a = d.analysis;
+    var html = '<div style="margin-bottom:8px"><b style="color:var(--g3)">🩸 血糖：</b>'+renderItems(a.glucose.items)+'</div>'
+      + '<div style="margin-bottom:8px"><b style="color:var(--g3)">🫀 血脂：</b>'+renderItems(a.lipid.items)+'</div>'
+      + '<div style="margin-bottom:8px"><b style="color:var(--g3)">💉 胰島素：</b>'+renderItems(a.insulin.items)
+      + (a.insulin.peakValue!==null ? '　峰值:'+a.insulin.peakValue : '')
+      + '<div style="margin-top:4px;padding:8px 10px;background:var(--g2);border-radius:8px">'
+      + '<b style="color:var(--g3)">整體判定：'+(a.insulin.overall.classification||'—')+'</b><br>'
+      + '<span style="font-size:10.5px;color:var(--text2)">'+(a.insulin.overall.note||'')+'</span></div></div>'
+      + '<div><b style="color:var(--g3)">📏 體組成：</b>'+renderItems(a.bodyComp.items)
+      + '　BMI:'+(a.bodyComp.bmi||'—')+'('+(a.bodyComp.bmiCategory||'—')+')<br>'
+      + '<span style="font-size:10.5px;color:var(--text2)">'+(a.bodyComp.note||'')+'</span></div>';
+    if(d.firstRecord){
+      html += '<div style="margin-top:8px;font-size:10px;color:var(--text3)">（已對照第一次記錄的資料，共 '+d.count+' 次檢測）</div>';
+    }
+    box.innerHTML = html;
+  });
+}
+function saveIRCTFull(clientId){
+  var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  var hasAny = ['hba1c','glucoseAC','tg','hdl','insulinAC','waist','bodyFatPct'].some(function(k){ return g('irct-f-'+k) !== ''; });
+  if(!hasAny){ toast('至少填幾個關鍵數值才能儲存'); return; }
+  var tg = g('irct-f-tg'), hdl = g('irct-f-hdl'), esi = g('irct-f-esi');
+  if(!esi && tg && hdl && Number(hdl) > 0) esi = String(Math.round(Number(tg)/Number(hdl)*100)/100);
+  var payload = { action:'saveIRCTFullRecord', clientId:clientId,
+    count:g('irct-f-count'), planType:g('irct-f-plan')||'t2', gender:g('irct-f-gender')||'女',
+    hba1c:g('irct-f-hba1c'), glucoseAC:g('irct-f-glucoseAC'), glucose1h:g('irct-f-glucose1h'),
+    glucose2h:g('irct-f-glucose2h'), glucose3h:g('irct-f-glucose3h'),
+    cholesterol:g('irct-f-cholesterol'), tg:tg, hdl:hdl, ldl:g('irct-f-ldl'),
+    sdldl:g('irct-f-sdldl'), homocysteine:g('irct-f-homocysteine'), esi:esi,
+    insulinAC:g('irct-f-insulinAC'), insulin1h:g('irct-f-insulin1h'), insulin2h:g('irct-f-insulin2h'),
+    insulin3h:g('irct-f-insulin3h'), homaIR:g('irct-f-homaIR'), ketone:g('irct-f-ketone'),
+    waist:g('irct-f-waist'), hip:g('irct-f-hip'), bodyFatPct:g('irct-f-bodyFatPct'),
+    visceralFat:g('irct-f-visceralFat'), bmi:g('irct-f-bmi'), weight:g('irct-f-weight'),
+    creatinine:g('irct-f-creatinine'), ua:g('irct-f-ua'), got:g('irct-f-got'), gpt:g('irct-f-gpt'), egfr:g('irct-f-egfr') };
+  adminAPIPost(payload, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ IRCT完整記錄已儲存，前台報告已同步更新');
+      adminAPI({action:'addNote', clientId:clientId, content:'reportStatus:ready', type:'報告狀態', secretary:(CURRENT_USER&&CURRENT_USER.name)||'系統'}, function(){});
+      loadIRCTFullHistory(clientId);
+      loadIRCTAnalysisFull(clientId);
+    } else toast('⚠️ ' + ((d && d.message) || '儲存失敗'));
+  });
+}
+function loadIRCTFullHistory(clientId){
+  var box = document.getElementById('irct-f-history');
+  if(!box) return;
+  box.innerHTML = '載入中…';
+  adminAPI({action:'getIRCTFullHistory', clientId:clientId}, function(d){
+    box = document.getElementById('irct-f-history');
+    if(!box) return;
+    var items = (d && d.items) || [];
+    if(items.length === 0){ box.innerHTML = '還沒有完整記錄'; return; }
+    box.innerHTML = items.map(function(it){
+      return '<div style="padding:6px 0;border-bottom:1px dashed var(--border)">'
+        + '<b style="color:var(--text)">第'+(it.count||'?')+'次・'+escH(it.date)+'</b>　'
+        + 'HbA1c '+(it.hba1c||'—')+'・血糖'+(it.glucoseAC||'—')+'・腰圍'+(it.waist||'—')
+        + '</div>';
+    }).join('');
+  });
+}
 function saveIRCTRecord(clientId, count, hba1c, glucose, esi, weight, waist, bodyFat, visceralFat, sdldl, homocysteine, clinicName, planType) {
   adminAPI({
     action: 'addIRCT', clientId: clientId, count: count,
@@ -3318,6 +3394,63 @@ function openClientDetail(id, name){
     + '<div id="cd-ib-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🔬 IRCT 完整檢測記錄（依血糖／血脂／胰島素／體組成分類，存檔後前台報告分析頁會自動更新）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 6px">'
+    + '<input id="irct-f-count" type="number" class="form-input" style="font-size:12px" placeholder="第幾次檢測">'
+    + '<select id="irct-f-plan" class="form-input" style="font-size:12px"><option value="t2">IRCT-t2</option><option value="t1">IRCT-t1</option></select>'
+    + '<select id="irct-f-gender" class="form-input" style="font-size:12px"><option value="女">女</option><option value="男">男</option></select>'
+    + '</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">🩸 1. 血糖（糖化＋血糖波動）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '<input id="irct-f-hba1c" class="form-input" style="font-size:12px" placeholder="HbA1c %">'
+    + '<input id="irct-f-glucoseAC" class="form-input" style="font-size:12px" placeholder="空腹血糖">'
+    + '<input id="irct-f-glucose1h" class="form-input" style="font-size:12px" placeholder="飯後1hr血糖">'
+    + '<input id="irct-f-glucose2h" class="form-input" style="font-size:12px" placeholder="飯後2hr血糖">'
+    + '<input id="irct-f-glucose3h" class="form-input" style="font-size:12px" placeholder="飯後3hr血糖">'
+    + '</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">🫀 2. 血脂（含心血管發炎因子）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '<input id="irct-f-cholesterol" class="form-input" style="font-size:12px" placeholder="總膽固醇">'
+    + '<input id="irct-f-tg" class="form-input" style="font-size:12px" placeholder="三酸甘油脂TG">'
+    + '<input id="irct-f-hdl" class="form-input" style="font-size:12px" placeholder="HDL">'
+    + '<input id="irct-f-ldl" class="form-input" style="font-size:12px" placeholder="LDL">'
+    + '<input id="irct-f-sdldl" class="form-input" style="font-size:12px" placeholder="sdLDL（t2）">'
+    + '<input id="irct-f-homocysteine" class="form-input" style="font-size:12px" placeholder="同半胱胺酸（t2）">'
+    + '</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">💉 3. 胰島素（高胰島素血症／貝塔細胞／壓抑觀察）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '<input id="irct-f-insulinAC" class="form-input" style="font-size:12px" placeholder="空腹胰島素">'
+    + '<input id="irct-f-insulin1h" class="form-input" style="font-size:12px" placeholder="飯後1hr胰島素">'
+    + '<input id="irct-f-insulin2h" class="form-input" style="font-size:12px" placeholder="飯後2hr胰島素">'
+    + '<input id="irct-f-insulin3h" class="form-input" style="font-size:12px" placeholder="飯後3hr胰島素">'
+    + '<input id="irct-f-homaIR" class="form-input" style="font-size:12px" placeholder="HOMA-IR">'
+    + '<input id="irct-f-ketone" class="form-input" style="font-size:12px" placeholder="空腹血酮">'
+    + '</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">📏 4. 體組成（代謝症候群觀察）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '<input id="irct-f-waist" class="form-input" style="font-size:12px" placeholder="腰圍cm">'
+    + '<input id="irct-f-hip" class="form-input" style="font-size:12px" placeholder="臀圍cm">'
+    + '<input id="irct-f-bodyFatPct" class="form-input" style="font-size:12px" placeholder="體脂肪率%">'
+    + '<input id="irct-f-visceralFat" class="form-input" style="font-size:12px" placeholder="內臟脂肪">'
+    + '<input id="irct-f-bmi" class="form-input" style="font-size:12px" placeholder="BMI">'
+    + '<input id="irct-f-weight" class="form-input" style="font-size:12px" placeholder="體重kg">'
+    + '</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:8px 0 4px">其他（腎肝功能・可留空）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'
+    + '<input id="irct-f-creatinine" class="form-input" style="font-size:12px" placeholder="肌酸酐">'
+    + '<input id="irct-f-ua" class="form-input" style="font-size:12px" placeholder="尿酸UA">'
+    + '<input id="irct-f-got" class="form-input" style="font-size:12px" placeholder="GOT">'
+    + '<input id="irct-f-gpt" class="form-input" style="font-size:12px" placeholder="GPT">'
+    + '<input id="irct-f-egfr" class="form-input" style="font-size:12px" placeholder="eGFR">'
+    + '<input id="irct-f-esi" class="form-input" style="font-size:12px" placeholder="ESI（留空自動算TG/HDL）">'
+    + '</div>'
+    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="saveIRCTFull(\''+escH(id)+'\')">儲存 IRCT 完整記錄（同步解鎖前台報告）</button>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">IRCT 檢測歷史</div>'
+    + '<div id="irct-f-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">完整分析（依血糖／血脂／胰島素／體組成四大分類，僅醫師/秘書可見）</div>'
+    + '<div id="irct-f-analysis" style="font-size:11.5px;color:var(--text2);line-height:1.8">載入中…</div>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍚 碳水計畫（寫入 👤 客人名單）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">代謝靈活性調整期間分兩段：嚴格期（內部：治療性生酮）不建議吃碳水；碳水回補期（內部：營養性生酮）以 15g 為單位往上加，找客人的碳水甜蜜點。客人前台只會看到中性用語（嚴格期／碳水回補期），不會出現「治療」或「生酮」。</div>'
     + '<div style="display:grid;grid-template-columns:1fr auto;gap:7px">'
@@ -3360,6 +3493,8 @@ function openClientDetail(id, name){
   loadMedHistory(id);
   loadClientGoalWeight(id);
   loadInBodyHistory(id);
+  loadIRCTFullHistory(id);
+  loadIRCTAnalysisFull(id);
   loadChronicMedList();
   loadCarbPlanAdmin(id);
   loadDiscussions(id);
