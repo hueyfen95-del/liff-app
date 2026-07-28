@@ -488,7 +488,7 @@ window.openHealthForm = function() {
       <div class="qg" onclick="goPage('record','每日記錄')"><i class="ti ti-camera"></i><div class="qg-l">每日記錄</div></div>
       <div class="qg" onclick="goPage('trend','健康趨勢')"><i class="ti ti-trending-up"></i><div class="qg-l">健康趨勢</div></div>
       <div class="qg" onclick="goPage('food','外食指南')"><i class="ti ti-tools-kitchen-2"></i><div class="qg-l">外食指南</div><div class="qg-n">NEW</div></div>
-      <div class="qg" onclick="goPage('irct','IRCT 報告')"><i class="ti ti-microscope"></i><div class="qg-l">IRCT 報告</div><div class="qg-n" style="color:var(--g)">最新</div></div>
+      <div class="qg" onclick="goPage('irct','IRCT 報告')"><i class="ti ti-microscope"></i><div class="qg-l" id="home-irct-label">IRCT 報告</div><div class="qg-n" id="home-irct-badge" style="color:var(--g)">最新</div></div>
       <div class="qg" onclick="goPage('garden','代謝花園')"><i class="ti ti-plant-2"></i><div class="qg-l">代謝花園</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
       <div class="qg" onclick="goPage('qa','問答')"><i class="ti ti-message-circle"></i><div class="qg-l">問答</div></div>
     </div>
@@ -2330,6 +2330,7 @@ function goPage(id,title){
     if(typeof loadMyStats==='function') loadMyStats();
     if (typeof updateGardenHint === 'function') updateGardenHint();
   }
+  if(id === 'home' && typeof loadReportStatus==='function') loadReportStatus();
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
   if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
@@ -3321,6 +3322,7 @@ function loadCarbPlan(){
   });
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadCarbPlan, 1500); });
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof loadReportStatus==='function') loadReportStatus(); }, 1000); });
 
 // ── 通用API呼叫函數 ──
 function callAPI(params, callback) {
@@ -5810,6 +5812,24 @@ function loadIrctContext(){
   });
 }
 function showIRCTScene(status) {
+  // 首頁卡片文字跟著實際狀態動態顯示，沒預約過的客人才不會誤以為這只是「看報告」而找不到預約入口
+  var homeLabel = document.getElementById('home-irct-label');
+  var homeBadge = document.getElementById('home-irct-badge');
+  if (homeLabel && homeBadge) {
+    if (status === 'never' || status === 'locked' || !status) {
+      homeLabel.textContent = 'IRCT 檢測';
+      homeBadge.textContent = '立即預約';
+      homeBadge.style.color = 'var(--r)';
+    } else if (status === 'booked') {
+      homeLabel.textContent = 'IRCT 檢測';
+      homeBadge.textContent = '已預約';
+      homeBadge.style.color = 'var(--b3)';
+    } else {
+      homeLabel.textContent = 'IRCT 報告';
+      homeBadge.textContent = '最新';
+      homeBadge.style.color = 'var(--g)';
+    }
+  }
   var scenes = ['never', 'booked', 'processing', 'ready'];
   scenes.forEach(function(s) {
     var el = document.getElementById('irct-scene-' + s);
