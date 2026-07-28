@@ -909,9 +909,10 @@ window.openHealthForm = function() {
   <!-- 情境二：已預約，等待檢測日 -->
   <!-- ══════════════════════════════════ -->
   <div id="irct-scene-booked" style="display:none;padding:24px 18px">
-    <div style="text-align:center;margin-bottom:18px">
+    <div style="text-align:center;margin-bottom:14px">
       <div style="font-size:48px;margin-bottom:10px">📅</div>
-      <div style="font-size:16px;font-weight:700;color:var(--text)">你已預約 IRCT 檢測</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px">你已預約 IRCT 檢測</div>
+      <button onclick="goPage('booking','預約 IRCT 檢測')" style="background:var(--b);color:#fff;border:none;border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px"><span style="font-size:15px">🔬</span>想預約另一次檢測</button>
     </div>
 
     <!-- 預約時間地點卡片 -->
@@ -943,11 +944,10 @@ window.openHealthForm = function() {
       </div>
     </div>
 
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px">
+    <div style="display:flex;gap:8px;justify-content:center">
       <button onclick="showBookingDetail()" style="background:var(--bg);color:var(--text2);border:0.5px solid var(--border);border-radius:12px;padding:11px 20px;font-size:12px;cursor:pointer">查看詳情</button>
       <button onclick="goToRescheduleStep()" style="background:var(--g2);color:var(--g3);border:1px solid var(--g);border-radius:12px;padding:11px 20px;font-size:12px;cursor:pointer;font-weight:600">改期</button>
     </div>
-    <div onclick="goPage('booking','預約 IRCT 檢測')" style="text-align:center;font-size:11.5px;color:var(--b3);text-decoration:underline;cursor:pointer">🔬 想另外預約一次新的檢測？</div>
   </div>
 
   <!-- 改期/詳情用的彈窗 -->
