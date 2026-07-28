@@ -604,88 +604,15 @@ window.openHealthForm = function() {
     <!-- 今日待辦進度 -->
     <div style="background:var(--g2);border-radius:12px;padding:10px 13px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
       <div style="font-size:12px;font-weight:600;color:var(--g3)">今天還有幾件事要記錄</div>
-      <div id="diet-progress-badge" style="font-size:12px;font-weight:700;color:#fff;background:var(--g);border-radius:20px;padding:3px 12px">0 / 5</div>
+      <div id="diet-progress-badge" style="font-size:12px;font-weight:700;color:#fff;background:var(--g);border-radius:20px;padding:3px 12px">0 / 4</div>
     </div>
 
-    <!-- ① 飲食原則確認 -->
-    <div class="diet-step" id="diet-step-1" style="background:var(--bg);border-radius:12px;padding:11px 13px;margin-bottom:10px;border:0.5px solid var(--border)">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-        <div class="diet-step-num" id="diet-num-1" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">①</div>
-        <div style="font-size:12px;font-weight:600;color:var(--text2);flex:1">今天的飲食原則做到了嗎？</div>
-        <div id="dc-txt" style="font-size:11px;font-weight:700;color:var(--g)">0 / 3</div>
-      </div>
-      <div style="padding-left:28px">
-        <div style="width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:10px"><div id="dc-fill" style="height:100%;width:0%;background:var(--g);border-radius:3px;transition:width .5s"></div></div>
-
-        <div class="dc-all-done" id="dc-all-done">
-      <span style="font-size:28px">🎉</span>
-      <div><div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px">三個飲食習慣今天都做到了！</div><div style="font-size:11px;color:rgba(255,255,255,.8)">持續累積，身體正在悄悄改變 🌱</div></div>
-    </div>
-
-        <div class="dc-card" id="dc-oil">
-      <div class="dc-card-hd" onclick="toggleDcCard('oil')">
-        <div class="dc-chk" id="chk-oil" onclick="event.stopPropagation();toggleDcCheck('oil')"><i class="ti ti-check"></i></div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px" id="nm-oil">✦ 今天用好油了嗎？</div><div style="font-size:11px;color:var(--text3)">橄欖油、酪梨油、苦茶油、豬油、奶油、牛油、雞油</div></div>
-        <i class="ti ti-chevron-down dc-arr" id="arr-oil"></i>
-      </div>
-      <div class="dc-card-body" id="body-oil">
-        <div class="dc-sec-lbl ok"><i class="ti ti-check" style="font-size:12px"></i>今天換這些（天然好油）</div>
-        <div class="food-chips"><div class="food-chip ok">🫒 橄欖油</div><div class="food-chip ok">🥑 酪梨油</div><div class="food-chip ok">🌿 苦茶油</div><div class="food-chip ok">🐷 豬油</div><div class="food-chip ok">🧈 含鹽奶油</div><div class="food-chip ok">🐄 牛油</div><div class="food-chip ok">🐔 雞油</div></div>
-        <div class="dc-sec-lbl bad"><i class="ti ti-x" style="font-size:12px"></i>改掉這些（高 Omega-6・促發炎）</div>
-        <div class="food-chips"><div class="food-chip bad">❌ 大豆油</div><div class="food-chip bad">❌ 玉米油</div><div class="food-chip bad">❌ 葵花籽油</div><div class="food-chip bad">❌ 葡萄籽油</div><div class="food-chip bad">❌ 沙拉油</div></div>
-        <div class="dc-tip warn"><strong>外食小技巧：</strong>自帶 MINIOLIVA 橄欖油隨行包，直接淋在菜上補充好油 😊</div>
-        <div class="done-badge" id="done-oil" style="display:none"><i class="ti ti-circle-check"></i><div><div style="font-size:12px;font-weight:700;color:var(--g3)">今天好油做到了 💪</div><div style="font-size:11px;color:#0F6E56;margin-top:2px">身體發炎反應正在降低中</div></div></div>
-      </div>
-    </div>
-
-    <div class="dc-card" id="dc-carb">
-      <div class="dc-card-hd" onclick="toggleDcCard('carb')">
-        <div class="dc-chk" id="chk-carb" onclick="event.stopPropagation();toggleDcCheck('carb')"><i class="ti ti-check"></i></div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px" id="nm-carb">✦ 今天碳水去除了嗎？</div><div style="font-size:11px;color:var(--text3)">米、麵、水果、甜食、含糖飲料先放一放</div></div>
-        <i class="ti ti-chevron-down dc-arr" id="arr-carb"></i>
-      </div>
-      <div class="dc-card-body" id="body-carb">
-        <div class="dc-sec-lbl bad"><i class="ti ti-x" style="font-size:12px"></i>這些今天先不碰（高碳水）</div>
-        <div class="food-chips"><div class="food-chip bad">🍚 白飯</div><div class="food-chip bad">🍜 麵條</div><div class="food-chip bad">🍞 麵包</div><div class="food-chip bad">🥐 糕餅</div><div class="food-chip bad">🍎 水果</div><div class="food-chip bad">🧋 含糖飲料</div><div class="food-chip bad">🌽 玉米</div><div class="food-chip bad">🍠 地瓜</div></div>
-        <div class="dc-sec-lbl ok"><i class="ti ti-check" style="font-size:12px"></i>葉菜類不計入碳水，放心吃！</div>
-        <div class="food-chips"><div class="food-chip ok">🥬 空心菜</div><div class="food-chip ok">🥦 花椰菜</div><div class="food-chip ok">🌿 菠菜</div><div class="food-chip ok">🥗 高麗菜</div><div class="food-chip ok">🌱 茼蒿</div><div class="food-chip ok">🥬 地瓜葉</div></div>
-        <div class="dc-tip ok">不小心吃到沒關係，不需要責備自己。隔餐回到斷碳，補點鹽水和油脂，身體很快就能回來 😊</div>
-        <div class="done-badge" id="done-carb" style="display:none"><i class="ti ti-circle-check"></i><div><div style="font-size:12px;font-weight:700;color:var(--g3)">今天碳水控制得很好 ✨</div><div style="font-size:11px;color:#0F6E56;margin-top:2px">血酮正在悄悄升高中</div></div></div>
-      </div>
-    </div>
-
-    <div class="dc-card" id="dc-protein">
-      <div class="dc-card-hd" onclick="toggleDcCard('protein')">
-        <div class="dc-chk" id="chk-protein" onclick="event.stopPropagation();toggleDcCheck('protein')"><i class="ti ti-check"></i></div>
-        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px" id="nm-protein">✦ 每餐蛋白質有一個掌心嗎？</div><div style="font-size:11px;color:var(--text3)">不多不少，一個掌心的份量最剛好</div></div>
-        <i class="ti ti-chevron-down dc-arr" id="arr-protein"></i>
-      </div>
-      <div class="dc-card-body" id="body-protein">
-        <div class="palm-row">
-          <div style="font-size:28px;flex-shrink:0">🤚</div>
-          <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">一個掌心 = 一餐蛋白質的量</div><div style="font-size:11px;color:var(--text2);line-height:1.5">厚度約 1–1.5 公分，不含手指。蛋白質過多會影響粒腺體，過少則肌肉流失 😊</div></div>
-        </div>
-        <div class="dc-sec-lbl ok" style="margin-bottom:7px"><i class="ti ti-meat" style="font-size:13px"></i>一個掌心大約是…</div>
-        <div class="pe-examples">
-          <div class="pe-item"><div style="font-size:19px;flex-shrink:0">🐟</div><div><div style="font-size:11px;font-weight:600">虱目魚肚</div><div style="font-size:10px;color:var(--text3);margin-top:1px">一片</div></div></div>
-          <div class="pe-item"><div style="font-size:19px;flex-shrink:0">🍗</div><div><div style="font-size:11px;font-weight:600">雞腿</div><div style="font-size:10px;color:var(--text3);margin-top:1px">一根（去骨）</div></div></div>
-          <div class="pe-item"><div style="font-size:19px;flex-shrink:0">🥩</div><div><div style="font-size:11px;font-weight:600">牛排</div><div style="font-size:10px;color:var(--text3);margin-top:1px">一塊（約120g）</div></div></div>
-          <div class="pe-item"><div style="font-size:19px;flex-shrink:0">🐷</div><div><div style="font-size:11px;font-weight:600">蒜泥白肉</div><div style="font-size:10px;color:var(--text3);margin-top:1px">三到四片</div></div></div>
-          <div class="pe-item"><div style="font-size:19px;flex-shrink:0">🦷</div><div><div style="font-size:11px;font-weight:600">豬腳</div><div style="font-size:10px;color:var(--text3);margin-top:1px">一小塊</div></div></div>
-          <div class="pe-item"><div style="font-size:19px;flex-shrink:0">🥚</div><div><div style="font-size:11px;font-weight:600">雞蛋</div><div style="font-size:10px;color:var(--text3);margin-top:1px">兩到三顆</div></div></div>
-        </div>
-        <div class="dc-tip info"><strong>為什麼不能太多？</strong>蛋白質吃太多，多餘的會轉換成糖（糖質新生），讓血酮下降。掌心份量是最安全的甜蜜點 🎯</div>
-        <div class="done-badge" id="done-protein" style="display:none"><i class="ti ti-circle-check"></i><div><div style="font-size:12px;font-weight:700;color:var(--g3)">蛋白質份量掌握得很好 🥩</div><div style="font-size:11px;color:#0F6E56;margin-top:2px">肌肉保住了，脂肪在燃燒中</div></div></div>
-      </div>
-    </div>
-      </div>
-    </div>
 
     
 <!-- ① 斷食模式 -->
     <div class="diet-step" id="diet-step-2" style="background:var(--bg);border-radius:12px;padding:11px 13px;margin-bottom:10px;border:0.5px solid var(--border)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div class="diet-step-num" id="diet-num-2" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">②</div>
+        <div class="diet-step-num" id="diet-num-2" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">①</div>
         <div style="font-size:12px;font-weight:600;color:var(--text2);flex:1">今天搭配好油脂實行</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;padding-left:28px">
@@ -699,7 +626,7 @@ window.openHealthForm = function() {
     <!-- ② 早餐 -->
     <div class="diet-step" id="diet-step-3" style="background:var(--bg);border-radius:12px;padding:11px 13px;margin-bottom:10px;border:0.5px solid var(--border)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div class="diet-step-num" id="diet-num-3" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">③</div>
+        <div class="diet-step-num" id="diet-num-3" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">②</div>
         <div style="font-size:12px;font-weight:600;color:var(--text2);flex:1"><i class="ti ti-sun" style="font-size:13px"></i> 早餐記錄</div>
         <span class="meal-st pend" id="bs">未記錄</span>
         <button onclick="quickSaveMeal('b')" style="background:#D1D5DB;color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:11px;cursor:not-allowed;font-weight:700;flex-shrink:0" id="meal-btn-b" disabled>儲存後完成</button>
@@ -725,7 +652,7 @@ window.openHealthForm = function() {
     <!-- ③ 午餐 -->
     <div class="diet-step" id="diet-step-4" style="background:var(--bg);border-radius:12px;padding:11px 13px;margin-bottom:10px;border:0.5px solid var(--border)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div class="diet-step-num" id="diet-num-4" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">④</div>
+        <div class="diet-step-num" id="diet-num-4" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">③</div>
         <div style="font-size:12px;font-weight:600;color:var(--text2);flex:1"><i class="ti ti-clock" style="font-size:13px"></i> 午餐記錄</div>
         <span class="meal-st pend" id="ls">未記錄</span>
         <button onclick="quickSaveMeal('l')" style="background:#D1D5DB;color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:11px;cursor:not-allowed;font-weight:700;flex-shrink:0" id="meal-btn-l" disabled>儲存後完成</button>
@@ -748,7 +675,7 @@ window.openHealthForm = function() {
     <!-- ④ 晚餐 -->
     <div class="diet-step" id="diet-step-5" style="background:var(--bg);border-radius:12px;padding:11px 13px;margin-bottom:14px;border:0.5px solid var(--border)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <div class="diet-step-num" id="diet-num-5" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">⑤</div>
+        <div class="diet-step-num" id="diet-num-5" style="width:20px;height:20px;border-radius:50%;background:var(--border2);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">④</div>
         <div style="font-size:12px;font-weight:600;color:var(--text2);flex:1"><i class="ti ti-moon" style="font-size:13px"></i> 晚餐記錄</div>
         <span class="meal-st pend" id="ds">未記錄</span>
         <button onclick="quickSaveMeal('d')" style="background:#D1D5DB;color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:11px;cursor:not-allowed;font-weight:700;flex-shrink:0" id="meal-btn-d" disabled>儲存後完成</button>
@@ -2405,6 +2332,7 @@ function goPage(id,title){
   }
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
+  if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
   // 進入花園時檢查禮物
   if (id === 'garden') {
     if(typeof loadTodayGarden==='function') setTimeout(loadTodayGarden, 250);
@@ -2744,6 +2672,8 @@ function handleMealFile(input){
     window._pendingMeal = { base64: base64, fileName: file.name||'meal.jpg', mimeType: file.type||'image/jpeg', meal: mealNames[m]||'' };
     var modal = document.getElementById('oil-modal');
     if(modal) modal.style.display='flex';
+    // 照片已經有了，就算備註文字沒填也該讓「儲存後完成」按鈕可以按——這裡漏掉是造成「上傳照片後存不了檔」的原因
+    if(typeof enableMealBtn==='function') enableMealBtn(m);
   };
   reader.readAsDataURL(file);
 }
@@ -2881,10 +2811,9 @@ function calcProg(){
   var done=0;
   if(document.getElementById('k-inp').value)done++;
   if(document.getElementById('w-inp').value)done++;
-  if(Object.values(dcState).filter(Boolean).length===3)done++;
   if(mealData.b.ok)done++;if(mealData.l.ok)done++;if(mealData.d.ok)done++;
-  document.getElementById('prog').style.width=Math.round(done/6*100)+'%';
-  document.getElementById('prog-txt').textContent=done+'/6';
+  document.getElementById('prog').style.width=Math.round(done/5*100)+'%';
+  document.getElementById('prog-txt').textContent=done+'/5';
 }
 function showFCat(el,id){
   document.querySelectorAll('.fc').forEach(function(c){c.classList.remove('on')});
@@ -2919,11 +2848,25 @@ function sendMsg(){
   var area=document.getElementById('chat-area');
   area.innerHTML+='<div style="margin-bottom:8px"><div class="cm-b user">'+msg+'</div></div><div class="cf"></div>';
   inp.value='';
+  // 優先查真正的QA資料庫（症狀/問題/答案都比對），找不到才退回寫死的六條保底，最後才是請秘書回覆
   var reply='謝謝你告訴我 😊 這個問題我幫你記下來了，秘書看到之後會親自來陪你一起找答案。週一至週六上線時間內會回覆你，不用擔心！';
-  Object.keys(botReplies).forEach(function(k){if(msg.includes(k))reply=botReplies[k];});
+  var qaData = _qaSearchData || [];
+  var msgLower = msg.toLowerCase();
+  var qaMatch = qaData.find(function(item){
+    var sym = (item.symptom || '').toLowerCase();
+    var q = (item.q || item.question || '').toLowerCase();
+    return (sym && msgLower.includes(sym)) || (q && msgLower.includes(q));
+  });
+  if (qaMatch) {
+    reply = qaMatch.a || qaMatch.answer || reply;
+  } else {
+    Object.keys(botReplies).forEach(function(k){if(msg.includes(k))reply=botReplies[k];});
+  }
   setTimeout(function(){
     area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+reply+'</div></div><div class="cf"></div>';
     area.scrollTop=area.scrollHeight;
+    // 不管是真正QA、寫死保底、還是轉交秘書，都一併搜尋相關文章/影片/podcast
+    if (typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(msg);
   },700);
   area.scrollTop=area.scrollHeight;
 }
@@ -3967,7 +3910,9 @@ function showSearchResult(question) {
   chatArea.innerHTML += '<div style="margin-bottom:10px;text-align:right"><div style="display:inline-block;background:var(--g);color:#fff;border-radius:16px 16px 4px 16px;padding:8px 12px;font-size:12px;max-width:80%;text-align:left">'+question+'</div></div>';
   chatArea.innerHTML += '<div style="margin-bottom:10px"><div style="display:inline-block;background:var(--p2);border-radius:16px 16px 16px 4px;padding:8px 12px;font-size:12px;max-width:85%;color:var(--text)">'+answer+'</div></div>';
   chatArea.scrollTop = chatArea.scrollHeight;
-  
+  // 顯示完真正的QA答案後，一併搜尋相關文章/影片/podcast，這是QA跟部落格/YT/FB/podcast串起來的關鍵一步，之前漏接了
+  if (typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(item.symptom || question);
+
   goPage('qa','問答');
 }
 
@@ -4900,9 +4845,7 @@ function selectFasting(mode) {
 // ── 飲食記錄4步驟進度更新（斷食模式 + 早午晚餐）──
 function updateDietProgress() {
   var doneCount = 0;
-  var dcDoneCount = Object.values(dcState).filter(Boolean).length;
   var steps = [
-    {num: 1, done: dcDoneCount === 3},
     {num: 2, done: !!_fastingMode},
     {num: 3, done: !!(mealDone && mealDone.b)},
     {num: 4, done: !!(mealDone && mealDone.l)},
@@ -4919,8 +4862,8 @@ function updateDietProgress() {
   });
   var badge = document.getElementById('diet-progress-badge');
   if (badge) {
-    badge.textContent = doneCount + ' / 5';
-    badge.style.background = doneCount === 5 ? 'var(--g3)' : 'var(--g)';
+    badge.textContent = doneCount + ' / 4';
+    badge.style.background = doneCount === 4 ? 'var(--g3)' : 'var(--g)';
   }
 }
 
