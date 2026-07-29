@@ -285,6 +285,14 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
         <div class="card-body" id="bkg-body" style="padding-top:4px"></div>
       </div>
 
+      <!-- ❓ 客人未回答的問題（AI答不出來或客人追問還是沒效，都會出現在這裡） -->
+      <div class="card" id="unknown-q-card" style="margin-bottom:14px;display:none;border:1px solid #F2C9C9">
+        <div class="card-hd">
+          <div class="card-title" style="color:#A83A24"><i class="ti ti-message-question"></i>客人未回答的問題</div>
+        </div>
+        <div class="card-body" id="unknown-q-body" style="padding-top:4px"></div>
+      </div>
+
       <!-- 🛒 代購需求 -->
       <div class="card" id="proxy-card" style="margin-bottom:14px;display:none;border:1px solid #C9DEF2">
         <div class="card-hd">
@@ -3628,6 +3636,57 @@ function odueFollowUp(i){
     else toast('⚠️ 操作失敗');
   });
 }
+// ── 客人未回答的問題看板 ──
+var _unknownQCache = [];
+function loadUnknownQuestions(){
+  var card = document.getElementById('unknown-q-card');
+  var body = document.getElementById('unknown-q-body');
+  if(!card || !body) return;
+  adminAPI({action:'getUnknownQuestions'}, function(d){
+    card = document.getElementById('unknown-q-card');
+    body = document.getElementById('unknown-q-body');
+    if(!card || !body) return;
+    _unknownQCache = (d && d.items) || [];
+    if(_unknownQCache.length === 0){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    body.innerHTML = _unknownQCache.map(function(q, i){
+      return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)">'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+        + '<b style="color:var(--text)">' + escH(clientName(q.clientId)) + '</b>'
+        + '<span style="color:var(--text3);font-size:10.5px">' + escH(q.date) + '</span>'
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--text2);margin-bottom:7px">「' + escH(q.question) + '」</div>'
+        + '<div style="display:flex;gap:6px">'
+        + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="approveUnknownQuestion(' + i + ')">✍️ 輸入答案並加入QA</button>'
+        + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已用LINE回覆，標記完成</button>'
+        + '</div></div>';
+    }).join('');
+  });
+}
+// ── 未知問題審核通過（輸入答案，加入QA設定）──
+function approveUnknownQuestion(i) {
+  var item = _unknownQCache[i]; if(!item) return;
+  var answer = prompt('回答「'+item.question+'」：\n（這個答案之後也會自動出現在客人問答的常見問題裡）', '');
+  if(answer === null) return;
+  answer = answer.trim();
+  if(!answer){ toast('請輸入答案才能審核通過'); return; }
+  var symptom = prompt('這個問題屬於什麼症狀分類？（例如：便秘、頭暈，方便之後搜尋比對）', item.question.slice(0,6));
+  if(symptom === null) return;
+  adminAPIPost({ action: 'approveUnknown', row: item.row, answer: answer, symptom: symptom.trim()||item.question }, function(d) {
+    if (d && d.status === 'ok') {
+      toast('✅ 已審核通過！此問答已自動加入QA設定 😊');
+      loadUnknownQuestions();
+    } else toast('⚠️ ' + ((d && d.message) || '審核失敗'));
+  });
+}
+// ── 未知問題標記已處理（不加入QA，例如已經直接用LINE回覆）──
+function dismissUnknownQuestion(i) {
+  var item = _unknownQCache[i]; if(!item) return;
+  adminAPIPost({ action: 'dismissUnknown', row: item.row }, function(d) {
+    if (d && d.status === 'ok') { toast('✅ 已標記完成'); loadUnknownQuestions(); }
+    else toast('⚠️ 操作失敗');
+  });
+}
 // ── 新預約看板 ──
 var _bkgCache = [];
 function loadBookings(){
@@ -3918,6 +3977,7 @@ function loadDashboard(){
   if(typeof loadOpenDiscussions==='function') loadOpenDiscussions();
   if(typeof loadPurchases==='function') loadPurchases();
   if(typeof loadBookings==='function') loadBookings();
+  if(typeof loadUnknownQuestions==='function') loadUnknownQuestions();
   if(typeof loadOverdueLabs==='function') loadOverdueLabs();
   loadClientsList(function(clients){
     var box = document.getElementById('dash-clients');

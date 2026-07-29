@@ -2870,12 +2870,15 @@ function sendMsg(){
       // 同一個症狀已經回過一次了，再問一次代表上次的建議沒有真的解決問題，不重複貼罐頭答案，直接轉真人
       reply = '看起來這個方法還沒有幫到你，讓我把你的狀況記下來留給秘書，她會親自來陪你一起想辦法，不會讓你自己面對這個問題 💛';
       escalated = true;
+      if (typeof logUnknown === 'function') logUnknown('（追問，同症狀第2次）'+msg);
     } else {
       reply = qaMatch.a || qaMatch.answer || reply;
       _answeredSymptoms[matchKey] = true;
     }
   } else {
-    Object.keys(botReplies).forEach(function(k){if(msg.includes(k))reply=botReplies[k];});
+    var hitDefault = false;
+    Object.keys(botReplies).forEach(function(k){if(msg.includes(k)){reply=botReplies[k];hitDefault=true;}});
+    if (!hitDefault && typeof logUnknown === 'function') logUnknown(msg);
   }
   setTimeout(function(){
     area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+reply+'</div></div><div class="cf"></div>';
@@ -3929,6 +3932,7 @@ function showSearchResult(question) {
   var answer;
   if (_answeredSymptoms[matchKey]) {
     answer = '看起來這個方法還沒有幫到你，讓我把你的狀況記下來留給秘書，她會親自來陪你一起想辦法，不會讓你自己面對這個問題 💛';
+    if (typeof logUnknown === 'function') logUnknown('（追問，同症狀第2次）'+question);
   } else {
     answer = item.a || item.answer || '';
     _answeredSymptoms[matchKey] = true;
