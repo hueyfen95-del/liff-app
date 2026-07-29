@@ -3240,7 +3240,7 @@ function fallbackCopy(text){
 // ── 共用：客人名單快取 ──
 var _clientsCache = null;
 function loadClientsList(cb, force){
-  if(_clientsCache && !force){ if(cb)cb(_clientsCache); return; }
+  if(_clientsCache && _clientsCache.length > 0 && !force){ if(cb)cb(_clientsCache); return; }
   adminAPI({action:'getClients'}, function(d){
     _clientsCache = d.items || [];
     fillClientSelects();
@@ -3650,20 +3650,45 @@ function loadUnknownQuestions(){
     if(_unknownQCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = _unknownQCache.map(function(q, i){
-      return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)">'
+      var isCopied = q.status === 'copied';
+      var box = '<div style="padding:9px 0;border-bottom:1px dashed var(--border)'
+        + (isCopied ? ';background:#FDEDEC;border-radius:8px;padding:9px 10px;margin-bottom:4px' : '') + '">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+        + (isCopied ? '<span style="color:#C0392B;font-weight:700;font-size:11px">🔴 已複製・尚未確認送出</span>' : '')
         + '<b style="color:var(--text)">' + escH(clientName(q.clientId)) + '</b>'
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(q.date) + '</span>'
         + '</div>'
-        + '<div style="font-size:12px;color:var(--text2);margin-bottom:7px">「' + escH(q.question) + '」</div>'
-        + '<div style="display:flex;gap:6px">'
-        + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="approveUnknownQuestion(' + i + ')">✍️ 輸入答案並加入QA</button>'
-        + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已用LINE回覆，標記完成</button>'
-        + '</div></div>';
+        + '<div style="font-size:12px;color:var(--text2);margin-bottom:7px">「' + escH(q.question) + '」</div>';
+      if(isCopied){
+        box += '<div style="font-size:11.5px;color:var(--g3);background:var(--g2);border-radius:7px;padding:7px 9px;margin-bottom:7px">' + escH(q.answer) + '</div>'
+          + '<div style="display:flex;gap:6px">'
+          + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="recopyUnknownAnswer(' + i + ')">📋 再複製一次</button>'
+          + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:#C0392B;color:#fff" onclick="confirmUnknownSent(' + i + ')">✅ 確認已傳送給客人</button>'
+          + '</div>';
+      } else {
+        box += '<div style="display:flex;gap:6px">'
+          + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="approveUnknownQuestion(' + i + ')">✍️ 輸入答案並加入QA</button>'
+          + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已用LINE回覆，標記完成</button>'
+          + '</div>';
+      }
+      return box + '</div>';
     }).join('');
   });
 }
 // ── 未知問題審核通過（輸入答案，加入QA設定）──
+// ── 已複製待確認：再複製一次答案，或確認真的傳給客人了 ──
+function recopyUnknownAnswer(i) {
+  var item = _unknownQCache[i]; if(!item) return;
+  var clientMsg = clientName(item.clientId) + '，你之前問的「' + item.question + '」，我幫你問過了：\n\n' + item.answer;
+  copyText(clientMsg, '客人回覆');
+}
+function confirmUnknownSent(i) {
+  var item = _unknownQCache[i]; if(!item) return;
+  adminAPIPost({ action: 'confirmUnknownSent', row: item.row }, function(d) {
+    if (d && d.status === 'ok') { toast('✅ 已確認送出，這題結案了'); loadUnknownQuestions(); }
+    else toast('⚠️ 操作失敗');
+  });
+}
 function approveUnknownQuestion(i) {
   var item = _unknownQCache[i]; if(!item) return;
   var answer = prompt('回答「'+item.question+'」：\n（這個答案之後也會自動出現在客人問答的常見問題裡）', '');
@@ -3674,7 +3699,9 @@ function approveUnknownQuestion(i) {
   if(symptom === null) return;
   adminAPIPost({ action: 'approveUnknown', row: item.row, answer: answer, symptom: symptom.trim()||item.question }, function(d) {
     if (d && d.status === 'ok') {
-      toast('✅ 已審核通過！此問答已自動加入QA設定 😊');
+      // 補上秘書把答案傳給客人這一步，跟系統其他地方(個案討論/生日祝福等)一樣的模式：自動複製，貼到LINE即可
+      var clientMsg = clientName(item.clientId) + '，你之前問的「' + item.question + '」，我幫你問過了：\n\n' + answer;
+      copyText(clientMsg, '客人回覆');
       loadUnknownQuestions();
     } else toast('⚠️ ' + ((d && d.message) || '審核失敗'));
   });
@@ -4897,8 +4924,12 @@ function loadSupplementOptions(){
     });
     sel.innerHTML=html;
   }
-  if(_suppCache){ fill(_suppCache); return; }
-  adminAPI({action:'getSupplements'}, function(d){ _suppCache=d.items||[]; fill(_suppCache); });
+  if(_suppCache && _suppCache.length > 0){ fill(_suppCache); return; }
+  adminAPI({action:'getSupplements'}, function(d){
+    _suppCache=d.items||[];
+    if(d && d.warning){ sel.innerHTML='<option value="">⚠️ '+escH(d.warning)+'</option>'; return; }
+    fill(_suppCache);
+  });
 }
 function recSupplement(clientId){
   var sel=document.getElementById('cd-supp-sel');
@@ -5352,7 +5383,7 @@ var _chronicMedsCache = null;
 function loadChronicMedList(){
   var dl = document.getElementById('chronic-med-list');
   if (!dl) return;
-  if (_chronicMedsCache){ fillChronicMedDatalist(_chronicMedsCache); return; }
+  if (_chronicMedsCache && _chronicMedsCache.length > 0){ fillChronicMedDatalist(_chronicMedsCache); return; }
   adminAPI({action:'getChronicMeds'}, function(d){
     _chronicMedsCache = (d && d.items) || [];
     fillChronicMedDatalist(_chronicMedsCache);

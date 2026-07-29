@@ -2287,6 +2287,12 @@ window.openHealthForm = function() {
     <!-- 打字時即時顯示符合的問題，點了立刻看答案；沒點的話按送出走完整聊天流程 -->
     <div id="qa-results" style="display:none;background:var(--card);border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;max-height:240px;overflow-y:auto"></div>
     <div class="chat-row"><input class="chat-inp" id="chat-inp" placeholder="輸入你的問題…" oninput="qaSearch(this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('qa-results').style.display='none';sendMsg();}" onblur="setTimeout(function(){document.getElementById('qa-results').style.display='none'},200)"><button class="send-btn" onclick="document.getElementById('qa-results').style.display='none';sendMsg()"><i class="ti ti-send"></i></button></div>
+
+    <!-- 我的提問紀錄：不管秘書LINE有沒有順利傳過來，答案都會留在這裡，避免問題石沉大海 -->
+    <div id="my-questions-section" style="display:none;margin-top:18px">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">📋 我問過的問題</div>
+      <div id="my-questions-list"></div>
+    </div>
   </div>
 </div>
 
@@ -2326,6 +2332,7 @@ function goPage(id,title){
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
   if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
+  if(id === 'qa' && typeof loadMyQuestions==='function') loadMyQuestions();
   // 進入花園時檢查禮物
   if (id === 'garden') {
     if(typeof loadTodayGarden==='function') setTimeout(loadTodayGarden, 250);
@@ -3859,6 +3866,22 @@ var _qaSearchData = null;
 </script>
 <script>
 var _qaSearchLoading = false;
+function loadMyQuestions(){
+  callAPI({action:'getMyAnsweredQuestions', clientId:CLIENT_ID}, function(d){
+    var section = document.getElementById('my-questions-section');
+    var list = document.getElementById('my-questions-list');
+    if(!section || !list) return;
+    var items = (d && d.items) || [];
+    if(items.length === 0){ section.style.display = 'none'; return; }
+    section.style.display = '';
+    list.innerHTML = items.map(function(it){
+      return '<div style="background:var(--card);border:1px solid var(--border2);border-radius:11px;padding:10px 12px;margin-bottom:8px">'
+        + '<div style="font-size:10px;color:var(--text3);margin-bottom:4px">'+escHtml(it.date)+'</div>'
+        + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px">Q：'+escHtml(it.question)+'</div>'
+        + '<div style="font-size:12px;color:var(--text2);white-space:pre-line">'+escHtml(it.answer)+'</div></div>';
+    }).join('');
+  });
+}
 function loadQASearch() {
   if (_qaSearchData || _qaSearchLoading) return; // 已經載入過或正在載入中，避免重複呼叫疊加出重複資料
   _qaSearchLoading = true;
