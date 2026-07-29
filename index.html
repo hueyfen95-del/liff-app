@@ -1323,22 +1323,22 @@ window.openHealthForm = function() {
     <!-- 血酮 -->
     <div style="background:#FAEEDA;border:1px solid #FCD34D;border-radius:14px;padding:14px;margin-top:14px">
       <div style="font-size:12px;font-weight:700;color:#633806;margin-bottom:11px;display:flex;align-items:center;gap:7px">
-        <span style="font-size:18px">🔥</span>空腹血酮・粒腺體狀態確認
+        <span style="font-size:18px">🔥</span>空腹血酮・生酮狀態確認
       </div>
       <div style="display:flex;align-items:center;gap:13px">
         <div style="flex:1;text-align:center;background:rgba(255,255,255,.7);border-radius:11px;padding:12px">
           <div style="font-size:10px;font-weight:600;color:#633806;margin-bottom:4px">第 1 次</div>
           <div style="font-size:28px;font-weight:700;color:#791F1F">0.1</div>
-          <div style="font-size:10px;font-weight:600;color:#791F1F;margin-top:2px">無粒腺體狀態</div>
+          <div style="font-size:10px;font-weight:600;color:#791F1F;margin-top:2px">未達生酮狀態</div>
         </div>
         <div style="font-size:28px;color:#1D9E75;flex-shrink:0;font-weight:700">→</div>
         <div style="flex:1;text-align:center;background:rgba(255,255,255,.7);border-radius:11px;padding:12px">
           <div style="font-size:10px;font-weight:600;color:#633806;margin-bottom:4px">第 2 次</div>
           <div style="font-size:28px;font-weight:700;color:#085041">1.8</div>
-          <div style="font-size:10px;font-weight:600;color:#085041;margin-top:2px">粒腺體狀態確認</div>
+          <div style="font-size:10px;font-weight:600;color:#085041;margin-top:2px">生酮狀態確認</div>
         </div>
       </div>
-      <div style="font-size:11px;color:#633806;margin-top:11px;line-height:1.7">數值 &gt;0.5 mmol/L 顯示身體已進入粒腺體狀態，能量來源正在切換中。此數值為粒腺體健康之旅的重要觀察指標。</div>
+      <div style="font-size:11px;color:#633806;margin-top:11px;line-height:1.7">數值 &gt;0.5 mmol/L 顯示身體已進入生酮狀態，能量來源正在切換中。此數值為粒腺體健康之旅的重要觀察指標。</div>
     </div>
   </div>
 <div id="itc-matrix" style="display:none;padding:10px 12px">
@@ -2282,11 +2282,7 @@ window.openHealthForm = function() {
     <!-- 常見問題標題 -->
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">常見問題</div>
     <div id="faq-list-front">
-    <div class="faq"><div class="faq-hd" onclick="toggleFaq(this)"><i class="ti ti-help-circle" style="font-size:16px;color:var(--g)"></i><div class="faq-q">血酮機怎麼用？（兩個重點）</div><i class="ti ti-chevron-down faq-arr"></i></div><div class="faq-bd">第一次用血酮機，真的有點手忙腳亂，這很正常 😊 我們一起來看看兩個常見的卡關點：插入試紙後，先等機器說完話、螢幕出現閃動血點，再採血。還有讓引流口輕輕碰觸血液，讓它自己吸進去就好，不用把血滴入。試試看，很快就會上手的！</div></div>
-    <div class="faq"><div class="faq-hd" onclick="toggleFaq(this)"><i class="ti ti-help-circle" style="font-size:16px;color:var(--g)"></i><div class="faq-q">頭暈怎麼辦？</div><i class="ti ti-chevron-down faq-arr"></i></div><div class="faq-bd">頭暈這個感覺真的很難受，好多人亂流期都這樣，你不是一個人 😊 身體在告訴你「我需要鹽了」。我們一起來試試看：泡約 1 小匙鹽在 200cc 水裡，慢慢喝、喝到口不渴就夠了。泡在電解質裡更好入口。穩定後一天大概補 2–3 次，撐過這關之後會輕鬆很多！</div></div>
-    <div class="faq"><div class="faq-hd" onclick="toggleFaq(this)"><i class="ti ti-help-circle" style="font-size:16px;color:var(--g)"></i><div class="faq-q">血酮多少算正常？</div><i class="ti ti-chevron-down faq-arr"></i></div><div class="faq-bd">看著這個數字，有時候真的很難判斷到底好不好，這個困惑太正常了 😊 我們一起來看看：0.5–1.0 是入酮中，1.0–3.0 是穩定粒腺體的理想範圍，超過 3.0 是深層粒腺體，也完全正常。完全斷碳的話不用擔心酮酸中毒，那和我們的狀況是不一樣的事。</div></div>
-    <div class="faq"><div class="faq-hd" onclick="toggleFaq(this)"><i class="ti ti-help-circle" style="font-size:16px;color:var(--g)"></i><div class="faq-q">外食怎麼吃才不破酮？</div><i class="ti ti-chevron-down faq-arr"></i></div><div class="faq-bd">外食真的是最讓人糾結的關卡，每次出門都要想好久，這種感覺大家都有 😊 我們一起來試試三個方向：選原型食物、看得到油的料理、避開糖和澱粉。出門前喝一杯奶油咖啡，或隨身帶個橄欖油包，慢慢會越來越上手。也可以用上面的外食速查直接查你想吃的！</div></div>
-    <div class="faq"><div class="faq-hd" onclick="toggleFaq(this)"><i class="ti ti-help-circle" style="font-size:16px;color:var(--g)"></i><div class="faq-q">抽筋怎麼辦？</div><i class="ti ti-chevron-down faq-arr"></i></div><div class="faq-bd">半夜抽筋醒來，又痛又沒睡好，這真的很辛苦，好多人都這樣經歷過 😊 身體在說「鎂不夠了」。我們一起來試試：睡前補 1 顆鈣+鎂，甘胺酸鎂吸收最好。如果半夜還是抽，再加 1 顆。不用擔心補太多，讓身體的感受來決定，補到不再抽筋就是剛好！</div></div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;padding:10px 0">載入中…</div>
     </div>
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;margin-top:13px">問健康秘書（代謝小幫手）</div>
     <div class="chat-area" id="chat-area">
@@ -2745,8 +2741,8 @@ function onKetone(v){
   var f=parseFloat(v);
   if(f<0.5){b.textContent='未入酮';b.style.background='#FCEBEB';b.style.color='#A32D2D';}
   else if(f<1.0){b.textContent='入酮中';b.style.background='#FAEEDA';b.style.color='#633806';}
-  else if(f<=3.0){b.textContent='穩定粒腺體';b.style.background='#E1F5EE';b.style.color='#085041';}
-  else{b.textContent='深層粒腺體';b.style.background='#E1F5EE';b.style.color='#085041';}
+  else if(f<=3.0){b.textContent='穩定生酮';b.style.background='#E1F5EE';b.style.color='#085041';}
+  else{b.textContent='深層生酮';b.style.background='#E1F5EE';b.style.color='#085041';}
   calcProg();
 }
 function selChip(el,g){
@@ -2831,6 +2827,18 @@ function showIt(tab,id){
   document.querySelectorAll('.itc').forEach(function(t){t.classList.remove('on')});
   tab.classList.add('on');document.getElementById(id).classList.add('on');
 }
+function renderFrontFAQ(){
+  var box = document.getElementById('faq-list-front');
+  if(!box) return;
+  if(!_qaSearchData || _qaSearchData.length === 0){ box.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:10px 0">目前還沒有常見問題</div>'; return; }
+  var items = _qaSearchData.slice(0, 8); // 只顯示前8條當快速參考，其餘可以用下面搜尋找到
+  box.innerHTML = items.map(function(item){
+    var q = item.q || item.question || '';
+    var a = item.a || item.answer || '';
+    if(!q || !a) return '';
+    return '<div class="faq"><div class="faq-hd" onclick="toggleFaq(this)"><i class="ti ti-help-circle" style="font-size:16px;color:var(--g)"></i><div class="faq-q">'+escHtml(q)+'</div><i class="ti ti-chevron-down faq-arr"></i></div><div class="faq-bd" style="white-space:pre-line">'+escHtml(a)+'</div></div>';
+  }).join('');
+}
 function toggleFaq(hd){
   var bd=hd.nextElementSibling,arr=hd.querySelector('.faq-arr'),open=bd.classList.contains('on');
   document.querySelectorAll('.faq-bd').forEach(function(b){b.classList.remove('on')});
@@ -2839,8 +2847,8 @@ function toggleFaq(hd){
 }
 var botReplies={
   '頭暈':'頭暈真的很不好受，這種感覺讓人很難撐著。確實在亂流期很容易這樣，身體有自己的節奏。我們一起來試試：泡約 1 小匙鹽在 200cc 水裡慢慢喝，喝到口不渴就好，過了這關會輕鬆很多 😊',
-  '便秘':'便秘真的很不舒服，讓人很難放鬆。確實粒腺體初期身體在調整，這種狀況會出現。我們一起來試試：泡 1 小匙鹽在水裡慢慢喝、睡前補 1 顆鈣+鎂、油多一點，通常 2–3 天就會有感覺 😊',
-  '血酮':'看著這個數字，真的很難知道算好還是不好。確實每個人的血酮都不太一樣，沒有一個標準答案。我們一起來看看：1.0–3.0 是穩定粒腺體的範圍，不用追求越高越好，你的身體知道它在做什麼 😊',
+  '便秘':'便秘真的很不舒服，讓人很難放鬆。確實生酮初期身體在調整，這種狀況會出現。我們一起來試試：泡 1 小匙鹽在水裡慢慢喝、睡前補 1 顆鈣+鎂、油多一點，通常 2–3 天就會有感覺 😊',
+  '血酮':'看著這個數字，真的很難知道算好還是不好。確實每個人的血酮都不太一樣，沒有一個標準答案。我們一起來看看：1.0–3.0 是穩定生酮的範圍，不用追求越高越好，你的身體知道它在做什麼 😊',
   '外食':'外食要顧著又要吃得開心，真的很兩難。確實每次出門都要想很多，這種感覺很正常。我們一起來試試：選原型食物、看得到油的料理、避開糖和澱粉，上面的外食速查可以直接幫你查 😊',
   '抽筋':'半夜抽筋醒來，又痛又睡不好，真的很辛苦。確實這個狀況在調整期會出現，身體在適應中。我們一起來試試：睡前補 1 顆鈣+鎂，如果半夜還是抽，再加 1 顆，讓身體感受來決定 😊',
   'IRCT':'IRCT 聽起來很專業，不知道是什麼很正常。確實這個名詞不容易理解，很多人第一次聽到都這樣。我們一起來看看：它是量空腹和飯後的血糖與胰島素，讓我們更了解你的代謝狀況，點底部「報告」可以看結果 😊'
@@ -3842,26 +3850,29 @@ function showMatrixTab(){
 var _qaSearchData = null;
 </script>
 <script>
+var _qaSearchLoading = false;
 function loadQASearch() {
-  // 從Sheets讀取QA資料
-  callAPI({action:'getQA'}, function(d) {
-    if (d.items && d.items.length) {
-      var defaults = _qaSearchData || [];
-      _qaSearchData = d.items.concat(defaults);
-    }
-  });
+  if (_qaSearchData || _qaSearchLoading) return; // 已經載入過或正在載入中，避免重複呼叫疊加出重複資料
+  _qaSearchLoading = true;
   // 同時加入預設六條
   var defaults = [
     {q:'血酮機怎麼用', a:'第一次用血酮機，真的有點手忙腳亂，這很正常 😊 我們一起來看看：插入試紙後，先等機器說完話、螢幕出現閃動血點，再採血。讓引流口輕輕碰觸血液，讓它自己吸進去就好。'},
     {q:'頭暈怎麼辦', a:'頭暈真的很不好受，這種感覺讓人很難撐著。確實在亂流期很容易這樣，身體有自己的節奏。我們一起來試試：泡約 1 小匙鹽在 200cc 水裡慢慢喝，喝到口不渴就好 😊'},
-    {q:'血酮多少才正常', a:'看著這個數字，真的很難知道算好還是不好。確實每個人的血酮都不太一樣。我們一起來看看：1.0–3.0 是穩定粒腺體的範圍，不用追求越高越好 😊'},
+    {q:'血酮多少才正常', a:'看著這個數字，真的很難知道算好還是不好。確實每個人的血酮都不太一樣。我們一起來看看：1.0–3.0 是穩定生酮的範圍，不用追求越高越好 😊'},
     {q:'外食怎麼選', a:'外食要顧著又要吃得開心，真的很兩難。確實每次出門都要想很多，這種感覺很正常。我們一起來試試：選原型食物、看得到油的料理、避開糖和澱粉 😊'},
     {q:'抽筋怎麼辦', a:'半夜抽筋醒來，又痛又睡不好，真的很辛苦。確實這個狀況在調整期會出現。我們一起來試試：睡前補 1 顆鈣+鎂，如果半夜還是抽，再加 1 顆 😊'},
-    {q:'便秘怎麼辦', a:'便秘真的很不舒服，讓人很難放鬆。確實粒腺體初期身體在調整，這種狀況會出現。我們一起來試試：補鹽水、睡前補鈣鎂、油脂多一點，通常 2–3 天就有感覺 😊'},
+    {q:'便秘怎麼辦', a:'便秘真的很不舒服，讓人很難放鬆。確實生酮初期身體在調整，這種狀況會出現。我們一起來試試：補鹽水、睡前補鈣鎂、油脂多一點，通常 2–3 天就有感覺 😊'},
     {q:'IRCT是什麼', a:'IRCT 聽起來很專業，不知道是什麼很正常。確實這個名詞不容易理解。我們一起來看看：它是量空腹和飯後的血糖與胰島素，讓我們更了解你的代謝狀況 😊'},
   ];
-  if (!_qaSearchData) _qaSearchData = defaults;
-  else _qaSearchData = _qaSearchData.concat(defaults);
+  _qaSearchData = defaults;
+  if(typeof renderFrontFAQ==='function') renderFrontFAQ();
+  // 真實資料庫的內容載入後，排在預設六條前面（優先顯示真實內容）
+  callAPI({action:'getQA'}, function(d) {
+    if (d.items && d.items.length) {
+      _qaSearchData = d.items.concat(_qaSearchData);
+      if(typeof renderFrontFAQ==='function') renderFrontFAQ();
+    }
+  });
 }
 
 function qaSearchCore(val) {
@@ -4981,7 +4992,7 @@ function quickSaveMeal(mealCode) {
         <div style="font-size:11px;color:#1E40AF;line-height:1.6">引流口輕輕碰觸血液，讓它自己吸進去，不是把血滴入</div>
       </div>
       <div style="background:#E1F5EE;border-radius:12px;padding:12px 15px;margin-bottom:14px">
-        <div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定粒腺體 ✅　超過3.0：深層粒腺體</div>
+        <div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定生酮 ✅　超過3.0：深層生酮</div>
       </div>
       <div style="display:flex;gap:8px">
         <button style="flex:1;background:#F3F4F6;color:#6B7280;border:none;border-radius:14px;padding:12px;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s1').style.display='none';document.getElementById('ob-s0').style.display='block'">← 上一步</button>
@@ -5370,7 +5381,7 @@ function showKetoGuide() {
   var modal = document.createElement('div');
   modal.id = 'keto-guide-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:flex-end;justify-content:center';
-  modal.innerHTML = '<div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 20px 36px;max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:16px;font-weight:700;color:#111827">🩸 血酮機怎麼用？</div><button onclick="document.getElementById(\'keto-guide-modal\').remove()" style="background:#F3F4F6;border:none;border-radius:20px;padding:5px 11px;cursor:pointer;font-size:12px">關閉</button></div><div style="background:#FEF2EE;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #E24B4A"><div style="font-size:12px;font-weight:700;color:#712B13;margin-bottom:4px">重點一：先等，再採血</div><div style="font-size:11px;color:#993C1D;line-height:1.6">插入試紙後，等機器說完話、螢幕出現閃動血點，才採血</div></div><div style="background:#EFF6FF;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #378ADD"><div style="font-size:12px;font-weight:700;color:#1E40AF;margin-bottom:4px">重點二：讓機器吸血</div><div style="font-size:11px;color:#1E40AF;line-height:1.6">引流口輕輕碰觸血液，讓它自己吸進去，不是把血滴入</div></div><div style="background:#E1F5EE;border-radius:12px;padding:12px 15px"><div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定粒腺體 ✅　超過3.0：深層粒腺體</div></div></div>';
+  modal.innerHTML = '<div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 20px 36px;max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:16px;font-weight:700;color:#111827">🩸 血酮機怎麼用？</div><button onclick="document.getElementById(\'keto-guide-modal\').remove()" style="background:#F3F4F6;border:none;border-radius:20px;padding:5px 11px;cursor:pointer;font-size:12px">關閉</button></div><div style="background:#FEF2EE;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #E24B4A"><div style="font-size:12px;font-weight:700;color:#712B13;margin-bottom:4px">重點一：先等，再採血</div><div style="font-size:11px;color:#993C1D;line-height:1.6">插入試紙後，等機器說完話、螢幕出現閃動血點，才採血</div></div><div style="background:#EFF6FF;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #378ADD"><div style="font-size:12px;font-weight:700;color:#1E40AF;margin-bottom:4px">重點二：讓機器吸血</div><div style="font-size:11px;color:#1E40AF;line-height:1.6">引流口輕輕碰觸血液，讓它自己吸進去，不是把血滴入</div></div><div style="background:#E1F5EE;border-radius:12px;padding:12px 15px"><div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定生酮 ✅　超過3.0：深層生酮</div></div></div>';
   document.body.appendChild(modal);
 }
 </script>
