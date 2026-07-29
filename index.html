@@ -2272,13 +2272,6 @@ window.openHealthForm = function() {
 <!-- ══ 問答 ══ -->
 <div class="page" id="p-qa">
   <div class="qb">
-    <!-- 搜尋框 -->
-    <div style="position:relative;margin-bottom:14px">
-      <i class="ti ti-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:16px;color:var(--text3)"></i>
-      <input id="qa-search" class="chat-inp" style="padding-left:34px;width:100%;font-size:13px" placeholder="有什麼想問的？輸入關鍵字搜尋…" oninput="qaSearch(this.value)" onfocus="qaSearchFocus()" onblur="setTimeout(function(){document.getElementById('qa-results').style.display='none'},200)">
-    </div>
-    <!-- 搜尋結果 -->
-    <div id="qa-results" style="display:none;background:var(--card);border:0.5px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;max-height:240px;overflow-y:auto"></div>
     <!-- 常見問題標題 -->
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">常見問題</div>
     <div id="faq-list-front">
@@ -2291,7 +2284,9 @@ window.openHealthForm = function() {
         <div class="cm-b bot">嗨！嗨，有什麼讓你困惑或不舒服的嗎？😊 說出來就好，我會先幫你找找看大家問過的類似問題。找不到的話，秘書會親自來陪你一起想辦法！</div>
       </div>
     </div>
-    <div class="chat-row"><input class="chat-inp" id="chat-inp" placeholder="輸入你的問題…" onkeydown="if(event.key==='Enter')sendMsg()"><button class="send-btn" onclick="sendMsg()"><i class="ti ti-send"></i></button></div>
+    <!-- 打字時即時顯示符合的問題，點了立刻看答案；沒點的話按送出走完整聊天流程 -->
+    <div id="qa-results" style="display:none;background:var(--card);border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;max-height:240px;overflow-y:auto"></div>
+    <div class="chat-row"><input class="chat-inp" id="chat-inp" placeholder="輸入你的問題…" oninput="qaSearch(this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('qa-results').style.display='none';sendMsg();}" onblur="setTimeout(function(){document.getElementById('qa-results').style.display='none'},200)"><button class="send-btn" onclick="document.getElementById('qa-results').style.display='none';sendMsg()"><i class="ti ti-send"></i></button></div>
   </div>
 </div>
 
