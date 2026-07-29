@@ -2848,6 +2848,7 @@ var botReplies={
   '抽筋':'半夜抽筋醒來，又痛又睡不好，真的很辛苦。確實這個狀況在調整期會出現，身體在適應中。我們一起來試試：睡前補 1 顆鈣+鎂，如果半夜還是抽，再加 1 顆，讓身體感受來決定 😊',
   'IRCT':'IRCT 聽起來很專業，不知道是什麼很正常。確實這個名詞不容易理解，很多人第一次聽到都這樣。我們一起來看看：它是量空腹和飯後的血糖與胰島素，讓我們更了解你的代謝狀況，點底部「報告」可以看結果 😊'
 };
+var _answeredSymptoms = {}; // 這次對話session裡，已經回答過的症狀/問題，同一個再被問一次就轉真人，不重複貼一樣的答案
 function sendMsg(){
   var inp=document.getElementById('chat-inp'),msg=inp.value.trim();if(!msg)return;
   var area=document.getElementById('chat-area');
@@ -2862,16 +2863,25 @@ function sendMsg(){
     var q = (item.q || item.question || '').toLowerCase();
     return (sym && msgLower.includes(sym)) || (q && msgLower.includes(q));
   });
+  var escalated = false;
   if (qaMatch) {
-    reply = qaMatch.a || qaMatch.answer || reply;
+    var matchKey = qaMatch.symptom || qaMatch.q || qaMatch.question;
+    if (_answeredSymptoms[matchKey]) {
+      // 同一個症狀已經回過一次了，再問一次代表上次的建議沒有真的解決問題，不重複貼罐頭答案，直接轉真人
+      reply = '看起來這個方法還沒有幫到你，讓我把你的狀況記下來留給秘書，她會親自來陪你一起想辦法，不會讓你自己面對這個問題 💛';
+      escalated = true;
+    } else {
+      reply = qaMatch.a || qaMatch.answer || reply;
+      _answeredSymptoms[matchKey] = true;
+    }
   } else {
     Object.keys(botReplies).forEach(function(k){if(msg.includes(k))reply=botReplies[k];});
   }
   setTimeout(function(){
     area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+reply+'</div></div><div class="cf"></div>';
     area.scrollTop=area.scrollHeight;
-    // 不管是真正QA、寫死保底、還是轉交秘書，都一併搜尋相關文章/影片/podcast
-    if (typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(msg);
+    // 轉真人的情況不用再搜相關內容了（已經不是在找資料，是要秘書介入），其他情況照常搜
+    if (!escalated && typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(msg);
   },700);
   area.scrollTop=area.scrollHeight;
 }
@@ -3909,13 +3919,21 @@ function showSearchResult(question) {
     return (d.q || d.question || '') === question;
   });
   if (!item) return;
-  
+
   document.getElementById('qa-results').style.display = 'none';
-  document.getElementById('qa-search').value = '';
-  
+  var chatInp = document.getElementById('chat-inp');
+  if (chatInp) chatInp.value = '';
+
   var chatArea = document.getElementById('chat-area');
-  var answer = item.a || item.answer || '';
-  
+  var matchKey = item.symptom || item.q || item.question;
+  var answer;
+  if (_answeredSymptoms[matchKey]) {
+    answer = '看起來這個方法還沒有幫到你，讓我把你的狀況記下來留給秘書，她會親自來陪你一起想辦法，不會讓你自己面對這個問題 💛';
+  } else {
+    answer = item.a || item.answer || '';
+    _answeredSymptoms[matchKey] = true;
+  }
+
   chatArea.innerHTML += '<div style="margin-bottom:10px;text-align:right"><div style="display:inline-block;background:var(--g);color:#fff;border-radius:16px 16px 4px 16px;padding:8px 12px;font-size:12px;max-width:80%;text-align:left">'+question+'</div></div>';
   chatArea.innerHTML += '<div style="margin-bottom:10px"><div style="display:inline-block;background:var(--p2);border-radius:16px 16px 16px 4px;padding:8px 12px;font-size:12px;max-width:85%;color:var(--text)">'+answer+'</div></div>';
   chatArea.scrollTop = chatArea.scrollHeight;
