@@ -2102,6 +2102,10 @@ window.openHealthForm = function() {
       <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:10px 12px;margin-bottom:9px;font-size:11px;color:var(--g3);line-height:1.6">
         每一款都是我們實際比較過的品項。不確定自己需要哪些？問你的健康秘書，或看秘書給你的推薦 😊
       </div>
+      <div id="my-supp-recs-section" style="display:none;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:7px">🌟 秘書給你的推薦</div>
+        <div id="my-supp-recs-list"></div>
+      </div>
       <div id="supp-products" style="display:grid;grid-template-columns:1fr;gap:8px">
         <div style="font-size:12px;color:var(--text3);text-align:center;padding:14px">載入中…</div>
       </div>
@@ -3289,7 +3293,7 @@ function personalizeNames(){
   nodes.forEach(function(n){ n.nodeValue = n.nodeValue.split('陳小美').join(CLIENT_NAME); });
 }
 document.addEventListener('DOMContentLoaded', personalizeNames);
-document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadWallet, 800); setTimeout(loadSupplementsFromSheets, 1200); });
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadWallet, 800); setTimeout(loadSupplementsFromSheets, 1200); setTimeout(loadMySupplementRecs, 1300); });
 
 // ══════════════ 碳水計畫與份量圖鑑 ══════════════
 var CARB_GUIDE = [
@@ -3604,6 +3608,25 @@ function askGoodsBuy(i){
 }
 
 // ── 補充品讀取 ──
+function loadMySupplementRecs(){
+  callAPI({action:'getMySupplementRecs', clientId:CLIENT_ID}, function(d){
+    var section = document.getElementById('my-supp-recs-section');
+    var list = document.getElementById('my-supp-recs-list');
+    if(!section || !list) return;
+    var items = (d && d.items) || [];
+    if(items.length === 0){ section.style.display = 'none'; return; }
+    section.style.display = '';
+    list.innerHTML = items.map(function(it){
+      return '<div style="background:var(--g2);border:1px solid var(--g);border-radius:11px;padding:10px 12px;margin-bottom:7px">'
+        + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">'
+        + '<span style="font-size:12.5px;font-weight:700;color:var(--g3)">'+escHtml(it.supplementName)+'</span>'
+        + (it.level ? '<span style="font-size:9.5px;font-weight:700;color:#fff;background:var(--g);border-radius:5px;padding:1px 6px">'+escHtml(it.level)+'</span>' : '')
+        + '</div>'
+        + (it.reason ? '<div style="font-size:11px;color:var(--g3)">推薦原因：'+escHtml(it.reason)+'</div>' : '')
+        + '<div style="font-size:9.5px;color:var(--text3);margin-top:3px">'+escHtml(it.date)+'</div></div>';
+    }).join('');
+  });
+}
 function loadSupplementsFromSheets() {
   callAPI({ action: 'getSupplements' }, function(d) {
     if (d.items && d.items.length > 0) {
