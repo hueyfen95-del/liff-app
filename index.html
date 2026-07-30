@@ -5425,7 +5425,7 @@ var USER_STATUS = 'locked'; // 預設鎖定，查到「陪跑中」才解鎖，�
 
 function applyLockStatus() {
   if (USER_STATUS === 'active') return;
-  var lockedPages = ['p-record','p-trend','p-irct','p-journey'];
+  var lockedPages = ['p-record','p-trend','p-irct','p-journey','p-sec-hub','p-irct-table','p-sharecard','p-qa'];
   lockedPages.forEach(function(pid) {
     var page = document.getElementById(pid);
     if (!page || page.querySelector('.lock-banner')) return;
