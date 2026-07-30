@@ -491,6 +491,7 @@ window.openHealthForm = function() {
       <div class="qg" onclick="goPage('irct','IRCT 報告')"><i class="ti ti-microscope"></i><div class="qg-l" id="home-irct-label">IRCT 報告</div><div class="qg-n" id="home-irct-badge" style="color:var(--g)">最新</div></div>
       <div class="qg" onclick="goPage('garden','代謝花園')"><i class="ti ti-plant-2"></i><div class="qg-l">代謝花園</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
       <div class="qg" onclick="goPage('qa','問答')"><i class="ti ti-message-circle"></i><div class="qg-l">問答</div></div>
+      <div class="qg" onclick="goPage('sec-hub','秘書互動')"><i class="ti ti-heart-handshake"></i><div class="qg-l">秘書互動</div><div class="qg-n" id="home-sechub-badge" style="display:none;color:var(--r)"></div></div>
     </div>
 
     <!-- 分享自測給親友（老客帶新客）-->
@@ -1455,6 +1456,25 @@ window.openHealthForm = function() {
     </div>
   </div>
 </div>
+<!-- ══ 秘書互動專區（集中所有秘書的回覆與推薦，不用到處找） ══ -->
+<div class="page" id="p-sec-hub">
+  <div style="padding:14px">
+    <div style="background:linear-gradient(135deg,#085041,#158066);border-radius:14px;padding:16px 18px;color:#fff;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">💛 秘書給你的回覆與推薦</div>
+      <div style="font-size:11px;opacity:.85">你問過的問題、秘書推薦的保健品，都集中在這裡</div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📋 我問過的問題</div>
+    <div id="sechub-questions-list" style="margin-bottom:18px">
+      <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中…</div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">🌟 秘書推薦的保健品</div>
+    <div id="sechub-supp-list">
+      <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中…</div>
+    </div>
+  </div>
+</div>
 <!-- ══ IRCT 預約流程 ══ -->
 <div class="page" id="p-booking">
   <div style="padding:0">
@@ -2100,11 +2120,7 @@ window.openHealthForm = function() {
         </div>
       </div>
       <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:10px 12px;margin-bottom:9px;font-size:11px;color:var(--g3);line-height:1.6">
-        每一款都是我們實際比較過的品項。不確定自己需要哪些？問你的健康秘書，或看秘書給你的推薦 😊
-      </div>
-      <div id="my-supp-recs-section" style="display:none;margin-bottom:14px">
-        <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:7px">🌟 秘書給你的推薦</div>
-        <div id="my-supp-recs-list"></div>
+        每一款都是我們實際比較過的品項。不確定自己需要哪些？問你的健康秘書，或<span onclick="goPage('sec-hub','秘書互動')" style="text-decoration:underline;cursor:pointer;font-weight:700">看秘書給你的推薦</span> 😊
       </div>
       <div id="supp-products" style="display:grid;grid-template-columns:1fr;gap:8px">
         <div style="font-size:12px;color:var(--text3);text-align:center;padding:14px">載入中…</div>
@@ -2292,11 +2308,7 @@ window.openHealthForm = function() {
     <div id="qa-results" style="display:none;background:var(--card);border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;max-height:240px;overflow-y:auto"></div>
     <div class="chat-row"><input class="chat-inp" id="chat-inp" placeholder="輸入你的問題…" oninput="qaSearch(this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('qa-results').style.display='none';sendMsg();}" onblur="setTimeout(function(){document.getElementById('qa-results').style.display='none'},200)"><button class="send-btn" onclick="document.getElementById('qa-results').style.display='none';sendMsg()"><i class="ti ti-send"></i></button></div>
 
-    <!-- 我的提問紀錄：不管秘書LINE有沒有順利傳過來，答案都會留在這裡，避免問題石沉大海 -->
-    <div id="my-questions-section" style="display:none;margin-top:18px">
-      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">📋 我問過的問題</div>
-      <div id="my-questions-list"></div>
-    </div>
+    <div onclick="goPage('sec-hub','秘書互動')" style="margin-top:14px;text-align:center;font-size:11.5px;color:var(--g3);text-decoration:underline;cursor:pointer">💛 查看秘書給你的所有回覆</div>
   </div>
 </div>
 
@@ -2337,6 +2349,8 @@ function goPage(id,title){
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
   if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
   if(id === 'qa' && typeof loadMyQuestions==='function') loadMyQuestions();
+  if(id === 'qa' && typeof loadMyAnsweredSymptoms==='function') loadMyAnsweredSymptoms();
+  if(id === 'sec-hub'){ if(typeof loadMyQuestions==='function') loadMyQuestions(); if(typeof loadMySupplementRecs==='function') loadMySupplementRecs(); }
   // 進入花園時檢查禮物
   if (id === 'garden') {
     if(typeof loadTodayGarden==='function') setTimeout(loadTodayGarden, 250);
@@ -2885,6 +2899,7 @@ function sendMsg(){
     } else {
       reply = qaMatch.a || qaMatch.answer || reply;
       _answeredSymptoms[matchKey] = true;
+      if (typeof logQA === 'function') logQA(matchKey);
     }
   } else {
     var hitDefault = false;
@@ -3293,7 +3308,7 @@ function personalizeNames(){
   nodes.forEach(function(n){ n.nodeValue = n.nodeValue.split('陳小美').join(CLIENT_NAME); });
 }
 document.addEventListener('DOMContentLoaded', personalizeNames);
-document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadWallet, 800); setTimeout(loadSupplementsFromSheets, 1200); setTimeout(loadMySupplementRecs, 1300); });
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadWallet, 800); setTimeout(loadSupplementsFromSheets, 1200); setTimeout(loadMySupplementRecs, 1300); setTimeout(loadMyQuestions, 1400); });
 
 // ══════════════ 碳水計畫與份量圖鑑 ══════════════
 var CARB_GUIDE = [
@@ -3610,12 +3625,12 @@ function askGoodsBuy(i){
 // ── 補充品讀取 ──
 function loadMySupplementRecs(){
   callAPI({action:'getMySupplementRecs', clientId:CLIENT_ID}, function(d){
-    var section = document.getElementById('my-supp-recs-section');
-    var list = document.getElementById('my-supp-recs-list');
-    if(!section || !list) return;
+    var list = document.getElementById('sechub-supp-list');
     var items = (d && d.items) || [];
-    if(items.length === 0){ section.style.display = 'none'; return; }
-    section.style.display = '';
+    _sechubSuppCount = items.length;
+    updateSecHubBadge();
+    if(!list) return;
+    if(items.length === 0){ list.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">目前還沒有秘書推薦的保健品</div>'; return; }
     list.innerHTML = items.map(function(it){
       return '<div style="background:var(--g2);border:1px solid var(--g);border-radius:11px;padding:10px 12px;margin-bottom:7px">'
         + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">'
@@ -3891,18 +3906,35 @@ var _qaSearchData = null;
 var _qaSearchLoading = false;
 function loadMyQuestions(){
   callAPI({action:'getMyAnsweredQuestions', clientId:CLIENT_ID}, function(d){
-    var section = document.getElementById('my-questions-section');
-    var list = document.getElementById('my-questions-list');
-    if(!section || !list) return;
+    var list = document.getElementById('sechub-questions-list');
     var items = (d && d.items) || [];
-    if(items.length === 0){ section.style.display = 'none'; return; }
-    section.style.display = '';
+    _sechubQuestionsCount = items.length;
+    updateSecHubBadge();
+    if(!list) return;
+    if(items.length === 0){ list.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">目前還沒有已回答的問題</div>'; return; }
     list.innerHTML = items.map(function(it){
       return '<div style="background:var(--card);border:1px solid var(--border2);border-radius:11px;padding:10px 12px;margin-bottom:8px">'
         + '<div style="font-size:10px;color:var(--text3);margin-bottom:4px">'+escHtml(it.date)+'</div>'
         + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px">Q：'+escHtml(it.question)+'</div>'
         + '<div style="font-size:12px;color:var(--text2);white-space:pre-line">'+escHtml(it.answer)+'</div></div>';
     }).join('');
+  });
+}
+var _sechubQuestionsCount = 0, _sechubSuppCount = 0;
+function updateSecHubBadge(){
+  var badge = document.getElementById('home-sechub-badge');
+  if(!badge) return;
+  var total = _sechubQuestionsCount + _sechubSuppCount;
+  if(total > 0){ badge.textContent = total; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
+}
+var _answeredSymptomsLoaded = false;
+function loadMyAnsweredSymptoms(){
+  if(_answeredSymptomsLoaded) return; // 這次頁面停留期間只需要抓一次，跟_qaSearchData同樣的節流方式
+  callAPI({action:'getMyAnsweredSymptoms', clientId:CLIENT_ID}, function(d){
+    if(!d || d.status!=='ok') return;
+    _answeredSymptomsLoaded = true;
+    (d.symptoms||[]).forEach(function(s){ if(s) _answeredSymptoms[s] = true; });
   });
 }
 function loadQASearch() {
@@ -3982,6 +4014,7 @@ function showSearchResult(question) {
   } else {
     answer = item.a || item.answer || '';
     _answeredSymptoms[matchKey] = true;
+    if (typeof logQA === 'function') logQA(matchKey);
   }
 
   chatArea.innerHTML += '<div style="margin-bottom:10px;text-align:right"><div style="display:inline-block;background:var(--g);color:#fff;border-radius:16px 16px 4px 16px;padding:8px 12px;font-size:12px;max-width:80%;text-align:left">'+question+'</div></div>';

@@ -734,6 +734,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
       </div>
       <button onclick="saveRole()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增角色</button>
       <button onclick="bulkAddIRCTClinics()" style="width:100%;margin-top:8px;background:var(--card);color:var(--b3);border:1px solid var(--b2);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">🏥 同步「診所預約時段」的地點（可持續新增）</button>
+      <button onclick="dedupRoles()" style="width:100%;margin-top:8px;background:var(--card);color:#A32D2D;border:1px solid #F2C9C9;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">🧹 一鍵清除重複的角色（保留最早那筆）</button>
     </div>
   </div>
 
@@ -2652,6 +2653,16 @@ function bulkAddIRCTClinics(){
       }
       next();
     });
+  });
+}
+function dedupRoles(){
+  if(!confirm('要清除分帳角色名單裡重複的項目嗎？\n\n每組「類型+名稱」如果有好幾筆，只會保留最早的那一筆，其餘標記刪除（不會真的清掉列，之後想恢復可以再手動調整狀態欄）。')) return;
+  adminAPI({action:'dedupRoles'}, function(d){
+    if(d && d.status === 'ok'){
+      if(d.removed === 0) toast('沒有找到重複的項目');
+      else toast('✅ 已清除 '+d.removed+' 筆重複：'+d.items.join('、'));
+      loadRoles();
+    } else toast('⚠️ 操作失敗');
   });
 }
 function loadRoles() {
@@ -5062,17 +5073,27 @@ function loadLabOptions(){
 function loadLabSendToOptions(){
   var sel = document.getElementById('cd-lab-sendto');
   if (!sel) return;
-  adminAPI({action:'getRoles'}, function(d){
+  // 直接從「診所預約時段」抓，跟預約流程本身用的是同一份資料來源，永遠是最新的、名稱也一定對得起來
+  // 不再透過「分帳角色名單」中轉——那份名單常常是手動維護，名稱可能跟預約時實際存的不一樣，導致自動帶入悄悄失敗
+  adminAPI({action:'getClinicSlots'}, function(d){
     sel = document.getElementById('cd-lab-sendto');
-    if (!sel || !d || !d.roles) return;
-    var labs = d.roles.filter(function(r){ return r.roleType === '診所' || r.roleType === '實驗室'; });
+    if (!sel || !d || !d.slots) return;
+    var seen = {}, labs = [];
+    d.slots.forEach(function(s){
+      // 預約時實際存的clinic欄位是「診所名稱・地區」組合格式，這裡也要組成一樣的格式，比對才會真正對得起來
+      var fullName = s.clinic + (s.region ? '・'+s.region : '');
+      if (seen[fullName]) return;
+      seen[fullName] = true;
+      var isLab = s.clinic.indexOf('檢驗所') >= 0 || s.clinic.indexOf('檢測中心') >= 0;
+      labs.push({ roleName: fullName, roleType: isLab ? '實驗室' : '診所' });
+    });
     var labNames = {};
     labs.forEach(function(r){ labNames[r.roleName] = true; });
     var html = '<option value="">送往哪個診所/實驗室？（選填，會影響逾期提醒的門檻與催收對象）</option>';
     labs.forEach(function(r){
-      html += '<option value="'+escH(r.roleName)+'">'+(r.roleType==='診所'?'🏥':'🧪')+' '+escH(r.roleName)+(r.defaultDays?'（預設'+escH(r.defaultDays)+'天回報）':'')+'</option>';
+      html += '<option value="'+escH(r.roleName)+'">'+(r.roleType==='診所'?'🏥':'🧪')+' '+escH(r.roleName)+'</option>';
     });
-    if (labs.length === 0) html += '<option disabled>尚未在「分帳角色名單」建立任何診所/實驗室</option>';
+    if (labs.length === 0) html += '<option disabled>「🏥 診所預約時段」表目前是空的</option>';
     sel.innerHTML = html;
     // 這位客人如果有預約中的 IRCT，自動帶入他預約時選的診所，秘書不用重選、名稱也不會兜不起來
     if (_cdCurrentId) {
