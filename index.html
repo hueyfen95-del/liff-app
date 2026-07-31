@@ -54,6 +54,8 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .chip{border:1px solid var(--border2);border-radius:20px;padding:5px 11px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--card);transition:all .12s}
 .chip.on{border-color:var(--g);background:var(--g2);color:var(--g3);font-weight:600}
 .chip.on.bad{border-color:var(--a);background:var(--a2);color:var(--a3)}
+.carb-chip{border:1px solid var(--border2);border-radius:9px;padding:7px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);transition:all .12s;text-align:center}
+.carb-chip.on{border-color:var(--g);background:var(--g);color:#fff;font-weight:600}
 
 /* 飲食改變確認 */
 .dc-all-done{background:linear-gradient(135deg,var(--g3),var(--g));border-radius:13px;padding:12px 15px;display:flex;align-items:center;gap:11px;margin-bottom:12px;display:none}
@@ -564,6 +566,24 @@ window.openHealthForm = function() {
       <button onclick="quickSave('waist')" style="background:var(--p);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <input type="range" id="waist-slider" min="40" max="150" step="0.5" value="65" oninput="document.getElementById('waist-inp').value=this.value;calcProg()" style="width:100%;margin:6px 0 10px;accent-color:var(--p)">
+
+    <!-- 只要秘書設定了碳水計畫(不管嚴格期或回補期)就會顯示，平常不顯示 -->
+    <div id="carb-refeed-section" style="display:none;background:var(--g2);border:1px solid var(--g);border-radius:12px;padding:12px;margin:10px 0">
+      <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:9px">🍚 今日碳水記錄</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:5px">運動狀態</div>
+      <div style="display:flex;gap:6px;margin-bottom:10px" id="carb-exercise-chips">
+        <div class="carb-chip on" data-val="" onclick="selCarbExercise(this)" style="flex:1">沒運動</div>
+        <div class="carb-chip" data-val="X" onclick="selCarbExercise(this)" style="flex:1">有運動沒喘</div>
+        <div class="carb-chip" data-val="V" onclick="selCarbExercise(this)" style="flex:1">有運動有喘</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--text2)">今天排便了嗎</div>
+        <div class="carb-chip" id="carb-bowel-chip" data-val="" onclick="toggleCarbBowel(this)" style="padding:6px 16px">尚未</div>
+      </div>
+      <input class="inp" type="number" step="1" placeholder="今天吃了多少克碳水（選填）" id="carb-inp" style="width:100%">
+      <div style="font-size:10.5px;color:var(--g3);margin-top:6px;line-height:1.5">💡 建議選根莖類原型食物（地瓜、南瓜、芋頭等），效果比精緻澱粉更好</div>
+    </div>
+
     <button onclick="goTaskPage(5)" style="width:100%;background:var(--b2);color:var(--b3);border:1px solid var(--b);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
       <i class="ti ti-camera" style="font-size:14px"></i>前往飲食記錄
     </button>
@@ -1446,6 +1466,18 @@ window.openHealthForm = function() {
 <div class="page" id="p-irct-table">
   <div style="padding:12px 14px">
     <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">下面是你每一次 IRCT 檢測的數值紀錄，可以左右滑動看不同次數的對照。紅色數字代表這個數值超出了「現行正常區間」，建議與醫師討論。</div>
+    <div id="irct-trend-wrap" style="display:none;margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">🩸 血酮走勢</div>
+          <div id="irct-trend-ketone"></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">⚖️ 體重走勢</div>
+          <div id="irct-trend-weight"></div>
+        </div>
+      </div>
+    </div>
     <div id="irct-table-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
     <div id="irct-table-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有檢測記錄</div>
     <div id="irct-table-wrap" style="display:none;overflow-x:auto;-webkit-overflow-scrolling:touch">
@@ -2351,6 +2383,7 @@ function goPage(id,title){
   if(id === 'qa' && typeof loadMyQuestions==='function') loadMyQuestions();
   if(id === 'qa' && typeof loadMyAnsweredSymptoms==='function') loadMyAnsweredSymptoms();
   if(id === 'sec-hub'){ if(typeof loadMyQuestions==='function') loadMyQuestions(); if(typeof loadMySupplementRecs==='function') loadMySupplementRecs(); }
+  if(id === 'record' && typeof loadCarbPlan==='function') loadCarbPlan();
   // 進入花園時檢查禮物
   if (id === 'garden') {
     if(typeof loadTodayGarden==='function') setTimeout(loadTodayGarden, 250);
@@ -3342,13 +3375,19 @@ function toggleCarbGuide(){
 function loadCarbPlan(){
   if(!CLIENT_ID) return;
   callAPI({action:'getCarbPlan', clientId:CLIENT_ID}, function(d){
+    var plan = (d && d.status === 'ok') ? String(d.plan || '').trim() : '';
+    // 只要碳水計畫有設定值(不管是0=嚴格期、還是N=回補期)，就代表這位客人在代謝靈活性調整計畫裡，
+    // 每日記錄頁面的運動/排便/碳水追蹤區塊就該顯示；這個判斷直接沿用秘書既有設定的欄位，
+    // 不要另外維護一個獨立開關，不然兩邊狀態容易對不起來
+    _carbRefeedActive = (plan !== '');
+    var refeedSection = document.getElementById('carb-refeed-section');
+    if(refeedSection) refeedSection.style.display = _carbRefeedActive ? '' : 'none';
     var card = document.getElementById('carb-plan-card');
     var txt = document.getElementById('carb-plan-text');
     var homeCard = document.getElementById('carb-home-card');
     var homeTxt = document.getElementById('carb-home-text');
     if(!card || !txt) return;
     card.style.display = '';
-    var plan = (d && d.status === 'ok') ? String(d.plan || '').trim() : '';
     if(plan === ''){
       txt.innerHTML = '你的碳水計畫還沒設定——<b>代謝靈活性調整期間</b>分不同階段：有嚴格期（暫不吃碳水），也有碳水回補期。<b>請跟你的健康秘書確認你目前的階段</b>；想先了解「1 份碳水」的概念，可以打開下面的圖鑑 👇';
       if(homeCard) homeCard.style.display = 'none'; // 還沒設定時首頁不顯示，避免造成困擾
@@ -3379,6 +3418,16 @@ function callAPI(params, callback) {
 }
 
 // ── 每日記錄 ──
+// 運動狀態3選一、排便打勾（顯示與否直接沿用loadCarbPlan()判斷的碳水計畫狀態）
+function selCarbExercise(el){
+  document.querySelectorAll('#carb-exercise-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+}
+function toggleCarbBowel(el){
+  var on = el.classList.toggle('on');
+  el.textContent = on ? '已排便' : '尚未';
+}
+var _carbRefeedActive = false;
 function submitDailyRecord() {
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
@@ -3386,9 +3435,19 @@ function submitDailyRecord() {
   var e = []; document.querySelectorAll('.t-box.on').forEach(function(c) { e.push(c.textContent); });
   toast('⏳ 儲存中...');
   var waist_val = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
+  // 只有碳水計畫有設定值的客人，才會收集這幾項；一般客人維持不受影響
+  var exerciseVal = '', bowelVal = '', carbsVal = '';
+  if (_carbRefeedActive) {
+    var exerciseChip = document.querySelector('#carb-exercise-chips .carb-chip.on');
+    exerciseVal = exerciseChip ? (exerciseChip.getAttribute('data-val') || '') : '';
+    var bowelChip = document.getElementById('carb-bowel-chip');
+    bowelVal = bowelChip && bowelChip.classList.contains('on') ? 'V' : '';
+    carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
+  }
   callAPI({
     action: 'addDailyRecord', clientId: CLIENT_ID,
-    ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(',')
+    ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(','),
+    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal
   }, function(d) {
     if (d.status === 'ok') {
       toast('✅ 已同步到秘書後台！');
@@ -3597,6 +3656,7 @@ function renderGoodsShop(items){
         + '<button onclick="toggleGoodsInterest(' + gi + ')" style="margin-left:auto;background:var(--bg);color:var(--text2);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">想了解 →</button>'
         + '</div>'
         + '<div id="goods-detail-' + gi + '" style="display:none;margin-top:8px">'
+        + '<div id="goods-discount-' + gi + '"></div>'
         + '<div style="display:flex;justify-content:flex-end;margin-bottom:6px"><span style="font-size:12.5px;font-weight:700;color:var(--r3)">' + priceTxt + '</span></div>'
         + '<div style="display:flex;gap:7px;justify-content:flex-end">' + buyBtn
         + '<button onclick="askGoodsBuy(' + gi + ')" style="background:var(--g);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer">🛒 請秘書代購</button>'
@@ -3612,6 +3672,25 @@ function toggleGoodsInterest(i){
   var open = d.style.display !== 'none';
   d.style.display = open ? 'none' : '';
   if (btn) btn.textContent = open ? '想了解 →' : '收起 ↑';
+  if (!open) loadGoodsDiscount(i);
+}
+function loadGoodsDiscount(i){
+  var p = (window._goodsFlat || [])[i];
+  var box = document.getElementById('goods-discount-' + i);
+  if (!p || !box || box.dataset.loaded) return;
+  callAPI({action:'getProductDiscounts', productName:p.name}, function(d){
+    box = document.getElementById('goods-discount-' + i);
+    if (!box) return;
+    box.dataset.loaded = '1';
+    var items = (d && d.items) || [];
+    if (items.length === 0) return;
+    box.innerHTML = '<div style="background:var(--g2);border-radius:8px;padding:7px 10px;margin-bottom:6px">'
+      + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin-bottom:3px">🎁 買越多越划算</div>'
+      + items.map(function(it){
+          return '<div style="font-size:11px;color:var(--g3)">買 '+it.qty+' 份 → NT$'+it.price.toLocaleString()+(it.note?'（'+escHtml(it.note)+'）':'')+'</div>';
+        }).join('')
+      + '</div>';
+  });
 }
 function askGoodsBuy(i){
   var p = (window._goodsFlat || [])[i];
@@ -5425,19 +5504,41 @@ var USER_STATUS = 'locked'; // 預設鎖定，查到「陪跑中」才解鎖，�
 
 function applyLockStatus() {
   if (USER_STATUS === 'active') return;
-  var lockedPages = ['p-record','p-trend','p-irct','p-journey','p-sec-hub','p-irct-table','p-sharecard','p-qa'];
-  lockedPages.forEach(function(pid) {
+  // 灰階預覽頁：底層內容變灰、禁止互動，但看得到畫面長相，引導購買
+  var previewPages = ['p-record','p-trend','p-irct','p-journey'];
+  // 簡單鎖定頁：這些是秘書才會用到的個人化互動內容(還沒陪跑的人本來就沒有資料可看)，完全隱藏、不做預覽
+  var simpleLockPages = ['p-sec-hub','p-irct-table','p-sharecard','p-qa'];
+
+  function lockPage(pid, mode) {
     var page = document.getElementById(pid);
-    if (!page || page.querySelector('.lock-banner')) return;
-    var lb = document.createElement('div');
-    lb.className = 'lock-banner';
-    lb.style.cssText = 'background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;padding:20px;text-align:center;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin:10px;border-radius:16px';
-    lb.innerHTML = '<div style="font-size:32px">🔒</div><div style="font-size:16px;font-weight:700">陪跑解鎖後使用</div><div style="font-size:12px;opacity:.85;line-height:1.6">加入陪跑方案後<br>健康秘書會為你解鎖此功能</div>';
-    page.insertBefore(lb, page.firstChild);
-  });
+    if (!page || page.querySelector('.lock-cta')) return; // 已經鎖過了，不重複處理
+    // 把頁面原本的所有子元素，包進一個wrapper——這樣才能真正控制底層內容看不看得到、能不能互動，
+    // 不像之前只是在最前面加一個banner、底下真正的表單/資料其實還在、還可以被操作
+    var wrap = document.createElement('div');
+    wrap.className = 'lock-content-wrap';
+    while (page.firstChild) wrap.appendChild(page.firstChild);
+    if (mode === 'preview') {
+      wrap.style.cssText = 'filter:grayscale(1);opacity:.35;pointer-events:none;user-select:none;';
+    } else {
+      wrap.style.cssText = 'display:none;';
+    }
+    var cta = document.createElement('div');
+    cta.className = 'lock-cta';
+    cta.style.cssText = 'background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;padding:20px;text-align:center;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin:14px;border-radius:16px;box-shadow:0 6px 24px rgba(8,80,65,.25)';
+    cta.innerHTML = '<div style="font-size:32px">🔒</div><div style="font-size:16px;font-weight:700">陪跑解鎖後使用</div><div style="font-size:12px;opacity:.85;line-height:1.6">加入陪跑方案後<br>健康秘書會為你解鎖此功能</div>';
+    page.appendChild(cta);
+    page.appendChild(wrap);
+  }
+  previewPages.forEach(function(pid) { lockPage(pid, 'preview'); });
+  simpleLockPages.forEach(function(pid) { lockPage(pid, 'hide'); });
 }
 function removeLockBanners() {
-  document.querySelectorAll('.lock-banner').forEach(function(el){ el.remove(); });
+  document.querySelectorAll('.lock-cta').forEach(function(el){ el.remove(); });
+  document.querySelectorAll('.lock-content-wrap').forEach(function(wrap){
+    wrap.style.cssText = ''; // 拿掉灰階/隱藏/禁止互動的樣式
+    var page = wrap.parentNode;
+    if (page) { while (wrap.firstChild) page.insertBefore(wrap.firstChild, wrap); page.removeChild(wrap); }
+  });
 }
 function loadClientAccess() {
   if (!CLIENT_ID) { setTimeout(loadClientAccess, 500); return; }
@@ -6387,6 +6488,37 @@ function applyGardenVitality(vitality, daysSince){
 
 // ══════ 首頁真實統計 ══════
 var _shareText = null;
+// 簡單的SVG折線圖，不依賴外部圖表函式庫，保持跟系統其他地方一致的輕量風格
+function drawSimpleTrendChart(containerId, dates, values, color){
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  // 過濾掉空值，至少要有2個點才畫得出走勢
+  var pts = [];
+  for(var i=0;i<values.length;i++){
+    var v = parseFloat(values[i]);
+    if(!isNaN(v)) pts.push({x:i, y:v, date:dates[i]});
+  }
+  if(pts.length < 2){ el.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:10px 0">還需要更多次檢測才能看到走勢</div>'; return; }
+  var w = 260, h = 90, pad = 22;
+  var minY = Math.min.apply(null, pts.map(function(p){return p.y;}));
+  var maxY = Math.max.apply(null, pts.map(function(p){return p.y;}));
+  if(minY === maxY){ minY -= 1; maxY += 1; } // 避免全部一樣時除以零
+  var xStep = (w - pad*2) / (pts.length - 1);
+  function scaleY(v){ return h - pad - ((v - minY) / (maxY - minY)) * (h - pad*2); }
+  var linePoints = pts.map(function(p, i){ return (pad + i*xStep) + ',' + scaleY(p.y); }).join(' ');
+  var dots = pts.map(function(p, i){
+    var x = pad + i*xStep, y = scaleY(p.y);
+    return '<circle cx="'+x+'" cy="'+y+'" r="3" fill="'+color+'"></circle>'
+      + '<text x="'+x+'" y="'+(y-7)+'" font-size="9" text-anchor="middle" fill="var(--text2)">'+escHtml(String(p.y))+'</text>';
+  }).join('');
+  var svg = '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:auto">'
+    + '<polyline points="'+linePoints+'" fill="none" stroke="'+color+'" stroke-width="2"></polyline>'
+    + dots
+    + '<text x="'+pad+'" y="'+(h-4)+'" font-size="9" fill="var(--text3)">'+escHtml(pts[0].date)+'</text>'
+    + '<text x="'+(w-pad)+'" y="'+(h-4)+'" font-size="9" text-anchor="end" fill="var(--text3)">'+escHtml(pts[pts.length-1].date)+'</text>'
+    + '</svg>';
+  el.innerHTML = svg;
+}
 function loadIrctTable(){
   var loadingEl = document.getElementById('irct-table-loading');
   var emptyEl = document.getElementById('irct-table-empty');
@@ -6404,6 +6536,18 @@ function loadIrctTable(){
       return;
     }
     if(wrapEl) wrapEl.style.display='';
+    // 血酮/體重趨勢圖：從d.rows裡找到對應的列，取出數值畫成簡單折線圖
+    var trendWrap = document.getElementById('irct-trend-wrap');
+    if(trendWrap){
+      var dates = d.tests.map(function(t){ return t.date; });
+      var ketoneRow = d.rows.find(function(r){ return r.label === '血酮 Ketone body' || r.label.indexOf('血酮') >= 0; });
+      var weightRow = d.rows.find(function(r){ return r.label === '體重'; });
+      if(ketoneRow || weightRow){
+        trendWrap.style.display = '';
+        if(ketoneRow) drawSimpleTrendChart('irct-trend-ketone', dates, ketoneRow.values.map(function(v){return v.value;}), '#1D9E75');
+        if(weightRow) drawSimpleTrendChart('irct-trend-weight', dates, weightRow.values.map(function(v){return v.value;}), '#2465A8');
+      }
+    }
     var thEl = document.getElementById('irct-table-head');
     if(thEl){
       var thHtml = '<th style="position:sticky;left:0;background:var(--bg);z-index:1;text-align:left;padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--text3)">項目</th>';

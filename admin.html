@@ -552,13 +552,12 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>📅 新增排班記錄</div></div>
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <input id="duty-secretary" class="form-input" style="font-size:12px" placeholder="秘書姓名">
+        <select id="duty-secretary" class="form-select" style="font-size:12px" onchange="loadSecretaryPayInfo()"><option value="">選擇秘書…</option></select>
         <input id="duty-date" type="date" class="form-input" style="font-size:12px">
         <input id="duty-shift" class="form-input" style="font-size:12px" placeholder="班別（例：上午班）">
-        <select id="duty-salary-type" class="form-select" style="font-size:12px"><option value="時薪">時薪</option><option value="月薪">月薪</option></select>
-        <input id="duty-start" type="time" class="form-input" style="font-size:12px">
-        <input id="duty-end" type="time" class="form-input" style="font-size:12px">
-        <input id="duty-rate" type="number" class="form-input" style="font-size:12px;grid-column:1/-1" placeholder="時薪金額 或 月薪金額">
+        <div id="duty-pay-display" style="font-size:11px;color:var(--text3);display:flex;align-items:center;padding:0 4px">先選秘書才會帶出薪資設定</div>
+        <select id="duty-start" class="form-select" style="font-size:12px"><option value="">上班時間（整點）</option></select>
+        <select id="duty-end" class="form-select" style="font-size:12px"><option value="">下班時間（整點）</option></select>
         <input id="duty-note" class="form-input" style="font-size:12px;grid-column:1/-1" placeholder="備註（選填）">
       </div>
       <button onclick="submitShift()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增排班</button>
@@ -788,19 +787,40 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
           <input id="acc-password" placeholder="給對方，之後可自行改" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
         <div>
           <div class="gi-lbl" style="margin-bottom:5px">姓名</div>
           <input id="acc-name" placeholder="例：婷婷" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
         <div>
-          <div class="gi-lbl" style="margin-bottom:5px">角色</div>
+          <div class="gi-lbl" style="margin-bottom:5px">角色（決定看得到哪些頁面）</div>
           <select id="acc-role" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
             <option value="秘書">💁 秘書</option>
             <option value="會計">🧾 會計</option>
             <option value="行政">📋 行政</option>
             <option value="創始人">👑 創始人（看得到全部）</option>
           </select>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="gi-lbl" style="margin-bottom:5px">身兼職務（可複選，純顯示參考用，不影響看得到的頁面）</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="秘書">💁 秘書</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="會計">🧾 會計</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="行政">📋 行政</label>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <div class="gi-lbl" style="margin-bottom:5px">薪資類型（排班記錄會自動帶出，不用每次手動填）</div>
+          <select id="acc-paytype" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
+            <option value="時薪">時薪</option>
+            <option value="月薪">月薪</option>
+          </select>
+        </div>
+        <div>
+          <div class="gi-lbl" style="margin-bottom:5px">薪資金額</div>
+          <input id="acc-payrate" type="number" placeholder="例：200" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
       </div>
       <button onclick="saveAdminAccount()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增帳號</button>
@@ -840,6 +860,11 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
           <input id="inv-new-unit" class="form-input" style="font-size:12px" placeholder="單位（盒/份/瓶…）" value="份">
           <button class="btn-g" style="font-size:12px;padding:8px 14px" onclick="addInvItem()">新增</button>
         </div>
+      </div>
+      <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px">📋 批次匯入（一行一個品項，欄位用逗號分隔：品項名稱,分類,安全庫存,單位）</div>
+        <textarea id="inv-bulk-text" placeholder="血酮試紙,檢測用品,20,份&#10;血酮機,檢測用品,5,台" style="width:100%;height:80px;font-size:11.5px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;resize:vertical;font-family:inherit"></textarea>
+        <button class="ai-btn b" style="margin-top:6px;font-size:12px;padding:7px 14px" onclick="bulkImportInv()">批次匯入</button>
       </div>
       <div id="inv-list" style="display:flex;flex-direction:column;gap:8px">
         <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中…</div>
@@ -956,7 +981,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="fin-clinicfee-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
-        <input id="fin-clinicfee-name" placeholder="診所名稱" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-clinicfee-name" list="fin-clinic-lab-list" placeholder="診所名稱（有登記過的會自動帶出）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
         <input id="fin-clinicfee-item" placeholder="項目（例：IRCT檢測）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
         <input id="fin-clinicfee-pretax" type="number" placeholder="稅前金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <input id="fin-clinicfee-tax" type="number" placeholder="稅額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
@@ -974,7 +999,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="fin-labfee-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
-        <input id="fin-labfee-name" placeholder="檢測中心名稱" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-labfee-name" list="fin-clinic-lab-list" placeholder="檢測中心名稱（有登記過的會自動帶出）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <datalist id="fin-clinic-lab-list"></datalist>
         <input id="fin-labfee-item" placeholder="項目" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
         <select id="fin-labfee-method" class="form-select" style="font-size:12px"><option value="現金">現金</option><option value="轉帳">轉帳</option></select>
         <input id="fin-labfee-invno" placeholder="發票號碼（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
@@ -1452,6 +1478,24 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     </div>
     <div class="form-group"><label class="form-label">商品連結（Wix 商品頁 URL）</label><input class="form-input" placeholder="https://www.isometabolix.com/product-page/..." id="prod-f-link"></div>
     <div class="btn-row"><button class="btn-g" onclick="saveProductForm()"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="prod-form-btn">新增</span></button><button class="btn-ghost" onclick="closeProdForm()">取消</button></div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-clipboard-list"></i>批次匯入商品</div></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:6px">一行一個商品，欄位用逗號分隔：商品名稱,分類,價格,連結（連結可留空）</div>
+      <textarea id="prod-bulk-text" placeholder="夏｜檸檬百里香法式雞湯,防彈雞湯,620,https://...&#10;魚油,保健品,1200," style="width:100%;height:90px;font-size:11.5px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;resize:vertical;font-family:inherit"></textarea>
+      <button class="btn-g" style="margin-top:6px;font-size:12px;padding:7px 14px" onclick="bulkImportProducts()">批次匯入</button>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-discount-2"></i>💰 數量優惠設定（買幾件多少錢）</div></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">商品名稱要跟上面「好物商品」或補充品的名稱完全一樣，才能對應得上。一個商品可以設好幾個數量級距。</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px">批次匯入（一行一筆，逗號分隔：商品名稱,數量,優惠總價,備註）</div>
+      <textarea id="disc-bulk-text" placeholder="魚油,1,300,&#10;魚油,3,800,省100&#10;魚油,5,1200,省300" style="width:100%;height:80px;font-size:11.5px;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;resize:vertical;font-family:inherit"></textarea>
+      <button class="btn-g" style="margin-top:6px;font-size:12px;padding:7px 14px" onclick="bulkImportDiscounts()">批次匯入</button>
+      <div id="disc-list" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+    </div>
   </div>
   <div class="card">
     <div class="card-hd"><div class="card-title"><i class="ti ti-shopping-bag"></i>商品列表（⚙️ 好物商品）</div><div style="display:flex;gap:7px"><button class="tb-btn" onclick="loadProductsAdmin()"><i class="ti ti-refresh" style="font-size:14px"></i>重新載入</button><button class="tb-btn g" onclick="openProdForm()"><i class="ti ti-plus" style="font-size:14px"></i>新增商品</button></div></div>
@@ -2552,6 +2596,22 @@ function showInvAddForm(){
   var f = document.getElementById('inv-add-form');
   if(f) f.style.display = f.style.display === 'none' ? '' : 'none';
 }
+function bulkImportInv(){
+  var text = (document.getElementById('inv-bulk-text').value||'').trim();
+  if(!text){ toast('請先貼上要匯入的內容'); return; }
+  var items = text.split('\n').map(function(line){
+    var cols = line.split(',').map(function(c){ return c.trim(); });
+    return { name: cols[0]||'', category: cols[1]||'', safetyStock: cols[2]||0, unit: cols[3]||'份' };
+  }).filter(function(it){ return it.name; });
+  if(items.length === 0){ toast('沒有讀到有效的品項'); return; }
+  adminAPIPost({action:'bulkAddInventoryItems', items:items}, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ 匯入 '+d.added+' 筆'+(d.skipped&&d.skipped.length?'，'+d.skipped.length+' 筆已存在跳過':''));
+      document.getElementById('inv-bulk-text').value = '';
+      loadInventoryList();
+    } else toast('⚠️ 匯入失敗');
+  });
+}
 function addInvItem(){
   var name = (document.getElementById('inv-new-name').value || '').trim();
   var category = (document.getElementById('inv-new-category').value || '').trim();
@@ -2667,9 +2727,26 @@ function loadAdminAccounts(){
         '<div style="display:flex;align-items:center;gap:10px">'+
         '<span style="font-size:16px">'+(roleIcon[a.role]||'👤')+'</span>'+
         '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(a.name||a.username)+(isMe?' <span style="font-size:10px;color:var(--g)">（就是你）</span>':'')+'</div>'+
-        '<div style="font-size:10px;color:var(--text3)">帳號：'+escH(a.username)+'・'+escH(roleDisplayName(a.role))+'・'+(isActive?'啟用中':'已停用')+(extraCount>0?'・<span style="color:var(--g)">額外開通 '+extraCount+' 項</span>':'')+'</div></div>'+
+        '<div style="font-size:10px;color:var(--text3)">帳號：'+escH(a.username)+'・'+escH(roleDisplayName(a.role))+'・'+(isActive?'啟用中':'已停用')+(extraCount>0?'・<span style="color:var(--g)">額外開通 '+extraCount+' 項</span>':'')+((a.otherRoles||[]).length>0?'・身兼：'+escH(a.otherRoles.join('、')):'')+'</div></div>'+
+        '<button onclick="toggleEditAcctPanel('+i+')" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border2);border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>'+
         (isFounder ? '' : '<button onclick="toggleExtraPermPanel('+i+')" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">額外權限</button>')+
         (isMe ? '' : '<button onclick="toggleAdminAcctStatus('+a.row+',\''+escH(a.username)+'\')" style="background:'+(isActive?'var(--r2)':'var(--b2)')+';color:'+(isActive?'var(--r)':'var(--b3)')+';border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">'+(isActive?'停用':'啟用')+'</button>')+
+        '</div>'+
+        '<div id="edit-panel-'+i+'" style="display:none;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border)">'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+        '<input id="edit-name-'+i+'" value="'+escH(a.name||'')+'" placeholder="姓名" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
+        '<select id="edit-role-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
+        ['秘書','會計','行政','創始人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
+        '</select></div>'+
+        '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選，純顯示參考用）</div>'+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
+        ['秘書','會計','行政'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'')+' '+r+'</label>'; }).join('')+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">'+
+        '<select id="edit-paytype-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
+        '<input id="edit-payrate-'+i+'" type="number" value="'+escH(a.payRate||'')+'" placeholder="薪資金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
+        '</div>'+
+        '<button onclick="saveEditAccount('+i+','+a.row+')" style="background:var(--g);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">儲存修改</button>'+
         '</div>'+
         '<div id="extra-panel-'+i+'" style="display:none;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border)">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'+
@@ -2695,6 +2772,22 @@ function toggleAllExtra(i, checkAll){
   var checks = document.querySelectorAll('.extra-chk-'+i);
   checks.forEach(function(c){ c.checked = checkAll; });
 }
+function toggleEditAcctPanel(i){
+  var p = document.getElementById('edit-panel-'+i);
+  if(p) p.style.display = p.style.display === 'none' ? '' : 'none';
+}
+function saveEditAccount(i, row){
+  var name = (document.getElementById('edit-name-'+i).value||'').trim();
+  var role = document.getElementById('edit-role-'+i).value;
+  var otherRoles = []; document.querySelectorAll('.edit-other-'+i+':checked').forEach(function(c){ otherRoles.push(c.value); });
+  var payType = document.getElementById('edit-paytype-'+i).value;
+  var payRate = document.getElementById('edit-payrate-'+i).value;
+  if(!name){ toast('請輸入姓名'); return; }
+  adminAPIPost({action:'editAdminAccount', row:row, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 已更新'); loadAdminAccounts(); }
+    else { toast('⚠️ 更新失敗'); }
+  });
+}
 function toggleExtraPermPanel(i){
   var p = document.getElementById('extra-panel-'+i);
   if(p) p.style.display = p.style.display === 'none' ? '' : 'none';
@@ -2713,13 +2806,18 @@ function saveAdminAccount(){
   var password = (document.getElementById('acc-password').value||'').trim();
   var name = (document.getElementById('acc-name').value||'').trim();
   var role = document.getElementById('acc-role').value;
+  var otherRoles = []; document.querySelectorAll('.acc-other-role:checked').forEach(function(c){ otherRoles.push(c.value); });
+  var payType = document.getElementById('acc-paytype').value;
+  var payRate = document.getElementById('acc-payrate').value;
   if(!username || !password || !name){ toast('帳號、密碼、姓名都要填'); return; }
-  adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role}, function(d){
+  adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
     if(d && d.status === 'ok'){
       toast('✅ 已新增帳號：'+name+'（'+username+'），把帳號密碼給對方，之後可以自己改');
       document.getElementById('acc-username').value='';
       document.getElementById('acc-password').value='';
       document.getElementById('acc-name').value='';
+      document.getElementById('acc-payrate').value='';
+      document.querySelectorAll('.acc-other-role').forEach(function(c){ c.checked=false; });
       loadAdminAccounts();
     } else { toast('⚠️ '+((d&&d.message)||'新增失敗')); }
   });
@@ -3015,17 +3113,18 @@ function showAllTestsTab(tab){
 }
 var _attCurrentTab = 'irct';
 var _attIrctData = [], _attInBodyData = [];
-function renderAllTestsTable(tableId, items, cols, labels){
+function renderAllTestsTable(tableId, items, cols, labels, showBilling){
   var table = document.getElementById(tableId);
   if(!table) return;
   var thead = table.querySelector('thead tr');
   var tbody = table.querySelector('tbody');
+  var billingTh = showBilling ? '<th>本次收費</th>' : '';
   if(items.length === 0){
-    thead.innerHTML = '<th>客人</th><th>日期</th><th>陪跑狀態</th>';
+    thead.innerHTML = '<th>客人</th><th>日期</th><th>陪跑狀態</th>' + billingTh;
     tbody.innerHTML = '<tr><td colspan="99" style="padding:20px;text-align:center;color:var(--text3)">沒有符合的記錄</td></tr>';
     return;
   }
-  var headHtml = '<th>客人</th><th>日期</th><th>陪跑狀態</th>';
+  var headHtml = '<th>客人</th><th>日期</th><th>陪跑狀態</th>' + billingTh;
   cols.forEach(function(c){ headHtml += '<th>' + escH(labels[c] || c) + '</th>'; });
   thead.innerHTML = headHtml;
   tbody.innerHTML = items.map(function(it){
@@ -3034,6 +3133,10 @@ function renderAllTestsTable(tableId, items, cols, labels){
     var row = '<td><b>' + escH(it.clientName || it.clientId) + '</b><br><span style="font-size:10px;color:var(--text3)">' + escH(it.clientId) + '</span></td>';
     row += '<td>' + escH(it.date) + '</td>';
     row += '<td><span style="font-size:10px;font-weight:700;color:' + (isCarePlan ? 'var(--g3)' : 'var(--text3)') + '">' + escH(it.carePlan || '未設定') + '</span></td>';
+    if(showBilling){
+      var hasBilling = it.billing > 0;
+      row += '<td><span style="font-size:11px;font-weight:700;color:' + (hasBilling ? 'var(--g3)' : '#B26A00') + '">' + (hasBilling ? '$'+Number(it.billing).toLocaleString() : '未收費') + '</span></td>';
+    }
     cols.forEach(function(c){
       var v = it[c] !== undefined && it[c] !== null ? it[c] : '';
       var isWatch = watchSet[c];
@@ -3064,8 +3167,8 @@ function filterAllTests(){
       return true;
     });
   }
-  renderAllTestsTable('att-irct-table', apply(_attIrctData), ATT_IRCT_COLS, ATT_IRCT_LABELS);
-  renderAllTestsTable('att-inbody-table', apply(_attInBodyData), ATT_INBODY_COLS, ATT_INBODY_LABELS);
+  renderAllTestsTable('att-irct-table', apply(_attIrctData), ATT_IRCT_COLS, ATT_IRCT_LABELS, true);
+  renderAllTestsTable('att-inbody-table', apply(_attInBodyData), ATT_INBODY_COLS, ATT_INBODY_LABELS, false);
 }
 function exportAllTestsCSV(){
   var isIrct = _attCurrentTab === 'irct';
@@ -3079,9 +3182,11 @@ function exportAllTestsCSV(){
     if(onlyWatch && (!it.watchFields || it.watchFields.length === 0)) return false;
     return true;
   });
-  var csv = '\uFEFF客人ID,客人姓名,日期,陪跑狀態,' + cols.map(function(c){ return labels[c]||c; }).join(',') + '\n';
+  var csv = '\uFEFF客人ID,客人姓名,日期,陪跑狀態,' + (isIrct ? '本次收費,' : '') + cols.map(function(c){ return labels[c]||c; }).join(',') + '\n';
   items.forEach(function(it){
-    var row = [it.clientId, it.clientName||'', it.date, it.carePlan||''].concat(cols.map(function(c){ return it[c] !== undefined && it[c] !== null ? it[c] : ''; }));
+    var row = [it.clientId, it.clientName||'', it.date, it.carePlan||''];
+    if(isIrct) row.push(it.billing > 0 ? it.billing : '未收費');
+    row = row.concat(cols.map(function(c){ return it[c] !== undefined && it[c] !== null ? it[c] : ''; }));
     csv += row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(',') + '\n';
   });
   var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
@@ -3099,23 +3204,66 @@ document.addEventListener('DOMContentLoaded', function(){
     }, 300);
   }
 });
+// 排班時間改成整點選擇，不用選到分鐘，值班頁面載入時就先填好選項
+// 值班頁面載入時，把帳號清單填進秘書下拉選單，選了之後自動帶出後台設定好的薪資(不用秘書自己打)
+var _dutySecretaryAccounts = [];
+function loadDutySecretaryOptions(){
+  var sel = document.getElementById('duty-secretary');
+  if(!sel) return;
+  adminAPI({action:'getAdminAccounts'}, function(d){
+    sel = document.getElementById('duty-secretary');
+    if(!sel || !d || !d.accounts) return;
+    _dutySecretaryAccounts = d.accounts;
+    sel.innerHTML = '<option value="">選擇秘書…</option>' + d.accounts.filter(function(a){ return a.status !== '停用'; }).map(function(a){
+      return '<option value="'+escH(a.name)+'">'+escH(a.name)+'</option>';
+    }).join('');
+  });
+}
+function loadSecretaryPayInfo(){
+  var sel = document.getElementById('duty-secretary');
+  var disp = document.getElementById('duty-pay-display');
+  if(!sel || !disp) return;
+  var acc = _dutySecretaryAccounts.find(function(a){ return a.name === sel.value; });
+  if(!acc || !acc.payType || !acc.payRate){ disp.textContent = acc ? '⚠️ 這位秘書還沒在「帳號管理」設定薪資' : '先選秘書才會帶出薪資設定'; return; }
+  disp.innerHTML = '💰 '+escH(acc.payType)+'　$'+escH(acc.payRate);
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if(document.getElementById('pg-duty')) setTimeout(loadDutySecretaryOptions, 100);
+});
+function fillDutyHourSelects(){
+  var startSel = document.getElementById('duty-start');
+  var endSel = document.getElementById('duty-end');
+  var html = '';
+  for(var h=0; h<24; h++){
+    var hh = (h<10?'0':'')+h;
+    html += '<option value="'+hh+':00">'+hh+':00</option>';
+  }
+  if(startSel) startSel.innerHTML = '<option value="">上班時間（整點）</option>' + html;
+  if(endSel) endSel.innerHTML = '<option value="">下班時間（整點）</option>' + html;
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if(document.getElementById('pg-duty')) setTimeout(fillDutyHourSelects, 100);
+});
 function submitShift(){
   var secretary = document.getElementById('duty-secretary').value.trim();
-  if(!secretary){ toast('請輸入秘書姓名'); return; }
+  if(!secretary){ toast('請選擇秘書'); return; }
   var date = document.getElementById('duty-date').value;
   if(!date){ toast('請選擇日期'); return; }
+  var acc = _dutySecretaryAccounts.find(function(a){ return a.name === secretary; });
+  if(!acc || !acc.payType || !acc.payRate){ toast('⚠️ 這位秘書還沒在「帳號管理」設定薪資，請先去設定'); return; }
   adminAPIPost({
     action:'addShift', secretary:secretary, date:date,
     shift:document.getElementById('duty-shift').value,
     startTime:document.getElementById('duty-start').value,
     endTime:document.getElementById('duty-end').value,
-    salaryType:document.getElementById('duty-salary-type').value,
-    rate:document.getElementById('duty-rate').value,
+    salaryType:acc.payType,
+    rate:acc.payRate,
     note:document.getElementById('duty-note').value
   }, function(d){
     if(d && d.status==='ok'){
       toast('✅ 排班已記錄'+(d.subtotal?'，小計 '+d.subtotal:''));
-      ['duty-secretary','duty-shift','duty-start','duty-end','duty-rate','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+      ['duty-secretary','duty-shift','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+      document.getElementById('duty-pay-display').textContent = '先選秘書才會帶出薪資設定';
     } else toast('⚠️ 儲存失敗');
   });
 }
@@ -3149,6 +3297,21 @@ function submitReward(clientId){
     } else toast('⚠️ 儲存失敗');
   });
 }
+// 財務登記：診所名稱/檢測中心名稱共用同一份清單自動完成，登記過一次以後就能選，不用每次重打也不怕打錯字
+function loadFinClinicLabList(){
+  var dl = document.getElementById('fin-clinic-lab-list');
+  if(!dl) return;
+  adminAPI({action:'getClinicSlots'}, function(d){
+    dl = document.getElementById('fin-clinic-lab-list');
+    if(!dl || !d || !d.slots) return;
+    var seen = {}, names = [];
+    d.slots.forEach(function(s){ if(!seen[s.clinic]){ seen[s.clinic]=true; names.push(s.clinic); } });
+    dl.innerHTML = names.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if(document.getElementById('pg-finance-entry')) setTimeout(loadFinClinicLabList, 300);
+});
 function submitPayment(){
   var clientId = document.getElementById('fin-pay-client').value;
   if(!clientId){ toast('請先選擇客人'); return; }
@@ -4589,7 +4752,7 @@ var _handoverPendingClients = [];
 function loadHandoverClientOptions(){
   var sel = document.getElementById('handover-client-sel');
   if(!sel) return;
-  if(_clientsCache){ fillHandoverClientSel(); return; }
+  if(_clientsCache && _clientsCache.length > 0){ fillHandoverClientSel(); return; }
   loadClientsList(function(){ fillHandoverClientSel(); });
 }
 function fillHandoverClientSel(){
@@ -4627,7 +4790,7 @@ function loadRecentHandovers(){
     box = document.getElementById('handover-recent');
     if(!box) return;
     var items = (d && d.items) || [];
-    if(items.length === 0){ box.innerHTML = ''; return; }
+    if(items.length === 0){ box.innerHTML = '<div style="font-size:11.5px;color:var(--text3);text-align:center;padding:8px">目前沒有交接留言，點右上角「新增」開始寫第一筆</div>'; return; }
     box.innerHTML = items.slice(0,3).map(function(h){
       return '<div style="background:var(--bg);border-radius:10px;padding:10px 12px;border:1px solid var(--border)">'
         + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">'+escH(h.fromSecretary||'前一班')+'・'+escH(h.date)+'</div>'
@@ -4982,6 +5145,71 @@ function loadProductsAdmin(){
     if(box) box.innerHTML=html;
     var dl=document.getElementById('prod-cat-list');
     if(dl) dl.innerHTML=Object.keys(cats).map(function(c){return '<option value="'+escH(c)+'">';}).join('');
+  });
+}
+function bulkImportDiscounts(){
+  var text = (document.getElementById('disc-bulk-text').value||'').trim();
+  if(!text){ toast('請先貼上要匯入的內容'); return; }
+  var items = text.split('\n').map(function(line){
+    var cols = line.split(',').map(function(c){ return c.trim(); });
+    return { productName: cols[0]||'', qty: cols[1]||0, price: cols[2]||0, note: cols[3]||'' };
+  }).filter(function(it){ return it.productName; });
+  if(items.length === 0){ toast('沒有讀到有效的設定'); return; }
+  adminAPIPost({action:'bulkAddDiscountTiers', items:items}, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ 匯入 '+d.added+' 筆數量優惠設定');
+      document.getElementById('disc-bulk-text').value = '';
+      loadDiscountList();
+    } else toast('⚠️ 匯入失敗');
+  });
+}
+function loadDiscountList(){
+  var box = document.getElementById('disc-list');
+  if(!box) return;
+  adminAPI({action:'getDiscountTiers'}, function(d){
+    box = document.getElementById('disc-list');
+    if(!box) return;
+    var items = (d && d.items) || [];
+    if(items.length === 0){ box.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:10px">還沒有設定任何數量優惠</div>'; return; }
+    var grouped = {};
+    items.forEach(function(it){ (grouped[it.productName] = grouped[it.productName] || []).push(it); });
+    box.innerHTML = Object.keys(grouped).map(function(name){
+      return '<div style="background:var(--bg);border-radius:9px;padding:8px 11px">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">'+escH(name)+'</div>'
+        + grouped[name].map(function(it){
+          return '<div style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text2);padding:2px 0">'
+            + '<span>買 '+it.qty+' 件 → $'+it.price.toLocaleString()+(it.note?'（'+escH(it.note)+'）':'')+'</span>'
+            + '<span onclick="deleteDiscountTierUI('+it.row+')" style="margin-left:auto;color:var(--r);cursor:pointer;font-size:11px">刪除</span>'
+            + '</div>';
+        }).join('')
+        + '</div>';
+    }).join('');
+  });
+}
+function deleteDiscountTierUI(row){
+  if(!confirm('確定刪除這筆優惠設定嗎？')) return;
+  adminAPIPost({action:'deleteDiscountTier', row:row}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 已刪除'); loadDiscountList(); }
+    else toast('⚠️ 刪除失敗');
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if(document.getElementById('pg-shop-mgmt')) setTimeout(loadDiscountList, 300);
+});
+function bulkImportProducts(){
+  var text = (document.getElementById('prod-bulk-text').value||'').trim();
+  if(!text){ toast('請先貼上要匯入的內容'); return; }
+  var items = text.split('\n').map(function(line){
+    var cols = line.split(',').map(function(c){ return c.trim(); });
+    return { name: cols[0]||'', category: cols[1]||'', price: cols[2]||0, link: cols[3]||'' };
+  }).filter(function(it){ return it.name; });
+  if(items.length === 0){ toast('沒有讀到有效的商品'); return; }
+  adminAPIPost({action:'bulkAddGoodsItems', items:items}, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ 匯入 '+d.added+' 筆'+(d.skipped&&d.skipped.length?'，'+d.skipped.length+' 筆已存在跳過':''));
+      document.getElementById('prod-bulk-text').value = '';
+      loadProductsAdmin();
+    } else toast('⚠️ 匯入失敗');
   });
 }
 function openProdForm(){
