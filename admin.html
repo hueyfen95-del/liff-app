@@ -207,6 +207,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="si nav-item" onclick="goPg('inventory',this)"><i class="ti ti-package"></i>貨品進銷存 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('rules',this)"><i class="ti ti-settings-2"></i>分帳規則設定 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('settlement',this)"><i class="ti ti-report-money"></i>月結算 <span class="si-badge g">NEW</span></div>
+    <div class="si nav-item" onclick="goPg('finance-entry',this)"><i class="ti ti-cash"></i>財務登記 <span class="si-badge g">NEW</span></div>
+    <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表 <span class="si-badge g">NEW</span></div>
     <div class="sb-sec">內容管理</div>
     <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
     <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
@@ -546,6 +548,22 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 
 <!-- ══ 排班交接 ══ -->
 <div class="pg" id="pg-duty">
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>📅 新增排班記錄</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <input id="duty-secretary" class="form-input" style="font-size:12px" placeholder="秘書姓名">
+        <input id="duty-date" type="date" class="form-input" style="font-size:12px">
+        <input id="duty-shift" class="form-input" style="font-size:12px" placeholder="班別（例：上午班）">
+        <select id="duty-salary-type" class="form-select" style="font-size:12px"><option value="時薪">時薪</option><option value="月薪">月薪</option></select>
+        <input id="duty-start" type="time" class="form-input" style="font-size:12px">
+        <input id="duty-end" type="time" class="form-input" style="font-size:12px">
+        <input id="duty-rate" type="number" class="form-input" style="font-size:12px;grid-column:1/-1" placeholder="時薪金額 或 月薪金額">
+        <input id="duty-note" class="form-input" style="font-size:12px;grid-column:1/-1" placeholder="備註（選填）">
+      </div>
+      <button onclick="submitShift()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增排班</button>
+    </div>
+  </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
     <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>今日值班</div></div><div class="card-body">
       <div class="duty-card"><div class="cr-av" style="background:var(--g);color:#fff;width:36px;height:36px;font-size:13px">婷</div><div style="flex:1"><div style="font-size:13px;font-weight:700">婷婷</div><div style="font-size:11px;color:var(--text2)">09:30–11:30・上線中</div></div><span class="badge g">上線中</span></div>
@@ -912,6 +930,100 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 
   <div id="settlement-results" style="display:flex;flex-direction:column;gap:12px">
     <div style="font-size:11px;color:var(--text3);text-align:center;padding:20px">選擇月份後點「產生結算」</div>
+  </div>
+</div>
+
+<!-- ══ 財務登記（付款/診所費用/檢測中心費用/請款申請）══ -->
+<div class="pg" id="pg-finance-entry">
+  <div class="hint-box">記錄客人付款、診所與檢測中心的費用、秘書請款申請。</div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-cash-banknote"></i>💰 付款記錄</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <select id="fin-pay-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
+        <input id="fin-pay-item" placeholder="項目（例：IRCT檢測費）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-pay-amount" type="number" placeholder="金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <select id="fin-pay-method" class="form-select" style="font-size:12px"><option value="現金">現金</option><option value="轉帳">轉帳</option><option value="信用卡">信用卡</option><option value="LINE Pay">LINE Pay</option></select>
+        <input id="fin-pay-note" placeholder="備註（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+      </div>
+      <button onclick="submitPayment()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄付款</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-building-hospital"></i>🏥 診所費用</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <select id="fin-clinicfee-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
+        <input id="fin-clinicfee-name" placeholder="診所名稱" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-clinicfee-item" placeholder="項目（例：IRCT檢測）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-clinicfee-pretax" type="number" placeholder="稅前金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-clinicfee-tax" type="number" placeholder="稅額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-clinicfee-total" type="number" placeholder="總額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-clinicfee-invno" placeholder="發票號碼（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-clinicfee-invdate" type="date" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <select id="fin-clinicfee-invtype" class="form-select" style="font-size:12px"><option value="二聯式">二聯式</option><option value="三聯式">三聯式</option><option value="收據">收據</option></select>
+      </div>
+      <button onclick="submitClinicFee()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄診所費用</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-microscope"></i>🔬 檢測中心費用</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <select id="fin-labfee-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
+        <input id="fin-labfee-name" placeholder="檢測中心名稱" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-labfee-item" placeholder="項目" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <select id="fin-labfee-method" class="form-select" style="font-size:12px"><option value="現金">現金</option><option value="轉帳">轉帳</option></select>
+        <input id="fin-labfee-invno" placeholder="發票號碼（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-labfee-pretax" type="number" placeholder="稅前金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-labfee-tax" type="number" placeholder="稅額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-labfee-total" type="number" placeholder="總額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+      </div>
+      <button onclick="submitLabFee()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄檢測中心費用</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-file-invoice"></i>🧾 請款申請</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <input id="fin-inv-secretary" placeholder="申請人姓名" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <select id="fin-inv-idtype" class="form-select" style="font-size:12px"><option value="員工">員工</option><option value="承攬">承攬（需代扣稅）</option></select>
+        <input id="fin-inv-type" placeholder="請款類型（例：陪跑服務費）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-inv-amount" type="number" placeholder="金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-inv-pretax" type="number" placeholder="稅前金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-inv-withhold" type="number" placeholder="代扣稅額（承攬才需要）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-inv-net" type="number" placeholder="實拿金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-inv-invno" placeholder="發票/收據號碼（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <textarea id="fin-inv-note" placeholder="備註（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1;height:50px;resize:none;font-family:inherit"></textarea>
+      </div>
+      <button onclick="submitInvoiceRequest()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">送出請款申請</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 全部客人檢測總表 ══ -->
+<div class="pg" id="pg-all-tests">
+  <div class="hint-box">彙整系統裡已經存的檢測資料，每一列＝一位客人的一次檢測，可以水平捲動看全部欄位。紅字代表數值需留意。</div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <button id="att-tab-irct" class="ai-btn b" style="font-size:12px;padding:8px 16px" onclick="showAllTestsTab('irct')">🔬 IRCT檢測總表</button>
+    <button id="att-tab-inbody" class="ai-btn gray" style="font-size:12px;padding:8px 16px" onclick="showAllTestsTab('inbody')">💪 InBody檢測總表</button>
+    <input id="att-search" placeholder="🔍 搜尋客人姓名/ID" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;flex:1;min-width:140px" oninput="filterAllTests()">
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" id="att-only-watch" onchange="filterAllTests()">只看異常值</label>
+    <button class="ai-btn gray" style="font-size:12px;padding:8px 14px" onclick="exportAllTestsCSV()">📥 匯出Excel</button>
+  </div>
+  <div id="att-irct-section">
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+      <table class="dt" id="att-irct-table" style="white-space:nowrap"><thead><tr></tr></thead><tbody><tr><td style="padding:20px;text-align:center;color:var(--text3)">載入中…</td></tr></tbody></table>
+    </div>
+  </div>
+  <div id="att-inbody-section" style="display:none">
+    <div style="overflow-x:auto;border:1px solid var(--border);border-radius:10px">
+      <table class="dt" id="att-inbody-table" style="white-space:nowrap"><thead><tr></tr></thead><tbody><tr><td style="padding:20px;text-align:center;color:var(--text3)">載入中…</td></tr></tbody></table>
+    </div>
   </div>
 </div>
 
@@ -2877,6 +2989,243 @@ function loadRules() {
 }
 
 // ══ 月結算 ══
+// ══════ 全部客人檢測總表 ══════
+var ATT_IRCT_LABELS = {
+  hba1c:'糖化血色素', tg:'三酸甘油脂TG', cholesterol:'膽固醇', hdl:'高密度膽固醇HDL', ldl:'低密度膽固醇LDL',
+  esi:'ESI', creatinine:'肌肝酸', ua:'尿酸', got:'GOT', gpt:'GPT', egfr:'eGFR', homaIR:'HOMA-IR',
+  glucoseAC:'空腹血糖', glucose1h:'飯後1h血糖', glucose2h:'飯後2h血糖', glucose3h:'飯後3h血糖',
+  insulinAC:'空腹胰島素', insulin1h:'飯後1h胰島素', insulin2h:'飯後2h胰島素', insulin3h:'飯後3h胰島素',
+  ketone:'血酮', height:'身高', weight:'體重', bodyFatPct:'體脂肪率', bodyFat:'體脂肪kg',
+  visceralFat:'內臟脂肪', waist:'腰圍', hip:'臀圍', waistHipRatio:'腰臀比', bmi:'BMI',
+  sdldl:'sdLDL', homocysteine:'同半胱胺酸', freeT4:'FreeT4', tsh:'TSH', clinic:'診所', gender:'性別'
+};
+var ATT_IRCT_COLS = ['clinic','gender','hba1c','tg','cholesterol','hdl','ldl','esi','creatinine','ua','got','gpt','egfr','homaIR',
+  'glucoseAC','glucose1h','glucose2h','glucose3h','insulinAC','insulin1h','insulin2h','insulin3h',
+  'ketone','height','weight','bodyFatPct','bodyFat','visceralFat','waist','hip','waistHipRatio','bmi'];
+var ATT_INBODY_LABELS = { height:'身高cm', weight:'體重kg', bmi:'BMI', bodyFatPercent:'體脂肪率%', bodyFatMass:'體脂肪量kg',
+  skeletalMuscle:'骨骼肌重kg', visceralFat:'內臟脂肪等級', bmr:'基礎代謝率', bodyWater:'體水分', protein:'蛋白質', waist:'腰圍' };
+var ATT_INBODY_COLS = ['height','weight','bmi','bodyFatPercent','bodyFatMass','skeletalMuscle','visceralFat','bmr','bodyWater','protein','waist'];
+
+function showAllTestsTab(tab){
+  document.getElementById('att-irct-section').style.display = tab === 'irct' ? '' : 'none';
+  document.getElementById('att-inbody-section').style.display = tab === 'inbody' ? '' : 'none';
+  document.getElementById('att-tab-irct').className = tab === 'irct' ? 'ai-btn b' : 'ai-btn gray';
+  document.getElementById('att-tab-inbody').className = tab === 'inbody' ? 'ai-btn b' : 'ai-btn gray';
+  _attCurrentTab = tab;
+}
+var _attCurrentTab = 'irct';
+var _attIrctData = [], _attInBodyData = [];
+function renderAllTestsTable(tableId, items, cols, labels){
+  var table = document.getElementById(tableId);
+  if(!table) return;
+  var thead = table.querySelector('thead tr');
+  var tbody = table.querySelector('tbody');
+  if(items.length === 0){
+    thead.innerHTML = '<th>客人</th><th>日期</th><th>陪跑狀態</th>';
+    tbody.innerHTML = '<tr><td colspan="99" style="padding:20px;text-align:center;color:var(--text3)">沒有符合的記錄</td></tr>';
+    return;
+  }
+  var headHtml = '<th>客人</th><th>日期</th><th>陪跑狀態</th>';
+  cols.forEach(function(c){ headHtml += '<th>' + escH(labels[c] || c) + '</th>'; });
+  thead.innerHTML = headHtml;
+  tbody.innerHTML = items.map(function(it){
+    var watchSet = {}; (it.watchFields || []).forEach(function(f){ watchSet[f] = true; });
+    var isCarePlan = it.carePlan === '陪跑中';
+    var row = '<td><b>' + escH(it.clientName || it.clientId) + '</b><br><span style="font-size:10px;color:var(--text3)">' + escH(it.clientId) + '</span></td>';
+    row += '<td>' + escH(it.date) + '</td>';
+    row += '<td><span style="font-size:10px;font-weight:700;color:' + (isCarePlan ? 'var(--g3)' : 'var(--text3)') + '">' + escH(it.carePlan || '未設定') + '</span></td>';
+    cols.forEach(function(c){
+      var v = it[c] !== undefined && it[c] !== null ? it[c] : '';
+      var isWatch = watchSet[c];
+      row += '<td' + (isWatch ? ' style="color:#C0392B;font-weight:700"' : '') + '>' + escH(v) + '</td>';
+    });
+    return '<tr>' + row + '</tr>';
+  }).join('');
+}
+function loadAllClientsIRCTTable(){
+  adminAPI({action:'getAllClientsIRCTTable'}, function(d){
+    _attIrctData = (d && d.items) || [];
+    filterAllTests();
+  });
+}
+function loadAllClientsInBodyTable(){
+  adminAPI({action:'getAllClientsInBodyTable'}, function(d){
+    _attInBodyData = (d && d.items) || [];
+    filterAllTests();
+  });
+}
+function filterAllTests(){
+  var kw = (document.getElementById('att-search').value || '').trim().toLowerCase();
+  var onlyWatch = document.getElementById('att-only-watch').checked;
+  function apply(items){
+    return items.filter(function(it){
+      if(kw && (it.clientName||'').toLowerCase().indexOf(kw) < 0 && (it.clientId||'').toLowerCase().indexOf(kw) < 0) return false;
+      if(onlyWatch && (!it.watchFields || it.watchFields.length === 0)) return false;
+      return true;
+    });
+  }
+  renderAllTestsTable('att-irct-table', apply(_attIrctData), ATT_IRCT_COLS, ATT_IRCT_LABELS);
+  renderAllTestsTable('att-inbody-table', apply(_attInBodyData), ATT_INBODY_COLS, ATT_INBODY_LABELS);
+}
+function exportAllTestsCSV(){
+  var isIrct = _attCurrentTab === 'irct';
+  var cols = isIrct ? ATT_IRCT_COLS : ATT_INBODY_COLS;
+  var labels = isIrct ? ATT_IRCT_LABELS : ATT_INBODY_LABELS;
+  var data = isIrct ? _attIrctData : _attInBodyData;
+  var kw = (document.getElementById('att-search').value || '').trim().toLowerCase();
+  var onlyWatch = document.getElementById('att-only-watch').checked;
+  var items = data.filter(function(it){
+    if(kw && (it.clientName||'').toLowerCase().indexOf(kw) < 0 && (it.clientId||'').toLowerCase().indexOf(kw) < 0) return false;
+    if(onlyWatch && (!it.watchFields || it.watchFields.length === 0)) return false;
+    return true;
+  });
+  var csv = '\uFEFF客人ID,客人姓名,日期,陪跑狀態,' + cols.map(function(c){ return labels[c]||c; }).join(',') + '\n';
+  items.forEach(function(it){
+    var row = [it.clientId, it.clientName||'', it.date, it.carePlan||''].concat(cols.map(function(c){ return it[c] !== undefined && it[c] !== null ? it[c] : ''; }));
+    csv += row.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(',') + '\n';
+  });
+  var blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = (isIrct?'IRCT檢測總表_':'InBody檢測總表_') + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if(document.getElementById('pg-all-tests')){
+    setTimeout(function(){
+      if(typeof loadAllClientsIRCTTable==='function') loadAllClientsIRCTTable();
+      if(typeof loadAllClientsInBodyTable==='function') loadAllClientsInBodyTable();
+    }, 300);
+  }
+});
+function submitShift(){
+  var secretary = document.getElementById('duty-secretary').value.trim();
+  if(!secretary){ toast('請輸入秘書姓名'); return; }
+  var date = document.getElementById('duty-date').value;
+  if(!date){ toast('請選擇日期'); return; }
+  adminAPIPost({
+    action:'addShift', secretary:secretary, date:date,
+    shift:document.getElementById('duty-shift').value,
+    startTime:document.getElementById('duty-start').value,
+    endTime:document.getElementById('duty-end').value,
+    salaryType:document.getElementById('duty-salary-type').value,
+    rate:document.getElementById('duty-rate').value,
+    note:document.getElementById('duty-note').value
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 排班已記錄'+(d.subtotal?'，小計 '+d.subtotal:''));
+      ['duty-secretary','duty-shift','duty-start','duty-end','duty-rate','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    } else toast('⚠️ 儲存失敗');
+  });
+}
+function submitReferral(referrerId, referrerName){
+  var referredId = document.getElementById('cd-ref-referredId').value.trim();
+  var referredName = document.getElementById('cd-ref-referredName').value.trim();
+  if(!referredName){ toast('請輸入被介紹人姓名'); return; }
+  adminAPIPost({
+    action:'addReferral', referrerId:referrerId, referrerName:referrerName,
+    referredId:referredId, referredName:referredName,
+    note:document.getElementById('cd-ref-note').value
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 介紹記錄已儲存');
+      ['cd-ref-referredId','cd-ref-referredName','cd-ref-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    } else toast('⚠️ 儲存失敗');
+  });
+}
+function submitReward(clientId){
+  var desc = document.getElementById('cd-rw-desc').value.trim();
+  if(!desc){ toast('請輸入獎勵內容說明'); return; }
+  adminAPIPost({
+    action:'addReward', clientId:clientId,
+    rewardType:document.getElementById('cd-rw-type').value,
+    desc:desc, trigger:document.getElementById('cd-rw-trigger').value,
+    note:document.getElementById('cd-rw-note').value
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 獎勵記錄已儲存');
+      ['cd-rw-desc','cd-rw-trigger','cd-rw-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    } else toast('⚠️ 儲存失敗');
+  });
+}
+function submitPayment(){
+  var clientId = document.getElementById('fin-pay-client').value;
+  if(!clientId){ toast('請先選擇客人'); return; }
+  var amount = document.getElementById('fin-pay-amount').value;
+  if(!amount){ toast('請輸入金額'); return; }
+  adminAPIPost({
+    action:'addPayment', clientId:clientId, clientName:clientName(clientId),
+    item:document.getElementById('fin-pay-item').value,
+    amount:amount, method:document.getElementById('fin-pay-method').value,
+    secretary:(CURRENT_USER&&CURRENT_USER.name)||'', note:document.getElementById('fin-pay-note').value
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 付款記錄已儲存');
+      ['fin-pay-item','fin-pay-amount','fin-pay-note'].forEach(function(id){ document.getElementById(id).value=''; });
+    } else toast('⚠️ 儲存失敗');
+  });
+}
+function submitClinicFee(){
+  var clientId = document.getElementById('fin-clinicfee-client').value;
+  if(!clientId){ toast('請先選擇客人'); return; }
+  adminAPIPost({
+    action:'addClinicFee', clientId:clientId,
+    clinicName:document.getElementById('fin-clinicfee-name').value,
+    item:document.getElementById('fin-clinicfee-item').value,
+    preTax:document.getElementById('fin-clinicfee-pretax').value,
+    tax:document.getElementById('fin-clinicfee-tax').value,
+    total:document.getElementById('fin-clinicfee-total').value,
+    invoiceNo:document.getElementById('fin-clinicfee-invno').value,
+    invoiceDate:document.getElementById('fin-clinicfee-invdate').value,
+    invoiceType:document.getElementById('fin-clinicfee-invtype').value
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 診所費用已記錄');
+      ['fin-clinicfee-name','fin-clinicfee-item','fin-clinicfee-pretax','fin-clinicfee-tax','fin-clinicfee-total','fin-clinicfee-invno','fin-clinicfee-invdate'].forEach(function(id){ document.getElementById(id).value=''; });
+    } else toast('⚠️ 儲存失敗');
+  });
+}
+function submitLabFee(){
+  var clientId = document.getElementById('fin-labfee-client').value;
+  if(!clientId){ toast('請先選擇客人'); return; }
+  adminAPIPost({
+    action:'addLabFee', clientId:clientId,
+    labName:document.getElementById('fin-labfee-name').value,
+    item:document.getElementById('fin-labfee-item').value,
+    method:document.getElementById('fin-labfee-method').value,
+    preTax:document.getElementById('fin-labfee-pretax').value,
+    tax:document.getElementById('fin-labfee-tax').value,
+    total:document.getElementById('fin-labfee-total').value,
+    invoiceNo:document.getElementById('fin-labfee-invno').value
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 檢測中心費用已記錄');
+      ['fin-labfee-name','fin-labfee-item','fin-labfee-invno','fin-labfee-pretax','fin-labfee-tax','fin-labfee-total'].forEach(function(id){ document.getElementById(id).value=''; });
+    } else toast('⚠️ 儲存失敗');
+  });
+}
+function submitInvoiceRequest(){
+  var secretary = document.getElementById('fin-inv-secretary').value.trim();
+  if(!secretary){ toast('請輸入申請人姓名'); return; }
+  var amount = document.getElementById('fin-inv-amount').value;
+  if(!amount){ toast('請輸入金額'); return; }
+  adminAPIPost({
+    action:'addInvoiceRequest', secretary:secretary,
+    idType:document.getElementById('fin-inv-idtype').value,
+    requestType:document.getElementById('fin-inv-type').value,
+    amount:amount, preTax:document.getElementById('fin-inv-pretax').value,
+    withhold:document.getElementById('fin-inv-withhold').value,
+    netAmount:document.getElementById('fin-inv-net').value,
+    invoiceNo:document.getElementById('fin-inv-invno').value,
+    note:document.getElementById('fin-inv-note').value
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 請款申請已送出，單號：'+d.invoiceNo);
+      ['fin-inv-secretary','fin-inv-type','fin-inv-amount','fin-inv-pretax','fin-inv-withhold','fin-inv-net','fin-inv-invno','fin-inv-note'].forEach(function(id){ document.getElementById(id).value=''; });
+    } else toast('⚠️ 送出失敗');
+  });
+}
 function generateSettlement() {
   var monthVal = document.getElementById('st-month').value;
   var viewMode = document.getElementById('st-view-mode').value;
@@ -3260,7 +3609,7 @@ function loadClientsList(cb, force){
 }
 function fillClientSelects(){
   if(!_clientsCache) return;
-  ['client-select','plan-client','service-client','track-client','report-client-sel','upload-client','irt-client'].forEach(function(id){
+  ['client-select','plan-client','service-client','track-client','report-client-sel','upload-client','irt-client','fin-pay-client','fin-clinicfee-client','fin-labfee-client'].forEach(function(id){
     var sel = document.getElementById(id);
     if(!sel) return;
     var cur = sel.value;
@@ -3414,6 +3763,10 @@ function openClientDetail(id, name){
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🔬 IRCT 完整檢測記錄（依血糖／血脂／胰島素／體組成分類，存檔後前台報告分析頁會自動更新）</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:6px">檢測時拍檢驗報告表格直接辨識，或手動輸入數字。</div>'
+    + '<button class="ai-btn b" style="font-size:11px;padding:8px 10px;margin-bottom:8px" onclick="document.getElementById(\'irct-f-file\').click()">📷 拍檢驗報告表格辨識</button>'
+    + '<input type="file" id="irct-f-file" accept="image/*,application/pdf" style="display:none" onchange="handleIRCTPhoto(this)">'
+    + '<div id="irct-f-filehint" style="display:none;font-size:10.5px;color:var(--g);margin-bottom:8px">📎 已附上報告圖片，儲存時會一起存進記錄</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0 6px">'
     + '<input id="irct-f-count" type="number" class="form-input" style="font-size:12px" placeholder="第幾次檢測">'
     + '<select id="irct-f-plan" class="form-input" style="font-size:12px"><option value="t2">IRCT-t2</option><option value="t1">IRCT-t1</option></select>'
@@ -3485,6 +3838,25 @@ function openClientDetail(id, name){
     + '</select>'
     + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="saveCarbPlan()">儲存</button>'
     + '</div></div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🤝 介紹記錄（寫入 👤 介紹記錄）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px">'
+    + '<input id="cd-ref-referredId" class="form-input" style="font-size:12px" placeholder="被介紹人ID（如果已經是客人）">'
+    + '<input id="cd-ref-referredName" class="form-input" style="font-size:12px" placeholder="被介紹人姓名">'
+    + '<input id="cd-ref-note" class="form-input" style="font-size:12px" placeholder="備註（選填）">'
+    + '</div>'
+    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReferral(\''+escH(id)+'\',\''+escH(name||'')+'\')">記錄這位客人的介紹</button>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🎁 客人獎勵記錄（寫入 👤 客人獎勵記錄）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px">'
+    + '<select id="cd-rw-type" class="form-select" style="font-size:12px"><option value="介紹獎勵">介紹獎勵</option><option value="生日禮">生日禮</option><option value="達標獎勵">達標獎勵</option><option value="其他">其他</option></select>'
+    + '<input id="cd-rw-desc" class="form-input" style="font-size:12px" placeholder="獎勵內容說明（例：折價券500元）">'
+    + '<input id="cd-rw-trigger" class="form-input" style="font-size:12px" placeholder="觸發原因（選填，例：介紹了3位新客）">'
+    + '<input id="cd-rw-note" class="form-input" style="font-size:12px" placeholder="備註（選填）">'
+    + '</div>'
+    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReward(\''+escH(id)+'\')">記錄獎勵</button>'
+    + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💬 個案討論（寫入 💬 個案討論）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">特殊情況在這裡發起討論，全部秘書都看得到；問過醫師後把意見貼回來選「醫師意見」，結論會永久留存給下次參考。</div>'
@@ -3796,17 +4168,34 @@ function loadPurchases(){
     card.style.display = '';
     body.innerHTML = _proxyCache.map(function(p, i){
       var isPending = p.status === '待處理';
+      var isPaid = p.status.indexOf('完成') >= 0;
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
         + '<span style="font-size:9.5px;font-weight:700;color:#fff;background:' + (isPending ? '#B26A00' : '#2465A8') + ';border-radius:5px;padding:1px 6px">' + escH(p.status) + '</span>'
         + '<b style="color:var(--text)">' + escH(clientName(p.clientId)) + '</b>'
         + '<span style="color:var(--text2)">' + escH(p.product) + ' x' + escH(p.qty) + '</span>'
         + '<span style="color:var(--text3);font-size:10.5px">' + (p.source ? escH(p.source) + '・' : '') + (p.price ? '約$' + p.price.toLocaleString() + '・' : '') + escH(p.date) + '</span>'
-        + '<span style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap">'
+        + '<span style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
         + (isPending ? '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="proxyMark(' + i + ',\'已訂購\')">已幫客人下單</button>' : '')
-        + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px" onclick="proxyFinish(' + i + ')">到貨結帳</button>'
+        + (!isPaid ? '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px" onclick="proxyFinish(' + i + ')">到貨結帳</button>' : '')
         + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 9px" onclick="proxyMark(' + i + ',\'取消\')">取消</button>'
-        + '</span></div>';
+        + '</span>'
+        + '<div style="width:100%;display:flex;gap:6px;margin-top:4px">'
+        + '<label style="display:flex;align-items:center;gap:4px;font-size:10.5px;color:' + (p.shipped ? 'var(--g3)' : 'var(--text3)') + ';cursor:pointer"><input type="checkbox" ' + (p.shipped ? 'checked' : '') + ' onchange="proxyProgress(' + i + ',\'shipped\',this.checked)" style="accent-color:var(--g)">📦 已寄出</label>'
+        + '<label style="display:flex;align-items:center;gap:4px;font-size:10.5px;color:' + (p.received ? 'var(--g3)' : 'var(--text3)') + ';cursor:pointer"><input type="checkbox" ' + (p.received ? 'checked' : '') + ' onchange="proxyProgress(' + i + ',\'received\',this.checked)" style="accent-color:var(--g)">✅ 客人已收到</label>'
+        + '<span style="font-size:10.5px;color:' + (isPaid ? 'var(--g3)' : 'var(--text3)') + '">💰 款項' + (isPaid ? '已收' : '未收') + '</span>'
+        + '</div>'
+        + '</div>';
     }).join('');
+  });
+}
+function proxyProgress(i, field, checked){
+  var p = _proxyCache[i]; if(!p) return;
+  adminAPIPost({action:'markPurchaseProgress', row:p.row, field:field, value:checked}, function(d){
+    if(d && d.status === 'ok'){
+      if(field==='shipped') p.shipped = checked; else p.received = checked;
+      toast(checked ? '✅ 已標記' : '已取消標記');
+      loadPurchases();
+    } else { toast('⚠️ 操作失敗'); loadPurchases(); }
   });
 }
 function proxyMark(i, st){
@@ -5416,10 +5805,51 @@ function fillChronicMedDatalist(items){
   dl.innerHTML = items.map(function(it){ return '<option value="'+escH(it.name)+'">'+escH(it.category)+'</option>'; }).join('');
 }
 var _ibFileUrl = '';
+function handleIRCTPhoto(input){
+  var f = input.files && input.files[0];
+  if(!f) return;
+  if(!_cdCurrentId){ toast('請先選擇客人'); input.value=''; return; }
+  if(f.size > 15*1024*1024){ toast('⚠️ 檔案超過 15MB'); input.value=''; return; }
+  if(/heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name)){
+    alert('⚠️ 這張照片是 HEIC 格式，辨識系統不支援。\n\n請到 iPhone「設定 → 相機 → 格式」改成「最相容」，用JPG格式重新拍一張；或者直接手動輸入數字也可以。');
+    input.value=''; return;
+  }
+  toast('📷 辨識中，約 10–20 秒…（辨識不準的欄位可以手動修改）');
+  var reader = new FileReader();
+  reader.onload = function(){
+    var b64 = String(reader.result).split(',')[1];
+    adminAPIPost({action:'ocrIRCTValues', clientId:_cdCurrentId, fileName:f.name,
+      mimeType:f.type||'image/jpeg', fileData:b64}, function(d){
+      input.value='';
+      if(d.status!=='ok'){
+        var msg = d.message||'辨識失敗，可以直接手動輸入數字';
+        if(msg.length > 20) alert('⚠️ '+msg);
+        else toast('⚠️ '+msg);
+        return;
+      }
+      var fields = d.fields || {};
+      var hitCount = 0;
+      // 表單欄位id跟解析出來的欄位名稱是同一套命名(irct-f-hba1c對應hba1c這種)，直接組id字串填值即可
+      Object.keys(fields).forEach(function(k){
+        var el = document.getElementById('irct-f-'+k);
+        if(el){ el.value = fields[k]; hitCount++; }
+      });
+      var hint = document.getElementById('irct-f-filehint');
+      if(hint) hint.style.display = '';
+      toast(hitCount > 0 ? '✅ 辨識到 '+hitCount+' 個欄位，請核對後儲存' : '⚠️ 沒辨識到欄位，麻煩手動輸入數字（報告圖片已經存好了）');
+    });
+  };
+  reader.readAsDataURL(f);
+}
 function handleInBodyPhoto(input, clientId){
   var f = input.files && input.files[0];
   if(!f) return;
   if(f.size > 15*1024*1024){ toast('⚠️ 檔案超過 15MB'); input.value=''; return; }
+  // iPhone拍照有時候是HEIC格式，Google的OCR不支援，提前檢查比等10幾秒後端才回錯誤快
+  if(/heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name)){
+    alert('⚠️ 這張照片是 HEIC 格式，辨識系統不支援。\n\n請到 iPhone「設定 → 相機 → 格式」改成「最相容」，用JPG格式重新拍一張；或者直接手動輸入數字也可以。');
+    input.value=''; return;
+  }
   toast('📷 辨識中，約 10–20 秒…（辨識不準的欄位可以手動修改）');
   var reader = new FileReader();
   reader.onload = function(){
@@ -5427,7 +5857,13 @@ function handleInBodyPhoto(input, clientId){
     adminAPIPost({action:'ocrInBody', clientId:clientId, fileName:f.name,
       mimeType:f.type||'image/jpeg', fileData:b64}, function(d){
       input.value='';
-      if(d.status!=='ok'){ toast('⚠️ '+(d.message||'辨識失敗，可以直接手動輸入數字')); return; }
+      if(d.status!=='ok'){
+        var msg = d.message||'辨識失敗，可以直接手動輸入數字';
+        // 重要/較長的錯誤說明(例如要去Apps Script啟用服務這種)用alert，避免toast兩三秒就消失、訊息還沒看完就不見
+        if(msg.length > 20) alert('⚠️ '+msg);
+        else toast('⚠️ '+msg);
+        return;
+      }
       _ibFileUrl = d.fileUrl || '';
       var fields = d.fields || {};
       var map = {height:'cd-ib-height', weight:'cd-ib-weight', bmi:'cd-ib-bmi', bodyFatPercent:'cd-ib-fatpct',
@@ -6311,35 +6747,30 @@ function liLoadFamily(){
   var box = document.getElementById('li-family');
   if(!fam){ box.innerHTML='<div style="color:var(--text3);font-size:13px">選一個家庭</div>'; return; }
   box.innerHTML = '<div style="color:var(--text3);font-size:13px">載入中…</div>';
-  // 先拿客人名字对照
-  adminAPI({action:'getClients'}, function(cd){
-    var nameMap = {};
-    var list = (cd && (cd.items||cd.clients)) || [];
-    list.forEach(function(c){ nameMap[c.id||c.clientId] = c.name || (c.id||c.clientId); });
-    adminAPI({action:'getFamilyTests', family:fam}, function(d){
-      if(!d || !d.members || Object.keys(d.members).length===0){ box.innerHTML='<div style="color:var(--text3);font-size:13px">這個家庭還沒有檢測資料</div>'; return; }
-      var memberIds = Object.keys(d.members);
-      // 收集所有项目
-      var allItems = {};
-      memberIds.forEach(function(mid){ Object.keys(d.members[mid]).forEach(function(it){ allItems[it]=1; }); });
-      var items = Object.keys(allItems);
-      if(items.length===0){ box.innerHTML='<div style="color:var(--text3);font-size:13px">這個家庭成員還沒有檢測資料</div>'; return; }
-      var html = '<div style="overflow-x:auto"><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr style="border-bottom:2px solid var(--border)"><th style="text-align:left;padding:6px">檢測項目</th>';
-      memberIds.forEach(function(mid){ html += '<th style="padding:6px;text-align:center">'+escH(nameMap[mid]||mid)+'</th>'; });
-      html += '<th style="padding:6px;text-align:left;color:var(--text3)">理想區間</th></tr></thead><tbody>';
-      items.forEach(function(it){
-        html += '<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px;font-weight:600">'+escH(it)+'</td>';
-        var ideal = '';
-        memberIds.forEach(function(mid){
-          var cell = d.members[mid][it];
-          if(cell && cell.ideal) ideal = cell.ideal;
-          html += '<td style="padding:6px;text-align:center">'+(cell? liColorVal(cell.value, cell.ideal) : '-')+'</td>';
-        });
-        html += '<td style="padding:6px;color:var(--text3)">'+escH(ideal)+'</td></tr>';
-      });
-      html += '</tbody></table></div>';
-      box.innerHTML = html;
+  adminAPI({action:'getFamilyIRCTFullTable', family:fam}, function(d){
+    if(!d || d.status!=='ok' || !d.found || !d.tests || d.tests.length===0){
+      box.innerHTML='<div style="color:var(--text3);font-size:13px">這個家庭還沒有IRCT檢測資料</div>';
+      return;
+    }
+    var headHtml = '<th style="position:sticky;left:0;background:var(--bg);z-index:1;text-align:left;padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--text3)">項目</th>';
+    d.tests.forEach(function(t){
+      headHtml += '<th style="padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--text2);text-align:center">'+escH(t.clientName)+'<br>'+escH(t.date)+'</th>';
     });
+    headHtml += '<th style="padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--g3);text-align:center;background:var(--g2)">治療性生酮後理想區間</th>'
+      + '<th style="padding:7px 10px;border-bottom:2px solid var(--border2);font-size:10.5px;color:var(--b3);text-align:center">現行正常區間</th>';
+    var bodyHtml = d.rows.map(function(r, i){
+      var bg = i % 2 === 0 ? 'var(--card)' : 'var(--bg)';
+      var cells = '<td style="position:sticky;left:0;background:'+bg+';z-index:1;padding:6px 10px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border)">'+escH(r.label)+'</td>';
+      r.values.forEach(function(v){
+        var color = v.watch ? '#C0392B' : 'var(--text)';
+        var fw = v.watch ? '700' : '400';
+        cells += '<td style="padding:6px 10px;text-align:center;color:'+color+';font-weight:'+fw+';border-bottom:1px solid var(--border);background:'+bg+'">'+(v.value!==''?escH(String(v.value)):'—')+'</td>';
+      });
+      cells += '<td style="padding:6px 10px;text-align:center;font-size:10px;color:var(--g3);border-bottom:1px solid var(--border);background:'+bg+'">'+escH(r.therapeutic||'')+'</td>'
+        + '<td style="padding:6px 10px;text-align:center;font-size:10px;color:var(--b3);border-bottom:1px solid var(--border);background:'+bg+'">'+escH(r.normal||'')+'</td>';
+      return '<tr>'+cells+'</tr>';
+    }).join('');
+    box.innerHTML = '<div style="overflow-x:auto"><table style="width:100%;font-size:12px;border-collapse:collapse;white-space:nowrap"><thead><tr>'+headHtml+'</tr></thead><tbody>'+bodyHtml+'</tbody></table></div>';
   });
 }
 
