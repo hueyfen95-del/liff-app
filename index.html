@@ -846,6 +846,7 @@ window.openHealthForm = function() {
       <div style="height:1px;background:var(--border);margin:6px 0 14px"></div>
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">🍱 查食物怎麼點</div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:10px">不確定某種食物能不能吃？下面查得到</div>
+      <button onclick="openFoodHelpPrompt()" style="width:100%;background:var(--bg);border:1px dashed var(--border);border-radius:12px;padding:11px;font-size:11.5px;color:var(--text2);cursor:pointer;text-align:center;margin-bottom:14px">🔍 沒看到你想吃的食物？點這裡問秘書 / 推薦食材</button>
     </div>
 
     <div class="food-top">
@@ -1075,13 +1076,9 @@ window.openHealthForm = function() {
 
 
   <div style="background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;padding:14px 16px">
-    <div style="font-size:11px;opacity:.75;margin-bottom:3px">陳小美・第 2 次 IRCT・2025/05/10</div>
+    <div id="irct-banner-sub" style="font-size:11px;opacity:.75;margin-bottom:3px">載入中…</div>
     <div style="font-size:16px;font-weight:700;margin-bottom:9px">動態胰島素阻抗檢測報告</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:600">IRCT-t2</div>
-      <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:600">瑞絲得診所・新竹</div>
-      <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:600">🥑 粒腺體飲食期間</div>
-    </div>
+    <div id="irct-banner-tags" style="display:flex;gap:6px;flex-wrap:wrap"></div>
   </div>
 
   <!-- IRCT Tab列 -->
@@ -1091,91 +1088,8 @@ window.openHealthForm = function() {
 
   <!-- ① 綜合分析 -->
   <div id="itc-ov" style="display:block;padding:14px 16px 28px">
-
-    <!-- 總結 -->
-    <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:13px;padding:14px;margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:#085041;margin-bottom:7px;display:flex;align-items:center;gap:7px">
-        <span style="font-size:20px">📊</span>本次檢測綜合觀察
-      </div>
-      <div style="font-size:12px;line-height:1.9;color:#085041">與第 1 次（混合飲食）相比，血糖及胰島素對食物的反應數值均有向理想方向移動的趨勢。粒腺體健康之旅期間的代謝數值顯示身體正在持續調整中，建議與醫師討論並持續追蹤。</div>
-    </div>
-
-    <!-- 阻抗評級 -->
-    <div style="background:#F5F7FA;border-radius:13px;padding:14px;margin-bottom:14px;border:1px solid #E5E7EB">
-      <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:13px;letter-spacing:.03em">胰島素阻抗動態評估・跨次比較</div>
-      <div style="display:table;width:100%;table-layout:fixed;padding:0 4px">
-        <!-- 重度 -->
-        <div style="display:table-cell;text-align:center;vertical-align:top;width:20%">
-          <div style="width:28px;height:28px;border-radius:50%;background:#E5E7EB;color:#9CA3AF;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">重</div>
-          <div style="font-size:9px;margin-top:4px;text-align:center;color:#9CA3AF;line-height:1.4">重度</div>
-        </div>
-        <div style="display:table-cell;vertical-align:middle;width:12%"><div style="height:2px;border-top:2px solid #D1D5DB"></div></div>
-        <!-- 中度 第1次 -->
-        <div style="display:table-cell;text-align:center;vertical-align:top;width:20%">
-          <div style="width:28px;height:28px;border-radius:50%;background:#FCEBEB;color:#791F1F;border:1.5px solid #F09595;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">中</div>
-          <div style="font-size:9px;margin-top:4px;text-align:center;color:#791F1F;line-height:1.4">中度<br><span style="font-size:8px;background:#FCEBEB;border-radius:10px;padding:0 4px">第1次</span></div>
-        </div>
-        <div style="display:table-cell;vertical-align:middle;width:12%"><div style="height:2px;border-top:2px solid #1D9E75"></div></div>
-        <!-- 輕度 現在 -->
-        <div style="display:table-cell;text-align:center;vertical-align:top;width:20%">
-          <div style="width:28px;height:28px;border-radius:50%;background:#1D9E75;color:#fff;box-shadow:0 0 0 5px rgba(29,158,117,.18);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">輕</div>
-          <div style="font-size:9px;margin-top:4px;text-align:center;color:#085041;font-weight:700;line-height:1.4">輕度<br><span style="font-size:8px;background:#E1F5EE;border-radius:10px;padding:0 4px">現在</span></div>
-        </div>
-        <div style="display:table-cell;vertical-align:middle;width:12%"><div style="height:2px;border-top:2px dashed #1D9E75"></div></div>
-        <!-- 理想 目標 -->
-        <div style="display:table-cell;text-align:center;vertical-align:top;width:20%">
-          <div style="width:28px;height:28px;border-radius:50%;background:#E1F5EE;color:#085041;border:1.5px dashed #1D9E75;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">正</div>
-          <div style="font-size:9px;margin-top:4px;text-align:center;color:#085041;line-height:1.4">理想<br><span style="font-size:8px;background:#E1F5EE;border-radius:10px;padding:0 4px">目標</span></div>
-        </div>
-      </div>
-      <div style="margin-top:13px;background:#fff;border-radius:9px;padding:9px 12px;font-size:11px;color:#6B7280;line-height:1.6">
-        評估依據：飯後胰島素加總（142→58）、飯後1小時血糖差值、ESI（2.7→1.0）三項綜合觀察。此為健康管理參考資訊，非醫療診斷。如有健康疑慮請諮詢醫師。
-      </div>
-    </div>
-
-    <!-- 三個關鍵觀察 -->
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid #E5E7EB;margin-bottom:12px">✦ 本次三個關鍵觀察</div>
-    <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px">
-      <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:12px;padding:12px 13px;display:flex;gap:10px;align-items:flex-start">
-        <span style="font-size:22px;flex-shrink:0;line-height:1">✅</span>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:#085041;margin-bottom:4px">胰島素反應數值向理想方向移動</div>
-          <div style="font-size:11px;color:#0F6E56;line-height:1.7">飯後胰島素加總從 142 降至 58，數值顯示身體對食物的胰島素分泌需求有所改變。留意範圍為加總超過 100。</div>
-        </div>
-      </div>
-      <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:12px;padding:12px 13px;display:flex;gap:10px;align-items:flex-start">
-        <span style="font-size:22px;flex-shrink:0;line-height:1">✅</span>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:#085041;margin-bottom:4px">ESI 數值進入理想觀察範圍</div>
-          <div style="font-size:11px;color:#0F6E56;line-height:1.7">ESI（TG÷HDL）從 2.7 降至 1.0，數值顯示脂肪代謝相關指標有正向變化趨勢。留意範圍為 &gt;1.3。</div>
-        </div>
-      </div>
-      <div style="background:#FAEEDA;border:1px solid #FCD34D;border-radius:12px;padding:12px 13px;display:flex;gap:10px;align-items:flex-start">
-        <span style="font-size:22px;flex-shrink:0;line-height:1">⚠️</span>
-        <div>
-          <div style="font-size:12px;font-weight:700;color:#633806;margin-bottom:4px">飯後血糖差值仍在需留意範圍</div>
-          <div style="font-size:11px;color:#854F0B;line-height:1.7">飯後1小時血糖差值（112-84=28）雖較第1次改善，仍建議持續追蹤，並與醫師討論飲食調整方向。</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 下一步建議 -->
-    <div style="background:#F5F7FA;border-radius:13px;padding:14px;margin-bottom:14px;border:1px solid #E5E7EB">
-      <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:12px;display:flex;align-items:center;gap:7px">
-        <span style="font-size:18px">📋</span>秘書根據本次報告的建議
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid #E5E7EB">
-        <div style="width:22px;height:22px;border-radius:50%;background:#1D9E75;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">1</div>
-        <div style="font-size:12px;color:#6B7280;line-height:1.7">持續維持粒腺體健康之旅，重點補充鉀（酪梨、Nu-Salt），有助於維持目前代謝方向</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid #E5E7EB">
-        <div style="width:22px;height:22px;border-radius:50%;background:#1D9E75;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">2</div>
-        <div style="font-size:12px;color:#6B7280;line-height:1.7">腰圍數值仍在需留意範圍（82cm），可考慮加入核心肌群訓練，建議與醫師討論</div>
-      </div>
-      <div style="display:flex;align-items:flex-start;gap:11px;padding:9px 0">
-        <div style="width:22px;height:22px;border-radius:50%;background:#1D9E75;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">3</div>
-        <div style="font-size:12px;color:#6B7280;line-height:1.7">建議六週後安排第 3 次 IRCT，持續追蹤飯後血糖差值及胰島素動態變化趨勢</div>
-      </div>
+    <div id="itc-ov-content">
+      <div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div>
     </div>
     <button onclick="openBooking()" style="width:100%;background:#1D9E75;color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px">
       📅 預約下次 IRCT 複檢
@@ -1184,151 +1098,22 @@ window.openHealthForm = function() {
 
   <!-- ② 血糖動態 -->
   <div id="itc-bg" style="display:none;padding:14px 16px 28px">
-    <div style="background:#F5F7FA;border-radius:13px;padding:13px 14px;margin-bottom:13px;border:1px solid #E5E7EB">
-      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:3px">🩸 血糖動態曲線</div>
-      <div style="font-size:11px;color:#6B7280;margin-bottom:11px">空腹 → 飯後1小時 → 2小時 → 3小時・兩次檢測對照</div>
-      <div style="position:relative;height:105px;margin-bottom:9px">
-        <svg width="100%" height="100%" viewBox="0 0 320 95" preserveAspectRatio="none">
-          <line x1="0" y1="60" x2="320" y2="60" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="5,4"/>
-          <text x="2" y="57" font-size="8" fill="#9CA3AF">140</text>
-          <line x1="0" y1="38" x2="320" y2="38" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="5,4"/>
-          <text x="2" y="35" font-size="8" fill="#9CA3AF">87</text>
-          <polyline points="40,52 130,12 220,28 300,40" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linejoin="round"/>
-          <polyline points="40,46 130,26 220,42 300,48" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linejoin="round"/>
-          <circle cx="40" cy="46" r="4" fill="#1D9E75"/>
-          <circle cx="130" cy="26" r="4" fill="#1D9E75"/>
-          <circle cx="220" cy="42" r="4" fill="#1D9E75"/>
-          <circle cx="300" cy="48" r="4" fill="#1D9E75"/>
-          <text x="30" y="40" font-size="9" fill="#085041" font-weight="bold">84</text>
-          <text x="118" y="20" font-size="9" fill="#085041" font-weight="bold">112</text>
-          <text x="208" y="36" font-size="9" fill="#085041" font-weight="bold">98</text>
-          <text x="288" y="43" font-size="9" fill="#085041" font-weight="bold">88</text>
-          <text x="26" y="87" font-size="8" fill="#6B7280">空腹</text>
-          <text x="105" y="87" font-size="8" fill="#6B7280">飯後1hr</text>
-          <text x="197" y="87" font-size="8" fill="#6B7280">飯後2hr</text>
-          <text x="279" y="87" font-size="8" fill="#6B7280">飯後3hr</text>
-        </svg>
-      </div>
-      <div style="display:flex;gap:13px;flex-wrap:wrap;margin-bottom:9px">
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#6B7280">
-          <div style="width:18px;height:2.5px;background:#D1D5DB;border-radius:2px"></div>第1次（混合飲食）
-        </div>
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#6B7280">
-          <div style="width:18px;height:2.5px;background:#1D9E75;border-radius:2px"></div>第2次（粒腺體飲食）
-        </div>
-      </div>
-      <div style="background:#E6F1FB;border-left:3px solid #378ADD;border-radius:0 9px 9px 0;padding:9px 12px;font-size:11px;color:#0C447C;line-height:1.7">飯後1小時血糖差值：112 - 84 = <strong>28</strong>（留意範圍：差值 &gt;100）。第1次差值較高，本次有向理想方向移動的趨勢。</div>
-    </div>
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:10px">🩸 血糖數值對照</div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">HbA1c 糖化血色素</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">反映近3個月平均血糖・理想：&lt;5.8%</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">5.9%</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">5.4%</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">空腹血糖</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">理想範圍：&lt;87 mg/dL</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">98</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">84</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">飯後1小時血糖</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">差值留意範圍：&gt;100</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">148</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#633806">112</span><span style="background:#FAEEDA;color:#633806;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">留意</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">飯後2小時血糖</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：&gt;90-120 mg/dL</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">135</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">98</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">飯後3小時血糖</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：&gt;90-120 mg/dL</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">110</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">88</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
+    <div id="itc-bg-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ③ 胰島素動態 -->
   <div id="itc-ins" style="display:none;padding:14px 16px 28px">
-    <div style="background:#F5F7FA;border-radius:13px;padding:13px 14px;margin-bottom:13px;border:1px solid #E5E7EB">
-      <div style="font-size:13px;font-weight:700;color:#111827;margin-bottom:3px">💉 胰島素動態曲線</div>
-      <div style="font-size:11px;color:#6B7280;margin-bottom:11px">身體為了應對血糖，分泌了多少胰島素？數值愈低，負擔愈小。</div>
-      <div style="position:relative;height:105px;margin-bottom:9px">
-        <svg width="100%" height="100%" viewBox="0 0 320 95" preserveAspectRatio="none">
-          <line x1="0" y1="45" x2="320" y2="45" stroke="#FCD34D" stroke-width="1.5" stroke-dasharray="5,4"/>
-          <text x="2" y="42" font-size="7" fill="#EF9F27" font-weight="bold">加總100</text>
-          <polyline points="40,70 130,8 220,18 300,28" fill="none" stroke="#D1D5DB" stroke-width="2" stroke-linejoin="round"/>
-          <polyline points="40,65 130,36 220,55 300,65" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linejoin="round"/>
-          <circle cx="40" cy="65" r="4" fill="#378ADD"/>
-          <circle cx="130" cy="36" r="4" fill="#378ADD"/>
-          <circle cx="220" cy="55" r="4" fill="#378ADD"/>
-          <circle cx="300" cy="65" r="4" fill="#378ADD"/>
-          <text x="28" y="58" font-size="9" fill="#0C447C" font-weight="bold">4.2</text>
-          <text x="118" y="29" font-size="9" fill="#0C447C" font-weight="bold">28</text>
-          <text x="208" y="48" font-size="9" fill="#0C447C" font-weight="bold">18</text>
-          <text x="288" y="58" font-size="9" fill="#0C447C" font-weight="bold">12</text>
-          <text x="26" y="87" font-size="8" fill="#6B7280">空腹</text>
-          <text x="105" y="87" font-size="8" fill="#6B7280">飯後1hr</text>
-          <text x="197" y="87" font-size="8" fill="#6B7280">飯後2hr</text>
-          <text x="279" y="87" font-size="8" fill="#6B7280">飯後3hr</text>
-        </svg>
-      </div>
-      <div style="display:flex;gap:13px;flex-wrap:wrap;margin-bottom:9px">
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#6B7280"><div style="width:18px;height:2.5px;background:#D1D5DB;border-radius:2px"></div>第1次（混合飲食）</div>
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#6B7280"><div style="width:18px;height:2.5px;background:#378ADD;border-radius:2px"></div>第2次（粒腺體飲食）</div>
-        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:#6B7280"><div style="width:18px;height:2px;border-top:2px dashed #FCD34D"></div>加總100留意線</div>
-      </div>
-      <div style="background:#E1F5EE;border-left:3px solid #1D9E75;border-radius:0 9px 9px 0;padding:9px 12px;font-size:11px;color:#085041;line-height:1.7">飯後1-3小時胰島素加總：<strong>58</strong>（第1次：142）。數值顯示胰島素分泌需求有明顯下降趨勢，留意範圍為加總超過100。</div>
-    </div>
-    <!-- 加總比較 -->
-    <div style="background:#E6F1FB;border-radius:13px;padding:14px;margin-bottom:13px;border:1px solid #93C5FD">
-      <div style="font-size:12px;font-weight:700;color:#0C447C;margin-bottom:11px">🔢 飯後胰島素加總觀察</div>
-      <div style="display:flex;align-items:center;gap:13px">
-        <div style="flex:1;text-align:center;background:rgba(255,255,255,.7);border-radius:11px;padding:12px">
-          <div style="font-size:10px;font-weight:600;color:#6B7280;margin-bottom:4px">第 1 次</div>
-          <div style="font-size:28px;font-weight:700;color:#791F1F">142</div>
-          <div style="font-size:10px;font-weight:600;color:#791F1F;margin-top:2px">需留意（&gt;100）</div>
-        </div>
-        <div style="font-size:28px;color:#1D9E75;flex-shrink:0;font-weight:700">→</div>
-        <div style="flex:1;text-align:center;background:rgba(255,255,255,.7);border-radius:11px;padding:12px">
-          <div style="font-size:10px;font-weight:600;color:#6B7280;margin-bottom:4px">第 2 次</div>
-          <div style="font-size:28px;font-weight:700;color:#085041">58</div>
-          <div style="font-size:10px;font-weight:600;color:#085041;margin-top:2px">理想範圍內</div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:#0C447C;line-height:1.7;margin-top:11px">加總數值顯示身體對食物的胰島素反應有向理想方向移動的趨勢。此數值需結合曲線形態，正式解讀建議與醫師共同討論。</div>
-    </div>
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:10px">胰島素數值對照</div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">空腹胰島素</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">理想範圍：&lt;6 IU/ml</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">12.4</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">4.2</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">飯後1小時胰島素</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">建議與醫師討論曲線形態</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">68</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">28</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">數值下降</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">飯後2小時胰島素</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">48</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">18</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">數值下降</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">飯後3小時胰島素</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">26</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">12</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">數值下降</span></div></div>
+    <div id="itc-ins-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ④ 代謝損傷 -->
   <div id="itc-met" style="display:none;padding:14px 16px 28px">
-    <!-- ESI 核心卡 -->
-    <div style="background:linear-gradient(135deg,#E1F5EE,#C6EEE0);border:1px solid #9FE1CB;border-radius:14px;padding:14px;margin-bottom:13px">
-      <div style="font-size:11px;font-weight:700;color:#085041;margin-bottom:2px">⭐ ESI（TG ÷ HDL）・本區最大重點</div>
-      <div style="font-size:10px;color:#085041;margin-bottom:11px;line-height:1.5">數值愈低，與脂肪容易累積的關聯性愈小・留意範圍：&gt;1.3</div>
-      <div style="display:flex;align-items:center;gap:13px;margin-bottom:11px">
-        <div style="flex:1;text-align:center;background:rgba(255,255,255,.65);border-radius:11px;padding:11px">
-          <div style="font-size:10px;font-weight:600;color:#085041;margin-bottom:4px">第 1 次</div>
-          <div style="font-size:28px;font-weight:700;color:#633806">2.7</div>
-          <div style="font-size:10px;font-weight:600;color:#633806;margin-top:2px">需留意</div>
-        </div>
-        <div style="font-size:28px;color:#1D9E75;flex-shrink:0;font-weight:700">→</div>
-        <div style="flex:1;text-align:center;background:rgba(255,255,255,.65);border-radius:11px;padding:11px">
-          <div style="font-size:10px;font-weight:600;color:#085041;margin-bottom:4px">第 2 次</div>
-          <div style="font-size:28px;font-weight:700;color:#085041">1.0</div>
-          <div style="font-size:10px;font-weight:600;color:#085041;margin-top:2px">理想範圍內</div>
-        </div>
-      </div>
-      <div style="font-size:11px;color:#085041;line-height:1.7">數值顯示 TG 與 HDL 的比例關係有向理想方向移動的趨勢，與脂肪容易累積相關的指標值得持續追蹤。</div>
-    </div>
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:10px">❤️ 血脂數值對照</div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">三酸甘油脂 TG</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">理想：&lt;80 mg/dL・ESI 的分子</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">142</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">68</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">HDL 高密度膽固醇</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">理想：女&gt;60 mg/dL・ESI 的分母</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">52</span><span style="color:#1D9E75;font-weight:700">↑</span><span style="font-size:14px;font-weight:700;color:#085041">68</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">LDL 低密度膽固醇</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：&gt;130 mg/dL</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">118</span><span style="color:#9CA3AF">→</span><span style="font-size:14px;font-weight:700;color:#633806">128</span><span style="background:#FAEEDA;color:#633806;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">持續留意</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">總膽固醇</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">粒腺體期數值偏高屬常見現象，建議與醫師討論</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">198</span><span style="color:#9CA3AF">→</span><span style="font-size:14px;font-weight:700;color:#633806">215</span><span style="background:#FAEEDA;color:#633806;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">追蹤</span></div></div>
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin:14px 0 10px">📏 體型代謝指標</div>
-    <div style="background:#E6F1FB;border-radius:9px;padding:9px 11px;margin-bottom:9px;font-size:11px;color:#0C447C;line-height:1.6">腰圍與內臟脂肪數值與代謝相關指標有關聯性，建議與醫師共同解讀。</div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">腰圍</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：女&gt;80 / 男&gt;90 cm</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">86</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#633806">82</span><span style="background:#FAEEDA;color:#633806;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">仍需留意</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">內臟脂肪指數</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：&gt;8</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">11</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#633806">8</span><span style="background:#FAEEDA;color:#633806;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">邊界留意</span></div></div>
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin:14px 0 10px">🧬 心血管相關指標</div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">sdLDL 緻密低密度脂蛋白</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：&gt;20 mg/dL，數值愈低愈理想</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">28</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">16</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">同半胱氨酸 Homocysteine</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：&gt;15 umol/L，數值愈低愈理想</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">18</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">11</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
+    <div id="itc-met-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ⑤ 器官功能 -->
   <div id="itc-org" style="display:none;padding:14px 16px 28px">
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:10px">🫀 肝臟功能指標</div>
-    <div style="background:#E6F1FB;border-radius:9px;padding:9px 11px;margin-bottom:9px;font-size:11px;color:#0C447C;line-height:1.6">GPT 超過 25 U/L 時，數值顯示與脂肪肝風險有關聯，建議與醫師討論。</div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">GPT（丙胺酸轉氨酶）</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：&gt;25 U/L</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">34</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">18</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">GOT（天門冬酸轉氨酶）</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">留意範圍：女&lt;32 U/L</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">28</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">22</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin:14px 0 10px">🫘 腎臟功能指標</div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">eGFR 腎絲球過濾率</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">理想：&gt;60 ml/min</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">90</span><span style="color:#9CA3AF">→</span><span style="font-size:14px;font-weight:700;color:#085041">88</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">肌酸酐 Creatinine</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">女：0.5–0.9 mg/dL</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">0.7</span><span style="color:#9CA3AF">→</span><span style="font-size:14px;font-weight:700;color:#085041">0.7</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">穩定</span></div></div>
-    <div style="display:flex;align-items:center;padding:10px 0"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">尿酸 UA</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">女：2.4–5.7 mg/dL</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">4.8</span><span style="color:#1D9E75;font-weight:700">↓</span><span style="font-size:14px;font-weight:700;color:#085041">4.2</span><span style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">理想</span></div></div>
+    <div id="itc-org-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ⑥ 體組成・血酮 -->
@@ -1623,7 +1408,69 @@ window.openHealthForm = function() {
           <span onclick="bkSelExercise(this,'0次')" style="border:1.5px solid var(--g);border-radius:16px;padding:6px 12px;font-size:12px;color:#fff;background:var(--g);cursor:pointer;font-weight:700">0次</span>
           <span onclick="bkSelExercise(this,'1-2次')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">1-2次</span>
           <span onclick="bkSelExercise(this,'3-4次')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">3-4次</span>
-          <span onclick="bkSelExercise(this,'5次以上')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">5次以上</span>
+          <span onclick="bkSelExercise(this,'5-6次')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">5-6次</span>
+          <span onclick="bkSelExercise(this,'幾乎天天高強度')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">幾乎天天高強度</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin:8px 0 4px">不會喘的溫和活動呢？（散步、伸展、瑜珈、太極…）</div>
+        <div id="bk-exlow-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkSelState(this,'exlow','0次')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">0次</span>
+          <span onclick="bkSelState(this,'exlow','1-2次')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">1-2次</span>
+          <span onclick="bkSelState(this,'exlow','3次以上')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">3次以上</span>
+        </div>
+      </div>
+      <!-- 身心狀態問卷（檢測前先了解狀態，報告出來後對照）-->
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">🧭 檢測前的身心狀態（幫助我們更準確解讀你的報告）</div>
+        <div style="font-size:11px;color:var(--text2);margin:6px 0 4px">最近三個月，你常覺得疲勞、力不從心嗎？</div>
+        <div id="bk-fatigue-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkSelState(this,'fatigue','很少')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">很少</span>
+          <span onclick="bkSelState(this,'fatigue','偶爾')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">偶爾</span>
+          <span onclick="bkSelState(this,'fatigue','常常')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">常常</span>
+          <span onclick="bkSelState(this,'fatigue','嚴重（睡飽也累）')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">嚴重（睡飽也累）</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin:8px 0 4px">最近的生活/工作壓力大嗎？</div>
+        <div id="bk-stress-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkSelState(this,'stress','低')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">低</span>
+          <span onclick="bkSelState(this,'stress','中等')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">中等</span>
+          <span onclick="bkSelState(this,'stress','高')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">高</span>
+          <span onclick="bkSelState(this,'stress','非常高')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">非常高</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin:8px 0 4px">最近半年的飲食狀況，有沒有以下情形？（可複選）</div>
+        <div id="bk-ltdiet-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkToggleLtdiet(this,'長期節食減重')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">長期節食/減重</span>
+          <span onclick="bkToggleLtdiet(this,'常誤餐')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">常誤餐</span>
+          <span onclick="bkToggleLtdiet(this,'大小餐不定')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">大小餐不定</span>
+          <span onclick="bkToggleLtdiet(this,'高纖低脂飲食')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">高纖低脂飲食</span>
+          <span onclick="bkToggleLtdiet(this,'以上皆無')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">以上皆無</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin:8px 0 4px">你有吸菸習慣嗎？</div>
+        <div id="bk-smoke-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkSelState(this,'smoke','不吸菸')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">不吸菸</span>
+          <span onclick="bkSelState(this,'smoke','偶爾')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">偶爾</span>
+          <span onclick="bkSelState(this,'smoke','每天')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">每天</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin:8px 0 4px">你一天通常吃幾餐正餐？</div>
+        <div id="bk-mealfreq-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkSelState(this,'mealfreq','三餐')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">三餐</span>
+          <span onclick="bkSelState(this,'mealfreq','兩餐')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">兩餐</span>
+          <span onclick="bkSelState(this,'mealfreq','一餐')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">一餐</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin:8px 0 4px">你平常正餐的食量大概是？（不算飯麵，配菜和肉的量）</div>
+        <div id="bk-mealvol-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkSelState(this,'mealvol','食量足（滿滿一便當/餐盤全吃完，只是少飯或沒飯）')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">滿滿一便當/餐盤全吃完（少飯或沒飯）</span>
+          <span onclick="bkSelState(this,'mealvol','一般份量')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">一般便當份量</span>
+          <span onclick="bkSelState(this,'mealvol','偏少（常吃不完半個便當）')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">偏少（常吃不完半個便當）</span>
+          <span onclick="bkSelState(this,'mealvol','很少（正餐常只吃一點點）')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">很少（正餐常只吃一點點）</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);margin:8px 0 4px">你目前的飲食型態比較接近哪一種？</div>
+        <div id="bk-dietscore-chips" style="display:flex;gap:6px;flex-wrap:wrap">
+          <span onclick="bkSelDiet(this,'0','低碳/生酮')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">低碳/生酮（碳水很少）</span>
+          <span onclick="bkSelDiet(this,'2','全飯麵+勞動')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">幾乎全是飯麵＋工作勞動量大</span>
+          <span onclick="bkSelDiet(this,'3','均衡原型')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">均衡三餐（少加工食品）</span>
+          <span onclick="bkSelDiet(this,'5','全飯麵+久坐')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">幾乎全是飯麵＋久坐少動</span>
+          <span onclick="bkSelDiet(this,'6','素食為主')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">素食為主</span>
+          <span onclick="bkSelDiet(this,'8','甜食零食頻繁')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">甜食飲料零食常常</span>
+          <span onclick="bkSelDiet(this,'10','交際油糖混合')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">交際應酬多（大魚大肉大甜食）</span>
         </div>
       </div>
       <!-- 慢性病用藥資訊（選 t2 才會出現，必填；沒有用藥但想加測可勾選跳過） -->
@@ -1705,21 +1552,13 @@ window.openHealthForm = function() {
     <div style="font-size:20px;font-weight:700;margin-bottom:8px">粒腺體健康旅程</div>
     <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">
       <div style="background:rgba(255,255,255,.18);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px"><i class="ti ti-calendar" style="font-size:13px"></i>第 <span id="jn-daycount">–</span> 天</div>
-      <div style="background:rgba(239,159,39,.28);border:1px solid rgba(239,159,39,.4);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px"><i class="ti ti-flame" style="font-size:13px"></i>連續打卡 <span id="streak-day-2">12</span> 天</div>
+      <div style="background:rgba(239,159,39,.28);border:1px solid rgba(239,159,39,.4);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px"><i class="ti ti-flame" style="font-size:13px"></i>連續打卡 <span id="streak-day-2">–</span> 天</div>
     </div>
     <!-- 階段進度條 -->
     <div style="background:rgba(255,255,255,.12);border-radius:11px;padding:12px 13px">
       <div style="font-size:10px;opacity:.65;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:9px">旅程階段</div>
-      <div style="display:flex;align-items:flex-start">
-        <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:22px;height:22px;border-radius:50%;background:#fff;color:#085041;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700"><i class="ti ti-check" style="font-size:11px"></i></div><div style="font-size:9px;margin-top:4px;text-align:center;color:#fff;font-weight:600">亂流期</div></div>
-        <div style="flex:1;height:2px;margin-top:11px;background:#fff"></div>
-        <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:22px;height:22px;border-radius:50%;background:#fff;color:#085041;display:flex;align-items:center;justify-content:center;font-size:8px;box-shadow:0 0 0 4px rgba(255,255,255,.25)"><i class="ti ti-circle-filled" style="font-size:8px"></i></div><div style="font-size:9px;margin-top:4px;text-align:center;color:#fff;font-weight:600">粒腺體期</div></div>
-        <div style="flex:1;height:2px;margin-top:11px;background:rgba(255,255,255,.2)"></div>
-        <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.18);color:rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">3</div><div style="font-size:9px;margin-top:4px;text-align:center;color:rgba(255,255,255,.4)">穩酮期</div></div>
-        <div style="flex:1;height:2px;margin-top:11px;background:rgba(255,255,255,.2)"></div>
-        <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.18);color:rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">4</div><div style="font-size:9px;margin-top:4px;text-align:center;color:rgba(255,255,255,.4)">固酮期</div></div>
-      </div>
-      <div style="font-size:10px;opacity:.75;text-align:center;margin-top:8px" id="jn-stage-text">依你的記錄評估中…</div>
+      <div id="jn-stage-badge" style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">依你的記錄評估中…</div>
+      <div style="font-size:10px;opacity:.75" id="jn-stage-text2">秘書會依照你的檢測與記錄狀況，幫你確認目前所在的階段</div>
     </div>
   </div>
 
@@ -1809,39 +1648,24 @@ window.openHealthForm = function() {
           <div style="position:absolute;right:-10px;top:-10px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06)"></div>
           <div style="position:absolute;right:10px;bottom:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.04)"></div>
           <div style="font-size:11px;opacity:.7;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:6px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center"><i class="ti ti-leaf" style="font-size:11px"></i></div>元代謝健康管理</div>
-          <div style="font-size:13px;opacity:.75;margin-bottom:3px">陳小美的</div>
+          <div style="font-size:13px;opacity:.75;margin-bottom:3px" id="sc-name-line">你的</div>
           <div style="font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.2">粒腺體健康旅程</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <div style="background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-calendar" style="font-size:12px"></i>第 32 天</div>
-            <div style="background:rgba(239,159,39,.35);border:1px solid rgba(239,159,39,.5);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-flame" style="font-size:12px"></i>連續打卡 12 天</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="sc-day-tags">
+            <div style="background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-calendar" style="font-size:12px"></i>第 <span id="sc-daycount">–</span> 天</div>
+            <div style="background:rgba(239,159,39,.35);border:1px solid rgba(239,159,39,.5);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-flame" style="font-size:12px"></i>連續打卡 <span id="sc-streak">–</span> 天</div>
           </div>
         </div>
         <!-- 三個主要數字 -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)">
-          <div style="background:#fff;padding:13px 9px;text-align:center"><div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">-2.4<span style="font-size:13px">kg</span></div><div style="font-size:10px;color:#6B7280;line-height:1.3">體重<br>下降</div></div>
-          <div style="background:#fff;padding:13px 9px;text-align:center"><div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">-4<span style="font-size:13px">cm</span></div><div style="font-size:10px;color:#6B7280;line-height:1.3">腰圍<br>縮小</div></div>
-          <div style="background:#fff;padding:13px 9px;text-align:center"><div style="font-size:16px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">0.87</div><div style="font-size:10px;color:#6B7280;line-height:1.3">HOMA-IR<br>胰島素阻抗</div></div>
-        </div>
+        <div id="sc-main-numbers" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)"></div>
         <!-- 改善數字 -->
         <div style="padding:14px 16px">
           <div style="font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">代謝指標改善</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:26px;height:26px;border-radius:7px;background:#E1F5EE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-droplet" style="font-size:13px;color:#1D9E75"></i></div><div style="font-size:12px;color:#374151;flex:1">三酸甘油脂 TG</div><div style="font-size:12px;font-weight:600;color:#1D9E75">142 → 68 ↓</div></div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:26px;height:26px;border-radius:7px;background:#E6F1FB;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-heart" style="font-size:13px;color:#378ADD"></i></div><div style="font-size:12px;color:#374151;flex:1">HDL 好膽固醇</div><div style="font-size:12px;font-weight:600;color:#1D9E75">52 → 68 ↑</div></div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:26px;height:26px;border-radius:7px;background:#FAEEDA;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-activity" style="font-size:13px;color:#EF9F27"></i></div><div style="font-size:12px;color:#374151;flex:1">空腹血糖</div><div style="font-size:12px;font-weight:600;color:#1D9E75">98 → 84 ↓</div></div>
-          <div style="display:flex;align-items:center;gap:8px"><div style="width:26px;height:26px;border-radius:7px;background:#EEEDFE;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-pill" style="font-size:13px;color:#534AB7"></i></div><div style="font-size:12px;color:#374151;flex:1">GPT 肝臟酵素</div><div style="font-size:12px;font-weight:600;color:#1D9E75">34 → 18 ↓</div></div>
+          <div id="sc-metric-list"></div>
         </div>
-        <!-- 階段條 -->
-        <div style="background:#F9FAFB;border-top:1px solid #F3F4F6;padding:12px 16px">
-          <div style="font-size:10px;color:#9CA3AF;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">旅程階段</div>
-          <div style="display:flex;align-items:flex-start">
-            <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:20px;height:20px;border-radius:50%;background:#1D9E75;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600"><i class="ti ti-check" style="font-size:10px"></i></div><div style="font-size:9px;margin-top:3px;color:#1D9E75;font-weight:600">亂流期</div></div>
-            <div style="flex:1;height:2px;margin-top:10px;background:#1D9E75"></div>
-            <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:20px;height:20px;border-radius:50%;background:#1D9E75;color:#fff;display:flex;align-items:center;justify-content:center;font-size:7px;box-shadow:0 0 0 3px rgba(29,158,117,.25)"><i class="ti ti-circle-filled" style="font-size:7px"></i></div><div style="font-size:9px;margin-top:3px;color:#1D9E75;font-weight:600">粒腺體期</div></div>
-            <div style="flex:1;height:2px;margin-top:10px;background:#E5E7EB"></div>
-            <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;color:#9CA3AF;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">3</div><div style="font-size:9px;margin-top:3px;color:#9CA3AF">穩酮期</div></div>
-            <div style="flex:1;height:2px;margin-top:10px;background:#E5E7EB"></div>
-            <div style="display:flex;flex-direction:column;align-items:center;flex:1"><div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;color:#9CA3AF;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600">4</div><div style="font-size:9px;margin-top:3px;color:#9CA3AF">固酮期</div></div>
-          </div>
+        <!-- 旅程階段：只在秘書已經人工確認過階段時才顯示，沒設定就完全不顯示這個區塊(不猜測) -->
+        <div id="sc-stage-row" style="display:none;background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px">
+          <div style="font-size:10px;color:#9CA3AF;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">目前階段</div>
+          <div id="sc-stage-text" style="font-size:12px;font-weight:700;color:#1D9E75"></div>
         </div>
         <!-- 卡片底部 -->
         <div style="background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
@@ -2080,6 +1904,9 @@ window.openHealthForm = function() {
     </div>
     <div id="no-gift-area" style="font-size:11px;color:#9CA3AF;text-align:center;padding:8px 0">今天還沒有收到秘書的禮物 🌱</div>
     </div>
+  <div style="padding:0 16px 20px">
+    <button onclick="openTestimonialPrompt()" style="width:100%;background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;font-size:13px;color:var(--text2);cursor:pointer;text-align:center">💬 想分享這段旅程的心得嗎？點這裡告訴我們</button>
+  </div>
 </div>
 </div>
 <!-- 今日感謝小視窗 -->
@@ -2372,10 +2199,13 @@ function goPage(id,title){
   window.scrollTo(0,0);
   if(targetPage) targetPage.scrollTop = 0;
   // 進入花園/首頁/健康趨勢時更新統計資料（健康趨勢頁原本沒有觸發，只能靠之前去過首頁/花園才剛好有資料，這裡補上）
-  if(id === 'garden' || id === 'home' || id === 'trend') {
+  if(id === 'garden' || id === 'home' || id === 'trend' || id === 'journey') {
     if(typeof loadMyStats==='function') loadMyStats();
     if (typeof updateGardenHint === 'function') updateGardenHint();
   }
+  if(id === 'journey' && typeof loadGardenHealth === 'function') loadGardenHealth();
+  if(id === 'journey' && typeof loadClientStage === 'function') loadClientStage();
+  if(id === 'sharecard' && typeof loadShareCard === 'function') loadShareCard();
   if(id === 'home' && typeof loadReportStatus==='function') loadReportStatus();
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
@@ -2402,6 +2232,8 @@ function goPage(id,title){
   if (id === 'booking' || id === 'irct') {
     if (typeof loadReportStatus === 'function') setTimeout(loadReportStatus, 300);
   }
+  if (id === 'irct' && typeof loadIRCTOverview === 'function') loadIRCTOverview();
+  if (id === 'irct' && typeof loadIRCTDetailTabs === 'function') loadIRCTDetailTabs();
   // 進入預約頁面時，依第一次/複檢動態調整標題
   if (id === 'booking') {
     if (typeof updateBookingTitle === 'function') updateBookingTitle();
@@ -2537,7 +2369,9 @@ function bkGoStep5(){
   }
   callAPI({
     action: 'addBooking', clientId: CLIENT_ID,
-    clinic: locText, time: timeText, diet: dietSummary, medications: medications, planType: _bkType, exerciseFreq: _bkExercise
+    clinic: locText, time: timeText, diet: dietSummary, medications: medications, planType: _bkType, exerciseFreq: _bkExercise,
+    fatigueLevel: _bkState.fatigue, stressLevel: _bkState.stress, longTermDiet: _bkState.ltdiet, smokingHabit: _bkState.smoke,
+    dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || ''
   }, function(d) {
     if (d.status === 'ok') {
       callAPI({
@@ -2564,6 +2398,43 @@ var bkLocSelected=1;
 // ── IRCT方案選擇（t1/t2）──
 var _bkType = 't2'; // 預設t2
 var _bkExercise = '0次';
+// 身心狀態問卷（檢測前填，對應後天狀態四模式的前置訊號；dietscore的「0低碳」存為0分但保留字樣供辨識）
+var _bkState = { fatigue:'', stress:'', ltdiet:'', dietscore:'', dietlabel:'', smoke:'', exlow:'', mealvol:'', mealfreq:'' };
+// 飲食型態chips：同時記分數(進生活型態分)與型態標籤(顯示/判讀)
+function bkSelDiet(el, score, label){
+  _bkState.dietscore = score; _bkState.dietlabel = label;
+  var box = el.parentElement;
+  Array.prototype.forEach.call(box.children, function(c){
+    c.style.border = '1px solid var(--border2)'; c.style.background = 'var(--card)'; c.style.color = 'var(--text2)'; c.style.fontWeight = 'normal';
+  });
+  el.style.border = '1.5px solid var(--g)'; el.style.background = 'var(--g)'; el.style.color = '#fff'; el.style.fontWeight = '700';
+}
+// 飢荒訊號多選（「以上皆無」與其他互斥）——存成頓號串接字串，後端用關鍵字比對建議飢荒模式
+function bkToggleLtdiet(el, val){
+  var box = el.parentElement;
+  var on = el.getAttribute('data-on') === '1';
+  if (val === '以上皆無') {
+    Array.prototype.forEach.call(box.children, function(c){ c.setAttribute('data-on','0'); c.style.border='1px solid var(--border2)'; c.style.background='var(--card)'; c.style.color='var(--text2)'; c.style.fontWeight='normal'; });
+    if (!on) { el.setAttribute('data-on','1'); el.style.border='1.5px solid var(--g)'; el.style.background='var(--g)'; el.style.color='#fff'; el.style.fontWeight='700'; }
+  } else {
+    Array.prototype.forEach.call(box.children, function(c){ if(c.textContent==='以上皆無'){ c.setAttribute('data-on','0'); c.style.border='1px solid var(--border2)'; c.style.background='var(--card)'; c.style.color='var(--text2)'; c.style.fontWeight='normal'; } });
+    el.setAttribute('data-on', on ? '0' : '1');
+    if (on) { el.style.border='1px solid var(--border2)'; el.style.background='var(--card)'; el.style.color='var(--text2)'; el.style.fontWeight='normal'; }
+    else { el.style.border='1.5px solid var(--g)'; el.style.background='var(--g)'; el.style.color='#fff'; el.style.fontWeight='700'; }
+  }
+  var sel = [];
+  Array.prototype.forEach.call(box.children, function(c){ if(c.getAttribute('data-on')==='1' && c.textContent!=='以上皆無') sel.push(c.textContent.replace('/','')); });
+  var none = Array.prototype.some.call(box.children, function(c){ return c.getAttribute('data-on')==='1' && c.textContent==='以上皆無'; });
+  _bkState.ltdiet = none ? '以上皆無' : sel.join('、');
+}
+function bkSelState(el, key, val){
+  _bkState[key] = val;
+  var box = el.parentElement;
+  Array.prototype.forEach.call(box.children, function(c){
+    c.style.border = '1px solid var(--border2)'; c.style.background = 'var(--card)'; c.style.color = 'var(--text2)'; c.style.fontWeight = 'normal';
+  });
+  el.style.border = '1.5px solid var(--g)'; el.style.background = 'var(--g)'; el.style.color = '#fff'; el.style.fontWeight = '700';
+}
 function bkSelExercise(el, val){
   _bkExercise = val;
   var box = document.getElementById('bk-exercise-chips');
@@ -3174,6 +3045,278 @@ function showIrctTab(tab,id){
   if(pane)pane.querySelectorAll('[id^="itc-"]').forEach(function(p){p.style.display='none';});
   var el=document.getElementById(id);if(el)el.style.display='block';
 }
+// 綜合分析分頁：改用真實資料(getIRCTAnalysis)動態填入，取代原本寫死demo數值的版本——
+// 之前不管客人是誰、有沒有做過檢測，看到的都是同一套假數字(飯後胰島素142→58等)，上線前必須換成真的
+var IRCT_CLASS_STYLE = {
+  '輕度阻抗': {color:'#085041', bg:'#E1F5EE', border:'#9FE1CB', emoji:'✅'},
+  '中度阻抗': {color:'#633806', bg:'#FAEEDA', border:'#FCD34D', emoji:'⚠️'},
+  '重度阻抗': {color:'#7F1D1D', bg:'#FCEBEB', border:'#F09595', emoji:'⚠️'},
+  '壓抑': {color:'#633806', bg:'#FAEEDA', border:'#FCD34D', emoji:'⚠️'},
+  '特殊體質': {color:'#1E3A8A', bg:'#EFF6FF', border:'#BFDBFE', emoji:'ℹ️'}
+};
+// 血糖/胰島素/代謝損傷/器官功能這4個分頁，改用真實資料(getIRCTFullTable)動態產生數值對照表，
+// 取代原本連SVG折線圖座標都寫死demo的版本——原本手繪的折線圖先移除(座標需要真實依數值計算，
+// 之後有空間再加，現在數值本身正確、不誤導客人比較重要，用清楚的數值列表呈現)
+var IRCT_DETAIL_GROUPS = {
+  'itc-bg-content': ['糖化血色素', '空腹血糖', '飯後1小時血糖', '飯後2小時血糖', '飯後3小時血糖'],
+  'itc-ins-content': ['空腹胰島素', '飯後1小時胰島素', '飯後2小時胰島素', '飯後3小時胰島素', 'HOMA-IR'],
+  'itc-met-content': ['三酸甘油脂 TG', '高密度膽固醇 HDL', '低密度膽固醇 LDL', '膽固醇', '腰圍', '內臟脂肪', 'sdLDL', '同半胱胺酸'],
+  'itc-org-content': ['麩丙酮酸轉胺脢 GPT', '麩草酸轉氨脢 GOT', '腎絲球過濾速率 eGFR', '肌酸酐', '尿酸']
+};
+var _irctFullTableCache = null;
+function loadIRCTDetailTabs(){
+  if(!CLIENT_ID) return;
+  callAPI({action:'getIRCTFullTable', clientId:CLIENT_ID}, function(d){
+    _irctFullTableCache = d;
+    Object.keys(IRCT_DETAIL_GROUPS).forEach(function(containerId){ renderIRCTDetailGroup(containerId); });
+    renderIRCTBanner(d);
+  });
+}
+function renderIRCTBanner(d){
+  var subEl = document.getElementById('irct-banner-sub');
+  var tagsEl = document.getElementById('irct-banner-tags');
+  if(!subEl || !tagsEl) return;
+  if(!d || d.status !== 'ok' || !d.found || !d.tests || d.tests.length === 0){
+    subEl.textContent = (CLIENT_NAME||'') + '・還沒有檢測記錄';
+    tagsEl.innerHTML = '';
+    return;
+  }
+  var last = d.tests[d.tests.length - 1];
+  subEl.textContent = (CLIENT_NAME||'') + '・第 ' + last.count + ' 次 IRCT・' + last.date;
+  var tags = [];
+  if(last.planType) tags.push('IRCT-' + last.planType);
+  if(last.clinic) tags.push(last.clinic);
+  if(last.dietHabit) tags.push('🥑 ' + last.dietHabit);
+  tagsEl.innerHTML = tags.map(function(t){
+    return '<div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:600">' + escHtml(t) + '</div>';
+  }).join('');
+}
+function renderIRCTDetailGroup(containerId){
+  var box = document.getElementById(containerId);
+  if(!box) return;
+  var d = _irctFullTableCache;
+  if(!d || d.status !== 'ok' || !d.found){
+    box.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#6B7280">'
+      + '<div style="font-size:32px;margin-bottom:10px">🔬</div>'
+      + '<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">還沒有 IRCT 檢測記錄</div>'
+      + '<div style="font-size:12px;line-height:1.7">預約第一次 IRCT 檢測後，這裡就會顯示逐項數值</div></div>';
+    return;
+  }
+  var labels = IRCT_DETAIL_GROUPS[containerId];
+  var matched = d.rows.filter(function(r){ return labels.indexOf(r.label) >= 0; });
+  if(matched.length === 0){ box.innerHTML = '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:12px">這個分類目前沒有數值</div>'; return; }
+  var html = '<div style="font-size:11px;color:#6B7280;margin-bottom:11px">第 '+d.tests.length+' 次檢測・'+escHtml(d.tests[d.tests.length-1].date)+(d.tests.length>1?'（可跟第1次比較）':'')+'</div>';
+  matched.forEach(function(row){
+    var last = row.values[row.values.length-1];
+    var prev = row.values.length > 1 ? row.values[row.values.length-2] : null;
+    if(last.value === '' || last.value === undefined){ return; }
+    var badgeColor = last.watch ? '#633806' : '#085041';
+    var badgeBg = last.watch ? '#FAEEDA' : '#E1F5EE';
+    var badgeText = last.watch ? '留意' : '理想';
+    var range = row.therapeutic || row.normal || '';
+    html += '<div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6">'
+      + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">'+escHtml(row.label)+'</div>'
+      + (range ? '<div style="font-size:10px;color:#9CA3AF;margin-top:2px">參考：'+escHtml(range)+'</div>' : '')+'</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
+      + (prev && prev.value !== '' ? '<span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">'+escHtml(prev.value)+'</span><span style="color:#9CA3AF">→</span>' : '')
+      + '<span style="font-size:14px;font-weight:700;color:'+badgeColor+'">'+escHtml(last.value)+'</span>'
+      + '<span style="background:'+badgeBg+';color:'+badgeColor+';border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">'+badgeText+'</span>'
+      + '</div></div>';
+  });
+  box.innerHTML = html;
+}
+function loadIRCTOverview(){
+  var box = document.getElementById('itc-ov-content');
+  if(!box || !CLIENT_ID) return;
+  callAPI({action:'getIRCTAnalysis', clientId:CLIENT_ID}, function(d){
+    box = document.getElementById('itc-ov-content');
+    if(!box) return;
+    if(!d || d.status !== 'ok' || !d.found){
+      box.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#6B7280">'
+        + '<div style="font-size:32px;margin-bottom:10px">🔬</div>'
+        + '<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">還沒有 IRCT 檢測記錄</div>'
+        + '<div style="font-size:12px;line-height:1.7">預約第一次 IRCT 檢測後，這裡就會顯示你的專屬分析報告</div>'
+        + '</div>';
+      return;
+    }
+    var st = IRCT_CLASS_STYLE[d.overall.classification] || {color:'#374151', bg:'#F5F7FA', border:'#E5E7EB', emoji:'📊'};
+    var html = '<div style="background:'+st.bg+';border:1px solid '+st.border+';border-radius:13px;padding:14px;margin-bottom:14px">'
+      + '<div style="font-size:13px;font-weight:700;color:'+st.color+';margin-bottom:7px;display:flex;align-items:center;gap:7px">'
+      + '<span style="font-size:20px">'+st.emoji+'</span>第 '+escHtml(d.count)+' 次檢測・'+escHtml(d.testDate)+'</div>'
+      + (d.overall.classification ? '<div style="font-size:14px;font-weight:700;color:'+st.color+';margin-bottom:8px">'+escHtml(d.overall.classification)+'</div>' : '')
+      + '<div style="font-size:12px;line-height:1.9;color:'+st.color+'">'+escHtml(d.overall.note||'數值不足，無法計算')+'</div>'
+      + '</div>';
+    if(d.specialCase){
+      html += '<div style="background:#F5F7FA;border:1px solid #E5E7EB;border-radius:13px;padding:14px;margin-bottom:14px;text-align:center">'
+        + '<div style="font-size:12px;color:#6B7280;line-height:1.8">你的狀況比較個別化，健康秘書會依你的目標與紀錄提供調整建議 😊</div></div>';
+    }
+    if(d.metabolicType){
+      html += '<div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:13px;padding:14px;margin-bottom:14px">'
+        + '<div style="font-size:10px;font-weight:700;color:#4338CA;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">代謝分型</div>'
+        + '<div style="font-size:15px;font-weight:700;color:#3730A3;margin-bottom:7px">'+escHtml(d.metabolicType.type)+'</div>'
+        + '<div style="font-size:12px;line-height:1.8;color:#4338CA">'+escHtml(d.metabolicType.note)+'</div>'
+        + (d.specialCase ? '<div style="font-size:10.5px;color:#6366F1;margin-top:6px">💡 這個分型結果僅供參考，實際狀況會依你的個別化背景另外調整</div>' : '')
+        + '</div>';
+    }
+    if(d.retestGuidance){
+      html += '<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:13px;padding:14px;margin-bottom:14px">'
+        + '<div style="font-size:10px;font-weight:700;color:#15803D;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">'+escHtml(d.retestGuidance.scenario)+'</div>'
+        + '<div style="font-size:12px;line-height:1.8;color:#166534">'+escHtml(d.retestGuidance.note)+'</div>'
+        + '</div>';
+    }
+    if(d.medContext){
+      html += '<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:13px;padding:14px;margin-bottom:14px">'
+        + '<div style="font-size:12px;line-height:1.8;color:#9A3412">💊 '+escHtml(d.medContext.note)+'</div>'
+        + '</div>';
+    }
+    html += '<div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid #E5E7EB;margin-bottom:12px">✦ 各項分類觀察</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px">';
+    var cats = [['🩸 血糖', d.summary.glucose], ['🫀 血脂', d.summary.lipid], ['📏 體組成', d.summary.bodyComp]];
+    cats.forEach(function(c){
+      html += '<div style="background:#F5F7FA;border:1px solid #E5E7EB;border-radius:12px;padding:12px 13px">'
+        + '<div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:4px">'+c[0]+'</div>'
+        + '<div style="font-size:11.5px;color:#6B7280;line-height:1.7">'+escHtml(c[1]||'這次沒有相關數值')+'</div>'
+        + '</div>';
+    });
+    html += '</div>';
+    // ── 縱貫分析：全部檢測合在一起的旅程回顧（第二次以上）──
+    if(d.longitudinal && d.longitudinal.highlights && d.longitudinal.highlights.length){
+      html += '<div style="background:#F0F9FF;border:1px solid #7DD3FC;border-radius:13px;padding:14px;margin-bottom:14px">'
+        + '<div style="font-size:10px;font-weight:700;color:#0369A1;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">📈 你的完整旅程（共 '+escHtml(String(d.longitudinal.count))+' 次檢測）</div>';
+      d.longitudinal.highlights.forEach(function(hl){
+        html += '<div style="font-size:12px;line-height:1.8;color:#075985;padding:4px 0;border-bottom:1px dashed #E0F2FE">'+escHtml(hl)+'</div>';
+      });
+      html += '<div style="font-size:12px;line-height:1.8;color:#0369A1;font-weight:700;margin-top:8px">'+escHtml(d.longitudinal.summary||'')+'</div></div>';
+    }
+    // ── 上次目標對照（第二次以上檢測才有）──
+    if(d.goalReview && d.goalReview.length){
+      var grEmoji = { '達標':'🎉', '維持':'💚', '進步':'👍', '加油':'💪', '退步':'⚠️' };
+      var grWord = { '達標':'達標了！', '維持':'穩穩維持在理想範圍', '進步':'有進步，繼續！', '加油':'還差一點，加油', '退步':'要留意，找秘書聊聊' };
+      html += '<div style="background:#FDF4FF;border:1px solid #E9D5FF;border-radius:13px;padding:14px;margin-bottom:14px">'
+        + '<div style="font-size:10px;font-weight:700;color:#7E22CE;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">✦ 上次到這次的變化</div>';
+      d.goalReview.forEach(function(g){
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #F3E8FF;font-size:12px">'
+          + '<span style="color:#6B21A8">'+(grEmoji[g.verdict]||'')+' '+escHtml(g.label)+'</span>'
+          + '<span style="color:#7E22CE"><b>'+escHtml(String(g.prev))+'</b> → <b>'+escHtml(String(g.now))+'</b>　<span style="font-size:10.5px">'+escHtml(grWord[g.verdict]||g.verdict)+'</span></span></div>';
+      });
+      if(d.goalDeviceNote){
+        html += '<div style="font-size:10.5px;color:#92400E;margin-top:7px;line-height:1.6">⚙️ '+escHtml(d.goalDeviceNote)+'</div>';
+      }
+      html += '</div>';
+    }
+    if(d.famineWeightLossNote){
+      html += '<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:13px;padding:14px;margin-bottom:14px">'
+        + '<div style="font-size:12px;line-height:1.9;color:#9A3412">🍽️ '+escHtml(d.famineWeightLossNote)+'</div></div>';
+    }
+    // ── 陪跑目標：未來2~3個月（每次檢測都有，下次回來對照）──
+    if(d.nextGoals && d.nextGoals.length){
+      html += '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:13px;padding:14px;margin-bottom:14px">'
+        + '<div style="font-size:10px;font-weight:700;color:#B45309;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">🎯 我們期待：未來 2～3 個月的目標</div>'
+        + '<div style="font-size:10.5px;color:#92400E;margin-bottom:8px">陪跑期間一起努力的方向，下次複測時我們會一項一項對照</div>';
+      d.nextGoals.forEach(function(g){
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #FEF3C7;font-size:12px">'
+          + '<span style="color:#92400E">'+escHtml(g.label)+'　<span style="font-size:10.5px;color:#B45309">目前 '+escHtml(String(g.current))+(g.unit?escHtml(g.unit):'')+'</span></span>'
+          + '<span style="font-weight:700;color:'+(g.kind==='keep'?'#15803D':'#B45309')+'">'+(g.kind==='keep'?'💚 ':'')+escHtml(g.goal)+'</span></div>';
+      });
+      html += '<div style="font-size:11px;color:#92400E;margin-top:9px;line-height:1.7">💛 建議 8 週後回來複測，讓我們一起看見身體的進步——到時記得先預約 IRCT 檢測喔！</div>'
+        + '</div>';
+    }
+    html += '<div style="background:#F5F7FA;border-radius:13px;padding:14px;margin-bottom:14px;border:1px solid #E5E7EB;font-size:11.5px;color:#6B7280;line-height:1.7">此為健康管理參考資訊，非醫療診斷。逐項數值可以看「血糖動態」「胰島素動態」等分頁，如有健康疑慮請諮詢醫師，或直接跟秘書討論。</div>';
+    box.innerHTML = html;
+  });
+}
+// 分享圖卡：這個內容會被客人分享給第三方看，絕對不能是假資料——
+// 之前這裡整組數字(體重-2.4kg/腰圍-4cm/TG142→68等)全部寫死demo值，等於讓客人把假的健康成效分享出去
+var SHARE_CARD_METRICS = [
+  {label:'糖化血色素', icon:'ti-droplet', color:'#1D9E75', bg:'#E1F5EE'},
+  {label:'三酸甘油脂 TG', icon:'ti-droplet', color:'#1D9E75', bg:'#E1F5EE'},
+  {label:'高密度膽固醇 HDL', icon:'ti-heart', color:'#378ADD', bg:'#E6F1FB'},
+  {label:'空腹血糖', icon:'ti-activity', color:'#EF9F27', bg:'#FAEEDA'},
+  {label:'麩丙酮酸轉胺脢 GPT', icon:'ti-pill', color:'#534AB7', bg:'#EEEDFE'}
+];
+function loadShareCard(){
+  var nameEl = document.getElementById('sc-name-line');
+  if(nameEl) nameEl.textContent = (CLIENT_NAME||'你') + '的';
+  callAPI({action:'getClientStage', clientId:CLIENT_ID}, function(d){
+    var row = document.getElementById('sc-stage-row'), txt = document.getElementById('sc-stage-text');
+    if(!row || !txt) return;
+    if(d && d.status === 'ok' && d.stage){ row.style.display = ''; txt.textContent = d.stage; }
+  });
+  callAPI({action:'getMyStats', clientId:CLIENT_ID}, function(d){
+    if(d && d.status === 'ok'){
+      var dc = document.getElementById('sc-daycount'); if(dc) dc.textContent = d.dayCount || '–';
+      var sk = document.getElementById('sc-streak'); if(sk) sk.textContent = (d.streak !== undefined && d.streak !== null) ? d.streak : '–';
+    }
+  });
+  callAPI({action:'getIRCTFullTable', clientId:CLIENT_ID}, function(d){
+    var mainBox = document.getElementById('sc-main-numbers');
+    var metricBox = document.getElementById('sc-metric-list');
+    if(!mainBox || !metricBox) return;
+    if(!d || d.status !== 'ok' || !d.found){
+      mainBox.innerHTML = '<div style="grid-column:1/-1;background:#fff;padding:16px;text-align:center;font-size:12px;color:#9CA3AF">還沒有 IRCT 檢測資料，先去做第一次檢測，之後這裡就能秀出你的進步 🌱</div>';
+      metricBox.innerHTML = '';
+      return;
+    }
+    function findRow(label){ return d.rows.find(function(r){ return r.label === label; }); }
+    function firstLast(row){
+      if(!row) return null;
+      var vals = row.values.filter(function(v){ return v.value !== '' && v.value !== undefined; });
+      if(vals.length === 0) return null;
+      return { first: vals[0].value, last: vals[vals.length-1].value, hasChange: vals.length > 1 };
+    }
+    // 三個主要數字：體重/腰圍變化 + 最新HOMA-IR
+    var wRow = firstLast(findRow('體重')), waRow = firstLast(findRow('腰圍')), hRow = findRow('HOMA-IR');
+    var hLast = hRow ? hRow.values.filter(function(v){return v.value!=='';}).slice(-1)[0] : null;
+    var mainHtml = '';
+    mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (wRow && wRow.hasChange ?
+      '<div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+(wRow.last-wRow.first>0?'+':'')+Math.round((wRow.last-wRow.first)*10)/10+'<span style="font-size:13px">kg</span></div>' :
+      '<div style="font-size:13px;color:#9CA3AF;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:10px;color:#6B7280;line-height:1.3">體重<br>變化</div></div>';
+    mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (waRow && waRow.hasChange ?
+      '<div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+(waRow.last-waRow.first>0?'+':'')+Math.round((waRow.last-waRow.first)*10)/10+'<span style="font-size:13px">cm</span></div>' :
+      '<div style="font-size:13px;color:#9CA3AF;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:10px;color:#6B7280;line-height:1.3">腰圍<br>變化</div></div>';
+    mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (hLast ?
+      '<div style="font-size:16px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+escHtml(hLast.value)+'</div>' :
+      '<div style="font-size:13px;color:#9CA3AF;padding:8px 0">尚無資料</div>') + '<div style="font-size:10px;color:#6B7280;line-height:1.3">HOMA-IR<br>胰島素阻抗</div></div>';
+    mainBox.innerHTML = mainHtml;
+    // 代謝指標改善清單：只顯示真的有兩次以上資料可以比較的項目
+    var metricHtml = '';
+    SHARE_CARD_METRICS.forEach(function(m){
+      var fl = firstLast(findRow(m.label));
+      if(!fl || !fl.hasChange) return;
+      var arrow = fl.last < fl.first ? '↓' : (fl.last > fl.first ? '↑' : '');
+      metricHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:26px;height:26px;border-radius:7px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti '+m.icon+'" style="font-size:13px;color:'+m.color+'"></i></div><div style="font-size:12px;color:#374151;flex:1">'+escHtml(m.label)+'</div><div style="font-size:12px;font-weight:600;color:'+m.color+'">'+escHtml(fl.first)+' → '+escHtml(fl.last)+' '+arrow+'</div></div>';
+    });
+    metricBox.innerHTML = metricHtml || '<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:8px 0">還需要至少兩次檢測才能看到變化趨勢</div>';
+  });
+}
+// 旅程階段：改用秘書手動確認的真實階段(getClientStage)，不是原本寫死、也不是自動猜測的假階段——
+// 6個階段的轉換點大多沒有明確數字門檻，貿然自動判斷風險比不判斷還高，所以完全交給秘書人工確認
+var KETO_STAGE_DESC = {
+  '0階亂流期': '肝臟開始在大營養素代謝上休息，胰臟負擔減少，這階段感覺喘、累都是正常的',
+  '一階a生酮期': '生酮體開始對身體有貢獻，肝糖逐漸消耗，血糖血色素開始回到正常區間',
+  '一階b穩酮期': '生酮的時間比例逐漸增加，慢慢抓到節奏，也知道哪些食物容易讓你脫酮',
+  '一階c固酮期': '生酮不再困難，已經是日常習慣，代謝相對健康、不太需要糾結',
+  '二階營養性生酮': '也稱胰島素友善期，你已經知道如何防止「碳水化合物中毒」，融入生活',
+  '三階抗老化健康': '以代謝健康為底，邁向系統醫學、生活醫學、體適能科學的全面抗老化保養'
+};
+function loadClientStage(){
+  var badge = document.getElementById('jn-stage-badge');
+  var textEl = document.getElementById('jn-stage-text2');
+  if(!badge || !CLIENT_ID) return;
+  callAPI({action:'getClientStage', clientId:CLIENT_ID}, function(d){
+    badge = document.getElementById('jn-stage-badge');
+    textEl = document.getElementById('jn-stage-text2');
+    if(!badge) return;
+    var stage = d && d.status === 'ok' ? d.stage : '';
+    if(!stage){
+      badge.textContent = '依你的記錄評估中…';
+      if(textEl) textEl.textContent = '秘書會依照你的檢測與記錄狀況，幫你確認目前所在的階段';
+      return;
+    }
+    badge.textContent = stage;
+    if(textEl) textEl.textContent = KETO_STAGE_DESC[stage] || '';
+  });
+}
 function itcTab(tab,id){
   var bar=document.getElementById('irct-tab-bar');
   if(bar)bar.querySelectorAll('div').forEach(function(t){
@@ -3228,10 +3371,7 @@ function saveToSheets(ketone, weight, feeling, electrolyte) {
 }
 
 // 啟動時檢查秘書是否有送禮物
-/* checkGifts 舊版1移除 */
-
-// 頁面載入後3秒檢查禮物
-setTimeout(function(){ if (typeof checkGifts === 'function') checkGifts(); }, 3000);
+/* checkGifts 舊版1移除，觸發已合併到後面唯一保留的那一個setTimeout，避免同時重複呼叫3次 */
 </script>
 
 <script>
@@ -3431,6 +3571,11 @@ var _carbRefeedActive = false;
 function submitDailyRecord() {
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
+  if(!k && !w){ toast('至少填血酮或體重其中一項，才能記錄喔'); return; }
+  if(k && (Number(k) < 0 || Number(k) > 10)){ toast('血酮數值看起來不太合理，麻煩再確認一下'); return; }
+  if(w && (Number(w) <= 0 || Number(w) > 300)){ toast('體重數值看起來不太合理，麻煩再確認一下'); return; }
+  var waistCheck = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
+  if(waistCheck && (Number(waistCheck) <= 0 || Number(waistCheck) > 200)){ toast('腰圍數值看起來不太合理，麻煩再確認一下'); return; }
   var f = []; document.querySelectorAll('.chip.on').forEach(function(c) { f.push(c.textContent); });
   var e = []; document.querySelectorAll('.t-box.on').forEach(function(c) { e.push(c.textContent); });
   toast('⏳ 儲存中...');
@@ -3443,6 +3588,7 @@ function submitDailyRecord() {
     var bowelChip = document.getElementById('carb-bowel-chip');
     bowelVal = bowelChip && bowelChip.classList.contains('on') ? 'V' : '';
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
+    if(carbsVal && (Number(carbsVal) < 0 || Number(carbsVal) > 500)){ toast('碳水克數看起來不太合理，麻煩再確認一下'); return; }
   }
   callAPI({
     action: 'addDailyRecord', clientId: CLIENT_ID,
@@ -3523,6 +3669,18 @@ function logQA(question) {
   callAPI({ action: 'addQA', clientId: CLIENT_ID, question: question });
 }
 
+function openFoodHelpPrompt(){
+  var name = prompt('這個食物叫什麼名字？（我們會幫你查，或加進食材庫給大家參考）');
+  if(name === null) return;
+  name = name.trim();
+  if(!name){ toast('沒有輸入食物名稱'); return; }
+  if(confirm('要「推薦這個食材」給其他人參考嗎？（取消＝只是想問這個食物能不能吃）')){
+    var reason = prompt('推薦理由是什麼？（選填，例如：油脂高、適合粒腺體飲食）') || '';
+    submitFoodRecommend(name, '待分類', '客人推薦', reason);
+  } else {
+    logUnknownFood(name);
+  }
+}
 // ── 問答：記錄未知問題 ──
 function logUnknown(question) {
   callAPI({ action: 'addUnknown', clientId: CLIENT_ID, question: question }, function(d) {
@@ -3558,6 +3716,13 @@ function submitFoodRecommend(name, category, desc, reason) {
 }
 
 // ── 客人心得 ──
+function openTestimonialPrompt(){
+  var content = prompt('想跟我們分享這段旅程的心得嗎？（例如身體變化、印象深刻的一刻，或想對其他人說的話）');
+  if(content === null) return;
+  content = content.trim();
+  if(!content){ toast('內容是空的，改天想到再分享也可以喔'); return; }
+  submitTestimonial(content);
+}
 function submitTestimonial(content) {
   callAPI({
     action: 'addTestimonial', clientId: CLIENT_ID, content: content
@@ -3582,10 +3747,7 @@ function submitPurchase(productName, qty, source, price, note) {
 }
 
 // ── 秘書禮物收禮物 ──
-/* checkGifts 舊版2移除 */
-
-// ── 啟動時檢查禮物 ──
-setTimeout(function(){ if (typeof checkGifts === 'function') checkGifts(); }, 3000);
+/* checkGifts 舊版2移除，觸發已合併到後面唯一保留的那一個setTimeout，避免同時重複呼叫3次 */
 
 // ── QA設定讀取（問答頁面初始化）──
 // ── FAQ 讀取（常見問題，由後台 FAQ 管理維護）──
@@ -4197,73 +4359,18 @@ function searchYTAfterAnswerCore(query) {
   });
 }
 
-// ── 方格子文章搜尋（透過RSSHub）──
-var VOCUS_RSS = "https://rsshub.app/vocus/salon/metabolica";
-var FIRSTORY_RSS = "https://feed.firstory.me/rss/user/cmjqwlcyo052m01rh61f1h53d";
-var _vocusArticles = null;
-var _podcastEpisodes = null;
-
-function loadVocusArticles() {
-  if (_vocusArticles) return;
-  // 透過Apps Script作為代理抓取RSS（避免CORS）
-  callAPI({action:'getRSS', url: VOCUS_RSS}, function(d) {
-    if (d.items) _vocusArticles = d.items;
-  });
-}
-
-function searchVocus(keyword) {
-  if (!_vocusArticles || _vocusArticles.length === 0) return [];
-  return _vocusArticles.filter(function(item) {
-    var title = (item.title || '').toLowerCase();
-    var desc = (item.description || '').toLowerCase();
-    return title.includes(keyword.toLowerCase()) || desc.includes(keyword.toLowerCase());
-  }).slice(0, 2);
-}
-
-function showContentResults(ytItems, vocusItems, podcastItems, container) {
-  var html = '';
-  
-  // 方格子文章
-  if (vocusItems && vocusItems.length > 0) {
-    html += '<div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)">';
-    html += '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:7px;display:flex;align-items:center;gap:4px">📝 相關文章</div>';
-    vocusItems.forEach(function(item) {
-      html += '<a href="' + item.link + '" target="_blank" style="display:block;margin-bottom:7px;text-decoration:none;background:var(--bg);border-radius:8px;padding:9px 11px;border:0.5px solid var(--border)">';
-      html += '<div style="font-size:11px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:3px">' + item.title + '</div>';
-      html += '<div style="font-size:10px;color:var(--text3)">代謝篇章・方格子</div>';
-      html += '</a>';
-    });
-    html += '</div>';
-  }
-  
-  // Podcast集數
-  if (podcastItems && podcastItems.length > 0) {
-    html += '<div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)">';
-    html += '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:7px;display:flex;align-items:center;gap:4px">🎙️ 相關Podcast</div>';
-    podcastItems.forEach(function(item) {
-      html += '<a href="' + item.link + '" target="_blank" style="display:block;margin-bottom:7px;text-decoration:none;background:var(--bg);border-radius:8px;padding:9px 11px;border:0.5px solid var(--border)">';
-      html += '<div style="font-size:11px;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:3px">' + item.title + '</div>';
-      html += '<div style="font-size:10px;color:var(--text3)">代謝覺醒・Podcast</div>';
-      html += '</a>';
-    });
-    html += '</div>';
-  }
-  
-  if (html && container) {
-    var div = document.createElement('div');
-    div.innerHTML = html;
-    container.appendChild(div);
-  }
-}
+// (舊版「方格子文章搜尋」相關程式碼已於此清除——VOCUS_RSS/FIRSTORY_RSS/loadVocusArticles()/
+// searchVocus()/showContentResults() 這批全部是已被取代的死代碼，真正在用的是下面的
+// loadAllRSS()+searchContentByKeyword()+appendContentResults() 這一組)
 
 // 整合進聊天回答後
 /* 直接呼叫 Core 版，避免函數提升遞迴 */
 function searchYTAfterAnswer(query) {
   if (typeof searchYTAfterAnswerCore === 'function') searchYTAfterAnswerCore(query);
-  // 搜尋方格子（暫時用預設相關文章）
-  var chatArea = document.getElementById('chat-area');
-  if (!chatArea) return;
-  showContentResults([], [], [], chatArea);
+  // (原本這裡有一行 showContentResults([], [], [], chatArea) 呼叫已被移除的舊函式，
+  // 傳入的是三個空陣列本來就不會顯示任何內容——這個函式本身也會被下面的 monkey-patch 覆蓋，
+  // 但因為 _baseSearchYT 變數捕捉的是覆蓋前的這個版本，執行期還是會被呼叫到一次，
+  // 之前只刪掉 showContentResults 的定義卻沒處理這裡的呼叫，導致拋出例外、中斷了後面真正的邏輯)
 }
 
 // ── RSS 內容搜尋（透過Apps Script代理）──
@@ -4271,22 +4378,30 @@ var _vocusArticles = [];
 var _podcastEpisodes = [];
 var _rssLoaded = false;
 
-function loadAllRSS() {
-  if (_rssLoaded) return;
-  _rssLoaded = true;
-  
+var _rssLoadCallbacks = [];
+var _rssLoadingCount = 0;
+function loadAllRSS(onDone) {
+  if (_rssLoaded) { if (onDone) onDone(); return; }
+  if (onDone) _rssLoadCallbacks.push(onDone);
+  if (_rssLoadingCount > 0) return; // 已經在載入中，加進等待名單就好，不要重複發API request
+  _rssLoadingCount = 2;
+  function checkAllDone(){
+    _rssLoadingCount--;
+    if (_rssLoadingCount <= 0) {
+      _rssLoaded = true;
+      _rssLoadCallbacks.forEach(function(cb){ cb(); });
+      _rssLoadCallbacks = [];
+    }
+  }
   // 抓方格子
   callAPI({action:'getRSS', url:'https://rsshub.app/vocus/salon/metabolica'}, function(d) {
-    if (d.status === 'ok' && d.items) {
-      _vocusArticles = d.items;
-    }
+    if (d.status === 'ok' && d.items) _vocusArticles = d.items;
+    checkAllDone();
   });
-  
   // 抓Firstory Podcast
   callAPI({action:'getRSS', url:'https://feed.firstory.me/rss/user/cmjqwlcyo052m01rh61f1h53d'}, function(d) {
-    if (d.status === 'ok' && d.items) {
-      _podcastEpisodes = d.items;
-    }
+    if (d.status === 'ok' && d.items) _podcastEpisodes = d.items;
+    checkAllDone();
   });
 }
 
@@ -4349,7 +4464,6 @@ window.qaSearch = function(val) {
   if (_baseQaSearch) _baseQaSearch(val);
   
   if (!val || val.length < 2) return;
-  loadAllRSS();
   
   var ytContainer = document.getElementById('qa-yt-results');
   if (ytContainer) {
@@ -4361,9 +4475,11 @@ window.qaSearch = function(val) {
     contentDiv.id = 'qa-content-results';
     ytContainer.parentNode.insertBefore(contentDiv, ytContainer.nextSibling);
     
-    setTimeout(function() {
+    // 用真正的載入完成通知，而不是猜測固定等待時間——RSS抓取不一定準時，
+    // 之前用固定的 setTimeout 猜延遲，如果剛好抓比較久就會漏接、文章/Podcast完全不會顯示
+    loadAllRSS(function(){
       appendContentResults(val, contentDiv);
-    }, 800);
+    });
   }
 };
 
@@ -4372,14 +4488,13 @@ var _baseSearchYT = window.searchYTAfterAnswer;
 window.searchYTAfterAnswer = function(query) {
   if (_baseSearchYT) _baseSearchYT(query);
   
-  loadAllRSS();
   var chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
   
-  setTimeout(function() {
+  loadAllRSS(function(){
     appendContentResults(query, chatArea);
     chatArea.scrollTop = chatArea.scrollHeight;
-  }, 1000);
+  });
 };
 
 // 官網相關頁面（固定連結）
@@ -5524,8 +5639,8 @@ function applyLockStatus() {
     }
     var cta = document.createElement('div');
     cta.className = 'lock-cta';
-    cta.style.cssText = 'background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;padding:20px;text-align:center;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;margin:14px;border-radius:16px;box-shadow:0 6px 24px rgba(8,80,65,.25)';
-    cta.innerHTML = '<div style="font-size:32px">🔒</div><div style="font-size:16px;font-weight:700">陪跑解鎖後使用</div><div style="font-size:12px;opacity:.85;line-height:1.6">加入陪跑方案後<br>健康秘書會為你解鎖此功能</div>';
+    cta.style.cssText = 'background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;padding:13px 16px;display:flex;align-items:center;gap:11px;margin:12px;border-radius:14px;box-shadow:0 4px 16px rgba(8,80,65,.2)';
+    cta.innerHTML = '<div style="font-size:22px;flex-shrink:0">🔒</div><div><div style="font-size:13px;font-weight:700;margin-bottom:2px">陪跑解鎖後使用</div><div style="font-size:11px;opacity:.85;line-height:1.4">加入陪跑方案後，健康秘書會為你解鎖</div></div>';
     page.appendChild(cta);
     page.appendChild(wrap);
   }
