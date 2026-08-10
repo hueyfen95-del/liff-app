@@ -19,6 +19,14 @@ body{background:var(--bg);min-height:100vh}
 .si{display:flex;align-items:center;gap:8px;padding:9px 15px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);border-left:3px solid transparent;transition:all .12s}
 .si:hover{background:rgba(255,255,255,.07);color:#fff}
 .si.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:#4FD5A8}
+/* 角色主題色（創始人2026-08-10：不同角色登入後一眼可辨——創始人=原深綠、秘書=藍綠、行政=紫、會計=琥珀） */
+body[data-role="秘書"] .sidebar{background:#0E3A47}
+body[data-role="秘書"] .si.on{border-left-color:#4FC3D5}
+body[data-role="行政"] .sidebar{background:#2E2450}
+body[data-role="行政"] .si.on{border-left-color:#B39DFF}
+body[data-role="會計"] .sidebar{background:#4A3208}
+body[data-role="會計"] .si.on{border-left-color:#F5C560}
+#role-chip{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;flex-shrink:0}
 .si i{font-size:16px;flex-shrink:0}
 .si-badge{border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin-left:auto}
 .si-badge.r{background:#E24B4A;color:#fff}
@@ -263,6 +271,14 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
         </div>
       </div>
 
+      <!-- 💉 新預約待聯繫（創始人2026-08-10：最緊急，置頂） -->
+      <div class="card" id="bkg-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9F2">
+        <div class="card-hd">
+          <div class="card-title" style="color:#6D4AA8"><i class="ti ti-calendar-heart"></i>新預約・待聯繫確認日期</div>
+        </div>
+        <div class="card-body" id="bkg-body" style="padding-top:4px"></div>
+      </div>
+
       <!-- 📋 交接記錄・上一班留言 -->
       <div class="card" id="handover-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9F2">
         <div class="card-hd">
@@ -278,14 +294,6 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
           <button class="ai-btn gray" style="font-size:10px;padding:4px 9px" onclick="odueEditThreshold()">⚙️ 調整天數</button>
         </div>
         <div class="card-body" id="odue-body" style="padding-top:4px"></div>
-      </div>
-
-      <!-- 💉 新預約待聯繫 -->
-      <div class="card" id="bkg-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9F2">
-        <div class="card-hd">
-          <div class="card-title" style="color:#6D4AA8"><i class="ti ti-calendar-heart"></i>新預約・待聯繫確認日期</div>
-        </div>
-        <div class="card-body" id="bkg-body" style="padding-top:4px"></div>
       </div>
 
       <!-- ❓ 客人未回答的問題（AI答不出來或客人追問還是沒效，都會出現在這裡） -->
@@ -373,16 +381,10 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
   <div class="card">
     <div class="card-hd"><div class="card-title"><i class="ti ti-chart-bar"></i>本週整體血酮趨勢（所有客人平均）</div></div>
     <div class="card-body">
-      <div class="mini-bar-wrap">
-        <div class="mbc"><div class="mb-bar" style="height:55%"></div><div class="mb-d">一</div></div>
-        <div class="mbc"><div class="mb-bar" style="height:62%"></div><div class="mb-d">二</div></div>
-        <div class="mbc"><div class="mb-bar" style="height:70%"></div><div class="mb-d">三</div></div>
-        <div class="mbc"><div class="mb-bar" style="height:65%"></div><div class="mb-d">四</div></div>
-        <div class="mbc"><div class="mb-bar" style="height:75%"></div><div class="mb-d">五</div></div>
-        <div class="mbc"><div class="mb-bar hi" style="height:72%"></div><div class="mb-d" style="color:var(--g);font-weight:700">今</div></div>
-        <div class="mbc"><div class="mb-bar" style="height:4%;background:var(--border);border-color:var(--border)"></div><div class="mb-d">日</div></div>
+      <div class="mini-bar-wrap" id="dash-ketone-bars">
+        <div style="font-size:11px;color:var(--text3);text-align:center;width:100%;padding:16px 0">載入中…</div>
       </div>
-      <div style="font-size:12px;color:var(--text2);margin-top:8px">本週整體平均血酮：1.74 mmol/L（上週 1.61，↑+0.13）</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:8px" id="dash-ketone-text"></div>
     </div>
   </div>
 </div>
@@ -446,7 +448,10 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
       <div class="form-group"><label class="form-label">客人ID</label><input class="form-input" placeholder="例如：C005" id="new-cl-id"></div>
       <div class="form-group"><label class="form-label">遮蔽姓名</label><input class="form-input" placeholder="例如：陳○美" id="new-cl-name"></div>
     </div>
-    <div class="form-group"><label class="form-label">階段（選填）</label><input class="form-input" placeholder="例如：c1 / c2 / c3" id="new-cl-stage"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">階段（選填）</label><input class="form-input" placeholder="例如：c1 / c2 / c3" id="new-cl-stage"></div>
+      <div class="form-group"><label class="form-label">電話（選填，供撥號關心用）</label><input class="form-input" placeholder="例如：0912345678" id="new-cl-phone"></div>
+    </div>
     <div class="form-group">
       <label class="form-label">方案（選填）</label>
       <div style="display:flex;gap:6px">
@@ -500,20 +505,14 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     </div>
   </div>
 
-  <!-- 可預約時間管理 -->
+  <!-- 可預約時間指引（創始人2026-08-10：原「本月可預約時間管理」卡是早期遺留，存的資料前台從未讀取、
+       也沒分診所，會誤導秘書以為設定有生效——已移除，改為指引到真正生效的「診所時間表」頁 -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-hd">
-      <div class="card-title"><i class="ti ti-calendar-plus"></i>本月可預約時間管理</div>
-      <button onclick="saveSchedule()" style="background:var(--g);color:#fff;border:none;border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer;font-weight:700">儲存</button>
+      <div class="card-title"><i class="ti ti-calendar-plus"></i>可預約時間設定</div>
     </div>
     <div class="card-body">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">設定本月開放給客人預約的時段（每月底更新下個月）</div>
-      <div id="schedule-slots" style="display:flex;flex-direction:column;gap:8px">
-        <!-- 動態產生時段 -->
-      </div>
-      <button onclick="addSlot()" style="width:100%;margin-top:10px;background:var(--bg);border:1px dashed var(--border);border-radius:10px;padding:9px;font-size:12px;color:var(--text2);cursor:pointer">
-        + 新增時段
-      </button>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8">各診所開放給客人預約的時段，請到側欄「<b style="color:var(--g3);cursor:pointer;text-decoration:underline" onclick="goPg('clinic-slots')">診所時間表</b>」設定——那裡是<b>分診所</b>管理（診所名稱＋地區＋可預約時段＋啟用/停用），客人前台預約時看到的就是那份資料。</div>
     </div>
   </div>
 
@@ -806,8 +805,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
           <input id="acc-username" placeholder="例：tingting" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
         <div>
-          <div class="gi-lbl" style="margin-bottom:5px">初始密碼</div>
-          <input id="acc-password" placeholder="給對方，之後可自行改" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
+          <div class="gi-lbl" style="margin-bottom:5px">初始密碼<span style="font-weight:400;color:var(--text3)">（至少6碼，英文、數字皆可，不分大小寫）</span></div>
+          <input id="acc-password" placeholder="例如：mei123（給對方，之後可自行改）" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -1706,6 +1705,7 @@ function goPg(id,el){
   if(id==='review'){ setTimeout(rvLoad, 150); }
   if(id==='stored-value'){ setTimeout(function(){ svLoadClients(); svLoadPointsToSelect(); svLoadRoleNames(); svLoadPointRules(function(){ svLoadPoints(); }); loadBalanceDeficitList(); }, 150); }
   if(id==='lab-integrate'){ setTimeout(function(){ liInitRows(); liLoadClients(); liLoadFamClients(); liLoadFamilyList(); }, 150); }
+  if(id==='alerts' && typeof loadReportClients==='function') setTimeout(loadReportClients,150);
   if(id==='clinic-slots' && typeof loadClinicSlots==='function') setTimeout(loadClinicSlots,150);
   if(id==='clinic-slots' && typeof loadCsClinicOptions==='function') setTimeout(loadCsClinicOptions,150);
   if(id==='accounts' && typeof loadAdminAccounts==='function') setTimeout(loadAdminAccounts,150);
@@ -2369,6 +2369,15 @@ function loadIRCTAnalysisFull(clientId){
           if(a.famineWeightLossNote){
             h += '<div style="margin-bottom:8px;padding:8px 10px;background:#FFF7ED;border:1px solid #FDBA74;border-radius:8px;font-size:10.5px;color:#9A3412"><b>🍽️ 飢荒式減重提醒：</b>'+escH(a.famineWeightLossNote)+'</div>';
           }
+          if(a.kidneyConcern && a.kidneyConcern.note){
+            h += '<div style="margin-bottom:8px;padding:8px 10px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;font-size:10.5px;color:#3730A3"><b>🫘 腎功能特別追蹤（健康問卷勾選腎臟狀況）：</b>'+escH(a.kidneyConcern.note)+'</div>';
+          }
+          if(a.sleepGlucoseNote){
+            h += '<div style="margin-bottom:8px;padding:8px 10px;background:#FEFCE8;border:1px solid #FDE047;border-radius:8px;font-size:10.5px;color:#854D0E"><b>😴 睡眠×血糖連結：</b>'+escH(a.sleepGlucoseNote)+'</div>';
+          }
+          if(a.fmSuggests && a.fmSuggests.length){
+            h += '<div style="margin-bottom:8px;padding:8px 10px;background:#FDF2F8;border:1px solid #FBCFE8;border-radius:8px;font-size:10.5px;color:#9D174D"><b>🧪 功醫加測提醒（依健康問卷；僅秘書端顯示，請評估後再與客人溝通）：</b><div style="margin-top:3px">'+a.fmSuggests.map(escH).join('<br>')+'</div></div>';
+          }
           if(a.longitudinal && a.longitudinal.highlights){
             h += '<div style="margin-bottom:8px;padding:8px 10px;background:#F0F9FF;border:1px solid #7DD3FC;border-radius:8px"><b style="color:#0369A1">📈 縱貫分析（共'+a.longitudinal.count+'次）：</b>'
               + '<div style="font-size:10.5px;color:#075985;margin-top:3px">'+a.longitudinal.highlights.map(escH).join('<br>')+'</div>'
@@ -2784,73 +2793,24 @@ function sendGiftToClient() {
 }
 </script>
 <script>
-// ── 可預約時間管理 ──
-var scheduleSlots = [];
-
-function initSchedule() {
-  var container = document.getElementById('schedule-slots');
-  if (!container) return;
-  if (scheduleSlots.length === 0) {
-    // 預設幾個時段
-    scheduleSlots = [
-      {date:'', time:'09:00', location:'台北診所'},
-      {date:'', time:'14:00', location:'台北診所'},
-    ];
-  }
-  renderSlots();
-}
-
-function renderSlots() {
-  var container = document.getElementById('schedule-slots');
-  if (!container) return;
-  container.innerHTML = scheduleSlots.map(function(s, i) {
-    return '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center">' +
-      '<input type="date" value="' + s.date + '" onchange="scheduleSlots[' + i + '].date=this.value" style="border:0.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:11px;color:var(--text)">' +
-      '<input type="time" value="' + s.time + '" onchange="scheduleSlots[' + i + '].time=this.value" style="border:0.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:11px;color:var(--text)">' +
-      '<input type="text" value="' + s.location + '" placeholder="地點" onchange="scheduleSlots[' + i + '].location=this.value" style="border:0.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:11px;color:var(--text)">' +
-      '<button onclick="removeSlot(' + i + ')" style="background:var(--r2);color:var(--r);border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">✕</button>' +
-      '</div>';
-  }).join('');
-}
-
-function addSlot() {
-  scheduleSlots.push({date:'', time:'09:00', location:'台北診所'});
-  renderSlots();
-}
-
-function removeSlot(i) {
-  scheduleSlots.splice(i, 1);
-  renderSlots();
-}
-
-function saveSchedule() {
-  var valid = scheduleSlots.filter(function(s) { return s.date && s.time; });
-  if (valid.length === 0) { toast('請填寫至少一個時段'); return; }
-  adminAPI({
-    action: 'addNote',
-    clientId: 'SYSTEM',
-    content: '可預約時段：' + JSON.stringify(valid),
-    type: '預約設定',
-    secretary: (CURRENT_USER&&CURRENT_USER.name)||'秘書'
-  }, function(d) {
-    if (d.status === 'ok') toast('✅ 可預約時段已儲存！');
-  });
-}
+// ── 可預約時間管理：舊卡已移除（前台從未讀取那份資料；正式功能在「診所時間表」頁）──
 
 // ── 報告狀態管理 ──
+// 修正（創始人2026-08-10）：原本呼叫 getTodayRecords 卻讀不存在的 d.clients 欄位，
+// 下拉選單因此永遠是空的（跟客人有沒有測IRCT無關）——改用正式的客人清單載入
 function loadReportClients() {
   var select = document.getElementById('report-client-select');
   if (!select) return;
-  // 從客人清單載入
-  adminAPI({action:'getTodayRecords'}, function(d) {
-    if (d.status === 'ok' && d.clients) {
-      select.innerHTML = '<option value="">選擇客人</option>';
-      d.clients.forEach(function(c) {
-        select.innerHTML += '<option value="' + c.id + '">' + c.name + '</option>';
-      });
-    }
+  select.innerHTML = '<option value="">載入中…</option>';
+  loadClientsList(function(clients){
+    select = document.getElementById('report-client-select');
+    if (!select) return;
+    var html = '<option value="">選擇客人</option>';
+    (clients || []).forEach(function(c) {
+      html += '<option value="' + escH(c.id) + '">' + escH(c.name || c.id) + '（' + escH(c.id) + '）</option>';
+    });
+    select.innerHTML = html;
   });
-  toast('載入中...');
 }
 
 function setReportStatus(status) {
@@ -2859,10 +2819,11 @@ function setReportStatus(status) {
   if (!clientId) { toast('請先選擇客人'); return; }
 
   var statusText = {
-    pending:'尚未出報告',
-    processing:'準備中・請稍候',
-    ready:'報告已出・請查看',
-    reviewed:'已查看・待討論'
+    never:'從未預約',
+    booked:'已預約等待',
+    pending:'報告整理中',
+    ready:'報告已出・等講解',
+    reviewed:'講解完成・陪跑中'
   };
 
   adminAPI({
@@ -2878,8 +2839,6 @@ function setReportStatus(status) {
   });
 }
 
-// 頁面載入時初始化時段
-setTimeout(initSchedule, 500);
 </script>
 <script>
 // ── 功能醫學加測建議（秘書手動勾選）──
@@ -3234,6 +3193,7 @@ function saveAdminAccount(){
   var payType = document.getElementById('acc-paytype').value;
   var payRate = document.getElementById('acc-payrate').value;
   if(!username || !password || !name){ toast('帳號、密碼、姓名都要填'); return; }
+  if(password.length < 6){ toast('⚠️ 密碼至少要6碼（英文、數字皆可，不分大小寫）'); return; }
   if(payRate && Number(payRate) < 0){ toast('⚠️ 薪資金額不能是負數'); return; }
   adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
     if(d && d.status === 'ok'){
@@ -4405,10 +4365,31 @@ function deleteFAQItemUI(idx){
 
 // ── 共用：剪貼簿 ──
 function copyText(text, label){
-  function ok(){toast('📋 已複製'+(label||'')+'，貼到 LINE 即可傳送');}
+  function ok(){ showCopyPreview(text, label); }
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(ok, function(){fallbackCopy(text); ok();});
   } else { fallbackCopy(text); ok(); }
+}
+// 複製後把「複製了什麼＋下一步做什麼」秀出來（創始人2026-08-10：剪貼簿是看不見的，秘書會困惑）
+function showCopyPreview(text, label){
+  var old = document.getElementById('copy-preview-box'); if(old) old.remove();
+  var box = document.createElement('div');
+  box.id = 'copy-preview-box';
+  box.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:99999;background:#fff;border:1px solid var(--border2);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.18);width:min(480px,92vw);padding:13px 15px';
+  box.innerHTML = '<div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:6px">📋 已複製' + escH(label||'訊息') + '——下一步：到 LINE 找到這位客人的聊天室，貼上（Ctrl+V 或長按貼上）就能傳送</div>'
+    + '<div style="font-size:12px;color:var(--text2);background:var(--bg);border-radius:9px;padding:9px 11px;line-height:1.7;max-height:120px;overflow-y:auto;white-space:pre-wrap">' + escH(text) + '</div>'
+    + '<div style="display:flex;gap:7px;justify-content:flex-end;margin-top:9px">'
+    + '<button class="ai-btn gray" style="font-size:11px" onclick="reCopyPreview()">📋 再複製一次</button>'
+    + '<button class="ai-btn g" style="font-size:11px" onclick="document.getElementById(\'copy-preview-box\').remove()">知道了</button></div>';
+  box.setAttribute('data-copytext', text);
+  document.body.appendChild(box);
+  setTimeout(function(){ var b = document.getElementById('copy-preview-box'); if(b === box) b.remove(); }, 15000); // 15秒自動收起
+}
+function reCopyPreview(){
+  var b = document.getElementById('copy-preview-box'); if(!b) return;
+  var t = b.getAttribute('data-copytext') || '';
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t); } else { fallbackCopy(t); }
+  toast('📋 已再次複製');
 }
 function fallbackCopy(text){
   var ta=document.createElement('textarea');
@@ -4530,8 +4511,9 @@ function openClientDetail(id, name){
     + ['','0階亂流期','一階a生酮期','一階b穩酮期','一階c固酮期','二階營養性生酮','三階抗老化健康'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.ketoStage:'')?'selected':'')+'>'+(s||'目前階段（未設定）')+'</option>'; }).join('')
     + '</select>'
     + '<select id="cd-special-sel" onchange="setClientSpecialCaseUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
-    + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'代謝分型：一般（未勾選特殊）')+'</option>'; }).join('')
+    + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'特殊情境：無（一般客人）')+'</option>'; }).join('')
     + '</select>'
+    + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）</div>'
@@ -4818,6 +4800,17 @@ function openClientDetail(id, name){
     + '<div id="client-detail-body" style="font-size:12px;color:var(--text2)">載入中…</div></div>';
   m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
   document.body.appendChild(m);
+  // 檢測後的代謝分型連動顯示（創始人2026-08-10）：十型是系統依最新IRCT資料自動判定的，
+  // 這裡唯讀顯示、不給改；旁邊的下拉選單是「特殊情境」（原本標籤誤寫成代謝分型，已更正）
+  adminAPI({action:'getIRCTAnalysisFull', clientId:id}, function(d){
+    var b = document.getElementById('cd-metatype-badge');
+    if(!b) return;
+    if(d && d.status === 'ok' && d.found && d.analysis && d.analysis.metabolicType){
+      b.style.display = '';
+      b.textContent = '🔬 代謝分型：' + d.analysis.metabolicType.type + '（依最新IRCT自動判定）';
+      b.title = d.analysis.metabolicType.note || '';
+    }
+  });
   applyClientPanelReadonlyMode(m);
   loadSupplementOptions();
   loadSuppHistory(id);
@@ -4863,6 +4856,13 @@ function openClientDetail(id, name){
 }
 // ── 交接記錄・上一班留言 ──
 var _handoverCache = [];
+// 可見性規則（創始人2026-08-10）：「排班意願」是給排班的管理者看的，
+// 只有創始人（含舊「老闆」帳號）和留言者本人看得到；一般交接留言則每個登入者都看得到
+function canSeeHandoverItem(h){
+  if(String(h.important||'') !== '排班意願') return true;
+  if(!CURRENT_USER) return false;
+  return CURRENT_USER.role === '創始人' || CURRENT_USER.role === '老闆' || h.fromSecretary === CURRENT_USER.name;
+}
 // 把交接記錄裡「姓名(編號)、姓名(編號)」格式的待處理客人轉成可點擊連結，點了直接開客人面板
 function renderHandoverClientLinks(text){
   if(!text) return '';
@@ -4884,7 +4884,7 @@ function loadHandover(){
     card = document.getElementById('handover-card');
     body = document.getElementById('handover-body');
     if(!card || !body) return;
-    _handoverCache = (d && d.items) || [];
+    _handoverCache = ((d && d.items) || []).filter(canSeeHandoverItem);
     if(_handoverCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = _handoverCache.map(function(h, i){
@@ -5022,21 +5022,57 @@ function confirmUnknownSent(i) {
     else toast('⚠️ 操作失敗');
   });
 }
+// 回答視窗（創始人2026-08-10：不用陽春的prompt——要「選擇＋填字」：既有分類可點選、也能自己輸入，
+// 並說明部落格/YT/Podcast參考是依分類關鍵字自動附在客人答案下方的）
 function approveUnknownQuestion(i) {
   var item = _unknownQCache[i]; if(!item) return;
-  var answer = prompt('回答「'+item.question+'」：\n（這個答案之後也會自動出現在客人問答的常見問題裡）', '');
-  if(answer === null) return;
-  answer = answer.trim();
+  var old = document.getElementById('unknown-answer-modal'); if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'unknown-answer-modal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:18px 20px">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:4px;color:var(--text)">✍️ 回答客人問題</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:12px">' + escH(clientName(item.clientId)) + ' 問：「' + escH(item.question) + '」</div>'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">症狀分類（點選常用分類，或自己輸入新的）</div>'
+    + '<div id="uam-cat-chips" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:6px;max-height:96px;overflow-y:auto"><span style="font-size:11px;color:var(--text3)">載入分類中…</span></div>'
+    + '<input id="uam-symptom" placeholder="例如：便秘、頭暈（客人搜尋的關鍵字）" value="' + escH(item.question.slice(0,6)) + '" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:8px 11px;font-size:13px;margin-bottom:10px;font-family:inherit;outline:none">'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">回答內容</div>'
+    + '<textarea id="uam-answer" rows="5" placeholder="輸入回答…" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;resize:vertical;font-family:inherit;line-height:1.7;outline:none"></textarea>'
+    + '<div style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:9px;padding:8px 11px;font-size:11px;color:#0369A1;margin:9px 0 12px;line-height:1.7">📎 送出後這題會進入客人問答的常見問題。客人看答案時，系統會依「症狀分類／問題關鍵字」<b>自動</b>在下方附上相關的部落格文章、YouTube 影片、Podcast 集數——不用手動貼連結；分類關鍵字取得越準，自動帶出的參考就越對。</div>'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end">'
+    + '<button onclick="document.getElementById(\'unknown-answer-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
+    + '<button id="uam-submit" onclick="submitUnknownAnswer(' + i + ')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">確定送出</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  // 既有QA分類做成可點選chips（選擇＋填字）
+  adminAPI({action:'getQAAdmin'}, function(d){
+    var chipsBox = document.getElementById('uam-cat-chips'); if(!chipsBox) return;
+    var seen = {};
+    var list = ((d && d.items) || []).filter(function(it){ return it.symptom && it.status !== '停用' && !seen[it.symptom] && (seen[it.symptom]=true); }).map(function(it){ return it.symptom; });
+    if(list.length === 0){ chipsBox.innerHTML = '<span style="font-size:11px;color:var(--text3)">（還沒有既有分類，直接在下面輸入新的）</span>'; return; }
+    chipsBox.innerHTML = list.map(function(s){
+      return '<span onclick="document.getElementById(\'uam-symptom\').value=this.textContent" style="background:var(--bg);border:1px solid var(--border2);border-radius:14px;padding:3px 10px;font-size:11px;cursor:pointer;color:var(--text2)">' + escH(s) + '</span>';
+    }).join('');
+  });
+}
+function submitUnknownAnswer(i){
+  var item = _unknownQCache[i]; if(!item) return;
+  var answer = (document.getElementById('uam-answer')||{value:''}).value.trim();
+  var symptom = (document.getElementById('uam-symptom')||{value:''}).value.trim();
   if(!answer){ toast('請輸入答案才能審核通過'); return; }
-  var symptom = prompt('這個問題屬於什麼症狀分類？（例如：便秘、頭暈，方便之後搜尋比對）', item.question.slice(0,6));
-  if(symptom === null) return;
-  adminAPIPost({ action: 'approveUnknown', row: item.row, answer: answer, symptom: symptom.trim()||item.question }, function(d) {
+  var sb = document.getElementById('uam-submit');
+  if(sb){ sb.disabled = true; sb.textContent = '送出中…'; sb.style.opacity = '.6'; } // 防連點
+  adminAPIPost({ action: 'approveUnknown', row: item.row, answer: answer, symptom: symptom || item.question }, function(d) {
     if (d && d.status === 'ok') {
+      var m = document.getElementById('unknown-answer-modal'); if(m) m.remove();
       // 補上秘書把答案傳給客人這一步，跟系統其他地方(個案討論/生日祝福等)一樣的模式：自動複製，貼到LINE即可
       var clientMsg = clientName(item.clientId) + '，你之前問的「' + item.question + '」，我幫你問過了：\n\n' + answer;
       copyText(clientMsg, '客人回覆');
       loadUnknownQuestions();
-    } else toast('⚠️ ' + ((d && d.message) || '審核失敗'));
+    } else {
+      if(sb){ sb.disabled = false; sb.textContent = '確定送出'; sb.style.opacity = ''; }
+      toast('⚠️ ' + ((d && d.message) || '審核失敗'));
+    }
   });
 }
 // ── 未知問題標記已處理（不加入QA，例如已經直接用LINE回覆）──
@@ -5116,7 +5152,14 @@ function loadPurchases(){
     _proxyCache = (d && d.items) || [];
     if(_proxyCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
-    body.innerHTML = _proxyCache.map(function(p, i){
+    // 流程附註常駐卡片頂端（創始人2026-08-10：不標示秘書會忘掉、老是來問）
+    var proxyFlowHint = '<div style="background:var(--bg);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:10.5px;color:var(--text3);line-height:1.9">'
+      + '📌 <b style="color:var(--text2)">代購流程：</b>客人在前台送出需求後出現在這裡 → '
+      + '① 秘書<b style="color:var(--text2)">實際去網路商店幫客人訂購完成後</b>，回來按「已幫客人下單」（記錄已訂，別班才不會重複訂）→ '
+      + '② 出貨進度用「📦已寄出、✅客人已收到」逐步打勾 → '
+      + '③ 商品到手、要跟客人收錢時按「到貨結帳」：填商品金額與運費後選付款方式——<b style="color:var(--text2)">儲值扣款</b>會自動寫入消費記錄、轉給會計核查；<b style="color:var(--text2)">現金</b>則直接結案。'
+      + '「取消」＝整筆作廢。</div>';
+    body.innerHTML = proxyFlowHint + _proxyCache.map(function(p, i){
       var isPending = p.status === '待處理';
       var isPaid = p.status.indexOf('完成') >= 0;
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
@@ -5157,23 +5200,64 @@ function proxyMark(i, st){
     else toast('⚠️ ' + ((d && d.message) || '操作失敗'));
   });
 }
+// 到貨結帳（創始人2026-08-10：要一頁填完，不用連答三次prompt）
 function proxyFinish(i){
   var p = _proxyCache[i]; if(!p) return;
-  var amt = prompt('「' + p.product + ' x' + p.qty + '」商品金額（元，不含運費）：', p.price ? String(p.price * (parseInt(p.qty,10)||1)) : '');
-  if(amt === null) return;
-  amt = Math.round(Number(amt) || 0);
-  if(!(amt > 0)){ toast('⚠️ 金額不正確'); return; }
-  var ship = prompt('運費（元，沒有就填 0）：', '0');
-  if(ship === null) return;
-  ship = Math.round(Number(ship) || 0);
+  var old = document.getElementById('proxy-finish-modal'); if(old) old.remove();
+  var defAmt = p.price ? String(p.price * (parseInt(p.qty,10)||1)) : '';
+  var ov = document.createElement('div');
+  ov.id = 'proxy-finish-modal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:420px;padding:18px 20px">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text)">💰 到貨結帳</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:12px">' + escH(clientName(p.clientId)) + '・' + escH(p.product) + ' x' + escH(p.qty) + '</div>'
+    + '<div style="display:flex;gap:10px;margin-bottom:10px">'
+    + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">商品金額（元）</div>'
+    + '<input id="pfm-amt" type="number" min="0" value="' + escH(defAmt) + '" oninput="pfmUpdateTotal()" placeholder="必填" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:8px 11px;font-size:14px;font-family:inherit;outline:none"></div>'
+    + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">運費（元）</div>'
+    + '<input id="pfm-ship" type="number" min="0" value="0" oninput="pfmUpdateTotal()" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:8px 11px;font-size:14px;font-family:inherit;outline:none"></div>'
+    + '</div>'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px">付款方式</div>'
+    + '<label style="display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:9px 11px;margin-bottom:6px;cursor:pointer;font-size:12px">'
+    + '<input type="radio" name="pfm-pay" value="stored" checked style="margin-top:2px;accent-color:var(--g)"><span><b>從客人儲值扣款</b><br><span style="font-size:10.5px;color:var(--text3)">自動寫入消費記錄，轉給會計核查</span></span></label>'
+    + '<label style="display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:9px 11px;margin-bottom:11px;cursor:pointer;font-size:12px">'
+    + '<input type="radio" name="pfm-pay" value="cash" style="margin-top:2px;accent-color:var(--g)"><span><b>已收現金，直接結案</b><br><span style="font-size:10.5px;color:var(--text3)">不動儲值餘額</span></span></label>'
+    + '<div id="pfm-total" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:9px;padding:8px 11px;font-size:12.5px;color:#B45309;font-weight:700;margin-bottom:12px">合計 $0</div>'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end">'
+    + '<button onclick="document.getElementById(\'proxy-finish-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
+    + '<button id="pfm-submit" onclick="submitProxyFinish(' + i + ')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">確認結帳</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  pfmUpdateTotal();
+}
+function pfmUpdateTotal(){
+  var amt = Math.round(Number((document.getElementById('pfm-amt')||{value:0}).value) || 0);
+  var ship = Math.round(Number((document.getElementById('pfm-ship')||{value:0}).value) || 0);
+  var el = document.getElementById('pfm-total');
+  if(el) el.textContent = '合計 $' + (amt + ship).toLocaleString() + (ship > 0 ? '（商品 $' + amt.toLocaleString() + '＋運費 $' + ship.toLocaleString() + '）' : '');
+}
+function submitProxyFinish(i){
+  var p = _proxyCache[i]; if(!p) return;
+  var amt = Math.round(Number((document.getElementById('pfm-amt')||{value:0}).value) || 0);
+  var ship = Math.round(Number((document.getElementById('pfm-ship')||{value:0}).value) || 0);
+  if(!(amt > 0)){ toast('⚠️ 請填商品金額'); return; }
   if(ship < 0){ toast('⚠️ 運費不能是負數'); return; }
+  var payEl = document.querySelector('input[name="pfm-pay"]:checked');
+  var useStored = !payEl || payEl.value === 'stored';
   var total = amt + ship;
-  var useStored = confirm('結帳明細：\n商品 $' + amt.toLocaleString() + (ship > 0 ? '＋運費 $' + ship.toLocaleString() : '') + '＝共 $' + total.toLocaleString() + '\n\n要「從客人儲值扣款」嗎？\n確定＝從儲值扣款（進會計核查）\n取消＝已收現金結案（不動儲值）');
+  var sb = document.getElementById('pfm-submit');
+  if(sb){ sb.disabled = true; sb.textContent = '結帳中…'; sb.style.opacity = '.6'; } // 防連點
   adminAPIPost({action:'updatePurchase', row:p.row, newStatus:'完成', amount:amt, shipping:ship,
     payMode: useStored ? 'stored' : 'cash',
     secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
-    if(d && d.status === 'ok'){ toast(useStored ? '✅ 已從儲值扣 $' + total.toLocaleString() + '，等會計核查' : '✅ 已收現金結案'); loadPurchases(); }
-    else alert('⚠️ ' + ((d && d.message) || '結帳失敗'));
+    if(d && d.status === 'ok'){
+      var m = document.getElementById('proxy-finish-modal'); if(m) m.remove();
+      toast(useStored ? '✅ 已從儲值扣 $' + total.toLocaleString() + '，等會計核查' : '✅ 已收現金結案');
+      loadPurchases();
+    } else {
+      if(sb){ sb.disabled = false; sb.textContent = '確認結帳'; sb.style.opacity = ''; }
+      alert('⚠️ ' + ((d && d.message) || '結帳失敗'));
+    }
   });
 }
 // ── 碳水計畫 ──
@@ -5355,33 +5439,104 @@ function searchDiscUI(){
     box = document.getElementById('cd-disc-search-result');
     if(!box) return;
     var items = (d && d.items) || [];
-    if(items.length === 0){ box.innerHTML = '<div style="padding:8px;color:var(--text3)">找不到含「' + escH(kw) + '」的過往案例。討論結案越多，這裡就越好用 😊</div>'; return; }
-    box.innerHTML = items.map(function(t, i){
-      return '<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;background:#fff">'
-        + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b style="color:var(--text)">' + escH(t.title) + '</b>'
-        + '<span style="color:var(--text3);font-size:10px;margin-left:auto">' + escH(t.clientId) + '・' + escH(t.time) + '</span></div>'
-        + '<div style="color:var(--text2);margin-top:3px;line-height:1.5">📌 ' + escH(t.conclusion) + '</div>'
-        + (t.clientMsg ? '<div style="background:var(--mint);border-radius:7px;padding:6px 9px;margin-top:5px;color:var(--text);line-height:1.55;white-space:pre-wrap">' + escH(t.clientMsg) + '</div>'
-          + '<div style="text-align:right;margin-top:5px"><button class="ai-btn g" style="font-size:10.5px;padding:4px 10px" onclick="copyText(_discSearchMsgs[' + i + '],\'客人訊息\')">📋 複製傳給客人</button></div>' : '')
-        + '</div>';
-    }).join('');
+    var qaItems = (d && d.qaItems) || [];
+    if(items.length === 0 && qaItems.length === 0){ box.innerHTML = '<div style="padding:8px;color:var(--text3)">個案討論結論和QA庫都找不到含「' + escH(kw) + '」的內容。討論結案、QA累積越多，這裡就越好用 😊</div>'; return; }
+    var html = '';
+    if(items.length > 0){
+      html += '<div style="font-size:11px;font-weight:700;color:var(--text2);margin:4px 0 6px">📚 過往個案結論（' + items.length + '）</div>';
+      html += items.map(function(t, i){
+        return '<div style="border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;background:#fff">'
+          + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b style="color:var(--text)">' + escH(t.title) + '</b>'
+          + '<span style="color:var(--text3);font-size:10px;margin-left:auto">' + escH(t.clientId) + '・' + escH(t.time) + '</span></div>'
+          + '<div style="color:var(--text2);margin-top:3px;line-height:1.5">📌 ' + escH(t.conclusion) + '</div>'
+          + (t.clientMsg ? '<div style="background:var(--mint);border-radius:7px;padding:6px 9px;margin-top:5px;color:var(--text);line-height:1.55;white-space:pre-wrap">' + escH(t.clientMsg) + '</div>'
+            + '<div style="text-align:right;margin-top:5px"><button class="ai-btn g" style="font-size:10.5px;padding:4px 10px" onclick="copyText(_discSearchMsgs[' + i + '],\'客人訊息\')">📋 複製傳給客人</button></div>' : '')
+          + '</div>';
+      }).join('');
+    }
+    if(qaItems.length > 0){
+      html += '<div style="font-size:11px;font-weight:700;color:var(--b3);margin:8px 0 6px">💬 QA庫相關問答（' + qaItems.length + '，客人前台搜「' + escH(kw) + '」也會看到這些）</div>';
+      html += qaItems.map(function(q, i){
+        return '<div style="border:1px solid #BFDBFE;border-radius:8px;padding:8px 10px;margin-bottom:6px;background:#F8FBFF">'
+          + '<div style="font-size:11px;font-weight:700;color:var(--b3)">【' + escH(q.symptom) + '】' + escH(q.question) + '</div>'
+          + '<div style="color:var(--text2);margin-top:3px;line-height:1.55;white-space:pre-wrap">' + escH(q.answer) + '</div>'
+          + '<div style="text-align:right;margin-top:5px"><button class="ai-btn b" style="font-size:10.5px;padding:4px 10px" onclick="copyText(_discSearchQAs[' + i + '],\'QA答案\')">📋 複製答案</button></div>'
+          + '</div>';
+      }).join('');
+    }
+    box.innerHTML = html;
     _discSearchMsgs = items.map(function(t){ return t.clientMsg || ''; });
+    _discSearchQAs = qaItems.map(function(q){ return q.answer || ''; });
   });
 }
 var _discSearchMsgs = [];
+var _discSearchQAs = [];
+// ══ 關心用語範本選單（創始人2026-08-10：秘書要能從常用情境話術裡「選」，不是系統寫死一句）══
+var CARE_MSG_TEMPLATES = [
+  { label:'許久未記錄・想念關心', text:'{name} 您好 😊 這幾天沒看到您的記錄，有點想念您～最近過得如何呢？如果遇到什麼卡關的地方，隨時跟我說，我們一起想辦法！' },
+  { label:'血酮偏高・關心狀況', text:'{name} 您好 😊 看到您最近血酮數值比較高，想關心一下您的狀況。方便的話，我們可以聊聊最近的飲食和身體感受，也可以幫您安排一次諮詢喔！' },
+  { label:'血酮偏低・溫柔提醒', text:'{name} 您好 😊 看到您最近血酮數值比較低，想了解一下最近的飲食狀況，可能有些小地方調整一下就會回穩囉，隨時跟我聊聊！' },
+  { label:'數據進步・讚美鼓勵', text:'{name} 太棒了！看到您最近的記錄很穩定，數字也一直在進步 👏 繼續保持這個節奏，有任何問題隨時找我！' },
+  { label:'不適症狀・主動關心', text:'{name} 您好，看到您記錄裡提到身體有些不舒服，想關心一下現在的狀況。這些感受有時是調整期的正常反應，跟我說說細節，我幫您看看要不要調整做法 😊' },
+  { label:'複測時間到・回檢提醒', text:'{name} 您好 😊 距離上次檢測已經滿 8 週了，正是回來複測、看看身體進步多少的好時機！要幫您安排時間嗎？' },
+  { label:'剛加入・打氣鼓勵', text:'{name} 您好 😊 想跟您說聲加油，記得有空可以來記錄一下今天的狀況喔，我們一起陪您走這段旅程！有任何不舒服或想討論的，隨時跟我說 💛' },
+  { label:'一般問候', text:'{name} 您好 😊 想主動關心一下您最近的狀況，有任何問題隨時跟我說喔！' },
+  { label:'體重停滯・穩住心情', text:'{name} 您好 😊 看到您最近體重在一個平台期，先跟您說：這是身體在重新整隊，很正常！只要方向對，數字一定會再動起來。我們可以一起看看最近的餐盤，找找可以微調的小地方 💪' },
+  { label:'聚餐破酮・溫柔拉回', text:'{name} 您好 😊 聚餐開心最重要，偶爾一餐不影響大局！今天開始我們把餐盤拉回來：好油脂＋適量蛋白質＋纖維，兩三天就會回穩囉。需要外食建議隨時問我！' },
+  { label:'抽筋頭暈・電解質提醒', text:'{name} 您好，看到您提到有抽筋／頭暈的狀況，這常常是電解質流失的訊號——記得鈉鉀鎂要補夠，特別是鎂。補充的量和方式我可以幫您看一下，跟我說說最近的狀況 😊' },
+  { label:'睡眠不足・提醒重要性', text:'{name} 您好 😊 注意到您最近睡眠比較少。睡眠對代謝的影響非常大——睡不夠時壓力荷爾蒙會偷偷把血糖推高，努力容易打折扣。這陣子我們把「睡飽」也當成一個目標好嗎？' },
+  { label:'壓力大・逃難模式關心', text:'{name} 您好 😊 感覺您最近壓力比較大，想跟您說：壓力荷爾蒙高的時候，身體會進入「逃難模式」，數字卡住不是您不夠努力。先照顧好心情和睡眠，其他的我們一步一步來，我都在 💛' },
+  { label:'喝水不足・提醒補水', text:'{name} 您好 😊 小提醒：燃脂期身體特別需要水分，記得今天的水量要喝夠喔（起床先一大杯！）水喝足，代謝和酮體都會更漂亮 ✨' },
+  { label:'報告出爐・邀請講解', text:'{name} 您好 😊 跟您說個好消息：您的檢測報告出來了！裡面有幾個值得好好聊的重點，想約個時間跟您講解，看看身體給了我們什麼訊息。您這幾天什麼時段方便呢？' },
+  { label:'久未回檢・召回關心', text:'{name} 您好 😊 好一陣子沒看到您了，有點想念～不知道最近身體狀況如何？隨時歡迎回來測一次，看看這段時間身體的變化，也讓我們幫您把把關 💛' },
+  { label:'天氣變化・貼心叮嚀', text:'{name} 您好 😊 最近天氣變化比較大，記得留意保暖和補水喔！身體在適應溫差時特別需要照顧，有任何不舒服隨時跟我說 🍵' },
+  { label:'節日問候・維持節奏', text:'{name} 您好 🎉 佳節愉快！連假期間放鬆享受之餘，記得幫身體留一點餘裕：好油脂和蛋白質先吃、甜點淺嚐就好～假期結束我們一起把節奏拉回來，祝您玩得開心！' }
+];
+// 開啟選單：recommendIdx = 系統依情境推薦的範本（排最前、標「推薦」），秘書可換選其他、也可直接修改文字
+function openCareMsgPicker(name, recommendIdx){
+  var old = document.getElementById('care-msg-picker'); if(old) old.remove();
+  var nm = name || '';
+  var rec = (recommendIdx >= 0 && recommendIdx < CARE_MSG_TEMPLATES.length) ? recommendIdx : CARE_MSG_TEMPLATES.length - 1;
+  var order = [rec].concat(CARE_MSG_TEMPLATES.map(function(_, i){ return i; }).filter(function(i){ return i !== rec; }));
+  var ov = document.createElement('div');
+  ov.id = 'care-msg-picker';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:18px 20px">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text)">💬 選擇關心用語</div>'
+    + '<div style="font-size:12px;color:var(--text2);margin-bottom:10px">點選一種情境話術，可在下方修改後再複製傳給 ' + escH(nm || '客人') + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px">'
+    + order.map(function(i, pos){
+        return '<span onclick="pickCareMsg(' + i + ')" id="care-chip-' + i + '" style="cursor:pointer;border-radius:14px;padding:4px 11px;font-size:11px;border:1.5px solid ' + (pos===0 ? 'var(--g);background:var(--g2);color:var(--g3);font-weight:700' : 'var(--border2);background:var(--bg);color:var(--text2)') + '">' + escH(CARE_MSG_TEMPLATES[i].label) + (pos===0 ? '（推薦）' : '') + '</span>';
+      }).join('')
+    + '</div>'
+    + '<textarea id="care-msg-text" rows="5" style="width:100%;border:1px solid var(--border2);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.8;resize:vertical;font-family:inherit;outline:none"></textarea>'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:11px">'
+    + '<button onclick="document.getElementById(\'care-msg-picker\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
+    + '<button onclick="copyText(document.getElementById(\'care-msg-text\').value,\'關心訊息\');document.getElementById(\'care-msg-picker\').remove()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">📋 複製這段</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  ov.setAttribute('data-name', nm);
+  pickCareMsg(rec);
+}
+function pickCareMsg(i){
+  var ov = document.getElementById('care-msg-picker'); if(!ov) return;
+  var nm = ov.getAttribute('data-name') || '';
+  var ta = document.getElementById('care-msg-text');
+  if(ta) ta.value = CARE_MSG_TEMPLATES[i].text.replace(/\{name\}/g, nm);
+  CARE_MSG_TEMPLATES.forEach(function(_, j){
+    var chip = document.getElementById('care-chip-' + j);
+    if(chip){ chip.style.borderColor = j===i ? 'var(--g)' : 'var(--border2)'; chip.style.background = j===i ? 'var(--g2)' : 'var(--bg)'; chip.style.color = j===i ? 'var(--g3)' : 'var(--text2)'; chip.style.fontWeight = j===i ? '700' : '400'; }
+  });
+}
 function copyCareMsg(id, name){
   var nm = name || '';
+  // 依「距上次記錄天數」推薦情境：從未記錄→剛加入打氣；3天以上→想念關心；其他→一般問候
   adminAPI({action:'getClientLastRecordGap', clientId:id}, function(d){
     var days = d && d.status === 'ok' ? d.daysSince : null;
-    var msg;
-    if(days === -1){
-      msg = nm+' 您好 😊 想跟您說聲加油，記得有空可以來記錄一下今天的狀況喔，我們一起陪您走這段旅程！有任何不舒服或想討論的，隨時跟我說 💛';
-    } else if(days !== null && days >= 3){
-      msg = nm+' 您好 😊 看到已經有'+days+'天沒看到您的記錄了，最近過得還好嗎？想主動關心一下您的狀況，有任何不舒服或需要協助的，隨時跟我說喔！';
-    } else {
-      msg = nm+' 您好 😊 這幾天過得如何呢？看到您最近的記錄，想主動關心一下您的狀況。有任何不舒服或想討論的，隨時跟我說喔！';
-    }
-    copyText(msg, '關心訊息');
+    var rec = 7; // 一般問候
+    if(days === -1) rec = 6;      // 剛加入・打氣鼓勵
+    else if(days !== null && days >= 3) rec = 0; // 許久未記錄
+    openCareMsgPicker(nm, rec);
   });
 }
 function callClient(id){
@@ -5390,11 +5545,60 @@ function callClient(id){
     for(var i=0;i<_clientsCache.length;i++){ if(_clientsCache[i].id===id){ phone=_clientsCache[i].phone; break; } }
   }
   if(phone){ window.location.href = 'tel:' + phone.replace(/[^0-9+]/g,''); }
-  else toast('⚠️ 名單目前沒有「電話」欄。想用撥號功能，在 👤 客人名單任一欄加上標題含「電話」的欄位即可');
+  else promptSavePhoneAndCall(id);
+}
+// 沒電話時直接在畫面上補登（創始人2026-08-10：不要叫秘書自己去試算表加欄位）——
+// 輸入後由後端 setClientPhone 存進客人名單（「電話」欄自動建立），存好馬上撥出
+function promptSavePhoneAndCall(id){
+  var p = prompt('這位客人還沒有電話資料。\n直接輸入電話號碼，系統會存進客人名單並馬上撥出：', '');
+  if(p === null) return;
+  p = p.trim();
+  if(!p){ toast('沒有輸入電話'); return; }
+  adminAPIPost({action:'setClientPhone', clientId:id, phone:p}, function(d){
+    if(d && d.status === 'ok'){
+      if(_clientsCache){ for(var i=0;i<_clientsCache.length;i++){ if(_clientsCache[i].id===id){ _clientsCache[i].phone = p; break; } } }
+      toast('✅ 電話已存入客人名單');
+      window.location.href = 'tel:' + p.replace(/[^0-9+]/g,'');
+    } else toast('⚠️ ' + ((d && d.message) || '儲存失敗，請重試'));
+  });
 }
 
+// ── 本週整體血酮趨勢（真實資料版）──
+function loadKetoneTrend(){
+  var bars = document.getElementById('dash-ketone-bars');
+  var txt = document.getElementById('dash-ketone-text');
+  if(!bars || !txt) return;
+  adminAPI({action:'getWeeklyKetoneTrend'}, function(d){
+    bars = document.getElementById('dash-ketone-bars');
+    txt = document.getElementById('dash-ketone-text');
+    if(!bars || !txt) return;
+    if(!d || d.status !== 'ok'){ bars.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;width:100%;padding:16px 0">載入失敗</div>'; txt.textContent=''; return; }
+    var daily = d.daily || [], labels = ['一','二','三','四','五','六','日'];
+    var vals = daily.filter(function(v){ return v !== null; });
+    if(vals.length === 0){
+      bars.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;width:100%;padding:16px 0">本週還沒有客人的血酮記錄</div>';
+      txt.textContent = d.lastAvg !== null ? '上週整體平均血酮：' + d.lastAvg + ' mmol/L' : '';
+      return;
+    }
+    var scale = Math.max.apply(null, vals.concat([1.5])); // 至少以1.5為滿格基準，低血酮不會畫成滿柱
+    bars.innerHTML = daily.map(function(v, i){
+      var isToday = i === d.todayIndex;
+      var h = v === null ? 4 : Math.max(6, Math.round(v / scale * 90));
+      var barStyle = v === null ? 'height:4%;background:var(--border);border-color:var(--border)' : 'height:' + h + '%';
+      return '<div class="mbc"><div class="mb-bar' + (isToday ? ' hi' : '') + '" style="' + barStyle + '" title="' + (v === null ? '沒有記錄' : '平均 ' + v + ' mmol/L') + '"></div>'
+        + '<div class="mb-d"' + (isToday ? ' style="color:var(--g);font-weight:700"' : '') + '>' + (isToday ? '今' : labels[i]) + '</div></div>';
+    }).join('');
+    var t = '本週整體平均血酮：' + d.thisAvg + ' mmol/L';
+    if(d.lastAvg !== null){
+      var diff = Math.round((d.thisAvg - d.lastAvg) * 100) / 100;
+      t += '（上週 ' + d.lastAvg + '，' + (diff > 0 ? '↑+' + diff : diff < 0 ? '↓' + diff : '持平') + '）';
+    } else t += '（上週沒有記錄）';
+    txt.textContent = t;
+  });
+}
 // ── 儀表板 ──
 function loadDashboard(){
+  if(typeof loadKetoneTrend==='function') loadKetoneTrend();
   if(typeof loadHandover==='function') loadHandover();
   if(typeof loadTodayDuty==='function') loadTodayDuty();
   if(typeof loadOpenDiscussions==='function') loadOpenDiscussions();
@@ -5499,17 +5703,19 @@ function callClientAlert(idx){
   var a=_alertsCache && _alertsCache.alerts ? _alertsCache.alerts[idx] : null;
   if(!a) return;
   if(a.phone){ window.location.href='tel:'+a.phone.replace(/[^0-9+]/g,''); }
-  else toast('⚠️ 名單沒有電話資料。想用撥號功能，在 👤 客人名單加一欄標題含「電話」即可');
+  else if(a.clientId){ promptSavePhoneAndCall(a.clientId); }
+  else toast('⚠️ 這筆警示沒有客人編號，無法補登電話');
 }
 function copyAlertMsg(idx){
   var a=_alertsCache && _alertsCache.alerts ? _alertsCache.alerts[idx] : null;
   if(!a) return;
-  var msg = (a.name||'')+' 您好 😊 ';
-  if(a.type.indexOf('未填')>=0) msg += '這幾天沒看到您的記錄，有點想念您～最近過得如何呢？如果遇到什麼卡關的地方，隨時跟我說，我們一起想辦法！';
-  else if(a.type.indexOf('>3.5')>=0) msg += '看到您最近血酮數值比較高，想關心一下您的狀況。方便的話，我們可以聊聊最近的飲食和身體感受，也可以幫您安排一次諮詢喔！';
-  else if(a.type.indexOf('<0.5')>=0) msg += '看到您最近血酮數值比較低，想了解一下最近的飲食狀況，可能有些小地方調整一下就會回穩囉，隨時跟我聊聊！';
-  else msg += '想主動關心一下您最近的狀況，有任何問題隨時跟我說喔！';
-  copyText(msg, '關心訊息');
+  // 依警示類型推薦範本，開啟關心用語選單讓秘書挑選/修改（創始人2026-08-10）
+  var rec = 7; // 一般問候
+  if(a.type.indexOf('未填')>=0 || a.type.indexOf('從未')>=0) rec = 0;
+  else if(a.type.indexOf('>3.5')>=0) rec = 1;
+  else if(a.type.indexOf('<0.5')>=0) rec = 2;
+  else if(a.type.indexOf('症狀')>=0 || a.type.indexOf('不適')>=0) rec = 4;
+  openCareMsgPicker(a.name||'', rec);
 }
 function resolveAlertUI(btn, idx){
   var a=_alertsCache && _alertsCache.alerts ? _alertsCache.alerts[idx] : null;
@@ -5563,6 +5769,7 @@ function saveClientForm(){
   var openActive = document.getElementById('new-cl-active').checked;
   adminAPIPost({action:'addClient', clientId:id, name:name,
     stage:document.getElementById('new-cl-stage').value.trim(),
+    phone:document.getElementById('new-cl-phone').value.trim(),
     plan:document.getElementById('new-cl-plan').value,
     professionalSecretary:document.getElementById('new-cl-prof-sec').value,
     serviceSecretary:document.getElementById('new-cl-svc-sec').value,
@@ -5571,7 +5778,7 @@ function saveClientForm(){
     runStatus: openActive ? '陪跑中' : '一般客人'}, function(d){
     if(d.status==='ok'){
       toast('✅ 已新增客人「'+name+'」（陪跑狀態：'+(openActive?'已開通':'尚未開通，鎖定中')+'）');
-      ['new-cl-id','new-cl-name','new-cl-stage','new-cl-note'].forEach(function(x){document.getElementById(x).value='';});
+      ['new-cl-id','new-cl-name','new-cl-stage','new-cl-phone','new-cl-note'].forEach(function(x){document.getElementById(x).value='';});
       document.getElementById('new-cl-plan').value = '';
       document.getElementById('new-cl-prof-sec').value = '';
       document.getElementById('new-cl-svc-sec').value = '';
@@ -5643,7 +5850,7 @@ function loadRecentHandovers(){
   adminAPI({action:'getHandover'}, function(d){
     box = document.getElementById('handover-recent');
     if(!box) return;
-    var items = (d && d.items) || [];
+    var items = ((d && d.items) || []).filter(canSeeHandoverItem);
     if(items.length === 0){ box.innerHTML = '<div style="font-size:11.5px;color:var(--text3);text-align:center;padding:8px">目前沒有交接留言，點右上角「新增」開始寫第一筆</div>'; return; }
     box.innerHTML = items.slice(0,3).map(function(h){
       return '<div style="background:var(--bg);border-radius:10px;padding:10px 12px;border:1px solid var(--border)">'
@@ -5660,14 +5867,18 @@ function focusHandover(){
   var ta=document.getElementById('handover-note');
   if(ta){ if(ta.scrollIntoView)ta.scrollIntoView({behavior:'smooth'}); ta.focus(); }
 }
+var _handoverSaving = false; // 防連點：交接儲存也加上同樣保護
 function saveHandoverNote(){
+  if(_handoverSaving) return;
   var important = (document.getElementById('handover-important')||{}).value || '';
   var ta=document.getElementById('handover-note');
   var note=ta ? ta.value.trim() : '';
   important = important.trim();
   var pendingClientsText = _handoverPendingClients.map(function(id){ return clientName(id)+'('+id+')'; }).join('、');
   if(!important && !note && _handoverPendingClients.length===0){ toast('至少填寫一項：重要事項／待處理客人／備註'); return; }
+  _handoverSaving = true;
   adminAPIPost({action:'addHandover', note:note, fromSecretary:(CURRENT_USER && CURRENT_USER.name) || '', toSecretary:'', important:important, pendingClients:pendingClientsText}, function(d){
+    _handoverSaving = false;
     if(d.status==='ok'){
       toast('✅ 交接已寫入，下一班登入就看得到');
       ta.value='';
@@ -5687,7 +5898,10 @@ function submitShiftWish(btn){
     else if(t.indexOf(':')>=0) time=t;
   });
   if(weeks.length===0 && !time){toast('請先點選想排的週次與時段');return;}
+  // 防連點：API回來前先鎖住按鈕，避免同一份意願重複寫入好幾筆（創始人2026-08-10截圖：19:17連三筆）
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; btn.textContent='送出中…'; }
   adminAPIPost({action:'addHandover', note:'【排班意願】週次：'+weeks.join('、')+'／時段：'+time, fromSecretary:(CURRENT_USER && CURRENT_USER.name) || '', toSecretary:'', important:'排班意願', pendingClients:''}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; btn.textContent='送出排班意願'; }
     if(d.status==='ok') toast('✅ 排班意願已送出（寫入 ⚙️ 交接記錄，管理者排班時參考）');
     else toast('⚠️ 送出失敗，請重試');
   });
@@ -7478,6 +7692,7 @@ function loadBirthdays(){
         + '<div style="display:flex;gap:6px;margin-top:7px">'
         + '<select id="bday-wish-'+bi+'" class="form-select" style="font-size:11px;flex:1;padding:5px 8px"></select>'
         + '<button class="tb-btn g" style="font-size:11px;padding:5px 10px" onclick="copyBirthdayWish('+bi+',\''+escH(b.name)+'\')">複製祝福</button>'
+        + '<button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="quickRecordBirthdayGift(\''+escH(b.clientId)+'\',\''+escH(b.name)+'\')">🎁 記錄生日禮</button>'
         + '</div>'
         + '</div>';
     });
@@ -7504,6 +7719,22 @@ function loadBirthdays(){
   });
 }
 var _birthdayWishes = [];
+// 生日待辦一鍵記錄生日禮（創始人2026-08-10）：自動掛在該客人身上，寫入 👤 客人獎勵記錄；
+// 客人前台「健康旅程」頁的 🎁 你獲得的獎勵 會同步看到（記得之後在客人面板標「已發放」）
+var _bdayGiftSaving = false;
+function quickRecordBirthdayGift(cid, name){
+  if(_bdayGiftSaving) return;
+  var desc = prompt('要記錄給 ' + name + ' 的生日禮內容：', '生日祝福＋小禮物');
+  if(desc === null) return;
+  desc = desc.trim();
+  if(!desc){ toast('沒有填內容'); return; }
+  _bdayGiftSaving = true;
+  adminAPIPost({action:'addReward', clientId:cid, rewardType:'生日禮', desc:desc, trigger:'今日生日（生日看板快速記錄）', note:''}, function(d){
+    _bdayGiftSaving = false;
+    if(d && d.status === 'ok') toast('🎁 已記錄 ' + name + ' 的生日禮，客人前台的「你獲得的獎勵」會看到');
+    else toast('⚠️ ' + ((d && d.message) || '記錄失敗，請重試'));
+  });
+}
 function copyBirthdayWish(bi, name){
   var wsel=document.getElementById('bday-wish-'+bi);
   if(!wsel || !_birthdayWishes.length) { toast('沒有祝福語可用'); return; }
@@ -7669,6 +7900,8 @@ function loadTodayDuty(){
     document.getElementById('dash-duty-date').textContent = d.date;
     // 待辦項目：系統偵測到才顯示，數字+一鍵處理
     var items=[];
+    // 新預約放最上面（創始人2026-08-10：這最緊急）
+    if(dt.newBookings>0) items.push({icon:'💉',text:'<b>'+dt.newBookings+' 筆</b>新預約還沒聯繫，先跟客人確認檢測日期',act:"scrollToCard('bkg-card')"});
     if(dt.alertsCritical>0) items.push({icon:'🚨',text:'<b>'+dt.alertsCritical+' 位</b>客人可能有酮酸風險',act:"scrollToCard('alert-card')",urgent:true});
     if(dt.alerts>0) items.push({icon:'⚠️',text:'<b>'+dt.alerts+' 位</b>客人近期有不適症狀，需關心',act:"scrollToCard('alert-card')"});
     if(dt.birthdays>0) items.push({icon:'🎂',text:'今天有 <b>'+dt.birthdays+' 位</b>客人生日，記得送祝福',act:"scrollToCard('birthday-card')"});
@@ -7686,7 +7919,11 @@ function loadTodayDuty(){
     var stat='<div style="display:flex;gap:14px;background:rgba(255,255,255,.13);border-radius:10px;padding:9px 13px;margin-bottom:10px;color:#fff">'
       +'<div style="font-size:11px;opacity:.85">服務中 <b style="font-size:15px">'+dt.totalClients+'</b> 位</div>'
       +'<div style="font-size:11px;opacity:.85">今日已記錄 <b style="font-size:15px">'+dt.recorded+'</b> 位</div>'
-      +'<div style="font-size:11px;opacity:.85">待關心 <b style="font-size:15px;color:'+(dt.noRecord+dt.alerts>0?'#FFE0A0':'#B8F0D0')+'">'+(dt.noRecord+dt.alerts)+'</b> 位</div>'
+      +'<div style="font-size:11px;opacity:.85">待關心 <b style="font-size:15px;color:'+(dt.noRecord+dt.alerts>0?'#FFE0A0':'#B8F0D0')+'">'+(dt.noRecord+dt.alerts)+'</b> 位'
+      +(function(){ // 待關心=下面待辦的加總，標明組成免得跟單一待辦搞混（創始人2026-08-10）
+          var comp=[]; if(dt.noRecord>0)comp.push('沒記錄'+dt.noRecord); if(dt.alerts>0)comp.push('不適'+dt.alerts);
+          return comp.length?'<span style="font-size:10px;opacity:.75">（'+comp.join('＋')+'）</span>':''; })()
+      +'</div>'
       +'</div>';
 
     if(items.length===0){
@@ -8399,13 +8636,27 @@ function doLogin(){
 function applyPermissions(){
   if(!CURRENT_USER) return;
   var allowed = ROLE_PAGES[CURRENT_USER.role];
+  // 角色主題色＋頂欄角色徽章：一眼看出目前用哪個身分登入
+  document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
+  var tbT = document.getElementById('page-title');
+  if(tbT && !document.getElementById('role-chip')){
+    var chipColors = {'創始人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806']};
+    var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['創始人'];
+    var rc = document.createElement('span');
+    rc.id = 'role-chip';
+    rc.style.background = cc[0]; rc.style.color = cc[1];
+    rc.textContent = '👤 ' + escH(CURRENT_USER.name) + '・' + roleDisplayName(CURRENT_USER.role);
+    tbT.parentNode.insertBefore(rc, tbT.nextSibling);
+  }
   // 顯示使用者資訊
   var logo = document.querySelector('.sb-logo');
   if(logo && !document.getElementById('user-info')){
     var ui = document.createElement('div');
     ui.id = 'user-info';
     ui.style.cssText = 'font-size:11px;color:rgba(255,255,255,.85);margin-top:6px';
-    ui.innerHTML = '👤 '+escH(CURRENT_USER.name)+'（'+escH(roleDisplayName(CURRENT_USER.role))+'）<span onclick="doLogout()" style="cursor:pointer;text-decoration:underline;margin-left:6px">登出</span>';
+    ui.innerHTML = '👤 '+escH(CURRENT_USER.name)+'（'+escH(roleDisplayName(CURRENT_USER.role))+'）'
+      +'<span onclick="changeMyPasswordUI()" style="cursor:pointer;text-decoration:underline;margin-left:6px">改密碼</span>'
+      +'<span onclick="doLogout()" style="cursor:pointer;text-decoration:underline;margin-left:6px">登出</span>';
     logo.appendChild(ui);
   }
   if(allowed === null) return; // 創始人／老闆看全部
@@ -8420,6 +8671,41 @@ function applyPermissions(){
   setTimeout(function(){
     if(typeof goPg==='function') goPg('dashboard');
   }, 100);
+}
+// 自行修改密碼（一頁填完；後端用登入token鎖定帳號＋舊密碼雙重確認）
+function changeMyPasswordUI(){
+  var old = document.getElementById('change-pw-modal'); if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'change-pw-modal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:360px;padding:18px 20px">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text)">🔑 修改我的密碼</div>'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">目前密碼</div>'
+    + '<input id="cpw-old" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:10px;font-family:inherit;outline:none">'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">新密碼（至少6碼，英文、數字皆可，不分大小寫）</div>'
+    + '<input id="cpw-new" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:14px;font-family:inherit;outline:none">'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end">'
+    + '<button onclick="document.getElementById(\'change-pw-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
+    + '<button id="cpw-submit" onclick="submitChangePw()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">確認修改</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+}
+function submitChangePw(){
+  var oldP = (document.getElementById('cpw-old')||{value:''}).value;
+  var newP = (document.getElementById('cpw-new')||{value:''}).value.trim();
+  if(!oldP){ toast('⚠️ 請輸入目前密碼'); return; }
+  if(newP.length < 6){ toast('⚠️ 新密碼至少6碼'); return; }
+  var sb = document.getElementById('cpw-submit');
+  if(sb){ sb.disabled = true; sb.textContent = '修改中…'; sb.style.opacity = '.6'; }
+  adminAPIPost({action:'changeMyPassword', oldPassword:oldP, newPassword:newP}, function(d){
+    if(d && d.status === 'ok'){
+      var m = document.getElementById('change-pw-modal'); if(m) m.remove();
+      toast('✅ 密碼已更新，下次登入請用新密碼');
+    } else {
+      if(sb){ sb.disabled = false; sb.textContent = '確認修改'; sb.style.opacity = ''; }
+      toast('⚠️ ' + ((d && d.message) || '更新失敗，請重試'));
+    }
+  });
 }
 function doLogout(){
   CURRENT_USER = null; ADMIN_TOKEN = null;

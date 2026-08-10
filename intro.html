@@ -179,7 +179,13 @@ function startShow(){
   document.getElementById('bar').style.display='flex';
   playing=true; playFrom(0);
 }
-function skipShow(){ stopMusic(); finish(); }
+function skipShow(){
+  stopMusic(); playing=false; clearTimeout(timer); token++;
+  // 按「跳過」＝直接回首頁：若在前台的 iframe 內，通知父層關閉整個介紹層
+  try{ if(window.parent!==window){ window.parent.postMessage('intro-skip','*'); return; } }catch(e){}
+  // 單獨開啟本頁時的備援：直接導回首頁
+  try{ window.location.href='index.html'; }catch(e){}
+}
 function finish(){ stopMusic();
   playing=false; clearTimeout(timer);
   idx=SCENES.length-1; renderScene(idx);

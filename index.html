@@ -1537,7 +1537,7 @@ window.openHealthForm = function() {
       </div>
       <div style="padding:13px 16px;padding-bottom:20px">
         <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--g3);line-height:1.9"><div style="font-weight:700;margin-bottom:4px">預約確認 ✓</div><span id="bk-confirm-summary">IRCT 動態胰島素檢測・NT$6,800</span><br><span id="bk-confirm-location">瑞絲得診所・新竹・06/21 08:30</span><br><strong>飲食模式：</strong><span id="bk-confirm-diet">🥑 粒腺體飲食（碳水 5%，脂肪 70%）</span></div>
-        <div style="background:var(--b2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--b3);line-height:1.7;margin-bottom:11px">📩 預約已送出給健康秘書<br>💬 秘書會盡快加你 LINE，確認實際檢測日期<br>🌙 確認日期後，記得檢測前一晚要空腹唷</div>
+        <div style="background:var(--b2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--b3);line-height:1.7;margin-bottom:11px">📩 預約已送出給健康秘書<br>💬 已幫你傳訊息給秘書，秘書會在 LINE 回覆你，確認實際檢測日期<br>🌙 確認日期後，記得檢測前一晚要空腹唷</div>
         <button onclick="goPage('irct','IRCT 報告')" style="width:100%;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">返回報告頁</button>
       </div>
     </div>
@@ -1573,6 +1573,12 @@ window.openHealthForm = function() {
         <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px"><div id="jn-goal-bar" style="height:100%;width:0%;background:var(--g);border-radius:3px"></div></div>
         <div style="font-size:10px;color:var(--g);margin-top:4px" id="jn-goal-progress">—</div>
       </div>
+    </div>
+
+    <!-- 你獲得的獎勵（有記錄才顯示） -->
+    <div id="jn-rewards-card" style="display:none;background:#FFF9F0;border:1px solid #F5DFB8;border-radius:12px;padding:12px 13px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#8A5A00;margin-bottom:6px">🎁 你獲得的獎勵</div>
+      <div id="jn-rewards-list"></div>
     </div>
 
     <!-- 成就數字牆 -->
@@ -2187,6 +2193,24 @@ window.openHealthForm = function() {
 </div>
 
 <script>
+// ── 你獲得的獎勵（健康旅程頁；秘書在後台記錄的獎勵，客人這裡看得到）──
+function loadMyRewards(){
+  var card = document.getElementById('jn-rewards-card'), list = document.getElementById('jn-rewards-list');
+  if(!card || !list || !CLIENT_ID) return;
+  callAPI({action:'getMyRewards', clientId:CLIENT_ID}, function(d){
+    if(!d || d.status !== 'ok' || !d.items || d.items.length === 0){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    list.innerHTML = d.items.map(function(r){
+      var icon = r.rewardType === '生日禮' ? '🎂' : r.rewardType === '介紹獎勵' ? '🤝' : r.rewardType === '達標獎勵' ? '🏆' : '🎁';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #F0E2C6">'
+        + '<span style="font-size:16px">' + icon + '</span>'
+        + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#6B4A00">' + escHtml(r.rewardType) + (r.desc ? '・' + escHtml(r.desc) : '') + '</div>'
+        + '<div style="font-size:10px;color:#B08A40">' + escHtml(r.date) + '</div></div>'
+        + '<span style="font-size:10px;font-weight:700;color:' + (r.paid ? '#1D9E75' : '#B08A40') + '">' + (r.paid ? '已送達 ✓' : '準備中 🎀') + '</span>'
+        + '</div>';
+    }).join('');
+  });
+}
 function goPage(id,title){
   if(id==='food' && typeof loadKetoRestaurants==='function') setTimeout(loadKetoRestaurants,150);
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on')});
@@ -2205,6 +2229,7 @@ function goPage(id,title){
   }
   if(id === 'journey' && typeof loadGardenHealth === 'function') loadGardenHealth();
   if(id === 'journey' && typeof loadClientStage === 'function') loadClientStage();
+  if(id === 'journey' && typeof loadMyRewards === 'function') loadMyRewards();
   if(id === 'sharecard' && typeof loadShareCard === 'function') loadShareCard();
   if(id === 'home' && typeof loadReportStatus==='function') loadReportStatus();
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
@@ -3652,6 +3677,7 @@ function submitBooking(clinic, time, diet) {
   }, function(d) {
     if (d.status === 'ok') {
       toast('✅ 預約完成！已自動設定 8 週後複檢提醒 📅');
+      sendBookingLineMsg(clinic, time);
       // 本地端立即記住狀態（不等API查詢結果）
       LOCAL_REPORT_STATUS = 'booked';
       // 背景同步到Sheets（給後台秘書看，但不影響前台立即顯示）
@@ -3662,6 +3688,27 @@ function submitBooking(clinic, time, diet) {
       }, function(){});
     }
   });
+}
+
+// ── 預約完成→自動傳LINE訊息給秘書（創始人2026-08-10）──
+// 客人本來就是官方帳號好友（LIFF從官方帳號開啟），但如果客人從沒傳過訊息，
+// 秘書在官方帳號後台的聊天列表根本找不到他、暱稱也對不上是哪位——
+// 所以預約完成時，用 liff.sendMessages 讓客人的LINE自動傳一句自我介紹進聊天室：
+// 聊天串被打開＋姓名/編號自動報上，秘書直接在官方帳號後台回覆即可，不用「加好友」。
+function sendBookingLineMsg(clinic, time) {
+  var msg = '我是 ' + (CLIENT_NAME || '') + '（編號 ' + (CLIENT_ID || '') + '），剛剛預約了 ' + (clinic || '') + ' 的 IRCT 檢測，希望時段：' + (time || '') + '。請秘書與我確認實際檢測日期，謝謝！';
+  function fallback() {
+    // LIFF不在聊天室環境開啟時無法代傳：把訊息複製起來，請客人自己貼到官方帳號聊天室
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg); } catch(e) {}
+    toast('💬 請回到「元代謝」官方帳號聊天室，貼上剛複製的訊息（或隨意傳一句話），秘書才找得到你唷');
+  }
+  try {
+    if (typeof liff !== 'undefined' && liff.isInClient && liff.isInClient() && liff.sendMessages) {
+      liff.sendMessages([{ type: 'text', text: msg }]).then(function(){
+        toast('💬 已自動傳訊息給健康秘書，請留意 LINE 回覆');
+      }).catch(fallback);
+    } else { fallback(); }
+  } catch(e) { fallback(); }
 }
 
 // ── 問答：記錄找到的問題 ──
@@ -5687,6 +5734,10 @@ function closeIntroVideo(){
   var ov=document.getElementById('intro-overlay');
   if(ov) ov.remove();
 }
+// 介紹頁按「跳過」時，iframe 會送出 intro-skip 訊息 → 關閉介紹層回到首頁
+window.addEventListener('message', function(e){
+  if(e && e.data==='intro-skip') closeIntroVideo();
+});
 
 // ── 血酮機怎麼用 ──
 function showKetoGuide() {
@@ -6376,6 +6427,23 @@ function updateExtraTestsSuggestion() {
     suggestions.push({
       icon: '⚡', title: '氧化壓力檢測（8-OHdG）',
       reason: '反覆出現的不適或發炎，建議了解細胞氧化壓力狀況'
+    });
+  }
+
+  // 規則⑧：生活環境暴露（大型魚/化學品/塑膠容器）→ 重金屬/毒性元素
+  // 創始人2026-08-10：初次不對客人提（秘書端分析頁已有提醒），複測時才讓客人看到
+  if (hasFactor('大型魚') || hasFactor('化學品') || hasFactor('塑膠')) {
+    suggestions.push({
+      icon: '🧲', title: '重金屬/毒性元素分析',
+      reason: '你的生活環境問卷提到大型魚、化學品或塑膠容器的接觸，建議了解體內重金屬與毒性元素的累積狀況'
+    });
+  }
+
+  // 規則⑨：塑化劑/荷爾蒙線索 → 環境荷爾蒙分析
+  if (hasFactor('塑膠') || hasFactor('月經不規律')) {
+    suggestions.push({
+      icon: '🧴', title: '環境荷爾蒙分析' + (hasFactor('月經不規律') ? '（可加驗雌激素代謝評估）' : ''),
+      reason: hasFactor('月經不規律') ? '塑化劑等環境荷爾蒙可能干擾內分泌，月經不規律者特別建議檢測' : '常以塑膠容器裝熱食熱飲，建議了解塑化劑等環境荷爾蒙的暴露狀況'
     });
   }
 
