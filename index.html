@@ -334,6 +334,11 @@ window.openHealthForm = function() {
           <i class="ti ti-droplet" style="font-size:12px"></i>血酮機怎麼用
         </button>
       </div>
+      <!-- 測試客人一鍵帶入問卷（創始人2026-08-10：只有5位種子測試客人登入時才會出現，
+           真實客人絕對看不到——CLIENT_ID要完全對上TEST_QUESTIONNAIRE_PRESETS裡的編號才會顯示 -->
+      <button id="quick-fill-test-btn" onclick="quickFillTestQuestionnaire()" style="display:none;width:100%;margin-top:8px;background:#FFFBEB;color:#92400E;border:1px dashed #FCD34D;border-radius:10px;padding:9px;font-size:11px;cursor:pointer;font-weight:700">
+        🧪 一鍵帶入測試問卷（僅測試客人可見）
+      </button>
     </div>
 
     <!-- 代謝花園 -->
@@ -3406,9 +3411,50 @@ var API_URL = "https://script.google.com/macros/s/AKfycbwq-qqCxSJtzBJAreLCSKuF1U
 // ⚠️ 只需要填這一個值：到 LINE Developers 建立 LIFF 後，把 LIFF ID 貼進引號內
 var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
 
+// 測試切換身分（創始人2026-08-10：LINE還沒部署前，秘書手動輸入客人編號測試多位客人，
+// 需要能換身分，不然登入一次就卡在同一個客人身上）：網址加 ?switchtest=1 就會清掉目前綁定，
+// 回到輸入客人編號的畫面，不影響正式LINE客人（他們不會用這個網址參數）
+(function(){
+  try {
+    if (location.search.indexOf('switchtest=1') >= 0) {
+      localStorage.removeItem('mx_client_id');
+      localStorage.removeItem('mx_client_name');
+    }
+  } catch(e){}
+})();
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
 var _LINE_UID = "";
+
+// ══ 測試客人一鍵帶入問卷（創始人2026-08-10）══
+// 5位種子測試客人的入會健康問卷內容，模擬各自案例背景，讓秘書測試時看得到真實的問卷連動效果
+// （腎功能追蹤/甲狀腺標註/睡眠×血糖連結/功醫加測提醒都要靠這份問卷資料才會觸發）。
+// 內容格式要跟真正問卷送出的格式完全一樣（'入會健康問卷：' + 選項用「；」串起來），
+// 這樣後端撈健康問卷內容做關鍵字比對時，跟真人填的效果一模一樣，不用另外處理。
+// clientId 對不上這份清單的人（也就是所有真實客人），完全不會看到這顆按鈕。
+var TEST_QUESTIONNAIRE_PRESETS = {
+  'T0006': '入會健康問卷：反覆減重3次以上 ⚠️；代餐；甲狀腺問題；不足（<6小時）⚠️；中度壓力；40-50歲；睡再多還是很累 ⚠️',
+  'T0013': '入會健康問卷：減重1-2次；腎臟問題/腎功能異常；失眠困擾 ⚠️；高度壓力 ⚠️；50歲以上 ⚠️',
+  'T0022': '入會健康問卷：反覆減重3次以上 ⚠️；飢餓/極低熱量 ⚠️；代餐；不足（<6小時）⚠️；高度壓力 ⚠️；40-50歲；睡再多還是很累 ⚠️；常用塑膠裝熱食熱飲 ⚠️',
+  'T0024': '入會健康問卷：減重1-2次；飢餓/極低熱量 ⚠️；充足（7-8小時）；低壓力；40-50歲；常吃大型魚 ⚠️',
+  'T0047': '入會健康問卷：減重1-2次；腎臟問題/腎功能異常；不足（<6小時）⚠️；中度壓力；50歲以上 ⚠️；睡再多還是很累 ⚠️'
+};
+function checkQuickFillTestBtn(){
+  var btn = document.getElementById('quick-fill-test-btn');
+  if (!btn) return;
+  btn.style.display = (CLIENT_ID && TEST_QUESTIONNAIRE_PRESETS[CLIENT_ID]) ? 'block' : 'none';
+}
+function quickFillTestQuestionnaire(){
+  var content = TEST_QUESTIONNAIRE_PRESETS[CLIENT_ID];
+  if (!content) { toast('這位不是預設的測試客人'); return; }
+  var btn = document.getElementById('quick-fill-test-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '.5'; btn.textContent = '帶入中…'; }
+  callAPI({ action:'addNote', clientId: CLIENT_ID, content: content, type:'健康問卷', secretary: CLIENT_ID }, function(d){
+    if (btn) { btn.disabled = false; btn.style.opacity=''; btn.textContent = '🧪 一鍵帶入測試問卷（僅測試客人可見）'; }
+    toast('✅ 已帶入 ' + CLIENT_ID + ' 的測試問卷，秘書後台可以去看分析連動了');
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(checkQuickFillTestBtn, 900); });
 
 function mxShowLogin(msg){
   var ov = document.getElementById('mx-login-overlay');

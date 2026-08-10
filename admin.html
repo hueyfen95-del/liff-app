@@ -239,7 +239,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="sb-sec">商店管理</div>
     <div class="si nav-item" onclick="goPg('shop-mgmt',this)"><i class="ti ti-shopping-bag"></i>好物推薦管理 <span class="si-badge g">NEW</span></div>
     <div class="sb-sec">IRT 模型</div>
-    <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>IRT 建議模型 <span class="si-badge g">NEW</span></div>
+    <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
     <div class="si nav-item" onclick="goPg('garden-mgmt',this)"><i class="ti ti-plant"></i>代謝花園管理 <span class="si-badge g">NEW</span></div>
   </div>
 </div>
@@ -1586,82 +1586,20 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 </div>
 
-<!-- ══ IRT 建議模型 ══ -->
+<!-- ══ 分型系統說明（原「IRT建議模型」舊5型頁，創始人2026-08-10裁定移除）══ -->
 <div class="pg" id="pg-irt-models">
-  <div style="background:var(--p2);border:1px solid #AFA9EC;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--p3);line-height:1.7">
-    <strong>說明：</strong>系統依 IRCT 數據初步分流前兩型，後三型一律標為「待秘書確認」，確認後才同步前台建議。HOMA-IR 不納入判讀依據。
+  <div style="background:var(--r2);border:1px solid #F0B4B4;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--r3);line-height:1.7">
+    <strong>⚠️ 這頁是舊版，已停用：</strong>原本這裡的「糖代謝風險型／肥胖減脂型／胰島素壓抑＋阻抗型／運動員目標型／瘦瘦針恢復型」5型分類，
+    是很早期的版本，前兩型已經被下面的「10型代謝分型系統」正式取代，後三型的精神也已經併入客人卡片的「特殊情境」欄位。
+    這裡原本的「確認模型」按鈕只會寫一筆沒人讀取的備註，不會真的影響前台，所以整頁已移除，改成這份說明。
   </div>
-
-  <!-- 五種模型卡片 -->
-  <div class="card" style="margin-bottom:11px">
-    <div class="card-hd"><div class="card-title">🩸 糖代謝風險型</div><span class="badge a">半自動分流</span></div>
-    <div class="card-body">
-      <div style="display:flex;gap:11px;flex-wrap:wrap;margin-bottom:9px">
-        <div style="background:var(--bg);border-radius:9px;padding:9px 12px;flex:1;min-width:120px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">判讀條件</div><div style="font-size:12px;color:var(--text);font-weight:600">HbA1c ≥ 6.0%<br>或 空腹血糖 ≥ 100</div></div>
-        <div style="background:var(--bg);border-radius:9px;padding:9px 12px;flex:1;min-width:120px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">鼓勵模式</div><div style="font-size:12px;color:var(--text);font-weight:600">🩸 安全提醒型</div></div>
-      </div>
-      <div style="background:var(--a2);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--a3);line-height:1.7"><strong>前台文案：</strong>「今天血酮有上來，不過你的狀況需要和血糖一起看。血酮高不一定等於代謝更好，我們會協助你觀察血糖是否也穩定。」</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:9px;line-height:1.7">花園類型：<strong>穩糖花園</strong>・重點元素：💧血酮記錄、🍃飲食回報、📊血糖觀察</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:11px">
-    <div class="card-hd"><div class="card-title">🔥 肥胖減脂型</div><span class="badge a">半自動分流</span></div>
-    <div class="card-body">
-      <div style="display:flex;gap:11px;flex-wrap:wrap;margin-bottom:9px">
-        <div style="background:var(--bg);border-radius:9px;padding:9px 12px;flex:1;min-width:120px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">判讀條件</div><div style="font-size:12px;color:var(--text);font-weight:600">腰圍 女&gt;80 / 男&gt;90<br>且 HbA1c &lt; 5.8%</div></div>
-        <div style="background:var(--bg);border-radius:9px;padding:9px 12px;flex:1;min-width:120px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">理想血酮區間</div><div style="font-size:12px;color:var(--g3);font-weight:700">0.8–2.0 mmol/L</div><div style="font-size:10px;color:var(--text2)">不鼓勵追高</div></div>
-      </div>
-      <div style="background:var(--g2);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--g3);line-height:1.7"><strong>前台文案：</strong>「你的血酮已經進入很不錯的燃脂區間，代表身體正在慢慢學會使用脂肪當能量。接下來重點是穩定，而不是追求更高。」</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:9px;line-height:1.7">花園類型：<strong>燃脂花園</strong>・重點元素：💧血酮記錄、🍃飲食回報、👣活動</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:11px">
-    <div class="card-hd"><div class="card-title">🧭 胰島素壓抑＋阻抗型</div><span class="badge r">需秘書確認</span></div>
-    <div class="card-body">
-      <div style="background:var(--r2);border-radius:9px;padding:9px 12px;margin-bottom:9px;font-size:11px;color:var(--r3);line-height:1.7">⚠️ 此型不可自動同步前台建議，一律標為「待秘書確認」。BMI 正常但腰圍/體脂偏高，疑似代謝飢荒模式，需人工觀察。</div>
-      <div style="background:var(--bg);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--text2);line-height:1.7"><strong>前台只顯示：</strong>「你的狀況比較個別化，健康秘書會依你的目標與紀錄提供調整建議 😊」</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:9px;line-height:1.7">花園類型：<strong>修復花園</strong>・任務可由秘書客製：足量蛋白、正常進餐、睡眠修復</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:11px">
-    <div class="card-hd"><div class="card-title">⚡ 運動員目標型</div><span class="badge r">需秘書確認</span></div>
-    <div class="card-body">
-      <div style="background:var(--r2);border-radius:9px;padding:9px 12px;margin-bottom:9px;font-size:11px;color:var(--r3);line-height:1.7">⚠️ 不套用一般減脂血酮標準，依爆發力/肌力/超耐力/賽事目標個別化。需秘書確認後才同步前台。</div>
-      <div style="background:var(--bg);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--text2);line-height:1.7"><strong>前台只顯示：</strong>「你的狀況比較個別化，健康秘書會依你的目標與紀錄提供調整建議 😊」</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:9px;line-height:1.7">花園類型：<strong>能量花園</strong>・任務：訓練紀錄、恢復日、賽前補給、睡眠</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title">🌿 瘦瘦針恢復型</div><span class="badge r">需秘書確認</span></div>
-    <div class="card-body">
-      <div style="background:var(--r2);border-radius:9px;padding:9px 12px;margin-bottom:9px;font-size:11px;color:var(--r3);line-height:1.7">⚠️ 需避免過度限制熱量，不得自動建議更嚴格飲食。需秘書確認後才同步前台。</div>
-      <div style="background:var(--bg);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--text2);line-height:1.7"><strong>前台只顯示：</strong>「你的狀況比較個別化，健康秘書會依你的目標與紀錄提供調整建議 😊」</div>
-      <div style="font-size:11px;color:var(--text2);margin-top:9px;line-height:1.7">花園類型：<strong>平衡花園</strong>・任務：食慾回報、蛋白達標、停針後體感紀錄</div>
-    </div>
-  </div>
-
-  <!-- 客戶 IRT 狀態一覽 -->
   <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>客戶 IRT 模型確認</div><button class="tb-btn" onclick="loadIRTConfirms()"><i class="ti ti-refresh" style="font-size:14px"></i>重新載入</button></div>
-    <div class="card-body">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:10px">後三型需秘書人工確認。選擇客人與模型後按確認，會寫入 👤 秘書備註（IRT模型已確認），前台建議依此顯示。</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:9px;margin-bottom:12px">
-        <select id="irt-client" class="form-select"><option value="">選擇客人…</option></select>
-        <select id="irt-model" class="form-select">
-          <option>🩸 糖代謝風險型</option>
-          <option>🍽 飲食阻抗型</option>
-          <option>🧭 胰島素壓抑阻抗型</option>
-          <option>⚡ 運動員目標型</option>
-          <option>🌿 瘦瘦針恢復型</option>
-        </select>
-        <button class="btn-g" onclick="confirmIRTForm()"><i class="ti ti-check" style="font-size:14px"></i>確認模型</button>
-      </div>
-      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">已確認記錄</div>
-      <div id="irt-confirmed-list"><div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">載入中…</div></div>
+    <div class="card-hd"><div class="card-title"><i class="ti ti-microscope"></i>真正在用的分型，去哪裡看？</div></div>
+    <div class="card-body" style="font-size:12px;color:var(--text2);line-height:1.9">
+      <div style="margin-bottom:10px"><strong>1. 阻抗嚴重度＋機能型態</strong>（輕度/中度/重度阻抗、壓抑、敏銳、疑似飢荒模式等）：由 IRCT 檢測數據自動算出，在「<b style="color:var(--g3);cursor:pointer;text-decoration:underline" onclick="goPg('clients')">客戶管理</b>」點進客人卡片、看 IRCT 分析頁即可。</div>
+      <div style="margin-bottom:10px"><strong>2. 10型代謝分型</strong>（依血糖/血脂/胰島素/體態/sdLDL五個維度綜合判定）：同樣在客人卡片上，特殊情境下拉選單旁邊會顯示唯讀的分型徽章。</div>
+      <div style="margin-bottom:10px"><strong>3. 後天狀態軸</strong>（逃難模式=壓力荷爾蒙過高、飢荒模式=熱量攝取不足、修復模式=慢性疲勞、慢病模式=已用慢性病藥）：屬於秘書端的功醫加測提醒，會出現在客人 IRCT 分析頁的秘書專屬建議框裡，複測時也會用溫和版提示給客人看。</div>
+      <div>這些都是同一套真正在跑的分析引擎算出來的，跟這頁原本的舊5型是完全獨立、互不影響的兩套東西。</div>
     </div>
   </div>
 </div>
@@ -3068,7 +3006,7 @@ function loadProxyDemand(){
 // 全部可額外授權的頁面（dashboard人人都有，不用列在額外權限裡）
 var PAGE_CATALOG = [
   {id:'clients', label:'客戶管理'}, {id:'alerts', label:'警示看板'}, {id:'duty', label:'排班交接'},
-  {id:'report', label:'月報生成'}, {id:'irt-models', label:'IRT建議模型'},
+  {id:'report', label:'月報生成'}, {id:'irt-models', label:'分型系統說明'},
   {id:'review', label:'會計核查'}, {id:'stored-value', label:'儲值消費'}, {id:'settlement', label:'月結算'},
   {id:'rules', label:'分帳規則設定'}, {id:'roles', label:'分帳角色名單'}, {id:'inventory', label:'貨品進銷存'},
   {id:'sales-script', label:'銷售話術'}, {id:'faq-mgmt', label:'FAQ管理'}, {id:'food-mgmt', label:'外食速查管理'},
@@ -6550,7 +6488,7 @@ function runPageLoader(id){
   if (id === 'rules' && typeof loadRules === 'function') loadRules();
   if (id === 'global') loadGlobalFields();
   if (id === 'garden-mgmt') loadGardenAdmin();
-  if (id === 'irt-models') loadIRTConfirms();
+  // irt-models 頁改成純說明，不用再載入資料
 }
 
 // ── 啟動 ──
@@ -6654,37 +6592,8 @@ function showGiftMenu(idx, btn){
   },50);
 }
 
-// ══════ IRT 模型確認（真實記錄）══════
-function confirmIRTForm(){
-  var cid=document.getElementById('irt-client').value;
-  if(!cid){toast('請先選擇客人');return;}
-  var model=document.getElementById('irt-model').value;
-  adminAPIPost({action:'updateClientIRT', clientId:cid, model:model, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
-    if(d.status==='ok'){ toast('✅ 已確認 '+clientName(cid)+' 為「'+model+'」，寫入客人名單 IRT模型欄'); _clientsCache=null; loadIRTConfirms(); }
-    else toast('⚠️ '+(d.message||'確認失敗，請重試'));
-  });
-}
-function loadIRTConfirms(){
-  loadClientsList(function(){});
-  var box=document.getElementById('irt-confirmed-list');
-  if(!box) return;
-  adminAPI({action:'getIRTConfirms'}, function(d){
-    var items=d.items||[];
-    if(items.length===0){
-      box.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">還沒有確認記錄</div>';
-      return;
-    }
-    var html='';
-    items.forEach(function(it){
-      html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">'
-        + '<div class="cr-av" style="background:var(--g);width:28px;height:28px;font-size:11px">'+escH((it.name||it.clientId).slice(-1))+'</div>'
-        + '<div style="flex:1"><span style="font-size:12px;font-weight:700">'+escH(it.name||it.clientId)+'</span>'
-        + '<span style="font-size:11px;color:var(--text2)">（'+escH(it.clientId)+'）</span></div>'
-        + '<span class="badge g">'+escH(it.model)+'</span></div>';
-    });
-    box.innerHTML=html;
-  });
-}
+// confirmIRTForm / loadIRTConfirms 已移除（創始人2026-08-10）：
+// 舊5型IRT模型頁改成純說明頁，不再有可寫入的表單，詳見 pg-irt-models 區塊註解。
 
 
 // ══════ 系統體檢 ══════
