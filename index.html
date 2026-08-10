@@ -3413,12 +3413,17 @@ var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
 
 // 測試切換身分（創始人2026-08-10：LINE還沒部署前，秘書手動輸入客人編號測試多位客人，
 // 需要能換身分，不然登入一次就卡在同一個客人身上）：網址加 ?switchtest=1 就會清掉目前綁定，
-// 回到輸入客人編號的畫面，不影響正式LINE客人（他們不會用這個網址參數）
+// 回到輸入客人編號的畫面，不影響正式LINE客人（他們不會用這個網址參數）。
+// 2026-08-10 修正：清掉身分後要馬上把網址上的 switchtest=1 拿掉（history.replaceState），
+// 不然等一下登入成功、mxSetIdentity 觸發 location.reload() 重整頁面時，網址還帶著
+// switchtest=1，會被這段程式碼再清一次、卡在登入畫面出不去（實測到的問題，已修正）。
 (function(){
   try {
     if (location.search.indexOf('switchtest=1') >= 0) {
       localStorage.removeItem('mx_client_id');
       localStorage.removeItem('mx_client_name');
+      var _cleanUrl = location.pathname + location.search.replace(/[?&]switchtest=1/, '').replace(/^&/, '?') + location.hash;
+      history.replaceState(null, '', _cleanUrl);
     }
   } catch(e){}
 })();
