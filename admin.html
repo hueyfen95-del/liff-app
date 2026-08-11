@@ -2284,6 +2284,11 @@ function loadIRCTAnalysisFull(clientId){
           if(od.betaFailure) h += '<div style="margin-top:5px;padding:6px 8px;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:7px;font-size:10.5px;color:#991B1B"><b>⚠️ 衰竭警示（'+(od.betaFailureLevel||'傾向')+'）：</b>糖化超標且三點胰島素總和'+od.insSum3+'（<60）'+(od.betaFailureLevel==='明確'?'，且ESI與腰圍皆超標——符合明確衰竭型態':'，但ESI/腰圍未同時超標——列為傾向，打針/用藥者請配合用藥快照判讀')+'，胰島素分泌不足、β細胞衰竭風險，請務必請醫師評估。</div>';
           return h; })(a.insulin.overallDetail)
       + '</div></div>'
+      + (a.renal && a.renal.items && a.renal.items.some(function(it){ return it.status !== null; }) ?
+        '<div style="margin-bottom:8px"><b style="color:var(--g3)">🫘 腎肝功能：</b>'+renderItems(a.renal.items)
+        + (a.renal.egfrStage ? '<div style="margin-top:3px;font-size:10.5px;color:var(--text2)">eGFR分級：'+escH(a.renal.egfrStage)+'</div>' : '')
+        + (a.renal.note ? '<div style="margin-top:3px;font-size:10.5px;color:var(--r3)">'+escH(a.renal.note)+'</div>' : '')
+        + '</div>' : '')
       + (function(){ // 後天狀態軸（逃難/飢荒/修復/慢病）＋檢測前問卷對照＋生活型態分
           var h = '';
           var modeTxt = a.acquiredMode ? '<b style="color:#6D28D9">'+escH(a.acquiredMode)+'</b>' : '<span style="color:var(--text3)">（尚未標註）</span>';
