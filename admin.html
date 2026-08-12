@@ -4700,6 +4700,12 @@ function openClientDetail(id, name){
     + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="saveCarbPlan()">儲存</button>'
     + '</div></div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍯 代謝甜蜜點分析</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">從這位客人自己的每日記錄＋IRCT複測結果，找出真的適合他的碳水回補／運動節奏（不是套公版建議）。算出來的結果不會自動給客人看，你確認/編輯文字後按「顯示給客人」才會真正曝光。</div>'
+    + '<button class="ai-btn b" style="font-size:11.5px;padding:7px 12px" onclick="loadSweetSpotAnalysis(\''+escH(id)+'\')">🔍 分析這位客人的甜蜜點</button>'
+    + '<div id="cd-sweetspot-body" style="margin-top:9px"></div>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💬 客人心得分享（客人在前台自己送出）</div>'
     + '<div id="cd-testimonials">載入中…</div>'
     + '</div>'
@@ -5233,6 +5239,104 @@ function saveCarbPlan(){
   adminAPIPost({action:'setCarbPlan', clientId:_cdCurrentId, plan:sel.value}, function(d){
     if(d && d.status === 'ok') toast('✅ 碳水計畫已更新，客人前台馬上看得到');
     else toast('⚠️ ' + ((d && d.message) || '儲存失敗'));
+  });
+}
+// ══════════════ 代謝甜蜜點分析（創始人2026-08-12要求）══════════════
+// 秘書按「分析」→ 呼叫getSweetSpotAnalysis算出完整明細（含IRCT複測佐證）→ 秘書看過、可編輯草稿文字，
+// 按「顯示給客人」才會真的曝光給客人（呼叫confirmSweetSpot寫入🍯甜蜜點確認表）。
+function sweetSpotDataStatusLabel_(s){
+  return {insufficient:'📊 資料還不夠，先參考就好', building:'📈 資料累積中，方向漸漸清楚', confident:'✅ 資料足夠，判斷有信心',
+    none:'—目前沒有可對照的複測區間', 'single-interval':'🔎 只有1段複測區間，先當方向參考，等第3次複測再確認'}[s] || s;
+}
+function loadSweetSpotAnalysis(id){
+  var body = document.getElementById('cd-sweetspot-body');
+  if(!body) return;
+  body.innerHTML = '<div style="font-size:11.5px;color:var(--text3)">分析中…（要讀完整每日記錄+IRCT複測，可能要等一下）</div>';
+  adminAPI({action:'getSweetSpotAnalysis', clientId:id}, function(d){
+    body = document.getElementById('cd-sweetspot-body');
+    if(!body) return;
+    if(!d || d.status !== 'ok'){ body.innerHTML = '<div style="color:var(--r)">分析失敗，稍後再試</div>'; return; }
+    _sweetSpotLastData = d;
+    var h = '<div style="font-size:10.5px;color:var(--text3);margin-bottom:8px">每日記錄 '+d.dailyRecordCount+' 筆・IRCT複測 '+d.irctTestCount+' 次</div>';
+
+    // 飲食甜蜜點
+    h += '<div style="border-top:1px dashed var(--border);padding-top:8px;margin-top:4px">';
+    h += '<div style="font-size:11px;font-weight:700;color:var(--text)">🍚 飲食甜蜜點　<span style="font-weight:400;color:var(--text3);font-size:10px">'+sweetSpotDataStatusLabel_(d.carbSweetSpot.dataStatus)+'（共'+d.carbSweetSpot.totalEvents+'次碳水回補事件）</span></div>';
+    if(d.carbSweetSpot.topCombo){
+      var tc = d.carbSweetSpot.topCombo;
+      h += '<div style="background:var(--g2);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:11.5px;color:var(--g3)">👑 目前看起來最適合：<b>'+tc.freqBucket+'・'+tc.amountBucket+'</b>（'+tc.sampleCount+'筆樣本，平均'+(tc.avgRecoveryDays!==null?tc.avgRecoveryDays+'天回穩':'回穩天數不明')+(tc.avgNegFeel!==null?'，接下來負面體感平均'+tc.avgNegFeel+'項':'')+'）</div>';
+    }
+    if(d.carbSweetSpot.allCombos && d.carbSweetSpot.allCombos.length){
+      h += '<table style="width:100%;font-size:10.5px;border-collapse:collapse;margin-bottom:4px"><tr style="color:var(--text3)"><td style="padding:3px">頻率</td><td style="padding:3px">份量</td><td style="padding:3px">樣本數</td><td style="padding:3px">平均回穩天數</td><td style="padding:3px">接下來負面體感</td></tr>';
+      d.carbSweetSpot.allCombos.forEach(function(c){
+        h += '<tr style="border-top:1px solid var(--border)"><td style="padding:3px">'+escH(c.freqBucket)+'</td><td style="padding:3px">'+escH(c.amountBucket)+'</td><td style="padding:3px">'+c.sampleCount+'</td><td style="padding:3px">'+(c.avgRecoveryDays!==null?c.avgRecoveryDays+'天':'—')+'</td><td style="padding:3px">'+(c.avgNegFeel!==null?c.avgNegFeel:'—')+'</td></tr>';
+      });
+      h += '</table>';
+    } else {
+      h += '<div style="font-size:11px;color:var(--text3)">目前還沒有出現2次以上重複的模式，先持續記錄</div>';
+    }
+    h += '<textarea id="cd-ss-diet-text" class="form-input" style="font-size:11.5px;width:100%;min-height:52px;margin-top:4px" placeholder="給客人看的溫和版文字（可編輯）">'+escH(d.draftDietText||'')+'</textarea>'
+      + '<div style="display:flex;gap:6px;margin-top:5px">'
+      + '<button class="btn-g" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'diet\',true)">✅ 顯示給客人</button>'
+      + '<button class="ai-btn gray" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'diet\',false)">停用</button>'
+      + '</div></div>';
+
+    // 運動甜蜜點
+    h += '<div style="border-top:1px dashed var(--border);padding-top:8px;margin-top:10px">';
+    h += '<div style="font-size:11px;font-weight:700;color:var(--text)">🏃 運動甜蜜點　<span style="font-weight:400;color:var(--text3);font-size:10px">'+sweetSpotDataStatusLabel_(d.exerciseSweetSpot.dataStatus)+'（共'+d.exerciseSweetSpot.totalWeeks+'週可比較）</span></div>';
+    if(d.exerciseSweetSpot.topCombo){
+      var te = d.exerciseSweetSpot.topCombo;
+      h += '<div style="background:var(--g2);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:11.5px;color:var(--g3)">👑 目前看起來最適合：<b>不喘運動 '+te.lightBucket+'＋喘的運動 '+te.hardBucket+'</b>（'+te.sampleWeeks+'週樣本，體感分數'+te.avgFeelGood+(te.avgWeightTrend!==null?'，體重變化'+te.avgWeightTrend+'kg':'')+'）</div>';
+    }
+    if(d.exerciseSweetSpot.allCombos && d.exerciseSweetSpot.allCombos.length){
+      h += '<table style="width:100%;font-size:10.5px;border-collapse:collapse;margin-bottom:4px"><tr style="color:var(--text3)"><td style="padding:3px">不喘運動</td><td style="padding:3px">喘的運動</td><td style="padding:3px">週數</td><td style="padding:3px">體感分數</td><td style="padding:3px">體重變化</td></tr>';
+      d.exerciseSweetSpot.allCombos.forEach(function(c){
+        h += '<tr style="border-top:1px solid var(--border)"><td style="padding:3px">'+escH(c.lightBucket)+'</td><td style="padding:3px">'+escH(c.hardBucket)+'</td><td style="padding:3px">'+c.sampleWeeks+'</td><td style="padding:3px">'+c.avgFeelGood+'</td><td style="padding:3px">'+(c.avgWeightTrend!==null?c.avgWeightTrend+'kg':'—')+'</td></tr>';
+      });
+      h += '</table>';
+    } else {
+      h += '<div style="font-size:11px;color:var(--text3)">目前還沒有出現2週以上重複的模式，先持續記錄</div>';
+    }
+    h += '<textarea id="cd-ss-ex-text" class="form-input" style="font-size:11.5px;width:100%;min-height:52px;margin-top:4px" placeholder="給客人看的溫和版文字（可編輯）">'+escH(d.draftExerciseText||'')+'</textarea>'
+      + '<div style="display:flex;gap:6px;margin-top:5px">'
+      + '<button class="btn-g" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'exercise\',true)">✅ 顯示給客人</button>'
+      + '<button class="ai-btn gray" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'exercise\',false)">停用</button>'
+      + '</div></div>';
+
+    // IRCT複測佐證（證據力最強的一層）
+    h += '<div style="border-top:1px dashed var(--border);padding-top:8px;margin-top:10px">';
+    h += '<div style="font-size:11px;font-weight:700;color:var(--p3)">💉 IRCT複測佐證　<span style="font-weight:400;color:var(--text3);font-size:10px">'+sweetSpotDataStatusLabel_(d.irctEvidence.dataStatus)+'</span></div>';
+    if(d.irctEvidence.intervals && d.irctEvidence.intervals.length){
+      d.irctEvidence.intervals.forEach(function(iv){
+        var improved = iv.severityDelta !== null && iv.severityDelta < 0;
+        var worse = iv.severityDelta !== null && iv.severityDelta > 0;
+        h += '<div style="background:'+(improved?'var(--g2)':(worse?'var(--r2)':'var(--bg)'))+';border-radius:8px;padding:8px 10px;margin:6px 0;font-size:11px;color:var(--text2);line-height:1.7">'
+          + '<b>'+iv.fromDate+' → '+iv.toDate+'</b>（'+iv.weeks+'週，記錄涵蓋率'+Math.round(iv.recordCoverage*100)+'%）<br>'
+          + '這段期間：每週碳水約 '+iv.weeklyCarbFreq+' 次（平均'+(iv.avgCarbAmount||'—')+'g）・不喘運動每週'+iv.weeklyLightEx+'次・喘的運動每週'+iv.weeklyHardEx+'次<br>'
+          + '分類：'+escH(iv.classificationFrom||'—')+' → '+escH(iv.classificationTo||'—')
+          + (iv.severityDelta!==null ? '（嚴重度分數 '+iv.severityFrom+' → '+iv.severityTo+'，'+(improved?'✅往好的方向':'⚠️需留意')+'）' : '')+'<br>'
+          + (iv.homaIRFrom!==null&&iv.homaIRTo!==null ? 'HOMA-IR '+iv.homaIRFrom+' → '+iv.homaIRTo+'　' : '')
+          + (iv.esiFrom!==null&&iv.esiTo!==null ? 'ESI '+iv.esiFrom+' → '+iv.esiTo+'　' : '')
+          + (iv.tgFrom!==null&&iv.tgTo!==null ? 'TG '+iv.tgFrom+' → '+iv.tgTo+'　' : '')
+          + (iv.hdlFrom!==null&&iv.hdlTo!==null ? 'HDL '+iv.hdlFrom+' → '+iv.hdlTo : '')
+          + '</div>';
+      });
+    } else {
+      h += '<div style="font-size:11px;color:var(--text3)">目前複測次數不足2次，還沒有可對照的區間——等下一次複測回來就會有</div>';
+    }
+    h += '</div>';
+
+    body.innerHTML = h;
+  });
+}
+var _sweetSpotLastData = null;
+function confirmSweetSpotUI(id, type, enabled){
+  var ta = document.getElementById(type === 'diet' ? 'cd-ss-diet-text' : 'cd-ss-ex-text');
+  var text = ta ? ta.value : '';
+  if(enabled && !text.trim()){ toast('⚠️ 文字是空的，先確認內容再顯示給客人'); return; }
+  adminAPIPost({action:'confirmSweetSpot', clientId:id, type:type, text:text, enabled:enabled, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d && d.status === 'ok') toast(enabled ? '✅ 已顯示給客人' : '已停用，客人前台不會再看到這則');
+    else toast('⚠️ ' + ((d && d.message) || '操作失敗'));
   });
 }
 // ── 個案討論 ──

@@ -16,7 +16,11 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .tbar-av{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
 .page{display:none;padding-bottom:68px;min-height:420px}
 .page.on{display:block}
-.bnav{display:flex;border-top:1px solid var(--border);background:var(--card);position:sticky;bottom:0;z-index:10}
+/* 2026-08-12修正：.phone的高度是auto長高、真正捲動的是瀏覽器視窗本身（不是.phone內部），
+   原本的position:sticky是相對.phone在「黏」，但.phone從來不會自己捲動，導致這個sticky完全沒作用，
+   客人要滑到頁面最底部才摸得到底部導覽列。改成position:fixed，直接對齊瀏覽器視窗底部置中，
+   跟整個系統其他地方用window.scrollTo()當作捲動基準的假設一致 */
+.bnav{display:flex;border-top:1px solid var(--border);background:var(--card);position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;z-index:10}
 .bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 10px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:9px;transition:color .13s}
 .bn i{font-size:19px}
 .bn.on{color:var(--g)}
@@ -288,7 +292,7 @@ window.openHealthForm = function() {
   <div class="home-hd">
     <div style="font-size:12px;opacity:.75;margin-bottom:3px">嗨，陳小美</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:3px" id="home-stage-day">你的健康旅程</div>
-    <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">12</span> 天 🔥</div>
+    <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">–</span> 天 🔥</div>
   </div>
   <div class="hb">
     <!-- 🍚 碳水計畫摘要（有設定才顯示，點擊看完整份量圖鑑）-->
@@ -485,9 +489,9 @@ window.openHealthForm = function() {
     <div class="week-card">
       <div style="font-size:12px;font-weight:600;color:var(--b3);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-calendar-stats"></i>本週小結</div>
       <div class="wc-grid">
-        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)">1.7</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">平均血酮<br>mmol/L</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px">↑ +0.3</div></div>
-        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)">86%</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">記錄<br>填寫率</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px">↑進步</div></div>
-        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)">-0.4</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">體重<br>kg</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px">持續↓</div></div>
+        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-ketone">–</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">平均血酮<br>mmol/L</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-ketone-sub">近 7 天</div></div>
+        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-fillrate">–</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">記錄<br>填寫率</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px">本週</div></div>
+        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-weight">–</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">體重<br>kg</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-weight-sub">加入以來</div></div>
       </div>
     </div>
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">常用功能</div>
@@ -561,26 +565,35 @@ window.openHealthForm = function() {
       <div class="chip on" onclick="selChip(this,'t')">傍晚晚餐前</div>
       <div class="chip" onclick="selChip(this,'t')">晚餐後 3–4h</div>
     </div>
+    <!-- 2026-08-12修正：體重/腰圍原本只靠placeholder標示欄位名稱，但欄位一開始就帶著預設數字，
+         placeholder會被蓋掉，客人完全看不出「50」「65」代表體重還是腰圍，補上明確文字標籤 -->
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px">⚖️ 體重 kg</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
       <input class="inp" type="number" step="0.1" placeholder="體重 kg" id="w-inp" value="50" oninput="calcProg();syncWeightSlider()" style="flex:1">
       <button onclick="quickSave('weight')" style="background:var(--b);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <input type="range" id="w-slider" min="30" max="150" step="0.1" value="50" oninput="document.getElementById('w-inp').value=this.value;calcProg()" style="width:100%;margin:6px 0 10px;accent-color:var(--b)">
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px">📏 腰圍 cm（選填）</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
       <input class="inp" type="number" step="0.5" placeholder="腰圍 cm（選填）" id="waist-inp" value="65" oninput="calcProg();syncWaistSlider()" style="flex:1">
       <button onclick="quickSave('waist')" style="background:var(--p);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <input type="range" id="waist-slider" min="40" max="150" step="0.5" value="65" oninput="document.getElementById('waist-inp').value=this.value;calcProg()" style="width:100%;margin:6px 0 10px;accent-color:var(--p)">
 
-    <!-- 只要秘書設定了碳水計畫(不管嚴格期或回補期)就會顯示，平常不顯示 -->
-    <div id="carb-refeed-section" style="display:none;background:var(--g2);border:1px solid var(--g);border-radius:12px;padding:12px;margin:10px 0">
-      <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:9px">🍚 今日碳水記錄</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:5px">運動狀態</div>
-      <div style="display:flex;gap:6px;margin-bottom:10px" id="carb-exercise-chips">
+    <!-- 2026-08-12新增：運動狀態原本包在carb-refeed-section裡，只有秘書設定碳水計畫的客人才看得到、才會被記錄，
+         但「運動甜蜜點」要能分析所有客人，這格改成每位客人天天都能記、都會存進每日記錄的「運動狀態」欄位 -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:10px 0">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:9px">🏃 今日運動</div>
+      <div style="display:flex;gap:6px" id="carb-exercise-chips">
         <div class="carb-chip on" data-val="" onclick="selCarbExercise(this)" style="flex:1">沒運動</div>
         <div class="carb-chip" data-val="X" onclick="selCarbExercise(this)" style="flex:1">有運動沒喘</div>
         <div class="carb-chip" data-val="V" onclick="selCarbExercise(this)" style="flex:1">有運動有喘</div>
       </div>
+    </div>
+
+    <!-- 只要秘書設定了碳水計畫(不管嚴格期或回補期)就會顯示，平常不顯示 -->
+    <div id="carb-refeed-section" style="display:none;background:var(--g2);border:1px solid var(--g);border-radius:12px;padding:12px;margin:10px 0">
+      <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:9px">🍚 今日碳水記錄</div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-size:11px;color:var(--text2)">今天排便了嗎</div>
         <div class="carb-chip" id="carb-bowel-chip" data-val="" onclick="toggleCarbBowel(this)" style="padding:6px 16px">尚未</div>
@@ -771,6 +784,11 @@ window.openHealthForm = function() {
       <div class="sc"><div class="sc-l">累計體重變化</div><div class="sc-v" id="ms-weight">–</div><div class="sc-s up">加入以來</div></div>
       <div class="sc"><div class="sc-l">記錄填寫率</div><div class="sc-v" id="ms-fillrate">–</div><div class="sc-s up">本週</div></div>
       <div class="sc"><div class="sc-l">連續打卡</div><div class="sc-v" id="ms-streak">–</div><div class="sc-s flat">繼續加油</div></div>
+    </div>
+    <!-- 2026-08-12新增：代謝甜蜜點——秘書確認過的才會顯示，平常隱藏，避免資料還不夠時就跟客人講得太篤定 -->
+    <div id="sweetspot-card" style="display:none;background:linear-gradient(135deg,#FFF7E6,#FEF0D9);border:1px solid #F0D9A8;border-radius:14px;padding:14px 15px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:#8A5A00;margin-bottom:8px">🍯 你的代謝甜蜜點</div>
+      <div id="sweetspot-card-body" style="font-size:12px;color:#6B4900;line-height:1.7"></div>
     </div>
     <div class="chart-wrap">
       <div class="cw-t">本週血酮趨勢（mmol/L）</div>
@@ -2238,6 +2256,7 @@ function goPage(id,title){
   if(id === 'sharecard' && typeof loadShareCard === 'function') loadShareCard();
   if(id === 'home' && typeof loadReportStatus==='function') loadReportStatus();
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
+  if(id === 'trend' && typeof loadMySweetSpot==='function') loadMySweetSpot();
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
   if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
   if(id === 'qa' && typeof loadMyQuestions==='function') loadMyQuestions();
@@ -3371,7 +3390,9 @@ function doCopyText(){
 }
 function toast(msg){
   var t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4)';
+  // 2026-08-12修正：底部導覽列改成真的position:fixed後會固定佔住畫面最下方，
+  // toast原本bottom:24px會被導覽列蓋住/重疊，往上移到78px讓兩者不打架
+  t.style.cssText='position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4)';
   t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
 }
 updateDayTot();calcProg();
@@ -3621,16 +3642,28 @@ function loadCarbPlan(){
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadCarbPlan, 1500); });
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof loadReportStatus==='function') loadReportStatus(); }, 1000); });
+// 2026-08-12修正：首頁一開啟就該載入真實統計（連續打卡／本週小結），
+// 原本只有離開首頁又點回來（經過goPage）才會觸發loadMyStats，導致客人第一眼看到的都是舊的展示假資料。
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof loadMyStats==='function') loadMyStats(); }, 1000); });
+// 首頁頂部「連續打卡」徽章(streak-day-1)實際上是由loadGardenHealth()更新的（跟loadMyStats是兩條獨立資料來源），
+// 原本loadGardenHealth只在進入「代謝花園」頁時才會呼叫，首頁一開啟同樣看不到真的天數，一併補上。
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof loadGardenHealth==='function') loadGardenHealth(); }, 1100); });
 
 // ── 通用API呼叫函數 ──
 function callAPI(params, callback) {
   var query = Object.keys(params).map(function(k) {
     return k + '=' + encodeURIComponent(params[k]);
   }).join('&');
+  // 2026-08-12修正：後台剛醒來（冷啟動）時，第一次API呼叫常常要等20~30秒，
+  // 畫面只顯示「載入中…」完全沒有其他提示，客人很容易以為當機了就直接關掉APP。
+  // 2026-08-12再調整：等待門檻從6秒縮短為2秒，客人更快看到安心提示（創始人要求）。
+  var slowHintTimer = setTimeout(function(){
+    toast('🌱 資料準備中，第一次連線可能要等一下下，不會太久喔');
+  }, 2000);
   fetch(API_URL + '?' + query)
     .then(function(r) { return r.json(); })
-    .then(function(d) { if (callback) callback(d); })
-    .catch(function() {});
+    .then(function(d) { clearTimeout(slowHintTimer); if (callback) callback(d); })
+    .catch(function() { clearTimeout(slowHintTimer); });
 }
 
 // ── 每日記錄 ──
@@ -3656,11 +3689,12 @@ function submitDailyRecord() {
   var e = []; document.querySelectorAll('.t-box.on').forEach(function(c) { e.push(c.textContent); });
   toast('⏳ 儲存中...');
   var waist_val = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
-  // 只有碳水計畫有設定值的客人，才會收集這幾項；一般客人維持不受影響
-  var exerciseVal = '', bowelVal = '', carbsVal = '';
+  // 2026-08-12修正：運動狀態原本只有碳水計畫客人才會收集，但要能分析「運動甜蜜點」需要所有客人的運動記錄，
+  // 這格現在每位客人都看得到、都會收集；排便/碳水克數還是碳水回補期專屬的追蹤項目，維持原本的條件收集
+  var exerciseChip0 = document.querySelector('#carb-exercise-chips .carb-chip.on');
+  var exerciseVal = exerciseChip0 ? (exerciseChip0.getAttribute('data-val') || '') : '';
+  var bowelVal = '', carbsVal = '';
   if (_carbRefeedActive) {
-    var exerciseChip = document.querySelector('#carb-exercise-chips .carb-chip.on');
-    exerciseVal = exerciseChip ? (exerciseChip.getAttribute('data-val') || '') : '';
     var bowelChip = document.getElementById('carb-bowel-chip');
     bowelVal = bowelChip && bowelChip.classList.contains('on') ? 'V' : '';
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
@@ -4294,7 +4328,15 @@ function loadQASearch() {
   // 真實資料庫的內容載入後，排在預設六條前面（優先顯示真實內容）
   callAPI({action:'getQA'}, function(d) {
     if (d.items && d.items.length) {
-      _qaSearchData = d.items.concat(_qaSearchData);
+      // 2026-08-12修正：QA設定表裡有些「問題」欄位其實是給秘書看的情境標籤
+      // （例如「（客人情緒低落、憂慮時）」「（血酮血糖都穩定時的鼓勵）」），
+      // 不是客人自己會問的問題，混在「常見問題」清單裡客人點開會覺得莫名其妙，
+      // 用（開頭）結尾的括號格式篩掉，只留真的用客人口吻寫的問題給客人看
+      var realQuestions = d.items.filter(function(item){
+        var qtxt = String(item.question || '').trim();
+        return !(qtxt.charAt(0) === '（' && qtxt.charAt(qtxt.length-1) === '）');
+      });
+      _qaSearchData = realQuestions.concat(_qaSearchData);
       if(typeof renderFrontFAQ==='function') renderFrontFAQ();
     }
   });
@@ -4441,7 +4483,7 @@ function searchYTAfterAnswerCore(query) {
     var div = document.createElement('div');
     div.style.marginBottom = '10px';
     var html = '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-youtube" style="color:#FF0000;font-size:13px"></i>相關影片</div>';
-    items.slice(0,2).forEach(function(item) {
+    items.forEach(function(item) { // 2026-08-12（創始人要求）：拿掉「最多2則」上限，搜到幾則就列幾則
       var title = item.title;
       var videoId = item.videoId;
       var thumb = item.thumb;
@@ -4505,17 +4547,18 @@ function loadAllRSS(onDone) {
 
 function searchContentByKeyword(keyword) {
   var kw = keyword.toLowerCase();
-  
+
+  // 2026-08-12（創始人要求）：拿掉「最多顯示2則」這個人為上限，關鍵字比對到幾則就列幾則
   var vocusMatched = _vocusArticles.filter(function(item) {
-    return (item.title||'').toLowerCase().includes(kw) || 
+    return (item.title||'').toLowerCase().includes(kw) ||
            (item.description||'').toLowerCase().includes(kw);
-  }).slice(0, 2);
-  
+  });
+
   var podcastMatched = _podcastEpisodes.filter(function(item) {
-    return (item.title||'').toLowerCase().includes(kw) || 
+    return (item.title||'').toLowerCase().includes(kw) ||
            (item.description||'').toLowerCase().includes(kw);
-  }).slice(0, 2);
-  
+  });
+
   return {vocus: vocusMatched, podcast: podcastMatched};
 }
 
@@ -6864,6 +6907,21 @@ function loadMonthlyLog(){
     }
   });
 }
+// ── 代謝甜蜜點（創始人2026-08-12要求）：只顯示秘書已經確認、開啟的溫和版文字，
+// 沒有任何確認過的內容時整張卡片都不顯示，不會讓客人看到「資料不足」這種內部狀態 ──
+function loadMySweetSpot(){
+  if(!CLIENT_ID) return;
+  callAPI({action:'getMySweetSpot', clientId:CLIENT_ID}, function(d){
+    var card = document.getElementById('sweetspot-card'), body = document.getElementById('sweetspot-card-body');
+    if(!card || !body) return;
+    if(!d || d.status !== 'ok' || !d.items || d.items.length === 0){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    body.innerHTML = d.items.map(function(it){
+      var icon = it.type === 'diet' ? '🍚' : '🏃';
+      return '<div style="margin-bottom:8px">' + icon + ' ' + escHtml(it.text) + '</div>';
+    }).join('');
+  });
+}
 function loadMyStats(){
   callAPI({action:'getMyStats', clientId: CLIENT_ID}, function(d){
     if(!d || d.status!=='ok') return;
@@ -6938,6 +6996,24 @@ function loadMyStats(){
     if(fEl) fEl.textContent = (d.fillRate!==null && d.fillRate!==undefined) ? d.fillRate+'%' : '–';
     var sEl=document.getElementById('ms-streak');
     if(sEl) sEl.textContent = (d.streak!==null && d.streak!==undefined) ? d.streak+' 天' : '–';
+    // ── 首頁「本週小結」卡片（2026-08-12修正：原本是寫死的展示假資料，跟這裡的真實數字接起來）──
+    var hwK=document.getElementById('home-wk-ketone'), hwKSub=document.getElementById('home-wk-ketone-sub');
+    if(hwK) hwK.textContent = (d.avgKetone!==null && d.avgKetone!==undefined) ? d.avgKetone : '–';
+    if(hwKSub){
+      if(d.ketoneDelta!==null && d.ketoneDelta!==undefined){
+        var hwSign = d.ketoneDelta>0?'↑ +':(d.ketoneDelta<0?'↓ ':'→ ');
+        hwKSub.textContent = '比上週 '+hwSign+Math.abs(d.ketoneDelta);
+      } else hwKSub.textContent = '近 7 天';
+    }
+    var hwF=document.getElementById('home-wk-fillrate');
+    if(hwF) hwF.textContent = (d.fillRate!==null && d.fillRate!==undefined) ? d.fillRate+'%' : '–';
+    var hwW=document.getElementById('home-wk-weight'), hwWSub=document.getElementById('home-wk-weight-sub');
+    if(hwW) hwW.textContent = (d.weightChange!==null && d.weightChange!==undefined) ? (d.weightChange>0?'+':'')+d.weightChange : '–';
+    if(hwWSub){
+      if(d.weightChange!==null && d.weightChange!==undefined){
+        hwWSub.textContent = d.weightChange<0 ? '累計下降' : (d.weightChange>0 ? '累計上升' : '尚無變化');
+      } else hwWSub.textContent = '加入以來';
+    }
     // 目前體重大數字卡＋距離目標
     var heroCard=document.getElementById('mw-hero-card');
     if(heroCard && d.currentWeight!==null && d.currentWeight!==undefined && d.currentWeight!==''){
