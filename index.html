@@ -53,12 +53,12 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .inp-row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
 .inp{flex:1;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--text);background:var(--card);outline:none;transition:border-color .13s}
 .inp:focus{border-color:var(--g)}
-.k-badge{font-size:11px;border-radius:7px;padding:4px 9px;font-weight:600;white-space:nowrap;background:var(--bg);color:var(--text3)}
+.k-badge{font-size:12px;border-radius:7px;padding:4px 9px;font-weight:600;white-space:nowrap;background:var(--bg);color:var(--text3)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.chip{border:1px solid var(--border2);border-radius:20px;padding:5px 11px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--card);transition:all .12s}
+.chip{border:1px solid var(--border2);border-radius:20px;padding:5px 11px;font-size:13px;color:var(--text2);cursor:pointer;background:var(--card);transition:all .12s}
 .chip.on{border-color:var(--g);background:var(--g2);color:var(--g3);font-weight:600}
 .chip.on.bad{border-color:var(--a);background:var(--a2);color:var(--a3)}
-.carb-chip{border:1px solid var(--border2);border-radius:9px;padding:7px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);transition:all .12s;text-align:center}
+.carb-chip{border:1px solid var(--border2);border-radius:9px;padding:7px;font-size:12px;color:var(--text2);cursor:pointer;background:var(--card);transition:all .12s;text-align:center}
 .carb-chip.on{border-color:var(--g);background:var(--g);color:#fff;font-weight:600}
 
 /* 飲食改變確認 */
@@ -80,7 +80,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .dc-sec-lbl{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:7px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px}
 .dc-sec-lbl.ok{color:var(--g3)}.dc-sec-lbl.bad{color:var(--r3)}
 .food-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
-.food-chip{border-radius:20px;padding:4px 11px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
+.food-chip{border-radius:20px;padding:4px 11px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px}
 .food-chip.ok{background:var(--g2);color:var(--g3);border:1px solid #9FE1CB}
 .food-chip.bad{background:var(--r2);color:var(--r3);border:1px solid #F09595}
 .dc-tip{border-radius:9px;padding:9px 11px;font-size:11px;line-height:1.7;margin-top:7px}
@@ -167,8 +167,12 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 /* 外食速查 */
 .fb{padding:13px 16px}
 .food-top{background:linear-gradient(135deg,#085041,var(--g));color:#fff;border-radius:14px;padding:13px 15px;margin-bottom:13px}
-.f-cats{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:13px}
+.f-cats-wrap{position:relative;margin-bottom:13px}
+.f-cats-wrap::after{content:'';position:absolute;top:0;right:0;bottom:4px;width:30px;background:linear-gradient(to right,rgba(255,255,255,0),var(--card) 70%);pointer-events:none}
+.f-cats-wrap.at-end::after{display:none}
+.f-cats{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:0}
 .f-cats::-webkit-scrollbar{display:none}
+.f-cats-hint{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text2);margin-bottom:6px}
 .fc{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;cursor:pointer}
 .fc-ic{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border);background:var(--card);transition:all .13s}
 .fc-lb{font-size:11px;color:var(--text2);white-space:nowrap;text-align:center;line-height:1.4}
@@ -205,8 +209,8 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .it{flex:1;text-align:center;padding:8px 5px;font-size:11px;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .13s;font-weight:500}
 .it.on{color:var(--g);border-bottom-color:var(--g);font-weight:600}
 .itc{display:none}.itc.on{display:block}
-.irct-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:11px}
-.irct-table th{font-size:12px;color:var(--text2);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border2);background:var(--bg)}
+.irct-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:11px}
+.irct-table th{font-size:13px;color:var(--text2);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border2);background:var(--bg)}
 .irct-table td{padding:8px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
 .irct-table tr:hover td{background:var(--bg)}
 .val-ok{color:var(--g3);font-size:14px;font-weight:600}
@@ -881,7 +885,9 @@ window.openHealthForm = function() {
         <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:12px">葉菜不計碳水</div>
       </div>
     </div>
-    <div class="f-cats">
+    <div class="f-cats-hint">👉 左右滑動，看更多分類</div>
+    <div class="f-cats-wrap" id="f-cats-wrap">
+    <div class="f-cats" id="f-cats" onscroll="fCatsCheckEnd()">
       <div class="fc on" onclick="showFCat(this,'fc-conv')"><div class="fc-ic">🏪</div><div class="fc-lb">便利<br>商店</div></div>
       <div class="fc" onclick="showFCat(this,'fc-snack')"><div class="fc-ic">🥢</div><div class="fc-lb">傳統<br>小吃店</div></div>
       <div class="fc" onclick="showFCat(this,'fc-steak')"><div class="fc-ic">🥩</div><div class="fc-lb">牛排館</div></div>
@@ -889,6 +895,7 @@ window.openHealthForm = function() {
       <div class="fc" onclick="showFCat(this,'fc-nuts')"><div class="fc-ic">🥜</div><div class="fc-lb">堅果<br>食材</div></div>
       <div class="fc" onclick="showFCat(this,'fc-danger')"><div class="fc-ic">⛔</div><div class="fc-lb">嚴防<br>地雷</div></div>
       <div class="fc" onclick="showFCat(this,'fc-tips')"><div class="fc-ic">💡</div><div class="fc-lb">外食<br>原則</div></div>
+    </div>
     </div>
     <div class="f-content on" id="fc-conv">
       <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">① 蔬菜沙拉盒（超商實戰）</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">可以</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">一日野菜（海藻沙拉底）</div><div class="fr-desc">海苔沙拉、高苣基底，低碳安全</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">彩蔬沙拉</div><div class="fr-desc">需手動挑除根莖類（紅蘿蔔、玉米、南瓜等）</div></div><div class="fr-tag a">挑除根莖</div></div><div class="ftip">醬料選油醋或和風醬。可自帶 MINIOLIVA 橄欖油隨行包淋上補油。</div></div></div>
@@ -1391,6 +1398,14 @@ window.openHealthForm = function() {
     <div id="bk-step2" style="display:none;padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇 IRCT 檢測方案</div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.6">請依你目前的用藥狀況選擇方案，現場也可以再調整</div>
+
+      <!-- 出生年月日（抽血檢測必填，跟紙本同步）-->
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">🎂 出生年月日</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.6">抽血檢測需要，跟現場紙本表格一樣要填寫</div>
+        <input type="date" id="bk-birthdate" min="1900-01-01" max="" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:10px 12px;font-size:15px;color:var(--text);background:var(--card);outline:none;box-sizing:border-box" oninput="_bkBirthDate=this.value; var w=document.getElementById('bk-birthdate-warn'); if(w) w.style.display='none';">
+        <div id="bk-birthdate-warn" style="display:none;font-size:10.5px;color:#A32D2D;margin-top:6px">⚠️ 請填寫出生年月日，檢測診所需要核對</div>
+      </div>
 
       <!-- IRCT方案選擇 -->
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
@@ -2033,8 +2048,8 @@ window.openHealthForm = function() {
       <!-- 商品卡片 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px" id="soup-products">
         <a href="https://www.isometabolix.com/product-page/法餐主廚的防彈雞湯-夏-檸檬百里香法式雞湯" target="_blank" style="text-decoration:none;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:block;transition:all .15s" onmouseenter="this.style.borderColor='var(--g)'" onmouseleave="this.style.borderColor='var(--border)'">
-          <div style="height:90px;overflow:hidden;border-bottom:1px solid var(--border);position:relative">
-            <img src="https://static.wixstatic.com/media/c7b5d4_5116464cdcd946d7b67a1cd907f875e5~mv2.jpg/v1/fit/w_400,h_400,q_90/file.jpg" alt="夏季防彈雞湯" style="width:100%;height:100%;object-fit:cover">
+          <div style="height:90px;overflow:hidden;border-bottom:1px solid var(--border);position:relative;background:var(--bg)">
+            <img src="https://static.wixstatic.com/media/c7b5d4_5116464cdcd946d7b67a1cd907f875e5~mv2.jpg/v1/fit/w_400,h_400,q_90/file.jpg" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
             <div style="position:absolute;top:6px;left:6px;background:var(--r);color:#fff;border-radius:5px;padding:2px 6px;font-size:11px;font-weight:700">暢銷</div>
           </div>
           <div style="padding:9px 10px">
@@ -2236,6 +2251,7 @@ function loadMyRewards(){
 }
 function goPage(id,title){
   if(id==='food' && typeof loadKetoRestaurants==='function') setTimeout(loadKetoRestaurants,150);
+  if(id==='food' && typeof fCatsCheckEnd==='function') setTimeout(fCatsCheckEnd,150);
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on')});
   var targetPage = document.getElementById('p-'+id);
   if(targetPage) targetPage.classList.add('on');
@@ -2323,8 +2339,26 @@ function bkGoStep2(){
   document.getElementById('bk-step3').style.display='none';
   bkSetStep(2);
   bkSelectType(_bkType); // 同步用藥欄位顯示狀態，避免預設t2但畫面還沒顯示用藥欄位的不一致
+  var bdInput = document.getElementById('bk-birthdate');
+  if (bdInput) {
+    if (!bdInput.getAttribute('max')) {
+      var today = new Date();
+      var mm = String(today.getMonth()+1).padStart(2,'0'), dd = String(today.getDate()).padStart(2,'0');
+      bdInput.setAttribute('max', today.getFullYear()+'-'+mm+'-'+dd);
+    }
+    if (_bkBirthDate && !bdInput.value) bdInput.value = _bkBirthDate;
+  }
 }
 function bkGoStep3(){
+  var bdInput = document.getElementById('bk-birthdate');
+  var bdVal = bdInput ? bdInput.value : '';
+  if (!bdVal) {
+    var bdWarn = document.getElementById('bk-birthdate-warn');
+    if (bdWarn) bdWarn.style.display = 'block';
+    if (bdInput) { bdInput.focus(); bdInput.scrollIntoView({behavior:'smooth', block:'center'}); }
+    return;
+  }
+  _bkBirthDate = bdVal;
   if (_bkType === 't2') {
     var medInput = document.getElementById('bk-med-input');
     var medNone = document.getElementById('bk-med-none');
@@ -2420,7 +2454,8 @@ function bkGoStep5(){
     action: 'addBooking', clientId: CLIENT_ID,
     clinic: locText, time: timeText, diet: dietSummary, medications: medications, planType: _bkType, exerciseFreq: _bkExercise,
     fatigueLevel: _bkState.fatigue, stressLevel: _bkState.stress, longTermDiet: _bkState.ltdiet, smokingHabit: _bkState.smoke,
-    dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || ''
+    dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || '',
+    birthDate: _bkBirthDate || ''
   }, function(d) {
     if (d.status === 'ok') {
       callAPI({
@@ -2447,6 +2482,7 @@ var bkLocSelected=1;
 // ── IRCT方案選擇（t1/t2）──
 var _bkType = 't2'; // 預設t2
 var _bkExercise = '0次';
+var _bkBirthDate = ''; // 出生年月日（抽血檢測必填，跟紙本一致）
 // 身心狀態問卷（檢測前填，對應後天狀態四模式的前置訊號；dietscore的「0低碳」存為0分但保留字樣供辨識）
 var _bkState = { fatigue:'', stress:'', ltdiet:'', dietscore:'', dietlabel:'', smoke:'', exlow:'', mealvol:'', mealfreq:'' };
 // 飲食型態chips：同時記分數(進生活型態分)與型態標籤(顯示/判讀)
@@ -2790,6 +2826,12 @@ function showFCat(el,id){
   document.querySelectorAll('.fc').forEach(function(c){c.classList.remove('on')});
   document.querySelectorAll('.f-content').forEach(function(c){c.classList.remove('on')});
   el.classList.add('on');document.getElementById(id).classList.add('on');
+}
+function fCatsCheckEnd(){
+  var row=document.getElementById('f-cats'),wrap=document.getElementById('f-cats-wrap');
+  if(!row||!wrap)return;
+  var atEnd = row.scrollWidth - row.scrollLeft - row.clientWidth < 8;
+  wrap.classList.toggle('at-end', atEnd);
 }
 function toggleFCard(hd){
   var body=hd.nextElementSibling,arr=hd.querySelector('.fc-arr'),open=body.classList.contains('on');
@@ -5871,25 +5913,25 @@ function showKetoGuide() {
 
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">過去是否有減重經歷？</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-          <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">從未減重</button>
-          <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">減重1-2次</button>
-          <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">反覆減重3次以上 ⚠️</button>
+          <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">從未減重</button>
+          <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">減重1-2次</button>
+          <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">反覆減重3次以上 ⚠️</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">是否曾用以下方式減重？（可複選）</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">飢餓/極低熱量 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">代餐</button>
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">減重針/藥 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">代餐/藥物</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">飢餓/極低熱量 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">代餐</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">減重針/藥 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">代餐/藥物</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">是否有以下狀況？（可複選，幫助秘書給你更精準的建議）</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">甲狀腺問題</button>
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">腎臟問題/腎功能異常</button>
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">免疫系統問題/自體免疫</button>
-          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">反覆過敏/不明原因發炎</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">甲狀腺問題</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">腎臟問題/腎功能異常</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">免疫系統問題/自體免疫</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">反覆過敏/不明原因發炎</button>
         </div>
 
         <button onclick="hfNext(2)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">下一步 →</button>
@@ -5902,24 +5944,25 @@ function showKetoGuide() {
 
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠狀況</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">充足（7-8小時）</button>
-          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">不足（&lt;6小時）⚠️</button>
-          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">失眠困擾 ⚠️</button>
+          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">充足（7-8小時）</button>
+          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">不足（&lt;6小時）⚠️</button>
+          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">失眠困擾 ⚠️</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">生活/工作壓力</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">低壓力</button>
-          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">中度壓力</button>
-          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">高度壓力 ⚠️</button>
-          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">重大生活事件 ⚠️</button>
+          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">低壓力</button>
+          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">中度壓力</button>
+          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">高度壓力 ⚠️</button>
+          <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">重大生活事件 ⚠️</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">年齡</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
-          <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">40歲以下</button>
-          <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">40-50歲</button>
-          <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:11px;cursor:pointer;color:var(--text2);transition:all .15s">50歲以上 ⚠️</button>
+          <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">40歲以下</button>
+          <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">40-50歲</button>
+          <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">50-64歲 ⚠️</button>
+          <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">65歲以上 ⚠️</button>
         </div>
 
         <div style="display:flex;gap:8px">
@@ -5935,27 +5978,27 @@ function showKetoGuide() {
 
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:6px">⚡ 能量與大腦</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">睡再多還是很累 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">腦袋常不清楚 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">記性越來越差 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">注意力難集中</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">睡再多還是很累 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">腦袋常不清楚 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">記性越來越差 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">注意力難集中</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:6px">🫃 消化系統</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">長期便秘或腹瀉 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">吃完常脹氣 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">吃某些食物後不舒服</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">曾長期使用抗生素 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">長期便秘或腹瀉 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">吃完常脹氣 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">吃某些食物後不舒服</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">曾長期使用抗生素 ⚠️</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:6px">🏭 生活環境</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:20px">
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">常用塑膠裝熱食熱飲 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">工作常接觸化學品 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">常吃大型魚 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">月經不規律（女）⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">很容易生病 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">常用塑膠裝熱食熱飲 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">工作常接觸化學品 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">常吃大型魚 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">月經不規律（女）⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">很容易生病 ⚠️</button>
         </div>
 
         <div style="display:flex;gap:8px">
@@ -6127,7 +6170,8 @@ function hfCalcResult() {
     if (txt.includes('不足') && txt.includes('小時')) { score += 0.1; factors.push('睡眠不足'); warnings.push('睡眠不足讓皮質醇升高，直接影響代謝'); }
     if (txt.includes('失眠')) { score += 0.1; factors.push('失眠'); warnings.push('失眠讓荷爾蒙失衡，影響代謝修復'); }
     if (txt.includes('高度壓力') || txt.includes('重大生活')) { score += 0.1; factors.push('高壓力'); warnings.push('壓力荷爾蒙讓脂肪更難代謝'); }
-    if (txt.includes('50歲')) { score += 0.1; factors.push('年齡50+'); warnings.push('50歲後荷爾蒙變化讓代謝更需要支持'); }
+    if (txt.includes('50歲') || txt.includes('50-64歲')) { score += 0.1; factors.push('年齡50-64'); warnings.push('50歲後荷爾蒙變化讓代謝更需要支持'); }
+    if (txt.includes('65歲以上')) { score += 0.15; factors.push('年齡65+'); warnings.push('65歲後肌肉量與代謝彈性下降，需要更全面的營養與運動支持'); }
     if (txt.includes('睡再多還是很累')) { score += 0.1; factors.push('慢性疲勞'); warnings.push('慢性疲勞可能是粒線體功能下降的信號'); }
     if (txt.includes('腦袋常不清楚') || txt.includes('記性越來越差')) { score += 0.15; factors.push('腦霧/記憶問題'); warnings.push('腦霧可能與粒線體能量不足有關'); }
     if (txt.includes('長期便秘') || txt.includes('吃完常脹氣') || txt.includes('抗生素')) { score += 0.15; factors.push('腸道問題'); warnings.push('腸道菌叢影響代謝，需要同步修復'); }
@@ -6153,8 +6197,11 @@ function hfCalcResult() {
   else if (score <= 1.5) { level = '⚠️ 較高難度'; expectTime = '6-9 個月'; }
   else { level = '🔴 高複雜度'; expectTime = '9-12 個月以上'; }
 
-  if (scoreEl) scoreEl.textContent = '代謝複雜度：' + score.toFixed(1);
-  if (levelEl) levelEl.innerHTML = level + '・預估調整時間 <strong>' + expectTime + '</strong>';
+  // 2026-08-12修正：原本這裡會把內部計算用的原始分數（例如「代謝複雜度：1.6」）直接顯示給客人，
+  // 這是全站唯一一個把未經驗證的內部分數曝光給客人的地方，跟其他頁面「客人只看溫和文字、細節留給秘書」
+  // 的原則不一致，也可能讓客人誤把這個分數當成類似檢驗數值的東西去比較、擔心。改成只顯示文字分級＋預估時間。
+  if (scoreEl) scoreEl.textContent = level;
+  if (levelEl) levelEl.innerHTML = '預估調整時間 <strong>' + expectTime + '</strong>';
 
   var html = '';
   if (warnings.length > 0) {

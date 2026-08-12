@@ -5052,6 +5052,7 @@ function loadBookings(){
         + '<span style="color:var(--text2)">' + escH(b.clinic) + (b.time ? '・' + escH(b.time) : '') + '</span>'
         + (b.diet ? '<span style="font-size:10px;background:var(--b2);color:var(--b3);border-radius:5px;padding:1px 6px">' + escH(b.diet) + '</span>' : '')
         + (b.exerciseFreq ? '<span style="font-size:10px;background:var(--bg);color:var(--text2);border-radius:5px;padding:1px 6px">🏃 每週' + escH(b.exerciseFreq) + '</span>' : '')
+        + (b.birthDate ? '<span style="font-size:10px;background:var(--bg);color:var(--text2);border-radius:5px;padding:1px 6px">🎂 ' + escH(b.birthDate) + '</span>' : '<span style="font-size:10px;background:#FDEAEA;color:#A32D2D;border-radius:5px;padding:1px 6px">⚠️ 未填出生年月日</span>')
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(b.date) + ' 送出</span>'
         + '<span style="margin-left:auto;display:flex;gap:5px">'
         + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="bkgCopyLine(' + i + ')">💬 複製LINE訊息</button>'
