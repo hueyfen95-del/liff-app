@@ -8,21 +8,21 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 body{background:var(--bg);min-height:100vh;margin:0;padding:0}
-:root{--g:#1D9E75;--g2:#E1F5EE;--g3:#085041;--a:#EF9F27;--a2:#FAEEDA;--a3:#633806;--b:#378ADD;--b2:#E6F1FB;--b3:#0C447C;--r:#E24B4A;--r2:#FCEBEB;--r3:#791F1F;--p:#534AB7;--p2:#EEEDFE;--p3:#3C3489;--bg:#F5F7FA;--card:#fff;--border:#E5E7EB;--border2:#D1D5DB;--text:#111827;--text2:#6B7280;--text3:#9CA3AF}
+:root{--g:#1D9E75;--g2:#E1F5EE;--g3:#085041;--a:#EF9F27;--a2:#FAEEDA;--a3:#633806;--b:#378ADD;--b2:#E6F1FB;--b3:#0C447C;--r:#E24B4A;--r2:#FCEBEB;--r3:#791F1F;--p:#534AB7;--p2:#EEEDFE;--p3:#3C3489;--bg:#F5F7FA;--card:#fff;--border:#E5E7EB;--border2:#D1D5DB;--text:#111827;--text2:#4B5563;--text3:#6B7280}
 
 .phone{width:100%;max-width:480px;background:var(--card);min-height:100vh;margin:0 auto;overflow-x:hidden;overflow-y:auto}
 .tbar{padding:12px 16px 11px;background:var(--g);color:#fff;display:flex;align-items:center;gap:9px}
 .tbar-t{font-size:15px;font-weight:600;flex:1}
 .tbar-av{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
-.page{display:none;padding-bottom:68px;min-height:420px}
+.page{display:none;padding-bottom:80px;min-height:420px}
 .page.on{display:block}
 /* 2026-08-12修正：.phone的高度是auto長高、真正捲動的是瀏覽器視窗本身（不是.phone內部），
    原本的position:sticky是相對.phone在「黏」，但.phone從來不會自己捲動，導致這個sticky完全沒作用，
    客人要滑到頁面最底部才摸得到底部導覽列。改成position:fixed，直接對齊瀏覽器視窗底部置中，
    跟整個系統其他地方用window.scrollTo()當作捲動基準的假設一致 */
 .bnav{display:flex;border-top:1px solid var(--border);background:var(--card);position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;z-index:10}
-.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 10px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:9px;transition:color .13s}
-.bn i{font-size:19px}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 10px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:11px;transition:color .13s}
+.bn i{font-size:21px}
 .bn.on{color:var(--g)}
 
 /* ── 首頁 ── */
@@ -44,12 +44,12 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .qg:hover{border-color:var(--g);background:var(--g2)}
 .qg i{font-size:22px;color:var(--text3);display:block;margin-bottom:5px;transition:color .13s}
 .qg:hover i{color:var(--g)}
-.qg-l{font-size:10px;color:var(--text2)}
-.qg-n{font-size:9px;color:var(--r);font-weight:600;margin-top:2px}
+.qg-l{font-size:12px;color:var(--text2)}
+.qg-n{font-size:11px;color:var(--r);font-weight:600;margin-top:2px}
 
 /* ── 記錄 ── */
 .rb{padding:13px 16px}
-.sec{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border);margin:14px 0 9px;display:flex;align-items:center;gap:5px}
+.sec{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border);margin:14px 0 9px;display:flex;align-items:center;gap:5px}
 .inp-row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
 .inp{flex:1;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--text);background:var(--card);outline:none;transition:border-color .13s}
 .inp:focus{border-color:var(--g)}
@@ -77,7 +77,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .dc-card-body.on{display:block}
 .dc-arr{font-size:14px;color:var(--text3);transition:transform .18s;flex-shrink:0}
 .dc-arr.open{transform:rotate(180deg)}
-.dc-sec-lbl{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:7px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px}
+.dc-sec-lbl{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:7px;padding:4px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px}
 .dc-sec-lbl.ok{color:var(--g3)}.dc-sec-lbl.bad{color:var(--r3)}
 .food-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}
 .food-chip{border-radius:20px;padding:4px 11px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px}
@@ -97,7 +97,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .meal-block{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px}
 .meal-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--border)}
 .meal-lbl{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
-.meal-st{font-size:10px;border-radius:20px;padding:3px 8px;font-weight:600}
+.meal-st{font-size:12px;border-radius:20px;padding:3px 8px;font-weight:600}
 .meal-st.ok{background:var(--g2);color:var(--g3)}
 .meal-st.pend{background:var(--bg);color:var(--text3)}
 .meal-
@@ -109,7 +109,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .pt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
 .pt{border-radius:9px;overflow:hidden;position:relative;border:1px solid var(--border);aspect-ratio:1;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:30px}
 .pt-del{position:absolute;top:4px;right:4px;width:19px;height:19px;border-radius:50%;background:rgba(0,0,0,.55);border:none;cursor:pointer;color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
-.pt-add{border:2px dashed var(--border2);border-radius:9px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);gap:3px;font-size:10px;transition:all .13s}
+.pt-add{border:2px dashed var(--border2);border-radius:9px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);gap:3px;font-size:12px;transition:all .13s}
 .pt-add:hover{border-color:var(--g);color:var(--g);background:var(--g2)}
 .pt-add i{font-size:20px}
 
@@ -119,7 +119,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .ai-hd-ic{width:22px;height:22px;background:var(--p);border-radius:6px;display:flex;align-items:center;justify-content:center}
 .ai-hd-ic i{font-size:13px;color:#fff}
 .ai-hd-t{font-size:11px;font-weight:600;color:var(--p3);flex:1}
-.ai-redo{font-size:10px;color:var(--p3);cursor:pointer;border:1px solid #C4B5FD;border-radius:6px;padding:3px 7px;background:rgba(255,255,255,.6)}
+.ai-redo{font-size:12px;color:var(--p3);cursor:pointer;border:1px solid #C4B5FD;border-radius:6px;padding:3px 7px;background:rgba(255,255,255,.6)}
 .ai-
 .mrow{display:flex;align-items:center;gap:7px;margin-bottom:7px}
 .ml{font-size:11px;color:var(--text2);width:42px;flex-shrink:0}
@@ -127,22 +127,22 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .mb-f{height:100%;border-radius:5px;transition:width .9s}
 .mb-tgt{position:absolute;top:0;height:100%;width:2px;background:rgba(0,0,0,.2)}
 .mv{font-size:11px;font-weight:600;width:32px;text-align:right;flex-shrink:0}
-.mg{font-size:10px;color:var(--text3);width:26px;text-align:right;flex-shrink:0}
+.mg{font-size:12px;color:var(--text3);width:26px;text-align:right;flex-shrink:0}
 .macro3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px;margin-bottom:9px}
 .m3{text-align:center;background:var(--bg);border-radius:8px;padding:7px 4px}
 .m3v{font-size:15px;font-weight:600}
-.m3l{font-size:10px;color:var(--text3);margin-top:2px}
+.m3l{font-size:12px;color:var(--text3);margin-top:2px}
 .verdict{border-radius:8px;padding:9px 11px;font-size:11px;line-height:1.7;margin-top:9px}
 .verdict.ok{background:var(--g2);border:1px solid #9FE1CB;color:var(--g3)}
 .verdict.warn{background:var(--a2);border:1px solid var(--a);color:var(--a3)}
-.tgt-note{font-size:10px;color:var(--text3);margin-top:6px;line-height:1.6}
+.tgt-note{font-size:12px;color:var(--text3);margin-top:6px;line-height:1.6}
 .spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .day-tot{background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:11px;border:1px solid var(--border)}
 .dt-segs{display:flex;height:12px;border-radius:7px;overflow:hidden;margin:6px 0}
 .dt-seg{transition:width .8s}
 .dt-legend{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
-.dl{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text2)}
+.dl{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)}
 .dl-dot{width:8px;height:8px;border-radius:50%}
 .submit-btn{width:100%;background:var(--g);color:#fff;border:none;border-radius:11px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;transition:opacity .13s}
 .submit-btn:hover{opacity:.9}
@@ -153,7 +153,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .sc{background:var(--bg);border-radius:10px;padding:10px 13px}
 .sc-l{font-size:11px;color:var(--text2);margin-bottom:4px}
 .sc-v{font-size:21px;font-weight:600;color:var(--text)}
-.sc-s{font-size:10px;font-weight:600;margin-top:3px}
+.sc-s{font-size:12px;font-weight:600;margin-top:3px}
 .sc-s.up{color:var(--g)}.sc-s.flat{color:var(--text3)}
 .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:11px;margin-bottom:11px}
 .cw-t{font-size:12px;font-weight:600;color:var(--text);margin-bottom:9px}
@@ -161,8 +161,8 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .bc{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1}
 .bar{width:100%;border-radius:4px 4px 0 0;background:var(--g2);border:1px solid var(--g);cursor:pointer;transition:background .13s}
 .bar:hover,.bar.t{background:var(--g)}
-.bar-d{font-size:9px;color:var(--text3)}
-.bar-v{font-size:9px;color:var(--text3);margin-bottom:2px}
+.bar-d{font-size:11px;color:var(--text3)}
+.bar-v{font-size:11px;color:var(--text3);margin-bottom:2px}
 
 /* 外食速查 */
 .fb{padding:13px 16px}
@@ -171,7 +171,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .f-cats::-webkit-scrollbar{display:none}
 .fc{display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0;cursor:pointer}
 .fc-ic{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1px solid var(--border);background:var(--card);transition:all .13s}
-.fc-lb{font-size:9px;color:var(--text2);white-space:nowrap;text-align:center;line-height:1.4}
+.fc-lb{font-size:11px;color:var(--text2);white-space:nowrap;text-align:center;line-height:1.4}
 .fc.on .fc-ic{border-color:var(--g);background:var(--g2)}
 .fc.on .fc-lb{color:var(--g3);font-weight:600}
 .f-content{display:none}.f-content.on{display:block}
@@ -188,7 +188,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .fr-dot.g{background:var(--g)}.fr-dot.a{background:var(--a)}.fr-dot.r{background:var(--r)}
 .fr-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
 .fr-desc{font-size:11px;color:var(--text2);line-height:1.5}
-.fr-tag{font-size:10px;border-radius:20px;padding:2px 8px;font-weight:600;flex-shrink:0;margin-left:auto;align-self:flex-start}
+.fr-tag{font-size:12px;border-radius:20px;padding:2px 8px;font-weight:600;flex-shrink:0;margin-left:auto;align-self:flex-start}
 .fr-tag.ok{background:var(--g2);color:var(--g3)}
 .fr-tag.a{background:var(--a2);color:var(--a3)}
 .fr-tag.r{background:var(--r2);color:var(--r3)}
@@ -196,7 +196,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .ftip.ok{background:var(--g2);color:var(--g3)}
 .ftip.warn{background:var(--a2);color:var(--a3)}
 .brand-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
-.brand-tag{background:var(--b2);color:var(--b3);border-radius:20px;padding:3px 9px;font-size:10px;font-weight:600}
+.brand-tag{background:var(--b2);color:var(--b3);border-radius:20px;padding:3px 9px;font-size:12px;font-weight:600}
 
 /* IRCT */
 .irct-
@@ -206,24 +206,24 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .it.on{color:var(--g);border-bottom-color:var(--g);font-weight:600}
 .itc{display:none}.itc.on{display:block}
 .irct-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:11px}
-.irct-table th{font-size:10px;color:var(--text2);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border2);background:var(--bg)}
+.irct-table th{font-size:12px;color:var(--text2);font-weight:600;text-align:left;padding:6px 8px;border-bottom:1px solid var(--border2);background:var(--bg)}
 .irct-table td{padding:8px 8px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
 .irct-table tr:hover td{background:var(--bg)}
 .val-ok{color:var(--g3);font-size:14px;font-weight:600}
 .val-warn{color:var(--a3);font-size:14px;font-weight:600}
 .val-na{color:var(--text3);font-size:14px;font-weight:600}
-.bdc{font-size:10px;color:var(--text3);line-height:1.5;margin-top:2px}
-.badge-ok{background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap}
-.badge-warn{background:var(--a2);color:var(--a3);border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap}
+.bdc{font-size:12px;color:var(--text3);line-height:1.5;margin-top:2px}
+.badge-ok{background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap}
+.badge-warn{background:var(--a2);color:var(--a3);border-radius:20px;padding:2px 8px;font-size:12px;font-weight:600;white-space:nowrap}
 .sec-card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:10px}
 .sec-card-hd{background:var(--bg);padding:9px 12px;font-size:11px;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
 .bc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0}
 .bci{padding:10px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
 .bci:nth-child(2n){border-right:none}
 .bci:nth-last-child(-n+2){border-bottom:none}
-.bci-lbl{font-size:10px;color:var(--text2);margin-bottom:4px}
+.bci-lbl{font-size:12px;color:var(--text2);margin-bottom:4px}
 .bci-val{font-size:17px;font-weight:600}
-.bci-tgt{font-size:10px;color:var(--text3);margin-top:3px;line-height:1.4}
+.bci-tgt{font-size:12px;color:var(--text3);margin-top:3px;line-height:1.4}
 .bci-bar{height:5px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:5px}
 .bci-fill{height:100%;border-radius:3px}
 .irct-footer{background:var(--g2);border:1px solid #9FE1CB;border-radius:10px;padding:10px 12px;font-size:11px;color:var(--g3);line-height:1.7;margin-top:3px}
@@ -238,7 +238,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .faq-bd{padding:0 12px 11px;font-size:12px;color:var(--text2);line-height:1.75;display:none}
 .faq-bd.on{display:block}
 .chat-area{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;min-height:80px;margin-bottom:9px;max-height:200px;overflow-y:auto}
-.cm-n{font-size:10px;color:var(--text3);margin-bottom:3px}
+.cm-n{font-size:12px;color:var(--text3);margin-bottom:3px}
 .cm-b{display:inline-block;border-radius:12px;padding:8px 11px;font-size:12px;line-height:1.75;max-width:90%}
 .cm-b.bot{background:var(--bg);color:var(--text);border:1px solid var(--border)}
 .cm-b.user{background:var(--g);color:#fff;float:right;border-radius:12px 4px 12px 12px}
@@ -314,12 +314,12 @@ window.openHealthForm = function() {
           <div style="font-size:10.5px;opacity:.75" id="wallet-note"></div>
         </div>
         <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 12px">
-          <div style="font-size:10px;opacity:.85">消費時出示</div>
+          <div style="font-size:12px;opacity:.85">消費時出示</div>
           <div style="font-size:17px;font-weight:800;letter-spacing:1px" id="wallet-cid"></div>
         </div>
       </div>
       <div id="wallet-detail" style="display:none;border-top:1px dashed rgba(255,255,255,.3);margin-top:10px;padding-top:8px;font-size:11.5px;line-height:1.7" ></div>
-      <div style="font-size:10px;opacity:.6;text-align:center;margin-top:6px">點一下展開消費明細</div>
+      <div style="font-size:12px;opacity:.6;text-align:center;margin-top:6px">點一下展開消費明細</div>
     </div>
     <div style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:14px;padding:13px 15px;margin-bottom:12px">
       <!-- 影片說明 -->
@@ -353,12 +353,12 @@ window.openHealthForm = function() {
           <span style="font-size:18px">🌱</span>
           <div>
             <div style="font-size:12px;font-weight:700;color:#fff">代謝花園</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.75);margin-top:1px">肥胖減脂型・燃脂花園</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:1px">肥胖減脂型・燃脂花園</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:7px">
-          <div id="travel-badge" style="display:none;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 9px;font-size:10px;color:#fff;font-weight:600">✈️ 旅行中</div>
-          <button onclick="toggleTravel()" id="travel-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 10px;font-size:10px;color:#fff;cursor:pointer;font-weight:600">✈️ 旅行模式</button>
+          <div id="travel-badge" style="display:none;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 9px;font-size:12px;color:#fff;font-weight:600">✈️ 旅行中</div>
+          <button onclick="toggleTravel()" id="travel-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 10px;font-size:12px;color:#fff;cursor:pointer;font-weight:600">✈️ 旅行模式</button>
         </div>
       </div>
 
@@ -371,13 +371,13 @@ window.openHealthForm = function() {
             <div style="height:6px;background:#D1FAE5;border-radius:3px;overflow:hidden">
               <div style="height:100%;width:68%;background:#1D9E75;border-radius:3px;transition:width .6s"></div>
             </div>
-            <div style="font-size:10px;color:#6B7280;margin-top:3px">距離花圃還差 5 天 · 第 37 天解鎖</div>
+            <div style="font-size:12px;color:#4B5563;margin-top:3px">距離花圃還差 5 天 · 第 37 天解鎖</div>
           </div>
         </div>
 
         <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
           <span id="garden-task-title">今日花園任務</span>
-          <span id="garden-task-count" style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700">2 / 5</span>
+          <span id="garden-task-count" style="background:#E1F5EE;color:#085041;border-radius:20px;padding:2px 9px;font-size:12px;font-weight:700">2 / 5</span>
         </div>
         <div style="background:#FFFBEB;border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;align-items:center;gap:6px">
           <span style="font-size:14px">✨</span>
@@ -385,39 +385,39 @@ window.openHealthForm = function() {
         </div>
         <div style="display:flex;flex-direction:column;gap:6px" id="garden-tasks">
           <div class="g-task" id="home-gt0" onclick="goTaskPage(0)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
-            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt0-check">○</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt0-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">🩸 血酮記錄</div>
-            <div style="font-size:10px;color:#9CA3AF">點擊記錄 →</div>
+            <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt1" onclick="goTaskPage(1)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
-            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt1-check">○</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt1-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">📏 體重腰圍</div>
-            <div style="font-size:10px;color:#9CA3AF">點擊記錄 →</div>
+            <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt2" onclick="goTaskPage(2)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
-            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt2-check">○</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt2-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">📷 今日飲食記錄</div>
-            <div style="font-size:10px;color:#9CA3AF">點擊記錄 →</div>
+            <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt3" onclick="goTaskPage(3)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
-            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt3-check">○</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt3-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">💦 補電解質</div>
-            <div style="font-size:10px;color:#9CA3AF">點擊記錄 →</div>
+            <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt4" onclick="goTaskPage(4)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
-            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt4-check">○</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt4-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">😊 今日體感</div>
-            <div style="font-size:10px;color:#9CA3AF">點擊記錄 →</div>
+            <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt5" onclick="goTaskPage(5)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
-            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt5-check">○</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt5-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">🌙 早睡11點前</div>
-            <div style="font-size:10px;color:#9CA3AF">點擊打勾</div>
+            <div style="font-size:12px;color:#6B7280">點擊打勾</div>
           </div>
           <div class="g-task" id="home-gt6" onclick="goTaskPage(6)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
-            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt6-check">○</div>
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt6-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">🙏 今日感謝</div>
-            <div style="font-size:10px;color:#9CA3AF">點擊記錄</div>
+            <div style="font-size:12px;color:#6B7280">點擊記錄</div>
           </div>
         </div>
 
@@ -433,13 +433,13 @@ window.openHealthForm = function() {
 
         <!-- 本週花園元素 -->
         <div style="margin-top:11px;padding-top:10px;border-top:1px solid #F3F4F6">
-          <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">本週花園元素</div>
+          <div style="font-size:12px;font-weight:700;color:#6B7280;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px">本週花園元素</div>
           <div style="display:flex;gap:5px;flex-wrap:wrap">
             <div style="background:#E1F5EE;border-radius:20px;padding:4px 10px;font-size:11px;color:#085041;font-weight:600">💧×5</div>
             <div style="background:#E1F5EE;border-radius:20px;padding:4px 10px;font-size:11px;color:#085041;font-weight:600">🍃×4</div>
             <div style="background:#E1F5EE;border-radius:20px;padding:4px 10px;font-size:11px;color:#085041;font-weight:600">☀️×2</div>
             <div style="background:#E1F5EE;border-radius:20px;padding:4px 10px;font-size:11px;color:#085041;font-weight:600">🌸×3</div>
-            <div style="background:#F3F4F6;border-radius:20px;padding:4px 10px;font-size:11px;color:#9CA3AF">👣 待收集</div>
+            <div style="background:#F3F4F6;border-radius:20px;padding:4px 10px;font-size:11px;color:#6B7280">👣 待收集</div>
           </div>
           <div style="font-size:11px;color:#0F6E56;margin-top:7px;line-height:1.6">本週花園已長出<strong>第一株小樹</strong>！再收集 2 個元素，花園將開出第一朵花 🌸</div>
         </div>
@@ -453,32 +453,32 @@ window.openHealthForm = function() {
           <span style="font-size:18px">✈️</span>
           <div>
             <div style="font-size:12px;font-weight:700;color:#fff">旅行模式啟用中</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.75);margin-top:1px">不追求完美・練習回航</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75);margin-top:1px">不追求完美・練習回航</div>
           </div>
         </div>
-        <button onclick="toggleTravel()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 10px;font-size:10px;color:#fff;cursor:pointer">結束旅行</button>
+        <button onclick="toggleTravel()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 10px;font-size:12px;color:#fff;cursor:pointer">結束旅行</button>
       </div>
       <div style="padding:12px 14px">
         <div style="font-size:11px;color:#1E40AF;line-height:1.7;background:#EFF6FF;border-radius:9px;padding:9px 11px;margin-bottom:10px">旅行中不用追求完美，只練習三件事：<strong>有記錄、有選擇、能回來</strong> 😊</div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <div class="g-task" onclick="toggleGTask(this)" style="display:flex;align-items:center;gap:9px;background:#EFF6FF;border-radius:10px;padding:8px 11px;cursor:pointer">
             <span style="font-size:18px">🧭</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">外食避開大碳水</div><div style="font-size:10px;color:#3B82F6;margin-top:1px">麵飯麵包甜點先避開</div></div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">外食避開大碳水</div><div style="font-size:12px;color:#3B82F6;margin-top:1px">麵飯麵包甜點先避開</div></div>
             <div style="width:20px;height:20px;border-radius:50%;background:#DBEAFE;border:1.5px solid #93C5FD;display:flex;align-items:center;justify-content:center;font-size:11px;color:#3B82F6">○</div>
           </div>
           <div class="g-task" onclick="toggleGTask(this)" style="display:flex;align-items:center;gap:9px;background:#EFF6FF;border-radius:10px;padding:8px 11px;cursor:pointer">
             <span style="font-size:18px">💧</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">吃碳水就不要吃油</div><div style="font-size:10px;color:#3B82F6;margin-top:1px">減少胰島素衝擊的關鍵</div></div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">吃碳水就不要吃油</div><div style="font-size:12px;color:#3B82F6;margin-top:1px">減少胰島素衝擊的關鍵</div></div>
             <div style="width:20px;height:20px;border-radius:50%;background:#DBEAFE;border:1.5px solid #93C5FD;display:flex;align-items:center;justify-content:center;font-size:11px;color:#3B82F6">○</div>
           </div>
           <div class="g-task" onclick="toggleGTask(this)" style="display:flex;align-items:center;gap:9px;background:#EFF6FF;border-radius:10px;padding:8px 11px;cursor:pointer">
             <span style="font-size:18px">🍽</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">適當補充纖維質</div><div style="font-size:10px;color:#3B82F6;margin-top:1px">蔬菜、菇類、豆類優先</div></div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">適當補充纖維質</div><div style="font-size:12px;color:#3B82F6;margin-top:1px">蔬菜、菇類、豆類優先</div></div>
             <div style="width:20px;height:20px;border-radius:50%;background:#DBEAFE;border:1.5px solid #93C5FD;display:flex;align-items:center;justify-content:center;font-size:11px;color:#3B82F6">○</div>
           </div>
           <div class="g-task" onclick="toggleGTask(this)" style="display:flex;align-items:center;gap:9px;background:#EFF6FF;border-radius:10px;padding:8px 11px;cursor:pointer">
             <span style="font-size:18px">🔄</span>
-            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">踩雷後可採 18:6</div><div style="font-size:10px;color:#3B82F6;margin-top:1px">禁食 18 小時幫助身體重置</div></div>
+            <div style="flex:1"><div style="font-size:12px;font-weight:600;color:#1E40AF">踩雷後可採 18:6</div><div style="font-size:12px;color:#3B82F6;margin-top:1px">禁食 18 小時幫助身體重置</div></div>
             <div style="width:20px;height:20px;border-radius:50%;background:#DBEAFE;border:1.5px solid #93C5FD;display:flex;align-items:center;justify-content:center;font-size:11px;color:#3B82F6">○</div>
           </div>
         </div>
@@ -489,9 +489,9 @@ window.openHealthForm = function() {
     <div class="week-card">
       <div style="font-size:12px;font-weight:600;color:var(--b3);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-calendar-stats"></i>本週小結</div>
       <div class="wc-grid">
-        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-ketone">–</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">平均血酮<br>mmol/L</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-ketone-sub">近 7 天</div></div>
-        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-fillrate">–</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">記錄<br>填寫率</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px">本週</div></div>
-        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-weight">–</div><div style="font-size:10px;color:var(--b);margin-top:3px;line-height:1.4">體重<br>kg</div><div style="font-size:10px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-weight-sub">加入以來</div></div>
+        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-ketone">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">平均血酮<br>mmol/L</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-ketone-sub">近 7 天</div></div>
+        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-fillrate">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">記錄<br>填寫率</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px">本週</div></div>
+        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-weight">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">體重<br>kg</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-weight-sub">加入以來</div></div>
       </div>
     </div>
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">常用功能</div>
@@ -606,7 +606,7 @@ window.openHealthForm = function() {
       <i class="ti ti-camera" style="font-size:14px"></i>前往飲食記錄
     </button>
 
-    <div class="sec" id="diet-section"><i class="ti ti-camera" style="font-size:13px"></i>飲食記錄<span style="margin-left:auto;font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 8px;font-weight:600">拍照記錄・秘書把關</span></div>
+    <div class="sec" id="diet-section"><i class="ti ti-camera" style="font-size:13px"></i>飲食記錄<span style="margin-left:auto;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 8px;font-weight:600">拍照記錄・秘書把關</span></div>
 <!-- 🍽 餐盤快記 -->
 <div style="background:#fff;border:1px solid #E2EDE7;border-radius:14px;padding:14px;margin:12px 0">
   <div style="font-size:13.5px;font-weight:800;color:#1E2B27;margin-bottom:3px">🍽 餐盤快記（選填，10 秒）</div>
@@ -683,7 +683,7 @@ window.openHealthForm = function() {
             <div style="font-size:11px;color:var(--text3)">上傳後 秘書會看到，給你更準的建議</div>
             <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('b')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('b')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
           </div>
-          <div id="b-content" style="display:none"><div class="pt-grid" id="b-grid"></div><input class="inp" placeholder="補充說明（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px"><div style="font-size:10px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div><div class="ai-card" id="b-ai"></div></div>
+          <div id="b-content" style="display:none"><div class="pt-grid" id="b-grid"></div><input class="inp" placeholder="補充說明（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px"><div style="font-size:12px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div><div class="ai-card" id="b-ai"></div></div>
         </div>
       </div>
     </div>
@@ -700,7 +700,7 @@ window.openHealthForm = function() {
         <div class="meal-body" style="display:none" id="l-content">
           <div class="pt-grid" id="l-grid"></div>
           <input class="inp" placeholder="備註食物名稱（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px" oninput="onMealTextInput('l',this.value)">
-          <div style="font-size:10px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div>
+          <div style="font-size:12px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div>
           <div class="ai-card" id="l-ai" style="display:none"></div>
         </div>
         <div class="pz" id="lz" onclick="uploadMeal('l')">
@@ -727,7 +727,7 @@ window.openHealthForm = function() {
             <div style="font-size:11px;color:var(--text3)">上傳後 秘書會看到，給你更準的建議</div>
             <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('d')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('d')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
           </div>
-          <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><input class="inp" placeholder="補充說明（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px"><div style="font-size:10px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div><div class="ai-card" id="d-ai"></div></div>
+          <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><input class="inp" placeholder="補充說明（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px"><div style="font-size:12px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div><div class="ai-card" id="d-ai"></div></div>
         </div>
       </div>
     </div>
@@ -775,7 +775,7 @@ window.openHealthForm = function() {
         </div>
         <div id="mw-goal-badge" style="display:none;background:rgba(255,255,255,.18);border-radius:12px;padding:8px 14px;text-align:center">
           <div style="font-size:16px;font-weight:800" id="mw-goal-diff">–</div>
-          <div style="font-size:10px;opacity:.85">距離目標</div>
+          <div style="font-size:12px;opacity:.85">距離目標</div>
         </div>
       </div>
     </div>
@@ -876,9 +876,9 @@ window.openHealthForm = function() {
       <div style="font-size:14px;font-weight:700;margin-bottom:4px">粒腺體健康之旅・第一階段外食實戰指南</div>
       <div style="font-size:11px;opacity:.8;line-height:1.5">三原則：選原型食物・看得到油・避開糖</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">
-        <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:10px">碳水 ≤20g/天</div>
-        <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:10px">油脂 ≥70%熱量</div>
-        <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:10px">葉菜不計碳水</div>
+        <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:12px">碳水 ≤20g/天</div>
+        <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:12px">油脂 ≥70%熱量</div>
+        <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:12px">葉菜不計碳水</div>
       </div>
     </div>
     <div class="f-cats">
@@ -891,8 +891,8 @@ window.openHealthForm = function() {
       <div class="fc" onclick="showFCat(this,'fc-tips')"><div class="fc-ic">💡</div><div class="fc-lb">外食<br>原則</div></div>
     </div>
     <div class="f-content on" id="fc-conv">
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">① 蔬菜沙拉盒（超商實戰）</div><span style="font-size:10px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">可以</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">一日野菜（海藻沙拉底）</div><div class="fr-desc">海苔沙拉、高苣基底，低碳安全</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">彩蔬沙拉</div><div class="fr-desc">需手動挑除根莖類（紅蘿蔔、玉米、南瓜等）</div></div><div class="fr-tag a">挑除根莖</div></div><div class="ftip">醬料選油醋或和風醬。可自帶 MINIOLIVA 橄欖油隨行包淋上補油。</div></div></div>
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">② 帶皮烤雞翅 / 烤雞腿</div><span style="font-size:10px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">強力推薦</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">美式肯瓊翅、紐奧良、蒜蒜辣</div><div class="fr-desc">以天然油脂為主，蛋白質＋油脂好來源</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">麻辣雞心</div><div class="fr-desc">高油脂、高蛋白，適合粒腺體</div></div><div class="fr-tag ok">可以</div></div><div class="ftip">品牌：<div class="brand-row"><div class="brand-tag">媽媽煮藝</div><div class="brand-tag">御料小館</div><div class="brand-tag">小松哥</div><div class="brand-tag">鑽魚蛋家</div></div></div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">① 蔬菜沙拉盒（超商實戰）</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">可以</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">一日野菜（海藻沙拉底）</div><div class="fr-desc">海苔沙拉、高苣基底，低碳安全</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">彩蔬沙拉</div><div class="fr-desc">需手動挑除根莖類（紅蘿蔔、玉米、南瓜等）</div></div><div class="fr-tag a">挑除根莖</div></div><div class="ftip">醬料選油醋或和風醬。可自帶 MINIOLIVA 橄欖油隨行包淋上補油。</div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">② 帶皮烤雞翅 / 烤雞腿</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">強力推薦</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">美式肯瓊翅、紐奧良、蒜蒜辣</div><div class="fr-desc">以天然油脂為主，蛋白質＋油脂好來源</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">麻辣雞心</div><div class="fr-desc">高油脂、高蛋白，適合粒腺體</div></div><div class="fr-tag ok">可以</div></div><div class="ftip">品牌：<div class="brand-row"><div class="brand-tag">媽媽煮藝</div><div class="brand-tag">御料小館</div><div class="brand-tag">小松哥</div><div class="brand-tag">鑽魚蛋家</div></div></div></div></div>
       <div class="ftip warn" style="margin-bottom:9px">超商飲料：黑咖啡、無糖茶、氣泡水最安全。飯糰、麵包完全避免。</div>
     </div>
     <div class="f-content" id="fc-snack">
@@ -920,9 +920,9 @@ window.openHealthForm = function() {
     </div>
     <div class="f-content" id="fc-tips">
       <div style="display:flex;gap:8px;margin-bottom:12px">
-        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center"><div style="font-size:24px;margin-bottom:6px">🥩</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">選原型食物</div><div style="font-size:10px;color:var(--text2);line-height:1.4">看得出食材原貌</div></div>
-        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center"><div style="font-size:24px;margin-bottom:6px">✨</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">看得到油</div><div style="font-size:10px;color:var(--text2);line-height:1.4">菜油亮亮、湯有油珠</div></div>
-        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center"><div style="font-size:24px;margin-bottom:6px">🚫</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">避開糖</div><div style="font-size:10px;color:var(--text2);line-height:1.4">甜醬、勾芡、糖飲</div></div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center"><div style="font-size:24px;margin-bottom:6px">🥩</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">選原型食物</div><div style="font-size:12px;color:var(--text2);line-height:1.4">看得出食材原貌</div></div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center"><div style="font-size:24px;margin-bottom:6px">✨</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">看得到油</div><div style="font-size:12px;color:var(--text2);line-height:1.4">菜油亮亮、湯有油珠</div></div>
+        <div style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center"><div style="font-size:24px;margin-bottom:6px">🚫</div><div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">避開糖</div><div style="font-size:12px;color:var(--text2);line-height:1.4">甜醬、勾芡、糖飲</div></div>
       </div>
       <div class="ftip ok">出門前喝奶油咖啡或吃一小匙奶油，穩血糖、延長飽足感。隨身帶橄欖油隨行包補油。不小心吃到糖？隔天回到斷碳、補鹽補油，血酮很快回來 😊</div>
     </div>
@@ -1044,7 +1044,7 @@ window.openHealthForm = function() {
         <div style="font-size:20px">🔬</div>
         <div style="flex:1">
           <div style="font-size:12.5px;font-weight:700;color:var(--g3)">想再檢測一次？</div>
-          <div style="font-size:10px;color:var(--text3)">不用等提醒，隨時都能直接預約新的 IRCT</div>
+          <div style="font-size:12px;color:var(--text3)">不用等提醒，隨時都能直接預約新的 IRCT</div>
         </div>
         <div style="font-size:16px;color:var(--g)">›</div>
       </div>
@@ -1070,7 +1070,7 @@ window.openHealthForm = function() {
         <div style="font-size:22px">✅</div>
         <div>
           <div style="font-size:12px;font-weight:700;color:var(--g3)">報告已出爐！</div>
-          <div style="font-size:10px;color:var(--g3)">秘書正在安排時間，會主動與你討論報告內容</div>
+          <div style="font-size:12px;color:var(--g3)">秘書正在安排時間，會主動與你討論報告內容</div>
         </div>
       </div>
       <div id="irct-substatus-coaching" style="display:none;background:var(--card);border-radius:12px;padding:13px 15px;border:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">
@@ -1078,7 +1078,7 @@ window.openHealthForm = function() {
           <div style="font-size:22px">🌱</div>
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--text)">陪跑進行中</div>
-            <div style="font-size:10px;color:var(--text3)">持續記錄，秘書會在適當時機提醒你複檢</div>
+            <div style="font-size:12px;color:var(--text3)">持續記錄，秘書會在適當時機提醒你複檢</div>
           </div>
         </div>
         <div id="irct-coaching-days" style="font-size:11px;color:var(--g3);font-weight:600;flex-shrink:0">第 1 天</div>
@@ -1088,7 +1088,7 @@ window.openHealthForm = function() {
           <div style="font-size:22px">🎉</div>
           <div>
             <div style="font-size:12px;font-weight:700;margin-bottom:2px">是時候看看你的進步了！</div>
-            <div style="font-size:10px;opacity:.85">陪跑這段時間，你的身體一定有了改變</div>
+            <div style="font-size:12px;opacity:.85">陪跑這段時間，你的身體一定有了改變</div>
           </div>
         </div>
         <button onclick="goPage('booking','預約 IRCT 複檢')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:11px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
@@ -1106,13 +1106,13 @@ window.openHealthForm = function() {
 
   <!-- IRCT Tab列 -->
   <div id="irct-tab-bar" style="white-space:nowrap;overflow-x:auto;background:#fff;border-bottom:2px solid #E5E7EB;-webkit-overflow-scrolling:touch;font-size:0">
-    <div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#1D9E75;border-bottom:2px solid #1D9E75;font-weight:700;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-ov')">綜合分析</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#9CA3AF;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-bg')">血糖動態</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#9CA3AF;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-ins')">胰島素動態</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#9CA3AF;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-met')">代謝損傷</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#9CA3AF;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-org')">器官功能</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#9CA3AF;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-bod');loadBodCompositionTab()">體組成・血酮</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#9CA3AF;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-matrix');showMatrixTab()">代謝體質矩陣</div>
+    <div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#1D9E75;border-bottom:2px solid #1D9E75;font-weight:700;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-ov')">綜合分析</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#6B7280;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-bg')">血糖動態</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#6B7280;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-ins')">胰島素動態</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#6B7280;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-met')">代謝損傷</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#6B7280;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-org')">器官功能</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#6B7280;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-bod');loadBodCompositionTab()">體組成・血酮</div><div style="display:inline-block;padding:10px 13px;font-size:11px;cursor:pointer;color:#6B7280;border-bottom:2px solid transparent;font-weight:500;white-space:nowrap;vertical-align:bottom;margin-bottom:-2px" onclick="itcTab(this,'itc-matrix');showMatrixTab()">代謝體質矩陣</div>
   </div>
 
   <!-- ① 綜合分析 -->
   <div id="itc-ov" style="display:block;padding:14px 16px 28px">
     <div id="itc-ov-content">
-      <div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div>
+      <div style="text-align:center;padding:30px;color:#6B7280;font-size:12px">載入中…</div>
     </div>
     <button onclick="openBooking()" style="width:100%;background:#1D9E75;color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px">
       📅 預約下次 IRCT 複檢
@@ -1121,33 +1121,33 @@ window.openHealthForm = function() {
 
   <!-- ② 血糖動態 -->
   <div id="itc-bg" style="display:none;padding:14px 16px 28px">
-    <div id="itc-bg-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
+    <div id="itc-bg-content"><div style="text-align:center;padding:30px;color:#6B7280;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ③ 胰島素動態 -->
   <div id="itc-ins" style="display:none;padding:14px 16px 28px">
-    <div id="itc-ins-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
+    <div id="itc-ins-content"><div style="text-align:center;padding:30px;color:#6B7280;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ④ 代謝損傷 -->
   <div id="itc-met" style="display:none;padding:14px 16px 28px">
-    <div id="itc-met-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
+    <div id="itc-met-content"><div style="text-align:center;padding:30px;color:#6B7280;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ⑤ 器官功能 -->
   <div id="itc-org" style="display:none;padding:14px 16px 28px">
-    <div id="itc-org-content"><div style="text-align:center;padding:30px;color:#9CA3AF;font-size:12px">載入中…</div></div>
+    <div id="itc-org-content"><div style="text-align:center;padding:30px;color:#6B7280;font-size:12px">載入中…</div></div>
   </div>
 
   <!-- ⑥ 體組成・血酮 -->
   <div id="itc-bod" style="display:none;padding:14px 16px 28px">
-    <div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:10px">🧍 體組成數值對照</div>
-    <div id="itc-bod-nodata" style="display:none;padding:20px 0;text-align:center;color:#9CA3AF;font-size:12px">還沒有 InBody 檢測記錄，健康秘書幫你檢測後就會顯示在這裡</div>
+    <div style="font-size:12px;font-weight:700;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:10px">🧍 體組成數值對照</div>
+    <div id="itc-bod-nodata" style="display:none;padding:20px 0;text-align:center;color:#6B7280;font-size:12px">還沒有 InBody 檢測記錄，健康秘書幫你檢測後就會顯示在這裡</div>
     <div id="itc-bod-rows">
-    <div id="itc-bod-fat" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">體脂肪率</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">理想範圍：女&lt;25%</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0" id="itc-bod-fat-v"></div></div>
+    <div id="itc-bod-fat" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">體脂肪率</div><div style="font-size:12px;color:#6B7280;margin-top:2px">理想範圍：女&lt;25%</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0" id="itc-bod-fat-v"></div></div>
     <div id="itc-bod-fatkg" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">體脂肪 kg</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0" id="itc-bod-fatkg-v"></div></div>
     <div id="itc-bod-wt" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">體重</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0" id="itc-bod-wt-v"></div></div>
-    <div id="itc-bod-bmi" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">BMI</div><div style="font-size:10px;color:#9CA3AF;margin-top:2px">標準：18.5–24 kg/m²</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0" id="itc-bod-bmi-v"></div></div>
+    <div id="itc-bod-bmi" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">BMI</div><div style="font-size:12px;color:#6B7280;margin-top:2px">標準：18.5–24 kg/m²</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0" id="itc-bod-bmi-v"></div></div>
     </div>
     <!-- 血酮 -->
     <div style="background:#FAEEDA;border:1px solid #FCD34D;border-radius:14px;padding:14px;margin-top:14px">
@@ -1156,15 +1156,15 @@ window.openHealthForm = function() {
       </div>
       <div style="display:flex;align-items:center;gap:13px">
         <div style="flex:1;text-align:center;background:rgba(255,255,255,.7);border-radius:11px;padding:12px">
-          <div style="font-size:10px;font-weight:600;color:#633806;margin-bottom:4px">第 1 次</div>
+          <div style="font-size:12px;font-weight:600;color:#633806;margin-bottom:4px">第 1 次</div>
           <div style="font-size:28px;font-weight:700;color:#791F1F">0.1</div>
-          <div style="font-size:10px;font-weight:600;color:#791F1F;margin-top:2px">未達生酮狀態</div>
+          <div style="font-size:12px;font-weight:600;color:#791F1F;margin-top:2px">未達生酮狀態</div>
         </div>
         <div style="font-size:28px;color:#1D9E75;flex-shrink:0;font-weight:700">→</div>
         <div style="flex:1;text-align:center;background:rgba(255,255,255,.7);border-radius:11px;padding:12px">
-          <div style="font-size:10px;font-weight:600;color:#633806;margin-bottom:4px">第 2 次</div>
+          <div style="font-size:12px;font-weight:600;color:#633806;margin-bottom:4px">第 2 次</div>
           <div style="font-size:28px;font-weight:700;color:#085041">1.8</div>
-          <div style="font-size:10px;font-weight:600;color:#085041;margin-top:2px">生酮狀態確認</div>
+          <div style="font-size:12px;font-weight:600;color:#085041;margin-top:2px">生酮狀態確認</div>
         </div>
       </div>
       <div style="font-size:11px;color:#633806;margin-top:11px;line-height:1.7">數值 &gt;0.5 mmol/L 顯示身體已進入生酮狀態，能量來源正在切換中。此數值為粒腺體健康之旅的重要觀察指標。</div>
@@ -1186,37 +1186,37 @@ window.openHealthForm = function() {
       <div style="flex:1">
         <div style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
           <div></div>
-          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#EAF3DE;color:#27500A;font-size:9px;font-weight:600;line-height:1.3">纖細型<br><span style="font-weight:400">受體少</span></div>
-          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#E6F1FB;color:#0C447C;font-size:9px;font-weight:600;line-height:1.3">中間型<br><span style="font-weight:400">受體中</span></div>
-          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#FAEEDA;color:#633806;font-size:9px;font-weight:600;line-height:1.3">囤積型<br><span style="font-weight:400">受體多</span></div>
+          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#EAF3DE;color:#27500A;font-size:11px;font-weight:600;line-height:1.3">纖細型<br><span style="font-weight:400">受體少</span></div>
+          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#E6F1FB;color:#0C447C;font-size:11px;font-weight:600;line-height:1.3">中間型<br><span style="font-weight:400">受體中</span></div>
+          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#FAEEDA;color:#633806;font-size:11px;font-weight:600;line-height:1.3">囤積型<br><span style="font-weight:400">受體多</span></div>
         </div>
 
         <div id="m-row-0" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#E1F5EE;font-size:9px;font-weight:600;color:#085041;line-height:1.3">阻抗低<span style="font-weight:400;color:#0F6E56">健康</span></div>
-          <div class="m-cell" data-r="0" data-c="0" onclick="selCell(0,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:2px solid #1D9E75;background:#EAF3DE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#27500A;line-height:1.3">自然燃脂型</div><div style="font-size:9px;color:#3B6D11;opacity:.85">天生優勢</div><div style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#1D9E75"></div></div>
-          <div class="m-cell" data-r="0" data-c="1" onclick="selCell(0,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #9FE1CB;background:#E1F5EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#085041;line-height:1.3">活躍均衡型</div><div style="font-size:9px;color:#0F6E56;opacity:.85">最理想</div></div>
-          <div class="m-cell" data-r="0" data-c="2" onclick="selCell(0,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #C0DD97;background:#EAF3DE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#27500A;line-height:1.3">肌肉爆發型</div><div style="font-size:9px;color:#3B6D11;opacity:.85">需控脂</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#E1F5EE;font-size:11px;font-weight:600;color:#085041;line-height:1.3">阻抗低<span style="font-weight:400;color:#0F6E56">健康</span></div>
+          <div class="m-cell" data-r="0" data-c="0" onclick="selCell(0,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:2px solid #1D9E75;background:#EAF3DE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#27500A;line-height:1.3">自然燃脂型</div><div style="font-size:11px;color:#3B6D11;opacity:.85">天生優勢</div><div style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#1D9E75"></div></div>
+          <div class="m-cell" data-r="0" data-c="1" onclick="selCell(0,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #9FE1CB;background:#E1F5EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#085041;line-height:1.3">活躍均衡型</div><div style="font-size:11px;color:#0F6E56;opacity:.85">最理想</div></div>
+          <div class="m-cell" data-r="0" data-c="2" onclick="selCell(0,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #C0DD97;background:#EAF3DE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#27500A;line-height:1.3">肌肉爆發型</div><div style="font-size:11px;color:#3B6D11;opacity:.85">需控脂</div></div>
         </div>
 
         <div id="m-row-1" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FAEEDA;font-size:9px;font-weight:600;color:#633806;line-height:1.3">需注意<span style="font-weight:400;color:#854F0B">警戒</span></div>
-          <div class="m-cell" data-r="1" data-c="0" onclick="selCell(1,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#633806;line-height:1.3">隱性警戒型</div><div style="font-size:9px;color:#854F0B;opacity:.85">外表正常</div></div>
-          <div class="m-cell" data-r="1" data-c="1" onclick="selCell(1,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#633806;line-height:1.3">代謝轉折型</div><div style="font-size:9px;color:#854F0B;opacity:.85">黃金時機</div></div>
-          <div class="m-cell" data-r="1" data-c="2" onclick="selCell(1,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#633806;line-height:1.3">囤積前期型</div><div style="font-size:9px;color:#854F0B;opacity:.85">及早介入</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FAEEDA;font-size:11px;font-weight:600;color:#633806;line-height:1.3">需注意<span style="font-weight:400;color:#854F0B">警戒</span></div>
+          <div class="m-cell" data-r="1" data-c="0" onclick="selCell(1,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#633806;line-height:1.3">隱性警戒型</div><div style="font-size:11px;color:#854F0B;opacity:.85">外表正常</div></div>
+          <div class="m-cell" data-r="1" data-c="1" onclick="selCell(1,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#633806;line-height:1.3">代謝轉折型</div><div style="font-size:11px;color:#854F0B;opacity:.85">黃金時機</div></div>
+          <div class="m-cell" data-r="1" data-c="2" onclick="selCell(1,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#633806;line-height:1.3">囤積前期型</div><div style="font-size:11px;color:#854F0B;opacity:.85">及早介入</div></div>
         </div>
 
         <div id="m-row-2" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FAECE7;font-size:9px;font-weight:600;color:#712B13;line-height:1.3">阻抗中<span style="font-weight:400;color:#993C1D">警戒</span></div>
-          <div class="m-cell" data-r="2" data-c="0" onclick="selCell(2,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#712B13;line-height:1.3">疲勞纖細型</div><div style="font-size:9px;color:#993C1D;opacity:.85">勿再節食</div></div>
-          <div class="m-cell" data-r="2" data-c="1" onclick="selCell(2,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#712B13;line-height:1.3">標準阻抗型</div><div style="font-size:9px;color:#993C1D;opacity:.85">最常見</div></div>
-          <div class="m-cell" data-r="2" data-c="2" onclick="selCell(2,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#712B13;line-height:1.3">脂肌並存型</div><div style="font-size:9px;color:#993C1D;opacity:.85">先減脂</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FAECE7;font-size:11px;font-weight:600;color:#712B13;line-height:1.3">阻抗中<span style="font-weight:400;color:#993C1D">警戒</span></div>
+          <div class="m-cell" data-r="2" data-c="0" onclick="selCell(2,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#712B13;line-height:1.3">疲勞纖細型</div><div style="font-size:11px;color:#993C1D;opacity:.85">勿再節食</div></div>
+          <div class="m-cell" data-r="2" data-c="1" onclick="selCell(2,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#712B13;line-height:1.3">標準阻抗型</div><div style="font-size:11px;color:#993C1D;opacity:.85">最常見</div></div>
+          <div class="m-cell" data-r="2" data-c="2" onclick="selCell(2,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#712B13;line-height:1.3">脂肌並存型</div><div style="font-size:11px;color:#993C1D;opacity:.85">先減脂</div></div>
         </div>
 
         <div id="m-row-3" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FCEBEB;font-size:9px;font-weight:600;color:#791F1F;line-height:1.3">阻抗高<span style="font-weight:400;color:#A32D2D">建議就醫評估</span></div>
-          <div class="m-cell" data-r="3" data-c="0" onclick="selCell(3,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#791F1F;line-height:1.3">虛寒阻抗型</div><div style="font-size:9px;color:#A32D2D;opacity:.85">泡芙人</div></div>
-          <div class="m-cell" data-r="3" data-c="1" onclick="selCell(3,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#791F1F;line-height:1.3">代謝症候群型</div><div style="font-size:9px;color:#A32D2D;opacity:.85">積極介入</div></div>
-          <div class="m-cell" data-r="3" data-c="2" onclick="selCell(3,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:10px;font-weight:600;color:#791F1F;line-height:1.3">重度囤積型</div><div style="font-size:9px;color:#A32D2D;opacity:.85">最緊急</div></div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FCEBEB;font-size:11px;font-weight:600;color:#791F1F;line-height:1.3">阻抗高<span style="font-weight:400;color:#A32D2D">建議就醫評估</span></div>
+          <div class="m-cell" data-r="3" data-c="0" onclick="selCell(3,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#791F1F;line-height:1.3">虛寒阻抗型</div><div style="font-size:11px;color:#A32D2D;opacity:.85">泡芙人</div></div>
+          <div class="m-cell" data-r="3" data-c="1" onclick="selCell(3,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#791F1F;line-height:1.3">代謝症候群型</div><div style="font-size:11px;color:#A32D2D;opacity:.85">積極介入</div></div>
+          <div class="m-cell" data-r="3" data-c="2" onclick="selCell(3,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#791F1F;line-height:1.3">重度囤積型</div><div style="font-size:11px;color:#A32D2D;opacity:.85">最緊急</div></div>
         </div>
       </div>
 
@@ -1224,22 +1224,22 @@ window.openHealthForm = function() {
         <div style="height:30px"></div>
         <div style="background:#E1F5EE;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
           <div style="font-size:14px">✅</div>
-          <div style="font-size:9px;font-weight:600;color:#085041">已達標</div>
+          <div style="font-size:11px;font-weight:600;color:#085041">已達標</div>
           <div style="font-size:8px;color:#085041;opacity:.75;line-height:1.3">維持即可</div>
         </div>
         <div style="background:#FFF8F0;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
           <div style="font-size:14px">⚡</div>
-          <div style="font-size:9px;font-weight:600;color:#633806">1-3月</div>
+          <div style="font-size:11px;font-weight:600;color:#633806">1-3月</div>
           <div style="font-size:8px;color:#633806;opacity:.75;line-height:1.3">開始陪跑</div>
         </div>
         <div style="background:#FEF2EE;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
           <div style="font-size:14px">🕐</div>
-          <div style="font-size:9px;font-weight:600;color:#712B13">3-6月</div>
+          <div style="font-size:11px;font-weight:600;color:#712B13">3-6月</div>
           <div style="font-size:8px;color:#712B13;opacity:.75;line-height:1.3">建議陪跑</div>
         </div>
         <div style="background:#FFF0F0;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
           <div style="font-size:14px">🐌</div>
-          <div style="font-size:9px;font-weight:600;color:#791F1F">6-12月</div>
+          <div style="font-size:11px;font-weight:600;color:#791F1F">6-12月</div>
           <div style="font-size:8px;color:#791F1F;opacity:.75;line-height:1.3">盡快陪跑</div>
         </div>
       </div>
@@ -1247,21 +1247,21 @@ window.openHealthForm = function() {
 
     <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
       <div style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0"></div>
-      <div style="font-size:10px;color:var(--text3)">綠點 = 你目前的位置</div>
+      <div style="font-size:12px;color:var(--text3)">綠點 = 你目前的位置</div>
     </div>
 
     <div id="m-detail" style="margin-top:10px;background:var(--card);border-radius:14px;padding:12px 13px;border:0.5px solid var(--border)">
-      <div id="m-tag" style="display:inline-block;font-size:10px;padding:3px 9px;border-radius:20px;margin-bottom:5px;font-weight:500;background:#E1F5EE;color:#085041">阻抗低・纖細型</div>
+      <div id="m-tag" style="display:inline-block;font-size:12px;padding:3px 9px;border-radius:20px;margin-bottom:5px;font-weight:500;background:#E1F5EE;color:#085041">阻抗低・纖細型</div>
       <div id="m-name" style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">自然燃脂型</div>
       <div id="m-desc" style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:9px">天生胰島素受體少，不易囤脂也不易長肌肉。目前代謝健康，這是天生的優勢。維持粒腺體健康之旅即可，若想增肌需要有耐心。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div style="font-size:10px;color:var(--text2)">天生體質<br><span id="m-type" style="color:var(--text);font-weight:600">纖細型</span></div>
-        <div style="font-size:10px;color:var(--text2)">阻抗程度<br><span id="m-level" style="color:var(--text);font-weight:600">低（健康）</span></div>
-        <div style="font-size:10px;color:var(--text2)">常見原因<br><span id="m-cause" style="color:var(--text);font-weight:600">天生體質優勢</span></div>
-        <div style="font-size:10px;color:var(--text2)">陪跑重點<br><span id="m-focus" style="color:var(--text);font-weight:600">維持粒腺體、可討論增肌</span></div>
+        <div style="font-size:12px;color:var(--text2)">天生體質<br><span id="m-type" style="color:var(--text);font-weight:600">纖細型</span></div>
+        <div style="font-size:12px;color:var(--text2)">阻抗程度<br><span id="m-level" style="color:var(--text);font-weight:600">低（健康）</span></div>
+        <div style="font-size:12px;color:var(--text2)">常見原因<br><span id="m-cause" style="color:var(--text);font-weight:600">天生體質優勢</span></div>
+        <div style="font-size:12px;color:var(--text2)">陪跑重點<br><span id="m-focus" style="color:var(--text);font-weight:600">維持粒腺體、可討論增肌</span></div>
       </div>
     </div>
-    <div style="font-size:9px;color:var(--text3);margin-top:6px;line-height:1.4">改善所需時間為積極執行的參考預估，實際因人而異</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.4">改善所需時間為積極執行的參考預估，實際因人而異</div>
   </div>
 </div>
 
@@ -1324,15 +1324,15 @@ window.openHealthForm = function() {
     </div>
     <!-- 步驟指示器 -->
     <div style="display:flex;align-items:center;padding:11px 14px;background:var(--bg);border-bottom:1px solid var(--border)">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs1" style="width:24px;height:24px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">1</div><div style="font-size:9px;color:var(--g);font-weight:700;text-align:center">飲食模式</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs1" style="width:24px;height:24px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">1</div><div style="font-size:11px;color:var(--g);font-weight:700;text-align:center">飲食模式</div></div>
       <div id="bl1" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs2" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">2</div><div style="font-size:9px;color:var(--text3);text-align:center">選方案</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs2" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">2</div><div style="font-size:11px;color:var(--text3);text-align:center">選方案</div></div>
       <div id="bl2" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs3" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">3</div><div style="font-size:9px;color:var(--text3);text-align:center">選診所</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs3" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">3</div><div style="font-size:11px;color:var(--text3);text-align:center">選診所</div></div>
       <div id="bl3" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs4" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">4</div><div style="font-size:9px;color:var(--text3);text-align:center">選時間</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs4" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">4</div><div style="font-size:11px;color:var(--text3);text-align:center">選時間</div></div>
       <div id="bl4" style="flex:1;height:2px;background:var(--border);max-width:22px"></div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs5" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">✓</div><div style="font-size:9px;color:var(--text3);text-align:center">完成</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1"><div id="bs5" style="width:24px;height:24px;border-radius:50%;background:var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">✓</div><div style="font-size:11px;color:var(--text3);text-align:center">完成</div></div>
     </div>
 
     <!-- Step 1：飲食模式 -->
@@ -1341,33 +1341,33 @@ window.openHealthForm = function() {
       <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">選擇最接近你目前飲食習慣的選項，結果將與上次報告對照。</div>
       <div id="bk-prev-diet-card" style="background:var(--b2);border:1px solid #93C5FD;border-radius:10px;padding:9px 12px;margin-bottom:12px;display:flex;align-items:center;gap:9px">
         <span style="font-size:20px" id="bk-prev-diet-icon">📋</span>
-        <div><div style="font-size:10px;font-weight:700;color:var(--b3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px" id="bk-prev-diet-label">請選擇你目前的飲食習慣</div><div style="font-size:12px;font-weight:700;color:var(--b3)" id="bk-prev-diet-value">這將作為你的飲食基準線</div><div style="font-size:10px;color:var(--b);margin-top:2px" id="bk-prev-diet-note">用於跟之後的檢測結果比較</div></div>
+        <div><div style="font-size:12px;font-weight:700;color:var(--b3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px" id="bk-prev-diet-label">請選擇你目前的飲食習慣</div><div style="font-size:12px;font-weight:700;color:var(--b3)" id="bk-prev-diet-value">這將作為你的飲食基準線</div><div style="font-size:12px;color:var(--b);margin-top:2px" id="bk-prev-diet-note">用於跟之後的檢測結果比較</div></div>
       </div>
       <div id="bk-diet-options">
         <div class="bk-opt" id="bkopt1" onclick="bkSelectDiet(1)" style="border:1.5px solid var(--border2);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all .18s;background:var(--card);position:relative">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:20px">🍞</span><div style="font-size:13px;font-weight:700;color:var(--text)">混合飲食</div></div>
-          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:50%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#A32D2D;width:26px;text-align:right">50%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:30%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#0C447C;width:26px;text-align:right">30%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:10px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:20%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#085041;width:26px;text-align:right">20%</div></div></div>
+          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:50%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#A32D2D;width:26px;text-align:right">50%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:30%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#0C447C;width:26px;text-align:right">30%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:12px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:20%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#085041;width:26px;text-align:right">20%</div></div></div>
           <div style="font-size:11px;color:var(--text2)">碳水 50%，蛋白質 30%，脂肪偏少。一般人常見的日常飲食。</div>
         </div>
         <div class="bk-opt" id="bkopt2" onclick="bkSelectDiet(2)" style="border:1.5px solid var(--border2);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all .18s;background:var(--card);position:relative">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:20px">🥗</span><div style="font-size:13px;font-weight:700;color:var(--text)">低碳飲食</div></div>
-          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:30%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#A32D2D;width:26px;text-align:right">30%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:40%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#0C447C;width:26px;text-align:right">40%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:10px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:30%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#085041;width:26px;text-align:right">30%</div></div></div>
+          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:30%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#A32D2D;width:26px;text-align:right">30%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:40%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#0C447C;width:26px;text-align:right">40%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:12px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:30%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#085041;width:26px;text-align:right">30%</div></div></div>
           <div style="font-size:11px;color:var(--text2)">碳水 30%，蛋白質 40%，有意識地減少主食。</div>
         </div>
         <div class="bk-opt" id="bkopt3" onclick="bkSelectDiet(3)" style="border:1.5px solid var(--g);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;background:var(--g2);position:relative">
           <div style="position:absolute;top:10px;right:12px;width:20px;height:20px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">✓</div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:20px">🥑</span><div style="font-size:13px;font-weight:700;color:var(--g3)">粒腺體飲食</div></div>
-          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--g3);width:36px">碳水</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:5%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#A32D2D;width:26px;text-align:right">5%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--g3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:25%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#0C447C;width:26px;text-align:right">25%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:10px;color:var(--g3);width:36px">脂肪</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:70%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#085041;width:26px;text-align:right">70%</div></div></div>
+          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--g3);width:36px">碳水</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:5%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#A32D2D;width:26px;text-align:right">5%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--g3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:25%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#0C447C;width:26px;text-align:right">25%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:12px;color:var(--g3);width:36px">脂肪</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:70%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#085041;width:26px;text-align:right">70%</div></div></div>
           <div style="font-size:11px;color:var(--g3)">碳水 5%，蛋白質 25%，脂肪 70%。</div>
         </div>
         <div class="bk-opt" id="bkopt4" onclick="bkSelectDiet(4)" style="border:1.5px solid var(--border2);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all .18s;background:var(--card);position:relative">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:20px">🥦</span><div style="font-size:13px;font-weight:700;color:var(--text)">高纖低脂飲食</div></div>
-          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:60%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#A32D2D;width:26px;text-align:right">60%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:25%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#0C447C;width:26px;text-align:right">25%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:10px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:15%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#085041;width:26px;text-align:right">15%</div></div></div>
+          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:60%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#A32D2D;width:26px;text-align:right">60%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:25%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#0C447C;width:26px;text-align:right">25%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:12px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:15%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#085041;width:26px;text-align:right">15%</div></div></div>
           <div style="font-size:11px;color:var(--text2)">高纖維蔬菜為主，熱量偏低，刻意減少油脂攝取。</div>
         </div>
         <div class="bk-opt" id="bkopt5" onclick="bkSelectDiet(5)" style="border:1.5px solid var(--border2);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:all .18s;background:var(--card);position:relative">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:20px">🍰</span><div style="font-size:13px;font-weight:700;color:var(--text)">高碳水飲食</div></div>
-          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:70%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#A32D2D;width:26px;text-align:right">70%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:10px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:15%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#0C447C;width:26px;text-align:right">15%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:10px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:15%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:10px;font-weight:700;color:#085041;width:26px;text-align:right">15%</div></div></div>
+          <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">碳水</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:70%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#A32D2D;width:26px;text-align:right">70%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--text3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:15%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#0C447C;width:26px;text-align:right">15%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:12px;color:var(--text3);width:36px">脂肪</div><div style="flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:15%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#085041;width:26px;text-align:right">15%</div></div></div>
           <div style="font-size:11px;color:var(--text2)">甜食、點心、零食、飲料、吃到飽，不忌口。</div>
         </div>
       </div>
@@ -1382,7 +1382,7 @@ window.openHealthForm = function() {
           <span style="font-size:12px;font-weight:700;color:#92400E">秘書建議加測項目</span>
         </div>
         <div id="bk-extra-tests-list" style="font-size:11px;color:#92400E;line-height:1.8"></div>
-        <div style="font-size:10px;color:#B45309;margin-top:6px">複測時可一併加測，讓報告更完整（費用另計，現場可諮詢）</div>
+        <div style="font-size:12px;color:#B45309;margin-top:6px">複測時可一併加測，讓報告更完整（費用另計，現場可諮詢）</div>
       </div>
       <button id="bk-next1" onclick="bkGoStep2()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">下一步：選擇診所 →</button>
     </div>
@@ -1400,14 +1400,14 @@ window.openHealthForm = function() {
             <div style="font-size:13px;font-weight:700;color:var(--g3)" id="bk-price-t1">NT$4,800</div>
           </div>
           <div style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:8px">適合：尚未服用慢性病藥物者<br>常見情況：肥胖、脂肪肝、糖化血色素異常、膽固醇異常、肝功能異常、腰圍大、反覆復胖、較年輕者、慢性發炎、情緒困擾、多囊性卵巢</div>
-          <div onclick="event.stopPropagation();toggleTip('irct-full-t1')" style="font-size:10px;color:var(--text3);text-decoration:underline;cursor:pointer;margin-bottom:6px">查看完整檢測項目 ▾</div>
+          <div onclick="event.stopPropagation();toggleTip('irct-full-t1')" style="font-size:12px;color:var(--text3);text-decoration:underline;cursor:pointer;margin-bottom:6px">查看完整檢測項目 ▾</div>
           <div id="irct-full-t1" style="display:none;background:var(--bg);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:9.5px;color:var(--text2);line-height:1.7">
             <b>抽血：</b>空腹醣化血色素、三酸甘油脂、膽固醇、高密度膽固醇、低密度膽固醇、肌酸酐、尿酸、GOT、GPT、腎絲球過濾率eGFR、空腹及飯後1/2/3小時血糖、空腹及飯後1/2/3小時胰島素、空腹血酮<br>
             <b>身體組成：</b>身高、體重、體脂率/體脂肪、內臟脂肪、腰圍/臀圍、腰臀比、BMI
           </div>
           <div onclick="event.stopPropagation();bkSelectType('t2')" style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:9px;padding:8px 10px;cursor:pointer">
-            <div style="font-size:10px;font-weight:700;color:#92400E;margin-bottom:3px">💡 想多了解心血管風險？</div>
-            <div style="font-size:10px;color:#92400E;line-height:1.6">升級至 t2 可額外測得：<br>🔥 sdLDL（緻密低密度脂蛋白膽固醇）<br>🔥 Homocysteine（同半胱胺酸）<br>這兩項是心血管風險的重要指標，慢性病用藥者建議加測，讓報告更完整</div>
+            <div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:3px">💡 想多了解心血管風險？</div>
+            <div style="font-size:12px;color:#92400E;line-height:1.6">升級至 t2 可額外測得：<br>🔥 sdLDL（緻密低密度脂蛋白膽固醇）<br>🔥 Homocysteine（同半胱胺酸）<br>這兩項是心血管風險的重要指標，慢性病用藥者建議加測，讓報告更完整</div>
           </div>
         </div>
         <div id="bk-t2" onclick="bkSelectType('t2')" style="border:1.5px solid var(--g);border-radius:12px;padding:12px 14px;cursor:pointer;background:var(--g2);transition:all .18s">
@@ -1416,7 +1416,7 @@ window.openHealthForm = function() {
             <div style="font-size:13px;font-weight:700;color:var(--g3)" id="bk-price-t2">NT$6,800</div>
           </div>
           <div style="font-size:11px;color:var(--g3);line-height:1.6">適合：已患有慢性病且正在用藥者（心臟病、高血壓、糖尿病、腎臟病等各種代謝疾病）<br>比 t1 多驗 sdLDL（緻密低密度脂蛋白膽固醇）與同半胱胺酸兩項心血管風險指標</div>
-          <div onclick="event.stopPropagation();toggleTip('irct-full-t2')" style="font-size:10px;color:var(--g3);text-decoration:underline;cursor:pointer;margin-top:6px">查看完整檢測項目 ▾</div>
+          <div onclick="event.stopPropagation();toggleTip('irct-full-t2')" style="font-size:12px;color:var(--g3);text-decoration:underline;cursor:pointer;margin-top:6px">查看完整檢測項目 ▾</div>
           <div id="irct-full-t2" style="display:none;background:#fff;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:9.5px;color:var(--g3);line-height:1.7">
             <b>抽血：</b>空腹醣化血色素、三酸甘油脂、膽固醇、高密度膽固醇、低密度膽固醇、<u>sdLDL</u>、肌酸酐、尿酸、GOT、GPT、腎絲球過濾率eGFR、<u>同半胱胺酸</u>、空腹及飯後1/2/3小時血糖、空腹及飯後1/2/3小時胰島素、空腹血酮<br>
             <b>身體組成：</b>身高、體重、體脂率/體脂肪、內臟脂肪、腰圍/臀圍、腰臀比、BMI
@@ -1426,7 +1426,7 @@ window.openHealthForm = function() {
       <!-- 每週運動調查（所有客人都要填） -->
       <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">🏃 每週會讓你喘的運動，大概幾次？</div>
-        <div style="font-size:10px;color:var(--text3);margin-bottom:8px">走路、逛街不算；有點喘、心跳變快的強度才算（跑步、快走、飛輪、球類…）</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px">走路、逛街不算；有點喘、心跳變快的強度才算（跑步、快走、飛輪、球類…）</div>
         <div id="bk-exercise-chips" style="display:flex;gap:6px;flex-wrap:wrap">
           <span onclick="bkSelExercise(this,'0次')" style="border:1.5px solid var(--g);border-radius:16px;padding:6px 12px;font-size:12px;color:#fff;background:var(--g);cursor:pointer;font-weight:700">0次</span>
           <span onclick="bkSelExercise(this,'1-2次')" style="border:1px solid var(--border2);border-radius:16px;padding:6px 12px;font-size:12px;color:var(--text2);background:var(--card);cursor:pointer">1-2次</span>
@@ -1521,13 +1521,13 @@ window.openHealthForm = function() {
     <div id="bk-step3" style="display:none;padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測診所</div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:12px;line-height:1.6" id="bk-step3-plan-hint">請選擇方便前往的診所或檢測中心</div>
-      <div id="bk-clinic-list"><div id="bk-loc1" onclick="bkSelLoc(1)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--g);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--g2)"><span style="font-size:20px">🏥</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--g3)">瑞絲得診所・新竹</div><div style="font-size:10px;color:var(--g3);margin-top:1px">週一二三 9:00起・週六日預約制</div></div><div id="bk-loc1-prev-tag" style="display:none;font-size:10px;color:var(--g3);font-weight:700;flex-shrink:0">上次去過</div></div>
-      <div id="bk-loc2" onclick="bkSelLoc(2)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">安生診所・桃園</div><div style="font-size:10px;color:var(--text2);margin-top:1px">每週四 9:00起</div></div></div>
-      <div id="bk-loc3" onclick="bkSelLoc(3)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">恆佳診所・高雄</div><div style="font-size:10px;color:var(--text2);margin-top:1px">每週四 9:00起</div></div></div>
-      <div id="bk-loc4" onclick="bkSelLoc(4)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">原蘊醫學診所・台北</div><div style="font-size:10px;color:var(--text2);margin-top:1px">預約制・上午9:30</div></div></div>
-      <div id="bk-loc5" onclick="bkSelLoc(5)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">觀昕診所・台中</div><div style="font-size:10px;color:var(--text2);margin-top:1px">週二至週六（採預約制）</div></div></div>
-      <div id="bk-loc6" onclick="bkSelLoc(6)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">平鎮-東泰醫事檢驗所・桃園</div><div style="font-size:10px;color:var(--text2);margin-top:1px">週一至週五 9:00起・檢測中心</div></div></div>
-      <div id="bk-loc7" onclick="bkSelLoc(7)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">桃園-旭康醫事檢驗所・桃園</div><div style="font-size:10px;color:var(--text2);margin-top:1px">週一至週五 9:00起，每日最多5位・檢測中心</div></div></div></div>
+      <div id="bk-clinic-list"><div id="bk-loc1" onclick="bkSelLoc(1)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--g);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--g2)"><span style="font-size:20px">🏥</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--g3)">瑞絲得診所・新竹</div><div style="font-size:12px;color:var(--g3);margin-top:1px">週一二三 9:00起・週六日預約制</div></div><div id="bk-loc1-prev-tag" style="display:none;font-size:12px;color:var(--g3);font-weight:700;flex-shrink:0">上次去過</div></div>
+      <div id="bk-loc2" onclick="bkSelLoc(2)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">安生診所・桃園</div><div style="font-size:12px;color:var(--text2);margin-top:1px">每週四 9:00起</div></div></div>
+      <div id="bk-loc3" onclick="bkSelLoc(3)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">恆佳診所・高雄</div><div style="font-size:12px;color:var(--text2);margin-top:1px">每週四 9:00起</div></div></div>
+      <div id="bk-loc4" onclick="bkSelLoc(4)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">原蘊醫學診所・台北</div><div style="font-size:12px;color:var(--text2);margin-top:1px">預約制・上午9:30</div></div></div>
+      <div id="bk-loc5" onclick="bkSelLoc(5)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">觀昕診所・台中</div><div style="font-size:12px;color:var(--text2);margin-top:1px">週二至週六（採預約制）</div></div></div>
+      <div id="bk-loc6" onclick="bkSelLoc(6)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">平鎮-東泰醫事檢驗所・桃園</div><div style="font-size:12px;color:var(--text2);margin-top:1px">週一至週五 9:00起・檢測中心</div></div></div>
+      <div id="bk-loc7" onclick="bkSelLoc(7)" style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border2);border-radius:11px;margin-bottom:8px;cursor:pointer;background:var(--card)"><span style="font-size:20px">🏥</span><div><div style="font-size:12px;font-weight:700;color:var(--text)">桃園-旭康醫事檢驗所・桃園</div><div style="font-size:12px;color:var(--text2);margin-top:1px">週一至週五 9:00起，每日最多5位・檢測中心</div></div></div></div>
       <div style="display:flex;gap:8px;margin-top:5px">
         <button onclick="bkGoStep2()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
         <button onclick="bkGoStep4()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">下一步：選時間 →</button>
@@ -1579,9 +1579,9 @@ window.openHealthForm = function() {
     </div>
     <!-- 階段進度條 -->
     <div style="background:rgba(255,255,255,.12);border-radius:11px;padding:12px 13px">
-      <div style="font-size:10px;opacity:.65;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:9px">旅程階段</div>
+      <div style="font-size:12px;opacity:.65;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:9px">旅程階段</div>
       <div id="jn-stage-badge" style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">依你的記錄評估中…</div>
-      <div style="font-size:10px;opacity:.75" id="jn-stage-text2">秘書會依照你的檢測與記錄狀況，幫你確認目前所在的階段</div>
+      <div style="font-size:12px;opacity:.75" id="jn-stage-text2">秘書會依照你的檢測與記錄狀況，幫你確認目前所在的階段</div>
     </div>
   </div>
 
@@ -1594,7 +1594,7 @@ window.openHealthForm = function() {
         <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">下一個目標：穩酮期</div>
         <div style="font-size:11px;color:var(--text2);line-height:1.5" id="jn-goal-desc">持續記錄，一步步往穩酮期前進</div>
         <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px"><div id="jn-goal-bar" style="height:100%;width:0%;background:var(--g);border-radius:3px"></div></div>
-        <div style="font-size:10px;color:var(--g);margin-top:4px" id="jn-goal-progress">—</div>
+        <div style="font-size:12px;color:var(--g);margin-top:4px" id="jn-goal-progress">—</div>
       </div>
     </div>
 
@@ -1610,36 +1610,36 @@ window.openHealthForm = function() {
       <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:12px;padding:11px 12px;position:relative">
         <div style="font-size:22px;font-weight:700;color:var(--g3);line-height:1;margin-bottom:3px" id="jn-w-val">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:2px">體重下降</div>
-        <div style="font-size:10px;color:#0F6E56"><span id="jn-w-detail">—</span></div>
-        <div style="position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:600">達標</div>
+        <div style="font-size:12px;color:#0F6E56"><span id="jn-w-detail">—</span></div>
+        <div style="position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
       </div>
       <div style="background:#F1EFE8;border:1px solid #B4B2A9;border-radius:12px;padding:11px 12px;position:relative">
         <div style="font-size:22px;font-weight:700;color:#444441;line-height:1;margin-bottom:3px" id="jn-waist-val">–</div>
         <div style="font-size:11px;font-weight:600;color:#444441;margin-bottom:2px">腰圍縮小</div>
-        <div style="font-size:10px;color:#5F5E5A"><span id="jn-waist-detail">—</span></div>
-        <div style="position:absolute;top:8px;right:8px;background:#5F5E5A;color:#fff;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:600">達標</div>
+        <div style="font-size:12px;color:#5F5E5A"><span id="jn-waist-detail">—</span></div>
+        <div style="position:absolute;top:8px;right:8px;background:#5F5E5A;color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
       </div>
       <div style="background:var(--b2);border:1px solid #85B7EB;border-radius:12px;padding:11px 12px">
         <div style="font-size:22px;font-weight:700;color:var(--b3);line-height:1;margin-bottom:3px" id="jn-homa">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--b3);margin-bottom:2px">HOMA-IR</div>
-        <div style="font-size:10px;color:#185FA5">從 2.8 大幅改善</div>
+        <div style="font-size:12px;color:#185FA5">從 2.8 大幅改善</div>
       </div>
       <div style="background:var(--a2);border:1px solid #FAC775;border-radius:12px;padding:11px 12px">
         <div style="font-size:22px;font-weight:700;color:var(--a3);line-height:1;margin-bottom:3px">1.8<span style="font-size:13px">mmol</span></div>
         <div style="font-size:11px;font-weight:600;color:var(--a3);margin-bottom:2px">今日血酮</div>
-        <div style="font-size:10px;color:#854F0B">本週均酮 1.74</div>
+        <div style="font-size:12px;color:#854F0B">本週均酮 1.74</div>
       </div>
       <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:12px;padding:11px 12px;position:relative">
         <div style="font-size:20px;font-weight:700;color:var(--g3);line-height:1;margin-bottom:3px" id="jn-tg">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:2px">TG 三酸甘油脂</div>
-        <div style="font-size:10px;color:#0F6E56" id="jn-tg-detail">待檢測</div>
-        <div style="position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:600">達標</div>
+        <div style="font-size:12px;color:#0F6E56" id="jn-tg-detail">待檢測</div>
+        <div style="position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
       </div>
       <div style="background:var(--p2);border:1px solid #AFA9EC;border-radius:12px;padding:11px 12px;position:relative">
         <div style="font-size:20px;font-weight:700;color:var(--p3);line-height:1;margin-bottom:3px" id="jn-hdl">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--p3);margin-bottom:2px">HDL 好膽固醇</div>
-        <div style="font-size:10px;color:#534AB7" id="jn-hdl-detail">待檢測</div>
-        <div style="position:absolute;top:8px;right:8px;background:var(--p);color:#fff;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:600">達標</div>
+        <div style="font-size:12px;color:#534AB7" id="jn-hdl-detail">待檢測</div>
+        <div style="position:absolute;top:8px;right:8px;background:var(--p);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
       </div>
     </div>
 
@@ -1688,17 +1688,17 @@ window.openHealthForm = function() {
         <div id="sc-main-numbers" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)"></div>
         <!-- 改善數字 -->
         <div style="padding:14px 16px">
-          <div style="font-size:10px;font-weight:600;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">代謝指標改善</div>
+          <div style="font-size:12px;font-weight:600;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">代謝指標改善</div>
           <div id="sc-metric-list"></div>
         </div>
         <!-- 旅程階段：只在秘書已經人工確認過階段時才顯示，沒設定就完全不顯示這個區塊(不猜測) -->
         <div id="sc-stage-row" style="display:none;background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px">
-          <div style="font-size:10px;color:#9CA3AF;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">目前階段</div>
+          <div style="font-size:12px;color:#6B7280;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">目前階段</div>
           <div id="sc-stage-text" style="font-size:12px;font-weight:700;color:#1D9E75"></div>
         </div>
         <!-- 卡片底部 -->
         <div style="background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:10px;color:#9CA3AF">#粒腺體健康 #粒腺體飲食</div>
+          <div style="font-size:12px;color:#6B7280">#粒腺體健康 #粒腺體飲食</div>
           <div style="font-size:11px;color:#1D9E75;font-weight:600">isometabolix.com</div>
         </div>
       </div>
@@ -1719,11 +1719,11 @@ window.openHealthForm = function() {
 .gs-wrap{background:#fff;overflow:hidden}
 .gs-hd{background:#064E3B;padding:14px 16px 0}
 .gs-hd-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
-.gs-hd-sub{font-size:10px;color:rgba(255,255,255,.55);margin-bottom:2px}
+.gs-hd-sub{font-size:12px;color:rgba(255,255,255,.55);margin-bottom:2px}
 .gs-hd-title{font-size:15px;font-weight:700;color:#fff}
 .gs-days{background:rgba(255,255,255,.12);border-radius:20px;padding:4px 10px;font-size:11px;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:4px}
 .gs-pills{display:flex;gap:5px;padding-bottom:12px;overflow-x:auto}
-.gs-pill{border-radius:20px;padding:4px 11px;font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;border:0.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5)}
+.gs-pill{border-radius:20px;padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;border:0.5px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5)}
 .gs-pill.active{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.4)}
 .gs-pill.gdone{background:rgba(79,213,168,.2);color:#4FD5A8;border-color:rgba(79,213,168,.3)}
 .gs-scene{background:#e8f5e9;position:relative;overflow:hidden;cursor:pointer;height:190px}
@@ -1735,8 +1735,8 @@ window.openHealthForm = function() {
 .gs-hill{position:absolute;bottom:38%;left:-10%;width:120%;height:60%;background:#81c784;border-radius:50% 50% 0 0}
 .gs-ground{position:absolute;bottom:0;left:0;right:0;height:55%;background:#a5d6a7}
 .gs-task-row{display:flex;gap:7px;padding:12px 14px 0}
-.gs-task{flex:1;border:none;border-radius:11px;padding:9px 6px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:600}
-.gs-task.pending{background:#F3F4F6;color:#6B7280}
+.gs-task{flex:1;border:none;border-radius:11px;padding:9px 6px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}
+.gs-task.pending{background:#F3F4F6;color:#4B5563}
 .gs-task.done{background:#D1FAE5;color:#065F46}
 .gs-task .gt-em{font-size:18px;line-height:1}
 .gs-msg{margin:12px 14px 0;border-radius:11px;padding:10px 12px;background:#ECFDF5;border:0.5px solid #A7F3D0}
@@ -1745,13 +1745,13 @@ window.openHealthForm = function() {
 .gs-msg-text{font-size:11px;color:#047857;line-height:1.65}
 .gs-els{display:flex;gap:5px;padding:10px 14px 0;flex-wrap:wrap}
 .gs-el{background:#D1FAE5;border-radius:20px;padding:4px 9px;font-size:11px;color:#065F46;font-weight:600}
-.gs-el.gray{background:#F3F4F6;color:#9CA3AF}
+.gs-el.gray{background:#F3F4F6;color:#6B7280}
 .gs-week-bar{margin:10px 14px 0;background:#F3F4F6;border-radius:9px;overflow:hidden;height:7px}
 .gs-week-fill{height:100%;background:#10B981;border-radius:9px;transition:width .6s ease}
-.gs-week-lbls{display:flex;justify-content:space-between;padding:4px 14px 0;font-size:10px;color:#9CA3AF}
+.gs-week-lbls{display:flex;justify-content:space-between;padding:4px 14px 0;font-size:12px;color:#6B7280}
 .gs-travel-btn{width:100%;background:#EFF6FF;border:0.5px solid #BFDBFE;border-radius:11px;padding:9px 14px;font-size:12px;color:#1D4ED8;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:600;transition:all .15s}
 .gs-travel-btn.on{background:#FEF3C7;border-color:#FCD34D;color:#92400E}
-.gs-shine-btn{width:100%;background:#fff;border:0.5px solid #E5E7EB;border-radius:11px;padding:9px 14px;font-size:12px;color:#6B7280;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .18s}
+.gs-shine-btn{width:100%;background:#fff;border:0.5px solid #E5E7EB;border-radius:11px;padding:9px 14px;font-size:12px;color:#4B5563;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .18s}
 .gs-shine-btn:hover{background:#FFFBEB;border-color:#FCD34D;color:#92400E}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
 </style>
@@ -1909,7 +1909,7 @@ window.openHealthForm = function() {
   
 
   <div style="padding:7px 14px 0;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:11px;color:#9CA3AF">本週進度</span>
+    <span style="font-size:11px;color:#6B7280">本週進度</span>
     <span style="font-size:11px;color:#065F46;font-weight:600" id="gs-pct">68%</span>
   </div>
   <div class="gs-week-bar"><div class="gs-week-fill" id="gs-wfill" style="width:68%"></div></div>
@@ -1922,16 +1922,16 @@ window.openHealthForm = function() {
   </div>
       <div style="padding:8px 14px 24px">
     <div id="gift-area" style="display:none">
-      <div style="font-size:10px;font-weight:500;color:#9CA3AF;letter-spacing:.04em;margin-bottom:8px">💌 秘書今天送你</div>
+      <div style="font-size:12px;font-weight:500;color:#6B7280;letter-spacing:.04em;margin-bottom:8px">💌 秘書今天送你</div>
       <div id="gift-card" style="border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px">
         <div id="gift-icon" style="font-size:28px;line-height:1;flex-shrink:0">☀️</div>
         <div>
           <div id="gift-title" style="font-size:13px;font-weight:700;margin-bottom:4px">陽光</div>
-          <div id="gift-msg" style="font-size:11px;line-height:1.6;color:#6B7280">秘書說：你今天做到了，我看見了 ☀️</div>
+          <div id="gift-msg" style="font-size:11px;line-height:1.6;color:#4B5563">秘書說：你今天做到了，我看見了 ☀️</div>
         </div>
       </div>
     </div>
-    <div id="no-gift-area" style="font-size:11px;color:#9CA3AF;text-align:center;padding:8px 0">今天還沒有收到秘書的禮物 🌱</div>
+    <div id="no-gift-area" style="font-size:11px;color:#6B7280;text-align:center;padding:8px 0">今天還沒有收到秘書的禮物 🌱</div>
     </div>
   <div style="padding:0 16px 20px">
     <button onclick="openTestimonialPrompt()" style="width:100%;background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;font-size:13px;color:var(--text2);cursor:pointer;text-align:center">💬 想分享這段旅程的心得嗎？點這裡告訴我們</button>
@@ -2035,13 +2035,13 @@ window.openHealthForm = function() {
         <a href="https://www.isometabolix.com/product-page/法餐主廚的防彈雞湯-夏-檸檬百里香法式雞湯" target="_blank" style="text-decoration:none;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:block;transition:all .15s" onmouseenter="this.style.borderColor='var(--g)'" onmouseleave="this.style.borderColor='var(--border)'">
           <div style="height:90px;overflow:hidden;border-bottom:1px solid var(--border);position:relative">
             <img src="https://static.wixstatic.com/media/c7b5d4_5116464cdcd946d7b67a1cd907f875e5~mv2.jpg/v1/fit/w_400,h_400,q_90/file.jpg" alt="夏季防彈雞湯" style="width:100%;height:100%;object-fit:cover">
-            <div style="position:absolute;top:6px;left:6px;background:var(--r);color:#fff;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:700">暢銷</div>
+            <div style="position:absolute;top:6px;left:6px;background:var(--r);color:#fff;border-radius:5px;padding:2px 6px;font-size:11px;font-weight:700">暢銷</div>
           </div>
           <div style="padding:9px 10px">
             <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px;line-height:1.4">☀️ 夏｜檸檬百里香法式雞湯</div>
-            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;line-height:1.4">200g/包・每份含 30g 優質油脂・常溫即食</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:4px;line-height:1.4">200g/包・每份含 30g 優質油脂・常溫即食</div>
             <div style="display:flex;align-items:center;justify-content:space-between">
-              <div><div style="font-size:10px;color:var(--text3);text-decoration:line-through">NT$676</div><div style="font-size:14px;font-weight:700;color:var(--r3)">NT$620</div></div>
+              <div><div style="font-size:12px;color:var(--text3);text-decoration:line-through">NT$676</div><div style="font-size:14px;font-weight:700;color:var(--r3)">NT$620</div></div>
               <div style="background:var(--g);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700">購買 →</div>
             </div>
           </div>
@@ -2049,13 +2049,13 @@ window.openHealthForm = function() {
         <a href="https://www.isometabolix.com/product-page/im-a-product-11" target="_blank" style="text-decoration:none;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:block;transition:all .15s" onmouseenter="this.style.borderColor='var(--g)'" onmouseleave="this.style.borderColor='var(--border)'">
           <div style="height:90px;overflow:hidden;border-bottom:1px solid var(--border);position:relative;background:var(--bg);display:flex;align-items:center;justify-content:center">
             <span style="font-size:40px">🌸</span>
-            <div style="position:absolute;top:6px;left:6px;background:var(--r);color:#fff;border-radius:5px;padding:2px 6px;font-size:9px;font-weight:700">暢銷</div>
+            <div style="position:absolute;top:6px;left:6px;background:var(--r);color:#fff;border-radius:5px;padding:2px 6px;font-size:11px;font-weight:700">暢銷</div>
           </div>
           <div style="padding:9px 10px">
             <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px;line-height:1.4">🌸 春｜蘿蔔泥清香雞湯</div>
-            <div style="font-size:10px;color:var(--text3);margin-bottom:4px;line-height:1.4">200g/包・每份含 30g 優質油脂・常溫即食</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:4px;line-height:1.4">200g/包・每份含 30g 優質油脂・常溫即食</div>
             <div style="display:flex;align-items:center;justify-content:space-between">
-              <div><div style="font-size:10px;color:var(--text3);text-decoration:line-through">NT$676</div><div style="font-size:14px;font-weight:700;color:var(--r3)">NT$620</div></div>
+              <div><div style="font-size:12px;color:var(--text3);text-decoration:line-through">NT$676</div><div style="font-size:14px;font-weight:700;color:var(--r3)">NT$620</div></div>
               <div style="background:var(--g);color:#fff;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700">購買 →</div>
             </div>
           </div>
@@ -2188,7 +2188,7 @@ window.openHealthForm = function() {
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;margin-top:13px">問健康秘書（代謝小幫手）</div>
     <div class="chat-area" id="chat-area">
       <div style="margin-bottom:8px">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;display:flex;align-items:center;gap:5px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600">代謝小幫手・AI</span></div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:3px;display:flex;align-items:center;gap:5px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:600">代謝小幫手・AI</span></div>
         <div class="cm-b bot">嗨！嗨，有什麼讓你困惑或不舒服的嗎？😊 說出來就好，我會先幫你找找看大家問過的類似問題。找不到的話，秘書會親自來陪你一起想辦法！</div>
       </div>
     </div>
@@ -2202,7 +2202,7 @@ window.openHealthForm = function() {
 
 <!-- 底部導覽 -->
 <div style="padding:6px 14px;text-align:center;background:#F9FAFB;border-top:0.5px solid var(--border)">
-  <div style="font-size:9px;color:#9CA3AF;line-height:1.5">本APP提供健康管理資訊，非醫療診斷或治療建議。<br>如有健康疑慮，請諮詢合格醫療人員。</div>
+  <div style="font-size:11px;color:#6B7280;line-height:1.5">本APP提供健康管理資訊，非醫療診斷或治療建議。<br>如有健康疑慮，請諮詢合格醫療人員。</div>
 </div>
 <div class="bnav">
   <button class="bn on" id="bn-home" onclick="goPage('home','元代謝健康管理')"><i class="ti ti-home"></i>首頁</button>
@@ -2228,8 +2228,8 @@ function loadMyRewards(){
       return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed #F0E2C6">'
         + '<span style="font-size:16px">' + icon + '</span>'
         + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#6B4A00">' + escHtml(r.rewardType) + (r.desc ? '・' + escHtml(r.desc) : '') + '</div>'
-        + '<div style="font-size:10px;color:#B08A40">' + escHtml(r.date) + '</div></div>'
-        + '<span style="font-size:10px;font-weight:700;color:' + (r.paid ? '#1D9E75' : '#B08A40') + '">' + (r.paid ? '已送達 ✓' : '準備中 🎀') + '</span>'
+        + '<div style="font-size:12px;color:#B08A40">' + escHtml(r.date) + '</div></div>'
+        + '<span style="font-size:12px;font-weight:700;color:' + (r.paid ? '#1D9E75' : '#B08A40') + '">' + (r.paid ? '已送達 ✓' : '準備中 🎀') + '</span>'
         + '</div>';
     }).join('');
   });
@@ -2860,7 +2860,7 @@ function sendMsg(){
     if (!hitDefault && typeof logUnknown === 'function') logUnknown(msg);
   }
   setTimeout(function(){
-    area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:10px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+reply+'</div></div><div class="cf"></div>';
+    area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+reply+'</div></div><div class="cf"></div>';
     area.scrollTop=area.scrollHeight;
     // 轉真人的情況不用再搜相關內容了（已經不是在找資料，是要秘書介入），其他情況照常搜
     if (!escalated && typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(msg);
@@ -3137,7 +3137,7 @@ function renderIRCTBanner(d){
   if(last.clinic) tags.push(last.clinic);
   if(last.dietHabit) tags.push('🥑 ' + last.dietHabit);
   tagsEl.innerHTML = tags.map(function(t){
-    return '<div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:600">' + escHtml(t) + '</div>';
+    return '<div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 11px;font-size:12px;font-weight:600">' + escHtml(t) + '</div>';
   }).join('');
 }
 function renderIRCTDetailGroup(containerId){
@@ -3145,7 +3145,7 @@ function renderIRCTDetailGroup(containerId){
   if(!box) return;
   var d = _irctFullTableCache;
   if(!d || d.status !== 'ok' || !d.found){
-    box.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#6B7280">'
+    box.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#4B5563">'
       + '<div style="font-size:32px;margin-bottom:10px">🔬</div>'
       + '<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">還沒有 IRCT 檢測記錄</div>'
       + '<div style="font-size:12px;line-height:1.7">預約第一次 IRCT 檢測後，這裡就會顯示逐項數值</div></div>';
@@ -3153,8 +3153,8 @@ function renderIRCTDetailGroup(containerId){
   }
   var labels = IRCT_DETAIL_GROUPS[containerId];
   var matched = d.rows.filter(function(r){ return labels.indexOf(r.label) >= 0; });
-  if(matched.length === 0){ box.innerHTML = '<div style="text-align:center;padding:20px;color:#9CA3AF;font-size:12px">這個分類目前沒有數值</div>'; return; }
-  var html = '<div style="font-size:11px;color:#6B7280;margin-bottom:11px">第 '+d.tests.length+' 次檢測・'+escHtml(d.tests[d.tests.length-1].date)+(d.tests.length>1?'（可跟第1次比較）':'')+'</div>';
+  if(matched.length === 0){ box.innerHTML = '<div style="text-align:center;padding:20px;color:#6B7280;font-size:12px">這個分類目前沒有數值</div>'; return; }
+  var html = '<div style="font-size:11px;color:#4B5563;margin-bottom:11px">第 '+d.tests.length+' 次檢測・'+escHtml(d.tests[d.tests.length-1].date)+(d.tests.length>1?'（可跟第1次比較）':'')+'</div>';
   matched.forEach(function(row){
     var last = row.values[row.values.length-1];
     var prev = row.values.length > 1 ? row.values[row.values.length-2] : null;
@@ -3165,11 +3165,11 @@ function renderIRCTDetailGroup(containerId){
     var range = row.therapeutic || row.normal || '';
     html += '<div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6">'
       + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">'+escHtml(row.label)+'</div>'
-      + (range ? '<div style="font-size:10px;color:#9CA3AF;margin-top:2px">參考：'+escHtml(range)+'</div>' : '')+'</div>'
+      + (range ? '<div style="font-size:12px;color:#6B7280;margin-top:2px">參考：'+escHtml(range)+'</div>' : '')+'</div>'
       + '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'
-      + (prev && prev.value !== '' ? '<span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">'+escHtml(prev.value)+'</span><span style="color:#9CA3AF">→</span>' : '')
+      + (prev && prev.value !== '' ? '<span style="font-size:11px;color:#D1D5DB;text-decoration:line-through">'+escHtml(prev.value)+'</span><span style="color:#6B7280">→</span>' : '')
       + '<span style="font-size:14px;font-weight:700;color:'+badgeColor+'">'+escHtml(last.value)+'</span>'
-      + '<span style="background:'+badgeBg+';color:'+badgeColor+';border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700">'+badgeText+'</span>'
+      + '<span style="background:'+badgeBg+';color:'+badgeColor+';border-radius:20px;padding:2px 8px;font-size:12px;font-weight:700">'+badgeText+'</span>'
       + '</div></div>';
   });
   box.innerHTML = html;
@@ -3181,7 +3181,7 @@ function loadIRCTOverview(){
     box = document.getElementById('itc-ov-content');
     if(!box) return;
     if(!d || d.status !== 'ok' || !d.found){
-      box.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#6B7280">'
+      box.innerHTML = '<div style="text-align:center;padding:30px 16px;color:#4B5563">'
         + '<div style="font-size:32px;margin-bottom:10px">🔬</div>'
         + '<div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:6px">還沒有 IRCT 檢測記錄</div>'
         + '<div style="font-size:12px;line-height:1.7">預約第一次 IRCT 檢測後，這裡就會顯示你的專屬分析報告</div>'
@@ -3197,11 +3197,11 @@ function loadIRCTOverview(){
       + '</div>';
     if(d.specialCase){
       html += '<div style="background:#F5F7FA;border:1px solid #E5E7EB;border-radius:13px;padding:14px;margin-bottom:14px;text-align:center">'
-        + '<div style="font-size:12px;color:#6B7280;line-height:1.8">你的狀況比較個別化，健康秘書會依你的目標與紀錄提供調整建議 😊</div></div>';
+        + '<div style="font-size:12px;color:#4B5563;line-height:1.8">你的狀況比較個別化，健康秘書會依你的目標與紀錄提供調整建議 😊</div></div>';
     }
     if(d.metabolicType){
       html += '<div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:13px;padding:14px;margin-bottom:14px">'
-        + '<div style="font-size:10px;font-weight:700;color:#4338CA;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">代謝分型</div>'
+        + '<div style="font-size:12px;font-weight:700;color:#4338CA;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">代謝分型</div>'
         + '<div style="font-size:15px;font-weight:700;color:#3730A3;margin-bottom:7px">'+escHtml(d.metabolicType.type)+'</div>'
         + '<div style="font-size:12px;line-height:1.8;color:#4338CA">'+escHtml(d.metabolicType.note)+'</div>'
         + (d.specialCase ? '<div style="font-size:10.5px;color:#6366F1;margin-top:6px">💡 這個分型結果僅供參考，實際狀況會依你的個別化背景另外調整</div>' : '')
@@ -3209,7 +3209,7 @@ function loadIRCTOverview(){
     }
     if(d.retestGuidance){
       html += '<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:13px;padding:14px;margin-bottom:14px">'
-        + '<div style="font-size:10px;font-weight:700;color:#15803D;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">'+escHtml(d.retestGuidance.scenario)+'</div>'
+        + '<div style="font-size:12px;font-weight:700;color:#15803D;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">'+escHtml(d.retestGuidance.scenario)+'</div>'
         + '<div style="font-size:12px;line-height:1.8;color:#166534">'+escHtml(d.retestGuidance.note)+'</div>'
         + '</div>';
     }
@@ -3218,20 +3218,20 @@ function loadIRCTOverview(){
         + '<div style="font-size:12px;line-height:1.8;color:#9A3412">💊 '+escHtml(d.medContext.note)+'</div>'
         + '</div>';
     }
-    html += '<div style="font-size:10px;font-weight:700;color:#9CA3AF;letter-spacing:.05em;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid #E5E7EB;margin-bottom:12px">✦ 各項分類觀察</div>';
+    html += '<div style="font-size:12px;font-weight:700;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid #E5E7EB;margin-bottom:12px">✦ 各項分類觀察</div>';
     html += '<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:14px">';
     var cats = [['🩸 血糖', d.summary.glucose], ['🫀 血脂', d.summary.lipid], ['📏 體組成', d.summary.bodyComp]];
     cats.forEach(function(c){
       html += '<div style="background:#F5F7FA;border:1px solid #E5E7EB;border-radius:12px;padding:12px 13px">'
         + '<div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:4px">'+c[0]+'</div>'
-        + '<div style="font-size:11.5px;color:#6B7280;line-height:1.7">'+escHtml(c[1]||'這次沒有相關數值')+'</div>'
+        + '<div style="font-size:11.5px;color:#4B5563;line-height:1.7">'+escHtml(c[1]||'這次沒有相關數值')+'</div>'
         + '</div>';
     });
     html += '</div>';
     // ── 縱貫分析：全部檢測合在一起的旅程回顧（第二次以上）──
     if(d.longitudinal && d.longitudinal.highlights && d.longitudinal.highlights.length){
       html += '<div style="background:#F0F9FF;border:1px solid #7DD3FC;border-radius:13px;padding:14px;margin-bottom:14px">'
-        + '<div style="font-size:10px;font-weight:700;color:#0369A1;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">📈 你的完整旅程（共 '+escHtml(String(d.longitudinal.count))+' 次檢測）</div>';
+        + '<div style="font-size:12px;font-weight:700;color:#0369A1;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">📈 你的完整旅程（共 '+escHtml(String(d.longitudinal.count))+' 次檢測）</div>';
       d.longitudinal.highlights.forEach(function(hl){
         html += '<div style="font-size:12px;line-height:1.8;color:#075985;padding:4px 0;border-bottom:1px dashed #E0F2FE">'+escHtml(hl)+'</div>';
       });
@@ -3242,7 +3242,7 @@ function loadIRCTOverview(){
       var grEmoji = { '達標':'🎉', '維持':'💚', '進步':'👍', '加油':'💪', '退步':'⚠️' };
       var grWord = { '達標':'達標了！', '維持':'穩穩維持在理想範圍', '進步':'有進步，繼續！', '加油':'還差一點，加油', '退步':'要留意，找秘書聊聊' };
       html += '<div style="background:#FDF4FF;border:1px solid #E9D5FF;border-radius:13px;padding:14px;margin-bottom:14px">'
-        + '<div style="font-size:10px;font-weight:700;color:#7E22CE;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">✦ 上次到這次的變化</div>';
+        + '<div style="font-size:12px;font-weight:700;color:#7E22CE;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">✦ 上次到這次的變化</div>';
       d.goalReview.forEach(function(g){
         html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #F3E8FF;font-size:12px">'
           + '<span style="color:#6B21A8">'+(grEmoji[g.verdict]||'')+' '+escHtml(g.label)+'</span>'
@@ -3260,7 +3260,7 @@ function loadIRCTOverview(){
     // ── 陪跑目標：未來2~3個月（每次檢測都有，下次回來對照）──
     if(d.nextGoals && d.nextGoals.length){
       html += '<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:13px;padding:14px;margin-bottom:14px">'
-        + '<div style="font-size:10px;font-weight:700;color:#B45309;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">🎯 我們期待：未來 2～3 個月的目標</div>'
+        + '<div style="font-size:12px;font-weight:700;color:#B45309;letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px">🎯 我們期待：未來 2～3 個月的目標</div>'
         + '<div style="font-size:10.5px;color:#92400E;margin-bottom:8px">陪跑期間一起努力的方向，下次複測時我們會一項一項對照</div>';
       d.nextGoals.forEach(function(g){
         html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed #FEF3C7;font-size:12px">'
@@ -3270,7 +3270,7 @@ function loadIRCTOverview(){
       html += '<div style="font-size:11px;color:#92400E;margin-top:9px;line-height:1.7">💛 建議 8 週後回來複測，讓我們一起看見身體的進步——到時記得先預約 IRCT 檢測喔！</div>'
         + '</div>';
     }
-    html += '<div style="background:#F5F7FA;border-radius:13px;padding:14px;margin-bottom:14px;border:1px solid #E5E7EB;font-size:11.5px;color:#6B7280;line-height:1.7">此為健康管理參考資訊，非醫療診斷。逐項數值可以看「血糖動態」「胰島素動態」等分頁，如有健康疑慮請諮詢醫師，或直接跟秘書討論。</div>';
+    html += '<div style="background:#F5F7FA;border-radius:13px;padding:14px;margin-bottom:14px;border:1px solid #E5E7EB;font-size:11.5px;color:#4B5563;line-height:1.7">此為健康管理參考資訊，非醫療診斷。逐項數值可以看「血糖動態」「胰島素動態」等分頁，如有健康疑慮請諮詢醫師，或直接跟秘書討論。</div>';
     box.innerHTML = html;
   });
 }
@@ -3302,7 +3302,7 @@ function loadShareCard(){
     var metricBox = document.getElementById('sc-metric-list');
     if(!mainBox || !metricBox) return;
     if(!d || d.status !== 'ok' || !d.found){
-      mainBox.innerHTML = '<div style="grid-column:1/-1;background:#fff;padding:16px;text-align:center;font-size:12px;color:#9CA3AF">還沒有 IRCT 檢測資料，先去做第一次檢測，之後這裡就能秀出你的進步 🌱</div>';
+      mainBox.innerHTML = '<div style="grid-column:1/-1;background:#fff;padding:16px;text-align:center;font-size:12px;color:#6B7280">還沒有 IRCT 檢測資料，先去做第一次檢測，之後這裡就能秀出你的進步 🌱</div>';
       metricBox.innerHTML = '';
       return;
     }
@@ -3319,13 +3319,13 @@ function loadShareCard(){
     var mainHtml = '';
     mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (wRow && wRow.hasChange ?
       '<div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+(wRow.last-wRow.first>0?'+':'')+Math.round((wRow.last-wRow.first)*10)/10+'<span style="font-size:13px">kg</span></div>' :
-      '<div style="font-size:13px;color:#9CA3AF;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:10px;color:#6B7280;line-height:1.3">體重<br>變化</div></div>';
+      '<div style="font-size:13px;color:#6B7280;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:12px;color:#4B5563;line-height:1.3">體重<br>變化</div></div>';
     mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (waRow && waRow.hasChange ?
       '<div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+(waRow.last-waRow.first>0?'+':'')+Math.round((waRow.last-waRow.first)*10)/10+'<span style="font-size:13px">cm</span></div>' :
-      '<div style="font-size:13px;color:#9CA3AF;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:10px;color:#6B7280;line-height:1.3">腰圍<br>變化</div></div>';
+      '<div style="font-size:13px;color:#6B7280;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:12px;color:#4B5563;line-height:1.3">腰圍<br>變化</div></div>';
     mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (hLast ?
       '<div style="font-size:16px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+escHtml(hLast.value)+'</div>' :
-      '<div style="font-size:13px;color:#9CA3AF;padding:8px 0">尚無資料</div>') + '<div style="font-size:10px;color:#6B7280;line-height:1.3">HOMA-IR<br>胰島素阻抗</div></div>';
+      '<div style="font-size:13px;color:#6B7280;padding:8px 0">尚無資料</div>') + '<div style="font-size:12px;color:#4B5563;line-height:1.3">HOMA-IR<br>胰島素阻抗</div></div>';
     mainBox.innerHTML = mainHtml;
     // 代謝指標改善清單：只顯示真的有兩次以上資料可以比較的項目
     var metricHtml = '';
@@ -3335,7 +3335,7 @@ function loadShareCard(){
       var arrow = fl.last < fl.first ? '↓' : (fl.last > fl.first ? '↑' : '');
       metricHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:26px;height:26px;border-radius:7px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti '+m.icon+'" style="font-size:13px;color:'+m.color+'"></i></div><div style="font-size:12px;color:#374151;flex:1">'+escHtml(m.label)+'</div><div style="font-size:12px;font-weight:600;color:'+m.color+'">'+escHtml(fl.first)+' → '+escHtml(fl.last)+' '+arrow+'</div></div>';
     });
-    metricBox.innerHTML = metricHtml || '<div style="font-size:12px;color:#9CA3AF;text-align:center;padding:8px 0">還需要至少兩次檢測才能看到變化趨勢</div>';
+    metricBox.innerHTML = metricHtml || '<div style="font-size:12px;color:#6B7280;text-align:center;padding:8px 0">還需要至少兩次檢測才能看到變化趨勢</div>';
   });
 }
 // 旅程階段：改用秘書手動確認的真實階段(getClientStage)，不是原本寫死、也不是自動猜測的假階段——
@@ -3392,7 +3392,7 @@ function toast(msg){
   var t=document.createElement('div');
   // 2026-08-12修正：底部導覽列改成真的position:fixed後會固定佔住畫面最下方，
   // toast原本bottom:24px會被導覽列蓋住/重疊，往上移到78px讓兩者不打架
-  t.style.cssText='position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4)';
+  t.style.cssText='position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 20px;border-radius:30px;font-size:15px;font-weight:600;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4)';
   t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
 }
 updateDayTot();calcProg();
@@ -4183,7 +4183,7 @@ function calcMatrixRow(esi,hba1c,glucose){
 function renderMatrixDetail(r,c){
   var d=MATRIX_DATA[r][c];
   return '<div id="matrix-detail" style="margin-top:10px;background:var(--card);border:0.5px solid var(--border2);border-radius:12px;padding:12px 14px">'
-    +'<div style="display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;background:'+d.tagBg+';color:'+d.tagColor+';margin-bottom:5px">'+d.tag+'</div>'
+    +'<div style="display:inline-block;font-size:12px;padding:2px 8px;border-radius:20px;background:'+d.tagBg+';color:'+d.tagColor+';margin-bottom:5px">'+d.tag+'</div>'
     +'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">'+d.name+'</div>'
     +'<div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+d.desc+'</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
@@ -4192,7 +4192,7 @@ function renderMatrixDetail(r,c){
     +'<div style="font-size:11px;color:var(--text2)">常見原因：<span style="color:var(--text);font-weight:500">'+d.cause+'</span></div>'
     +'<div style="font-size:11px;color:var(--text2)">陪跑重點：<span style="color:var(--text);font-weight:500">'+d.focus+'</span></div>'
     +'</div>'
-    +'<div style="margin-top:8px;font-size:10px;color:var(--text3)">改善所需時間為積極執行的參考預估，實際因人而異</div>'
+    +'<div style="margin-top:8px;font-size:12px;color:var(--text3)">改善所需時間為積極執行的參考預估，實際因人而異</div>'
     +'</div>';
 }
 
@@ -4201,25 +4201,25 @@ function renderMatrix(){
   var col=IRCT_MATRIX_VALUES.bodyType;
   var container=document.getElementById('matrix-container');
   if(!container)return;
-  var html='<div style="display:grid;grid-template-columns:70px repeat(3,1fr) 98px;gap:3px;font-size:10px">';
+  var html='<div style="display:grid;grid-template-columns:70px repeat(3,1fr) 98px;gap:3px;font-size:12px">';
   html+='<div></div>';
   for(var c=0;c<3;c++){
-    html+='<div style="text-align:center;padding:5px 3px;border-radius:8px;background:'+MATRIX_COL_BG[c]+';color:'+MATRIX_COL_COLORS[c]+';font-weight:500;line-height:1.3">'+MATRIX_COL_NAMES[c]+'<br><span style="font-size:9px;font-weight:400">'+MATRIX_COL_SUB[c]+'</span></div>';
+    html+='<div style="text-align:center;padding:5px 3px;border-radius:8px;background:'+MATRIX_COL_BG[c]+';color:'+MATRIX_COL_COLORS[c]+';font-weight:500;line-height:1.3">'+MATRIX_COL_NAMES[c]+'<br><span style="font-size:11px;font-weight:400">'+MATRIX_COL_SUB[c]+'</span></div>';
   }
   html+='<div style="text-align:center;padding:5px 3px;border-radius:8px;background:var(--bg);font-weight:500">改善速度</div>';
   for(var r=0;r<4;r++){
     var rl=MATRIX_ROW_LABELS[r];
     var sp=MATRIX_SPEED[r];
-    html+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5px 3px;border-radius:8px;background:'+rl.bg+';gap:2px"><div style="font-weight:500;color:'+rl.color+'">'+rl.name+'</div><div style="font-size:9px;opacity:.75;color:'+rl.color+'">'+rl.range+'</div></div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5px 3px;border-radius:8px;background:'+rl.bg+';gap:2px"><div style="font-weight:500;color:'+rl.color+'">'+rl.name+'</div><div style="font-size:11px;opacity:.75;color:'+rl.color+'">'+rl.range+'</div></div>';
     for(var c=0;c<3;c++){
       var d=MATRIX_DATA[r][c];
       var isActive=(r===row&&c===col);
       html+='<div style="padding:6px 5px;border-radius:8px;cursor:pointer;transition:all .15s;border:'+(isActive?'2px':'0.5px')+' solid '+MATRIX_ROW_CELL_BORDER[r]+';background:'+MATRIX_ROW_CELL_BG[r]+';position:relative;min-height:68px;display:flex;flex-direction:column;gap:2px" onclick="selectMatrixCell('+r+','+c+')">';
-      html+='<div style="font-size:10px;font-weight:500;color:'+rl.color+';line-height:1.3">'+d.name+'</div>';
+      html+='<div style="font-size:12px;font-weight:500;color:'+rl.color+';line-height:1.3">'+d.name+'</div>';
       if(isActive)html+='<div style="position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:#1D9E75"></div>';
       html+='</div>';
     }
-    html+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 4px;border-radius:8px;background:'+sp.bg+';gap:3px;min-height:68px"><div style="font-size:14px">'+sp.icon+'</div><div style="font-size:10px;font-weight:500;color:'+sp.color+'">'+sp.time+'</div><div style="font-size:9px;opacity:.75;color:'+sp.color+'">'+sp.label+'</div></div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 4px;border-radius:8px;background:'+sp.bg+';gap:3px;min-height:68px"><div style="font-size:14px">'+sp.icon+'</div><div style="font-size:12px;font-weight:500;color:'+sp.color+'">'+sp.time+'</div><div style="font-size:11px;opacity:.75;color:'+sp.color+'">'+sp.label+'</div></div>';
   }
   html+='</div>';
   html+=renderMatrixDetail(row,col);
@@ -4287,7 +4287,7 @@ function loadMyQuestions(){
     if(items.length === 0){ list.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">目前還沒有已回答的問題</div>'; return; }
     list.innerHTML = items.map(function(it){
       return '<div style="background:var(--card);border:1px solid var(--border2);border-radius:11px;padding:10px 12px;margin-bottom:8px">'
-        + '<div style="font-size:10px;color:var(--text3);margin-bottom:4px">'+escHtml(it.date)+'</div>'
+        + '<div style="font-size:12px;color:var(--text3);margin-bottom:4px">'+escHtml(it.date)+'</div>'
         + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px">Q：'+escHtml(it.question)+'</div>'
         + '<div style="font-size:12px;color:var(--text2);white-space:pre-line">'+escHtml(it.answer)+'</div></div>';
     }).join('');
@@ -4431,7 +4431,7 @@ function searchYouTube(query, callback) {
 function showYTResults(items, container) {
   if (!items || items.length === 0) return;
   var html = '<div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)">';
-  html += '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:7px;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-youtube" style="color:#FF0000;font-size:13px"></i>相關影片</div>';
+  html += '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:7px;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-youtube" style="color:#FF0000;font-size:13px"></i>相關影片</div>';
   items.forEach(function(item) {
     var title = item.title;
     var videoId = item.videoId;
@@ -4440,7 +4440,7 @@ function showYTResults(items, container) {
     html += '<a href="' + url + '" target="_blank" style="display:flex;gap:8px;margin-bottom:8px;text-decoration:none;background:var(--bg);border-radius:8px;padding:6px;border:0.5px solid var(--border)">';
     html += '<img src="' + thumb + '" style="width:72px;height:48px;border-radius:5px;object-fit:cover;flex-shrink:0">';
     html += '<div style="flex:1;min-width:0"><div style="font-size:11px;font-weight:500;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + title + '</div>';
-    html += '<div style="font-size:10px;color:var(--text3);margin-top:3px">元代謝科技 YouTube</div></div>';
+    html += '<div style="font-size:12px;color:var(--text3);margin-top:3px">元代謝科技 YouTube</div></div>';
     html += '</a>';
   });
   html += '</div>';
@@ -4482,7 +4482,7 @@ function searchYTAfterAnswerCore(query) {
     if (items.length === 0) return;
     var div = document.createElement('div');
     div.style.marginBottom = '10px';
-    var html = '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-youtube" style="color:#FF0000;font-size:13px"></i>相關影片</div>';
+    var html = '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;gap:4px"><i class="ti ti-brand-youtube" style="color:#FF0000;font-size:13px"></i>相關影片</div>';
     items.forEach(function(item) { // 2026-08-12（創始人要求）：拿掉「最多2則」上限，搜到幾則就列幾則
       var title = item.title;
       var videoId = item.videoId;
@@ -4569,11 +4569,11 @@ function appendContentResults(keyword, container) {
   // 方格子文章
   if (matched.vocus.length > 0) {
     html += '<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">';
-    html += '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:6px">📝 相關文章</div>';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px">📝 相關文章</div>';
     matched.vocus.forEach(function(item) {
       html += '<a href="' + item.link + '" target="_blank" style="display:block;margin-bottom:6px;text-decoration:none;background:var(--bg);border-radius:8px;padding:8px 10px;border:0.5px solid var(--border)">';
       html += '<div style="font-size:11px;font-weight:500;color:var(--text);line-height:1.4">' + item.title + '</div>';
-      html += '<div style="font-size:10px;color:var(--text3);margin-top:2px">代謝篇章・方格子</div>';
+      html += '<div style="font-size:12px;color:var(--text3);margin-top:2px">代謝篇章・方格子</div>';
       html += '</a>';
     });
     html += '</div>';
@@ -4582,11 +4582,11 @@ function appendContentResults(keyword, container) {
   // Podcast
   if (matched.podcast.length > 0) {
     html += '<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">';
-    html += '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:6px">🎙️ 相關Podcast</div>';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px">🎙️ 相關Podcast</div>';
     matched.podcast.forEach(function(item) {
       html += '<a href="' + item.link + '" target="_blank" style="display:block;margin-bottom:6px;text-decoration:none;background:var(--bg);border-radius:8px;padding:8px 10px;border:0.5px solid var(--border)">';
       html += '<div style="font-size:11px;font-weight:500;color:var(--text);line-height:1.4">' + item.title + '</div>';
-      html += '<div style="font-size:10px;color:var(--text3);margin-top:2px">代謝覺醒・Podcast</div>';
+      html += '<div style="font-size:12px;color:var(--text3);margin-top:2px">代謝覺醒・Podcast</div>';
       html += '</a>';
     });
     html += '</div>';
@@ -4661,11 +4661,11 @@ function appendOfficialLinks(keyword, container) {
   if (matched.length === 0) return;
   
   var html = '<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">';
-  html += '<div style="font-size:10px;font-weight:600;color:var(--text3);margin-bottom:6px">🌐 官方資源</div>';
+  html += '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px">🌐 官方資源</div>';
   matched.forEach(function(item) {
     html += '<a href="' + item.link + '" target="_blank" style="display:block;margin-bottom:6px;text-decoration:none;background:var(--bg);border-radius:8px;padding:8px 10px;border:0.5px solid var(--border)">';
     html += '<div style="font-size:11px;font-weight:500;color:var(--text);line-height:1.4">' + item.title + '</div>';
-    html += '<div style="font-size:10px;color:var(--text3);margin-top:2px">' + item.desc + '</div>';
+    html += '<div style="font-size:12px;color:var(--text3);margin-top:2px">' + item.desc + '</div>';
     html += '</a>';
   });
   html += '</div>';
@@ -5393,7 +5393,7 @@ function quickSaveMeal(mealCode) {
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:48px">🌱</div>
         <div style="font-size:20px;font-weight:700;color:#111827;margin:8px 0 6px">陪跑的旅程即將開始</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6">歡迎加入元代謝健康管理<br>我們會一路陪著你走</div>
+        <div style="font-size:13px;color:#4B5563;line-height:1.6">歡迎加入元代謝健康管理<br>我們會一路陪著你走</div>
       </div>
       <div style="background:#E1F5EE;border-radius:14px;padding:14px 16px;margin-bottom:16px">
         <div style="font-size:12px;font-weight:700;color:#085041;margin-bottom:10px">接下來你會做到的事：</div>
@@ -5412,7 +5412,7 @@ function quickSaveMeal(mealCode) {
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:48px">🩸</div>
         <div style="font-size:18px;font-weight:700;color:#111827;margin:8px 0 6px">血酮機怎麼用？</div>
-        <div style="font-size:12px;color:#6B7280">兩個重點，記住就會了</div>
+        <div style="font-size:12px;color:#4B5563">兩個重點，記住就會了</div>
       </div>
       <div style="background:#FEF2EE;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #E24B4A">
         <div style="font-size:12px;font-weight:700;color:#712B13;margin-bottom:4px">重點一：先等，再採血</div>
@@ -5426,7 +5426,7 @@ function quickSaveMeal(mealCode) {
         <div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定生酮 ✅　超過3.0：深層生酮</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button style="flex:1;background:#F3F4F6;color:#6B7280;border:none;border-radius:14px;padding:12px;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s1').style.display='none';document.getElementById('ob-s0').style.display='block'">← 上一步</button>
+        <button style="flex:1;background:#F3F4F6;color:#4B5563;border:none;border-radius:14px;padding:12px;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s1').style.display='none';document.getElementById('ob-s0').style.display='block'">← 上一步</button>
         <button style="flex:2;background:#1D9E75;color:#fff;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s1').style.display='none';document.getElementById('ob-s2').style.display='block'">下一步 →</button>
       </div>
     </div>
@@ -5436,19 +5436,19 @@ function quickSaveMeal(mealCode) {
       <div style="text-align:center;margin-bottom:16px">
         <div style="font-size:48px">💦</div>
         <div style="font-size:18px;font-weight:700;color:#111827;margin:8px 0 6px">電解質很重要</div>
-        <div style="font-size:12px;color:#6B7280">最容易忽略的關鍵</div>
+        <div style="font-size:12px;color:#4B5563">最容易忽略的關鍵</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
-        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">🧂</div><div style="font-size:11px;font-weight:700">鈉（鹽）</div><div style="font-size:10px;color:#6B7280">頭暈・沒力氣</div></div>
-        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">🥑</div><div style="font-size:11px;font-weight:700">鉀</div><div style="font-size:10px;color:#6B7280">心跳・肌肉</div></div>
-        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">💊</div><div style="font-size:11px;font-weight:700">鎂</div><div style="font-size:10px;color:#6B7280">抽筋・睡眠</div></div>
-        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">🥛</div><div style="font-size:11px;font-weight:700">鈣</div><div style="font-size:10px;color:#6B7280">骨骼・神經</div></div>
+        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">🧂</div><div style="font-size:11px;font-weight:700">鈉（鹽）</div><div style="font-size:12px;color:#4B5563">頭暈・沒力氣</div></div>
+        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">🥑</div><div style="font-size:11px;font-weight:700">鉀</div><div style="font-size:12px;color:#4B5563">心跳・肌肉</div></div>
+        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">💊</div><div style="font-size:11px;font-weight:700">鎂</div><div style="font-size:12px;color:#4B5563">抽筋・睡眠</div></div>
+        <div style="background:#E1F5EE;border-radius:10px;padding:10px;text-align:center"><div style="font-size:20px">🥛</div><div style="font-size:11px;font-weight:700">鈣</div><div style="font-size:12px;color:#4B5563">骨骼・神經</div></div>
       </div>
       <div style="background:#FFFBEB;border-radius:10px;padding:11px 13px;margin-bottom:14px;border:0.5px solid #FCD34D">
         <div style="font-size:11px;color:#92400E;line-height:1.6">💡 頭暈、抽筋？先補鹽！泡 1 小匙鹽在水裡慢慢喝</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button style="flex:1;background:#F3F4F6;color:#6B7280;border:none;border-radius:14px;padding:12px;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s2').style.display='none';document.getElementById('ob-s1').style.display='block'">← 上一步</button>
+        <button style="flex:1;background:#F3F4F6;color:#4B5563;border:none;border-radius:14px;padding:12px;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s2').style.display='none';document.getElementById('ob-s1').style.display='block'">← 上一步</button>
         <button style="flex:2;background:#1D9E75;color:#fff;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s2').style.display='none';document.getElementById('ob-s3').style.display='block'">下一步 →</button>
       </div>
     </div>
@@ -5458,7 +5458,7 @@ function quickSaveMeal(mealCode) {
       <div style="text-align:center;margin-bottom:20px">
         <div style="font-size:48px">🎉</div>
         <div style="font-size:20px;font-weight:700;color:#111827;margin:8px 0 8px">準備好了！</div>
-        <div style="font-size:13px;color:#6B7280;line-height:1.6">秘書已經在等你了 😊</div>
+        <div style="font-size:13px;color:#4B5563;line-height:1.6">秘書已經在等你了 😊</div>
       </div>
       <div style="background:#E1F5EE;border-radius:14px;padding:14px 16px;margin-bottom:20px">
         <div style="font-size:12px;color:#085041;line-height:2.2">
@@ -5469,7 +5469,7 @@ function quickSaveMeal(mealCode) {
         </div>
       </div>
       <button style="width:100%;background:#1D9E75;color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-wrap').style.display='none';try{localStorage.setItem('ob_done','1')}catch(e){}">🌱 開始我的陪跑旅程</button>
-      <div style="text-align:center"><button style="background:none;border:none;font-size:11px;color:#9CA3AF;cursor:pointer" onclick="document.getElementById('ob-wrap').style.display='none';try{localStorage.setItem('ob_done','1')}catch(e){}">跳過</button></div>
+      <div style="text-align:center"><button style="background:none;border:none;font-size:11px;color:#6B7280;cursor:pointer" onclick="document.getElementById('ob-wrap').style.display='none';try{localStorage.setItem('ob_done','1')}catch(e){}">跳過</button></div>
     </div>
 
   </div>
@@ -5859,7 +5859,7 @@ function showKetoGuide() {
       <div style="background:rgba(255,255,255,.3);border-radius:4px;height:4px;margin-top:10px">
         <div id="form-progress" style="background:#fff;border-radius:4px;height:4px;width:0%;transition:width .3s"></div>
       </div>
-      <div id="form-step-label" style="font-size:10px;color:rgba(255,255,255,.7);text-align:right;margin-top:4px">第 1 步 / 共 4 步</div>
+      <div id="form-step-label" style="font-size:12px;color:rgba(255,255,255,.7);text-align:right;margin-top:4px">第 1 步 / 共 4 步</div>
     </div>
 
     <div style="padding:16px 16px 30px">
@@ -5935,27 +5935,27 @@ function showKetoGuide() {
 
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:6px">⚡ 能量與大腦</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">睡再多還是很累 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">腦袋常不清楚 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">記性越來越差 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">注意力難集中</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">睡再多還是很累 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">腦袋常不清楚 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">記性越來越差 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">注意力難集中</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:6px">🫃 消化系統</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">長期便秘或腹瀉 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">吃完常脹氣 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">吃某些食物後不舒服</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">曾長期使用抗生素 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">長期便秘或腹瀉 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">吃完常脹氣 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">吃某些食物後不舒服</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">曾長期使用抗生素 ⚠️</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:6px">🏭 生活環境</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:20px">
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">常用塑膠裝熱食熱飲 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">工作常接觸化學品 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">常吃大型魚 ⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">月經不規律（女）⚠️</button>
-          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:10px;cursor:pointer;color:var(--text2);transition:all .15s">很容易生病 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">常用塑膠裝熱食熱飲 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">工作常接觸化學品 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">常吃大型魚 ⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">月經不規律（女）⚠️</button>
+          <button onclick="toggleHQMulti(this)" style="padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;cursor:pointer;color:var(--text2);transition:all .15s">很容易生病 ⚠️</button>
         </div>
 
         <div style="display:flex;gap:8px">
@@ -6165,7 +6165,7 @@ function hfCalcResult() {
       html += '<span style="font-size:11px;color:var(--g3);line-height:1.5">' + w + '</span></div>';
     });
     if (warnings.length > 4) {
-      html += '<div style="font-size:10px;color:var(--text3);margin-top:4px">...以及其他 ' + (warnings.length - 4) + ' 個影響因子</div>';
+      html += '<div style="font-size:12px;color:var(--text3);margin-top:4px">...以及其他 ' + (warnings.length - 4) + ' 個影響因子</div>';
     }
   } else {
     html = '<div style="font-size:11px;color:var(--g3)">✅ 沒有明顯影響因子，狀況相對單純</div>';
@@ -6566,7 +6566,7 @@ function updateExtraTestsSuggestion() {
 
   function renderExtraTests() {
     listEl.innerHTML = suggestions.map(function(s) {
-      return '<div style="margin-bottom:8px"><div style="font-weight:700">' + s.icon + ' ' + s.title + '</div><div style="font-size:10px;color:#B45309;margin-top:1px">' + s.reason + '</div></div>';
+      return '<div style="margin-bottom:8px"><div style="font-weight:700">' + s.icon + ' ' + s.title + '</div><div style="font-size:12px;color:#B45309;margin-top:1px">' + s.reason + '</div></div>';
     }).join('');
     card.style.display = 'block';
   }
@@ -6845,8 +6845,8 @@ function loadIrctTable(){
           var fw = v.watch ? '700' : '400';
           cells += '<td style="padding:6px 10px;text-align:center;color:'+color+';font-weight:'+fw+';border-bottom:1px solid var(--border);background:'+bg+'">'+(v.value!==''?escHtml(String(v.value)):'—')+'</td>';
         });
-        cells += '<td style="padding:6px 10px;text-align:center;font-size:10px;color:var(--g3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.therapeutic||'')+'</td>'
-          + '<td style="padding:6px 10px;text-align:center;font-size:10px;color:var(--b3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.normal||'')+'</td>';
+        cells += '<td style="padding:6px 10px;text-align:center;font-size:12px;color:var(--g3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.therapeutic||'')+'</td>'
+          + '<td style="padding:6px 10px;text-align:center;font-size:12px;color:var(--b3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.normal||'')+'</td>';
         return '<tr>'+cells+'</tr>';
       }).join('');
     }
@@ -6871,9 +6871,9 @@ function loadMonthlyLog(){
         return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--border)">'
           + '<div style="font-size:11px;color:var(--text3);width:44px;flex-shrink:0">'+escHtml(r.date)+'</div>'
           + '<div style="flex:1;display:flex;gap:14px;font-size:13px">'
-          + (r.weight!=='' ? '<span><b style="color:var(--text)">'+r.weight+'</b><span style="font-size:10px;color:var(--text3)"> kg</span></span>' : '')
-          + (r.ketone!=='' ? '<span><b style="color:var(--g)">'+r.ketone+'</b><span style="font-size:10px;color:var(--text3)"> 血酮</span></span>' : '')
-          + (r.waist!=='' ? '<span><b style="color:var(--b3)">'+r.waist+'</b><span style="font-size:10px;color:var(--text3)"> cm</span></span>' : '')
+          + (r.weight!=='' ? '<span><b style="color:var(--text)">'+r.weight+'</b><span style="font-size:12px;color:var(--text3)"> kg</span></span>' : '')
+          + (r.ketone!=='' ? '<span><b style="color:var(--g)">'+r.ketone+'</b><span style="font-size:12px;color:var(--text3)"> 血酮</span></span>' : '')
+          + (r.waist!=='' ? '<span><b style="color:var(--b3)">'+r.waist+'</b><span style="font-size:12px;color:var(--text3)"> cm</span></span>' : '')
           + '</div></div>';
       }).join('');
     }
@@ -6901,7 +6901,7 @@ function loadMonthlyLog(){
         if(ib.height) cells.push({l:'身高', v:ib.height+'cm'});
         var gridEl = document.getElementById('mw-inbody-grid');
         if(gridEl) gridEl.innerHTML = cells.map(function(c){
-          return '<div><div style="font-size:10px;color:var(--text3)">'+c.l+'</div><div style="font-size:15px;font-weight:700;color:var(--text)">'+c.v+'</div></div>';
+          return '<div><div style="font-size:12px;color:var(--text3)">'+c.l+'</div><div style="font-size:15px;font-weight:700;color:var(--text)">'+c.v+'</div></div>';
         }).join('');
       } else { ibCard.style.display = 'none'; }
     }
@@ -6958,7 +6958,7 @@ function loadMyStats(){
       else {
         tl.innerHTML = d.timeline.map(function(m){
           return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">'
-            + '<div style="font-size:10px;color:var(--g3);font-weight:700;min-width:64px">'+m.date+'・Day '+m.day+'</div>'
+            + '<div style="font-size:12px;color:var(--g3);font-weight:700;min-width:64px">'+m.date+'・Day '+m.day+'</div>'
             + '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">'+m.title+'</div>'
             + '<div style="font-size:11px;color:var(--text2);margin-top:1px">'+m.desc+'</div></div></div>';
         }).join('');
@@ -7127,7 +7127,7 @@ function selectKetoRegion(region){
     return '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:11px">'
       + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'
       + '<div style="font-size:15px;font-weight:800;color:var(--text);flex:1">'+escH(r.name)+'</div>'
-      + '<span style="font-size:10px;font-weight:700;color:'+fColor+';background:'+fBg+';border-radius:20px;padding:3px 9px">'+fIcon+' '+escH(r.friendly)+'</span>'
+      + '<span style="font-size:12px;font-weight:700;color:'+fColor+';background:'+fBg+';border-radius:20px;padding:3px 9px">'+fIcon+' '+escH(r.friendly)+'</span>'
       + '</div>'
       + (r.address?'<div style="font-size:11px;color:var(--text3);margin-bottom:7px"><i class="ti ti-map-pin" style="font-size:11px"></i> '+escH(r.address)+'</div>':'')
       + (r.tip?'<div style="background:var(--mint);border-radius:9px;padding:9px 11px;margin-bottom:8px"><div style="font-size:10.5px;font-weight:700;color:var(--g3);margin-bottom:2px">💡 推薦點法</div><div style="font-size:12px;color:var(--text);line-height:1.6">'+escH(r.tip)+'</div></div>':'')
@@ -7276,7 +7276,7 @@ function bkRenderTimes(){
       // 解析不出星期規律的，就照原樣顯示文字，至少不會誤導成假日期
       cards.push('<div onclick="bkSelTime(this)" data-dt="'+escAttr(s.datetime||'')+'" style="grid-column:1/-1;border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
         + '<div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(s.datetime||'')+'</div>'
-        + '<div style="font-size:10px;color:var(--text3);margin-top:2px">請選定後再跟秘書確認實際日期</div></div>');
+        + '<div style="font-size:12px;color:var(--text3);margin-top:2px">請選定後再跟秘書確認實際日期</div></div>');
     }
   });
   box.innerHTML = cards.join('');
