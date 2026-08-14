@@ -224,11 +224,11 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒腺體友善餐廳 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
     <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
-    <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>
-        <div class="nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所時間表</div>
-        <div class="nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
-        <div class="nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
-        <div class="nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>IRCT 區間</div>
+    <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
+    <div class="si nav-item" onclick="goPg('clinic-slots',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-calendar-clock"></i>診所時間表</div>
+    <div class="si nav-item" onclick="goPg('lab-integrate',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-report-medical"></i>檢測整合</div>
+    <div class="si nav-item" onclick="goPg('stored-value',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-credit-card"></i>儲值消費</div>
+    <div class="si nav-item" onclick="goPg('review',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
     <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
     <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
     <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照 <span class="si-badge g">NEW</span></div>
@@ -705,7 +705,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 
   <div class="sync-success" id="sync-banner">✅ 已儲存到 ⚙️ 全域設定工作表。</div>
-  <div class="hint-box" style="background:#ECFDF5;border-color:#6EE7B7;color:#065F46"><strong>✅ 技術上真的串接了：</strong>QA症狀編輯／FAQ問答管理裡的答案文字，只要放入變數標記（例如 <code>{{g-salt}}</code>，標記名稱就是下面每個輸入框的id），顯示給客人看的時候，系統會自動替換成這裡目前設定的最新值。改這裡的數值，用了對應標記的問答內容就會立刻同步，不用再去每一則問答個別修改。<br><strong>但既有的問答如果本來就是寫死的純文字（沒有用變數標記），不會自動變成用標記寫**——系統沒辦法安全判斷自由文字裡哪段話對應到哪個參數，如果你希望某一則問答也套用自動同步，要到「QA症狀編輯」把提到的數字改成對應的變數標記，之後就會自動跟著這裡更新了。</div>
+  <div class="hint-box" style="background:#ECFDF5;border-color:#6EE7B7;color:#065F46"><strong>✅ 技術上真的串接了：</strong>QA症狀編輯／FAQ問答管理裡的答案文字，只要放入變數標記（例如 <code>{{g-salt}}</code>，標記名稱就是下面每個輸入框的id），顯示給客人看的時候，系統會自動替換成這裡目前設定的最新值。改這裡的數值，用了對應標記的問答內容就會立刻同步，不用再去每一則問答個別修改。<br><strong>但既有的問答如果本來就是寫死的純文字（沒有用變數標記），不會自動變成用標記寫</strong>——系統沒辦法安全判斷自由文字裡哪段話對應到哪個參數，如果你希望某一則問答也套用自動同步，要到「QA症狀編輯」把提到的數字改成對應的變數標記，之後就會自動跟著這裡更新了。</div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-salt"></i>補鹽原則</div><span class="badge" style="background:#D1FAE5;color:#065F46">用 {{g-salt}} 等標記可自動同步</span></div><div class="card-body" style="padding:0 16px">
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">每次補充量</div><div class="gi-desc">補鹽的基本說法，用於所有症狀回答・變數標記：<code>{{g-salt}}</code></div></div><input class="gi-inp" id="g-salt" value="約 1 小匙鹽 + 200cc 水（建議泡在電解質裡一起喝，比較好入口）"></div>
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">補充方式與頻率（體感原則）</div><div class="gi-desc">強調由體感決定，不是固定次數・變數標記：<code>{{g-salt-how}}</code></div></div><textarea class="gi-ta" id="g-salt-how">慢慢喝，喝到口不渴、不便秘、不頭暈頭痛為止。這個量由你的體感來決定，不是固定次數。穩定粒腺體的人一天至少需要補充 2–3 次。</textarea></div>
@@ -1621,6 +1621,170 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
   <div style="font-size:11px;color:var(--text3);margin-top:8px">💡 「傳關心」和「送禮物」都會寫入 🌱 秘書禮物，客人打開前台會即時看到，不需要另外傳 LINE。</div>
 </div>
 
+
+<div class="pg" id="pg-clinic-slots">
+  <div class="hint-box">在這裡維護各診所的可預約時段。<b>每月 25 日</b>更新下個月的時段，客人在前台預約 IRCT 複檢時就會看到正確的時間。改完馬上生效。<br>💡 診所名稱直接從「分帳角色名單」裡的診所選，跟分潤結算、加測檢測的送往、逾期提醒用的是同一份名單，名稱不會兜不起來。還沒登錄的診所，先到「分帳角色名單」新增再回來選。</div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>新增可預約時段</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div class="form-label">診所名稱</div>
+          <select id="cs-clinic-sel" class="form-select" onchange="csClinicSelChange()" style="margin-bottom:5px"><option value="">載入中…</option></select>
+          <input id="cs-clinic" class="form-input" placeholder="例：瑞絲得診所" style="display:none">
+        </div>
+        <div><div class="form-label">地區</div><input id="cs-region" class="form-input" placeholder="例：新竹"></div>
+      </div>
+      <div style="margin-bottom:10px"><div class="form-label">可預約日期時間</div><input id="cs-datetime" class="form-input" placeholder="例：7/20（六）08:30，或 每週六 08:30"></div>
+      <button class="btn-primary" onclick="addClinicSlot()"><i class="ti ti-plus"></i> 新增時段</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-list"></i>目前的可預約時段</div>
+      <button class="btn-ghost" onclick="loadClinicSlots()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button></div>
+    <div class="card-body"><div id="cs-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
+  </div>
+</div>
+  <div class="pg" id="pg-lab-integrate">
+  <div class="hint-box">把客人的檢測報告數據輸入這裡，就能看到<b>個人歷次趨勢</b>和<b>全部客人總覽</b>。檢測項目可以自由增加，加測新項目直接打上去就好，不受限制。<br><span style="color:#1A9E6C;font-weight:700">綠色</span>=在理想區間內、<span style="color:#D6455D;font-weight:700">紅色⚠</span>=超出範圍，一眼看出哪些要注意。</div>
+
+  <!-- 輸入區 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-plus"></i>輸入檢測數據</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div class="form-label">客人</div><select id="li-client" class="form-select" onchange="if(this.value) liLoadCurrentMeds(this.value)"><option value="">載入中…</option></select></div>
+        <div><div class="form-label">檢測日期</div><input id="li-date" class="form-input" type="date"></div>
+      </div>
+      <div style="margin-bottom:10px;background:#FBF9F4;border-radius:10px;padding:11px 13px">
+        <div class="form-label" style="margin-bottom:6px">💊 複測時順便更新用藥（會寫進用藥記錄）</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:8px">複測問客人「現在還有沒有在吃這些藥」，在這裡更新，之後檢測會自動對照。很多客人吃多種藥，可以逐一更新或新增。</div>
+        <div id="li-meds-list"><div style="color:var(--text3);font-size:12px">選客人後，這裡會顯示他目前在吃的藥</div></div>
+        <button class="btn-ghost" onclick="liAddMedRow()" style="font-size:12px;margin-top:6px"><i class="ti ti-plus"></i> 新增一種藥</button>
+      </div>
+      <div class="form-label" style="margin-bottom:6px">檢測項目（可自由增加，加測新項目直接填）</div>
+      <div id="li-items"></div>
+      <button class="btn-ghost" onclick="liAddRow()" style="font-size:12px;margin:6px 0"><i class="ti ti-plus"></i> 再加一項</button>
+      <button class="btn-primary" onclick="liSave()" style="width:100%;margin-top:8px"><i class="ti ti-device-floppy"></i> 儲存這次檢測</button>
+    </div>
+  </div>
+
+  <!-- 個人趨勢 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-line"></i>個人檢測趨勢</div>
+      <select id="li-trend-client" class="form-select" style="width:auto;font-size:12px" onchange="liLoadTrend()"><option value="">選客人…</option></select></div>
+    <div class="card-body"><div id="li-trend"><div style="color:var(--text3);font-size:13px">選一位客人看他歷次檢測的變化</div></div></div>
+  </div>
+
+  <!-- 家庭比較 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-home"></i>一家人比較</div>
+      <select id="li-family-sel" class="form-select" style="width:auto;font-size:12px" onchange="liLoadFamily()"><option value="">選家庭…</option></select></div>
+    <div class="card-body">
+      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2)">
+        💡 先幫客人設定家庭：<select id="li-fam-client" class="form-select" style="width:auto;font-size:12px;display:inline-block;margin:0 4px"><option value="">選客人</option></select>
+        屬於 <input id="li-fam-name" class="form-input" style="width:100px;font-size:12px;display:inline-block" placeholder="家庭名稱">
+        <button class="btn-ghost" onclick="liSetFamily()" style="font-size:12px"><i class="ti ti-check"></i> 設定</button>
+      </div>
+      <div id="li-family"><div style="color:var(--text3);font-size:13px">選一個家庭，看全家人的檢測並排比較</div></div>
+    </div>
+  </div>
+
+  <!-- 全部總覽 -->
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>全部客人總覽（最新檢測）</div>
+      <button class="btn-ghost" onclick="liLoadOverview()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
+    <div class="card-body"><div id="li-overview"><div style="color:var(--text3);font-size:13px">點「載入」看所有客人的最新檢測</div></div></div>
+  </div>
+  </div>
+<div class="pg" id="pg-stored-value">
+  <div class="hint-box">客人儲值後，可在各服務點（陪跑、診所、美業、體適能、瑜珈、藥局…）消費扣款。<b>系統只記帳、不經手金流</b>——實際收款請走正規刷卡／Line Pay。<br>⚠️ 提醒：預收儲值涉及消費者保護法規，上線前請先與會計師／律師確認履約與退費機制。</div>
+
+  <!-- 营运总览 -->
+  <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);color:#fff">
+    <div class="card-hd" style="border:none"><div class="card-title" style="color:#fff"><i class="ti ti-chart-bar"></i>營運總覽</div>
+      <input id="sv-ov-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadOverview()"></div>
+    <div class="card-body"><div id="sv-overview" style="color:#fff"><div style="opacity:.8;font-size:13px">選月份看營運狀況（留空看全部）</div>
+      <button class="btn-ghost" onclick="svLoadOverview()" style="font-size:12px;color:#fff;border-color:rgba(255,255,255,.3);margin-top:8px">看全部</button></div></div>
+  </div>
+
+  <!-- 负余额客人清单：消费超过储值，需要提醒补款 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-alert-triangle"></i>餘額是負的客人（需提醒補款）</div>
+      <button class="tb-btn" onclick="loadBalanceDeficitList()"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button></div>
+    <div class="card-body"><div id="sv-deficit-list" style="font-size:12px;color:var(--text3)">載入中…</div></div>
+  </div>
+
+  <!-- 客人储值卡 -->
+  <div class="card" id="sv-client-card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-credit-card"></i>客人儲值卡</div>
+      <select id="sv-client" class="form-select" style="width:auto;font-size:12px" onchange="svLoadCard()"><option value="">選客人…</option></select></div>
+    <div class="card-body">
+      <div id="sv-balance" style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;color:var(--text3);font-size:13px">選一位客人看儲值卡餘額</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:7px">💳 儲值</div>
+          <input id="sv-amount" class="form-input" type="number" placeholder="儲值金額" style="font-size:12px;margin-bottom:6px">
+          <input id="sv-method" class="form-input" placeholder="付款方式（刷卡/現金）" style="font-size:12px;margin-bottom:6px">
+          <button class="btn-primary" onclick="svAddValue()" style="width:100%;font-size:12px"><i class="ti ti-plus"></i> 儲值</button>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:7px">🧾 消費扣款</div>
+          <select id="sv-point" class="form-select" style="font-size:12px;margin-bottom:6px"><option value="">選服務點</option></select>
+          <input id="sv-item" class="form-input" placeholder="消費項目" style="font-size:12px;margin-bottom:6px">
+          <input id="sv-cons-amount" class="form-input" type="number" placeholder="金額" style="font-size:12px;margin-bottom:6px">
+          <button class="btn-primary" onclick="svAddConsumption()" style="width:100%;font-size:12px"><i class="ti ti-minus"></i> 扣款</button>
+        </div>
+      </div>
+      <div id="sv-records" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- 服务点目录管理 -->
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-building-store"></i>服務點目錄</div>
+      <button class="btn-ghost" onclick="svLoadPoints()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
+    <div class="card-body">
+      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px">
+        新增服務點：<input id="sv-pt-name" class="form-input" style="width:130px;font-size:12px;display:inline-block;margin:0 4px" placeholder="名稱">
+        <input id="sv-pt-cat" class="form-input" style="width:90px;font-size:12px;display:inline-block;margin:0 4px" placeholder="類別">
+        <button class="btn-ghost" onclick="svAddPoint()" style="font-size:12px"><i class="ti ti-plus"></i> 新增</button>
+      </div>
+      <div id="sv-points-list"><div style="color:var(--text3);font-size:13px">點「載入」看所有服務點</div></div>
+    </div>
+  </div>
+
+  <!-- 分潤結算 -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-pie"></i>消費分潤結算</div>
+      <input id="sv-settle-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadSettlement()"></div>
+    <div class="card-body"><div id="sv-settlement"><div style="color:var(--text3);font-size:13px">選月份看各服務點、各角色的分潤</div></div></div>
+  </div>
+
+  <!-- 合并结算（每个人从A+B总共分多少）-->
+  <div class="card" style="margin-top:14px;border:2px solid var(--g)">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-users-group"></i>合併結算・每人總分潤（發薪用）</div>
+      <input id="sv-merged-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadMerged()"></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">把「健康秘書分潤」和「服務點分潤」兩套合起來，看每個人這個月總共該分多少。</div>
+      <div id="sv-merged"><div style="color:var(--text3);font-size:13px">選月份看每個人的總分潤</div></div>
+    </div>
+  </div>
+</div>
+
+
+<div class="pg" id="pg-review">
+  <div class="hint-box">💰 <b>會計核查台</b>：秘書登錄的儲值和消費，都要在這裡核查通過後才會生效（算進餘額、算分潤）。核對金額、發票、付款方式無誤後按「核查通過」；有問題按「退回」並填原因。每筆都會記下誰核查、時間。</div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-checklist"></i>待核查清單</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="rv-reviewer" class="form-input" style="width:110px;font-size:12px" placeholder="核查人姓名">
+        <button class="btn-ghost" onclick="rvLoad()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button>
+      </div></div>
+    <div class="card-body"><div id="rv-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
+  </div>
+</div>
+
 </div><!-- end content -->
 </div><!-- end main -->
 </div><!-- end layout -->
@@ -1653,7 +1817,7 @@ function goPg(id,el){
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
   if(el)el.classList.add('on');
-  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存'};
+  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查'};
   document.getElementById('page-title').textContent=titles[id]||id;
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
   if (typeof runPageLoader === 'function') runPageLoader(id);
@@ -8769,168 +8933,6 @@ function doLogout(){
 
 </script>
 </body>
-<div class="pg" id="pg-clinic-slots">
-  <div class="hint-box">在這裡維護各診所的可預約時段。<b>每月 25 日</b>更新下個月的時段，客人在前台預約 IRCT 複檢時就會看到正確的時間。改完馬上生效。<br>💡 診所名稱直接從「分帳角色名單」裡的診所選，跟分潤結算、加測檢測的送往、逾期提醒用的是同一份名單，名稱不會兜不起來。還沒登錄的診所，先到「分帳角色名單」新增再回來選。</div>
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>新增可預約時段</div></div>
-    <div class="card-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><div class="form-label">診所名稱</div>
-          <select id="cs-clinic-sel" class="form-select" onchange="csClinicSelChange()" style="margin-bottom:5px"><option value="">載入中…</option></select>
-          <input id="cs-clinic" class="form-input" placeholder="例：瑞絲得診所" style="display:none">
-        </div>
-        <div><div class="form-label">地區</div><input id="cs-region" class="form-input" placeholder="例：新竹"></div>
-      </div>
-      <div style="margin-bottom:10px"><div class="form-label">可預約日期時間</div><input id="cs-datetime" class="form-input" placeholder="例：7/20（六）08:30，或 每週六 08:30"></div>
-      <button class="btn-primary" onclick="addClinicSlot()"><i class="ti ti-plus"></i> 新增時段</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-list"></i>目前的可預約時段</div>
-      <button class="btn-ghost" onclick="loadClinicSlots()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button></div>
-    <div class="card-body"><div id="cs-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
-  <div class="pg" id="pg-lab-integrate">
-  <div class="hint-box">把客人的檢測報告數據輸入這裡，就能看到<b>個人歷次趨勢</b>和<b>全部客人總覽</b>。檢測項目可以自由增加，加測新項目直接打上去就好，不受限制。<br><span style="color:#1A9E6C;font-weight:700">綠色</span>=在理想區間內、<span style="color:#D6455D;font-weight:700">紅色⚠</span>=超出範圍，一眼看出哪些要注意。</div>
-
-  <!-- 輸入區 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-plus"></i>輸入檢測數據</div></div>
-    <div class="card-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><div class="form-label">客人</div><select id="li-client" class="form-select" onchange="if(this.value) liLoadCurrentMeds(this.value)"><option value="">載入中…</option></select></div>
-        <div><div class="form-label">檢測日期</div><input id="li-date" class="form-input" type="date"></div>
-      </div>
-      <div style="margin-bottom:10px;background:#FBF9F4;border-radius:10px;padding:11px 13px">
-        <div class="form-label" style="margin-bottom:6px">💊 複測時順便更新用藥（會寫進用藥記錄）</div>
-        <div style="font-size:10px;color:var(--text3);margin-bottom:8px">複測問客人「現在還有沒有在吃這些藥」，在這裡更新，之後檢測會自動對照。很多客人吃多種藥，可以逐一更新或新增。</div>
-        <div id="li-meds-list"><div style="color:var(--text3);font-size:12px">選客人後，這裡會顯示他目前在吃的藥</div></div>
-        <button class="btn-ghost" onclick="liAddMedRow()" style="font-size:12px;margin-top:6px"><i class="ti ti-plus"></i> 新增一種藥</button>
-      </div>
-      <div class="form-label" style="margin-bottom:6px">檢測項目（可自由增加，加測新項目直接填）</div>
-      <div id="li-items"></div>
-      <button class="btn-ghost" onclick="liAddRow()" style="font-size:12px;margin:6px 0"><i class="ti ti-plus"></i> 再加一項</button>
-      <button class="btn-primary" onclick="liSave()" style="width:100%;margin-top:8px"><i class="ti ti-device-floppy"></i> 儲存這次檢測</button>
-    </div>
-  </div>
-
-  <!-- 個人趨勢 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-line"></i>個人檢測趨勢</div>
-      <select id="li-trend-client" class="form-select" style="width:auto;font-size:12px" onchange="liLoadTrend()"><option value="">選客人…</option></select></div>
-    <div class="card-body"><div id="li-trend"><div style="color:var(--text3);font-size:13px">選一位客人看他歷次檢測的變化</div></div></div>
-  </div>
-
-  <!-- 家庭比較 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-home"></i>一家人比較</div>
-      <select id="li-family-sel" class="form-select" style="width:auto;font-size:12px" onchange="liLoadFamily()"><option value="">選家庭…</option></select></div>
-    <div class="card-body">
-      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2)">
-        💡 先幫客人設定家庭：<select id="li-fam-client" class="form-select" style="width:auto;font-size:12px;display:inline-block;margin:0 4px"><option value="">選客人</option></select>
-        屬於 <input id="li-fam-name" class="form-input" style="width:100px;font-size:12px;display:inline-block" placeholder="家庭名稱">
-        <button class="btn-ghost" onclick="liSetFamily()" style="font-size:12px"><i class="ti ti-check"></i> 設定</button>
-      </div>
-      <div id="li-family"><div style="color:var(--text3);font-size:13px">選一個家庭，看全家人的檢測並排比較</div></div>
-    </div>
-  </div>
-
-  <!-- 全部總覽 -->
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>全部客人總覽（最新檢測）</div>
-      <button class="btn-ghost" onclick="liLoadOverview()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
-    <div class="card-body"><div id="li-overview"><div style="color:var(--text3);font-size:13px">點「載入」看所有客人的最新檢測</div></div></div>
-  </div>
-<div class="pg" id="pg-stored-value">
-  <div class="hint-box">客人儲值後，可在各服務點（陪跑、診所、美業、體適能、瑜珈、藥局…）消費扣款。<b>系統只記帳、不經手金流</b>——實際收款請走正規刷卡／Line Pay。<br>⚠️ 提醒：預收儲值涉及消費者保護法規，上線前請先與會計師／律師確認履約與退費機制。</div>
-
-  <!-- 营运总览 -->
-  <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);color:#fff">
-    <div class="card-hd" style="border:none"><div class="card-title" style="color:#fff"><i class="ti ti-chart-bar"></i>營運總覽</div>
-      <input id="sv-ov-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadOverview()"></div>
-    <div class="card-body"><div id="sv-overview" style="color:#fff"><div style="opacity:.8;font-size:13px">選月份看營運狀況（留空看全部）</div>
-      <button class="btn-ghost" onclick="svLoadOverview()" style="font-size:12px;color:#fff;border-color:rgba(255,255,255,.3);margin-top:8px">看全部</button></div></div>
-  </div>
-
-  <!-- 负余额客人清单：消费超过储值，需要提醒补款 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-alert-triangle"></i>餘額是負的客人（需提醒補款）</div>
-      <button class="tb-btn" onclick="loadBalanceDeficitList()"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button></div>
-    <div class="card-body"><div id="sv-deficit-list" style="font-size:12px;color:var(--text3)">載入中…</div></div>
-  </div>
-
-  <!-- 客人储值卡 -->
-  <div class="card" id="sv-client-card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-credit-card"></i>客人儲值卡</div>
-      <select id="sv-client" class="form-select" style="width:auto;font-size:12px" onchange="svLoadCard()"><option value="">選客人…</option></select></div>
-    <div class="card-body">
-      <div id="sv-balance" style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;color:var(--text3);font-size:13px">選一位客人看儲值卡餘額</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
-          <div style="font-weight:700;font-size:12px;margin-bottom:7px">💳 儲值</div>
-          <input id="sv-amount" class="form-input" type="number" placeholder="儲值金額" style="font-size:12px;margin-bottom:6px">
-          <input id="sv-method" class="form-input" placeholder="付款方式（刷卡/現金）" style="font-size:12px;margin-bottom:6px">
-          <button class="btn-primary" onclick="svAddValue()" style="width:100%;font-size:12px"><i class="ti ti-plus"></i> 儲值</button>
-        </div>
-        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
-          <div style="font-weight:700;font-size:12px;margin-bottom:7px">🧾 消費扣款</div>
-          <select id="sv-point" class="form-select" style="font-size:12px;margin-bottom:6px"><option value="">選服務點</option></select>
-          <input id="sv-item" class="form-input" placeholder="消費項目" style="font-size:12px;margin-bottom:6px">
-          <input id="sv-cons-amount" class="form-input" type="number" placeholder="金額" style="font-size:12px;margin-bottom:6px">
-          <button class="btn-primary" onclick="svAddConsumption()" style="width:100%;font-size:12px"><i class="ti ti-minus"></i> 扣款</button>
-        </div>
-      </div>
-      <div id="sv-records" style="margin-top:12px"></div>
-    </div>
-  </div>
-
-  <!-- 服务点目录管理 -->
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-building-store"></i>服務點目錄</div>
-      <button class="btn-ghost" onclick="svLoadPoints()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
-    <div class="card-body">
-      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px">
-        新增服務點：<input id="sv-pt-name" class="form-input" style="width:130px;font-size:12px;display:inline-block;margin:0 4px" placeholder="名稱">
-        <input id="sv-pt-cat" class="form-input" style="width:90px;font-size:12px;display:inline-block;margin:0 4px" placeholder="類別">
-        <button class="btn-ghost" onclick="svAddPoint()" style="font-size:12px"><i class="ti ti-plus"></i> 新增</button>
-      </div>
-      <div id="sv-points-list"><div style="color:var(--text3);font-size:13px">點「載入」看所有服務點</div></div>
-    </div>
-  </div>
-
-  <!-- 分潤結算 -->
-  <div class="card" style="margin-top:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-pie"></i>消費分潤結算</div>
-      <input id="sv-settle-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadSettlement()"></div>
-    <div class="card-body"><div id="sv-settlement"><div style="color:var(--text3);font-size:13px">選月份看各服務點、各角色的分潤</div></div></div>
-  </div>
-
-  <!-- 合并结算（每个人从A+B总共分多少）-->
-  <div class="card" style="margin-top:14px;border:2px solid var(--g)">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-users-group"></i>合併結算・每人總分潤（發薪用）</div>
-      <input id="sv-merged-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadMerged()"></div>
-    <div class="card-body">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">把「健康秘書分潤」和「服務點分潤」兩套合起來，看每個人這個月總共該分多少。</div>
-      <div id="sv-merged"><div style="color:var(--text3);font-size:13px">選月份看每個人的總分潤</div></div>
-    </div>
-  </div>
-</div>
-
-</div>
-
-</div>
-</div>
-<div class="pg" id="pg-review">
-  <div class="hint-box">💰 <b>會計核查台</b>：秘書登錄的儲值和消費，都要在這裡核查通過後才會生效（算進餘額、算分潤）。核對金額、發票、付款方式無誤後按「核查通過」；有問題按「退回」並填原因。每筆都會記下誰核查、時間。</div>
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-checklist"></i>待核查清單</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="rv-reviewer" class="form-input" style="width:110px;font-size:12px" placeholder="核查人姓名">
-        <button class="btn-ghost" onclick="rvLoad()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button>
-      </div></div>
-    <div class="card-body"><div id="rv-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
-  </div>
-</div>
 
 
 
