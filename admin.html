@@ -8885,6 +8885,17 @@ function applyPermissions(){
     var m = oc.match(/goPg\('([\w-]+)'/);
     if(m && Array.isArray(allowed)){ var pg = m[1]; if(allowed.indexOf(pg) < 0 && extra.indexOf(pg) < 0){ nav.style.display='none'; } }
   });
+  // 分類標題（如「追蹤管理」）底下的項目如果全部被隱藏，標題自己也要跟著隱藏，
+  // 不然畫面上會出現一個標題掛在那裡、底下卻什麼都沒有，看起來像壞掉了
+  var sbNavKids = document.querySelectorAll('.sb-nav > *');
+  var curSec = null;
+  sbNavKids.forEach(function(el){
+    if(el.classList.contains('sb-sec')){ curSec = el; curSec._hasVisibleItem = false; }
+    else if(curSec && el.style.display !== 'none'){ curSec._hasVisibleItem = true; }
+  });
+  sbNavKids.forEach(function(el){
+    if(el.classList.contains('sb-sec')) el.style.display = el._hasVisibleItem ? '' : 'none';
+  });
   // 若目前显示的分页不允许，跳到 dashboard
   setTimeout(function(){
     if(typeof goPg==='function') goPg('dashboard');
