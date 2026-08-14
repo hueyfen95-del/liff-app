@@ -1058,6 +1058,7 @@ window.openHealthForm = function() {
     </div>
     <!-- 本次分析結論（簡化版，完整細節只留在醫師/秘書端；加上user-select:none降低隨手複製的機率，但無法防止截圖）-->
     <div id="irct-summary-card" style="display:none;margin:10px 14px 0;background:linear-gradient(135deg,#085041,#158066);border-radius:14px;padding:16px 18px;color:#fff;user-select:none;-webkit-user-select:none;-moz-user-select:none" oncontextmenu="return false">
+      <div id="irct-summary-secnote" style="display:none;background:rgba(255,255,255,.16);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;line-height:1.7"></div>
       <div style="font-size:11px;opacity:.8;margin-bottom:4px">🔬 本次檢測分析結論</div>
       <div style="font-size:18px;font-weight:800;margin-bottom:6px" id="irct-summary-classification"></div>
       <div style="font-size:12px;line-height:1.7;opacity:.95" id="irct-summary-note"></div>
@@ -3231,7 +3232,14 @@ function loadIRCTOverview(){
       return;
     }
     var st = IRCT_CLASS_STYLE[d.overall.classification] || {color:'#374151', bg:'#F5F7FA', border:'#E5E7EB', emoji:'📊'};
-    var html = '<div style="background:'+st.bg+';border:1px solid '+st.border+';border-radius:13px;padding:14px;margin-bottom:14px">'
+    // 秘書補充判讀：秘書/醫師針對這次檢測手動寫給你的說明，擺在最前面、比自動分型優先顯示——
+    // 人的狀況比系統的自動判斷複雜，這段話是有人真的看過你這次的數值之後親自寫的
+    var html = (d.secretaryNote ? '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:13px;padding:14px;margin-bottom:14px">'
+      + '<div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:7px;display:flex;align-items:center;gap:7px">'
+      + '<span style="font-size:18px">📝</span>秘書想跟你說</div>'
+      + '<div style="font-size:12.5px;line-height:1.8;color:#92400E">'+escHtml(d.secretaryNote)+'</div>'
+      + '</div>' : '')
+      + '<div style="background:'+st.bg+';border:1px solid '+st.border+';border-radius:13px;padding:14px;margin-bottom:14px">'
       + '<div style="font-size:13px;font-weight:700;color:'+st.color+';margin-bottom:7px;display:flex;align-items:center;gap:7px">'
       + '<span style="font-size:20px">'+st.emoji+'</span>第 '+escHtml(d.count)+' 次檢測・'+escHtml(d.testDate)+'</div>'
       + (d.overall.classification ? '<div style="font-size:14px;font-weight:700;color:'+st.color+';margin-bottom:8px">'+escHtml(d.overall.classification)+'</div>' : '')
@@ -6295,6 +6303,13 @@ function loadIrctSummary(){
     if(!d || d.status!=='ok' || !d.found || !d.overall || !d.overall.classification){ card.style.display='none'; return; }
     _irctSummaryLoaded = true;
     card.style.display='';
+    // 秘書補充判讀：這是客人一進報告頁最先看到的卡片，如果秘書針對這次數值有手動補充說明，
+    // 要放在結論文字之前，不能讓自動分型的結論（例如「維持現況即可」）先入為主
+    var secnoteEl = document.getElementById('irct-summary-secnote');
+    if(secnoteEl){
+      if(d.secretaryNote){ secnoteEl.style.display=''; secnoteEl.textContent = '📝 ' + d.secretaryNote; }
+      else { secnoteEl.style.display='none'; }
+    }
     var clsEl = document.getElementById('irct-summary-classification');
     if(clsEl) clsEl.textContent = d.overall.classification;
     var noteEl = document.getElementById('irct-summary-note');

@@ -2231,6 +2231,17 @@ function loadIRCTAnalysisFull(clientId){
     }
     var a = d.analysis;
     var typeHtml = '';
+    if(a.secretaryNote){
+      typeHtml += '<div style="margin-bottom:8px;padding:9px 11px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:9px">'
+        + '<b style="color:#92400E">📝 秘書補充判讀（前台已顯示給客人）：</b><br>'
+        + '<span style="font-size:11px;color:var(--text)">'+escH(a.secretaryNote)+'</span></div>';
+    }
+    if(a.constitutionType){
+      typeHtml += '<div style="margin-bottom:8px;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:9px">'
+        + '<b style="color:var(--text2)">🧬 天生體質（人工判定）：'+escH(a.constitutionType.type)+'型</b>'
+        + (a.constitutionType.note ? '<br><span style="font-size:10.5px;color:var(--text3)">'+escH(a.constitutionType.note)+'</span>' : '')
+        + '<div style="font-size:10px;color:var(--text3);margin-top:2px">目前僅秘書/醫師端可見，尚未顯示給客人</div></div>';
+    }
     if(a.specialCase){
       typeHtml += '<div style="margin-bottom:8px;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:9px">'
         + '<b style="color:var(--text2)">📋 特殊情境：'+escH(a.specialCase)+'</b><br>'
@@ -2389,6 +2400,7 @@ function saveIRCTFull(clientId){
     na:g('irct-f-na'), k:g('irct-f-k'), cl:g('irct-f-cl'), freeT4:g('irct-f-freeT4'), tsh:g('irct-f-tsh'),
     lipoproteinA:g('irct-f-lipoproteinA'), apob:g('irct-f-apob'),
     acquiredMode:g('irct-f-acquiredMode'), bodyCompDevice:g('irct-f-bodyCompDevice'),
+    note:g('irct-f-note'),
     stateSurvey:(window._irctStateSurvey||'') };
   adminAPIPost(payload, function(d){
     if(d && d.status === 'ok'){
@@ -4386,6 +4398,20 @@ function setClientSpecialCaseUI(id){
     else toast('⚠️ 更新失敗');
   });
 }
+// 天生體質A/B/C手動判定（創始人2026-08-13要求）：ABC自動判定標準還沒定案，先讓秘書/醫師憑專業判斷
+// 手動填這個空格，補上「還沒有完整分型」的情況；選了型態才問說明，方便之後累積案例、回頭定自動判定門檻
+function setClientConstitutionUI(id){
+  var sel = document.getElementById('cd-constitution-sel');
+  if(!sel) return;
+  var noteVal = '';
+  if(sel.value){
+    noteVal = prompt('判定為「'+sel.value+'型」的依據／觀察說明（選填，僅秘書/醫師內部參考，之後可再修改）：', '') || '';
+  }
+  adminAPIPost({action:'setClientConstitutionType', clientId:id, type:sel.value, note:noteVal}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 已更新天生體質判定'); if(_clientsCache) loadClientsList(function(){}, true); }
+    else toast('⚠️ 更新失敗');
+  });
+}
 function setClientStageUI(id){
   var sel = document.getElementById('cd-stage-sel');
   if(!sel) return;
@@ -4456,6 +4482,9 @@ function openClientDetail(id, name){
     + '</select>'
     + '<select id="cd-special-sel" onchange="setClientSpecialCaseUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
     + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'特殊情境：無（一般客人）')+'</option>'; }).join('')
+    + '</select>'
+    + '<select id="cd-constitution-sel" onchange="setClientConstitutionUI(\''+escH(id)+'\')" title="自動判定標準還沒定案前，先讓秘書/醫師憑觀察手動標註；累積夠多案例後再回頭定門檻" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
+    + ['','A','B','C'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.constitutionType:'')?'selected':'')+'>'+(s?'天生體質：'+s+'型':'天生體質：尚未判定')+'</option>'; }).join('')
     + '</select>'
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '</div>'
@@ -4676,6 +4705,11 @@ function openClientDetail(id, name){
     + '<input id="irct-f-tsh" class="form-input" style="font-size:12px" placeholder="甲狀腺促進素TSH">'
     + '<input id="irct-f-lipoproteinA" class="form-input" style="font-size:12px" placeholder="脂蛋白元A">'
     + '<input id="irct-f-apob" class="form-input" style="font-size:12px" placeholder="載脂蛋白B ApoB">'
+    + '</div>'
+    + '<div style="margin-bottom:8px;padding:9px 11px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:9px">'
+    + '<div style="font-size:10.5px;font-weight:700;color:#92400E;margin-bottom:4px">📝 秘書補充判讀（選填・前台會顯示給客人，位置在自動分型之前）</div>'
+    + '<div style="font-size:10px;color:#92400E;margin-bottom:5px">自動分型判斷不出來、或這次數值有需要額外說明的地方（例如某項數值大反應但其他都正常），直接在這裡手動寫給客人看的說明，不用等自動判定邏輯都補齊。</div>'
+    + '<textarea id="irct-f-note" class="form-input" style="font-size:12px;width:100%;min-height:56px" placeholder="例如：這次膽固醇/LDL明顯上升，但其他代謝指標都在進步，這跟妳的體質有關，我們會持續追蹤，不用太擔心……"></textarea>'
     + '</div>'
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="saveIRCTFull(\''+escH(id)+'\')">儲存 IRCT 完整記錄（同步解鎖前台報告）</button>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">IRCT 檢測歷史</div>'
