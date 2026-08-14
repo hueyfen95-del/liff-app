@@ -56,6 +56,7 @@
     <div class="tab" id="tab-slots" onclick="switchTab('slots')" style="display:none">📅 可預約時段</div>
     <div class="tab" id="tab-stmt" onclick="switchTab('stmt')">📄 月結對帳單</div>
     <div class="tab" id="tab-referral" onclick="switchTab('referral')" style="display:none">🤝 我的推廣</div>
+    <div class="tab" id="tab-report-sale" onclick="switchTab('report-sale')" style="display:none">💰 回報收款</div>
   </div>
 
   <!-- 可預約時段（只有診所／檢測單位帳號看得到）：自己維護開放給客人預約的時間 -->
@@ -168,6 +169,25 @@
       <div id="referral-result" style="margin-top:10px"></div>
     </div>
   </div>
+
+  <!-- 回報收款（只有開通「自行收款回報」的合作單位看得到）：您自己跟客人收費後，回報進系統，元代謝核對後才知道要收您多少 -->
+  <div id="pane-report-sale" style="display:none">
+    <div class="card">
+      <div class="lbl" style="margin-top:0">回報一筆收款</div>
+      <div style="font-size:12px;color:#788;margin-bottom:10px">您直接跟客人收費後，在這裡回報，元代謝核對金額無誤後，會依約定比例算出您該付給元代謝多少。</div>
+      <input id="rs-client-id" placeholder="客人編號（例：C001）" style="margin-bottom:8px">
+      <select id="rs-event-type" style="margin-bottom:8px"><option value="">載入中…</option></select>
+      <input id="rs-amount" type="number" placeholder="您跟客人收了多少（元）" style="margin-bottom:10px">
+      <button style="width:100%" onclick="reportSale()">回報這筆收款</button>
+      <div class="err" id="rs-err"></div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="margin-top:0">我的回報與應付元代謝金額</div>
+      <button style="width:100%;margin-bottom:8px" onclick="loadMyReportedSales()">重新整理</button>
+      <div id="rs-summary" class="muted">點「重新整理」查看</div>
+      <div id="rs-list" style="margin-top:10px"></div>
+    </div>
+  </div>
 </div>
 
 <div style="text-align:center;font-size:11px;color:#bbb;margin-top:20px">
@@ -197,8 +217,11 @@ function showWorkspace(skipAutoSwitch){
   document.getElementById('tab-slots').style.display = isLab ? '' : 'none';
   var hasReferral = (V_FEATURES||'').indexOf('referral') >= 0;
   document.getElementById('tab-referral').style.display = hasReferral ? '' : 'none';
+  var hasSelfCollect = (V_FEATURES||'').indexOf('selfCollect') >= 0;
+  document.getElementById('tab-report-sale').style.display = hasSelfCollect ? '' : 'none';
   if(skipAutoSwitch) return; // 背景重新整理開通項目用，不要打斷使用者目前正在看的分頁
   if(isLab) switchTab('upload'); // 診所/實驗室帳號打開直接看待回報清單，比消費扣款更常用
+  else if(hasSelfCollect) switchTab('report-sale'); // 自行收款回報型合作單位打開直接看回報收款，比扣款更常用
   else if(hasReferral) switchTab('referral'); // 純推廣型合作單位（例如美業集團）打開直接看推廣成效，比扣款更常用
 }
 function vLogin(){
@@ -233,14 +256,17 @@ function switchTab(t){
   document.getElementById('tab-slots').className='tab'+(t==='slots'?' on':'');
   document.getElementById('tab-stmt').className='tab'+(t==='stmt'?' on':'');
   document.getElementById('tab-referral').className='tab'+(t==='referral'?' on':'');
+  document.getElementById('tab-report-sale').className='tab'+(t==='report-sale'?' on':'');
   document.getElementById('pane-charge').style.display=t==='charge'?'':'none';
   document.getElementById('pane-upload').style.display=t==='upload'?'':'none';
   document.getElementById('pane-slots').style.display=t==='slots'?'':'none';
   document.getElementById('pane-stmt').style.display=t==='stmt'?'':'none';
   document.getElementById('pane-referral').style.display=t==='referral'?'':'none';
+  document.getElementById('pane-report-sale').style.display=t==='report-sale'?'':'none';
   if(t==='upload') loadPendingTests();
   if(t==='slots') loadMySlots();
   if(t==='referral') loadReferralInfo();
+  if(t==='report-sale'){ loadReportSaleEventTypes(); loadMyReportedSales(); }
 }
 // ── 2026-08-14 新增：我的推廣（合作單位轉介，例如美業集團）──
 function loadReferralInfo(){
@@ -320,6 +346,67 @@ function renderReferralResult(d, isGroup){
     html+='<div class="muted">這個期間沒有推廣獎金記錄</div>';
   }
   box.innerHTML=html;
+}
+// ── 2026-08-14 新增：回報收款（自行收款回報型合作單位，例如美業集團直接跟客人收整包套裝費用）──
+function loadReportSaleEventTypes(){
+  var sel=document.getElementById('rs-event-type');
+  if(!sel) return;
+  api({action:'vendorGetServiceTypes'},function(d){
+    var types=(d&&d.types)||[];
+    if(types.length===0){ sel.innerHTML='<option value="">尚未設定任何服務類型，請聯絡元代謝</option>'; return; }
+    sel.innerHTML=types.map(function(t){ return '<option value="'+esc(t.id||t.name)+'">'+esc(t.name)+'</option>'; }).join('');
+  });
+}
+var _reportSaleSaving=false;
+function reportSale(){
+  if(_reportSaleSaving) return;
+  var clientId=document.getElementById('rs-client-id').value.trim();
+  var eventType=document.getElementById('rs-event-type').value;
+  var amount=Number(document.getElementById('rs-amount').value);
+  var err=document.getElementById('rs-err');
+  if(!clientId){ err.textContent='請填寫客人編號'; return; }
+  if(!eventType){ err.textContent='請選擇服務類型'; return; }
+  if(!(amount>0)){ err.textContent='請填寫正確的收款金額'; return; }
+  if(!confirm('確認回報：\n客人：'+clientId+'\n服務類型：'+eventType+'\n您收了：$'+amount.toLocaleString()+'\n\n送出後元代謝會核對，核對通過才會正式算進您該付給元代謝的金額。')) return;
+  _reportSaleSaving=true;
+  err.textContent='回報中…';
+  api({action:'vendorReportSale',clientId:clientId,eventType:eventType,amount:amount},function(d){
+    _reportSaleSaving=false;
+    if(!d){ err.textContent='連線失敗，請稍後再試'; return; }
+    if(d.status!=='ok'){ err.textContent=d.message||'回報失敗'; return; }
+    err.textContent='';
+    document.getElementById('rs-client-id').value='';
+    document.getElementById('rs-amount').value='';
+    var owedMsg = (d.estimatedOwed>0) ? ('\n\n這筆核對通過後，您預估要付給元代謝 $'+d.estimatedOwed.toLocaleString()) : '';
+    alert('✅ 已回報，等待元代謝核對'+owedMsg + (d.warning?('\n\n⚠️ '+d.warning):''));
+    loadMyReportedSales();
+  });
+}
+function loadMyReportedSales(){
+  var sumBox=document.getElementById('rs-summary');
+  var listBox=document.getElementById('rs-list');
+  if(!sumBox) return;
+  sumBox.innerHTML='<div class="muted">載入中…</div>';
+  listBox.innerHTML='';
+  api({action:'vendorGetMyReportedSales'},function(d){
+    if(!d||d.status!=='ok'){ sumBox.innerHTML='<div class="muted">'+((d&&d.message)||'查詢失敗')+'</div>'; return; }
+    sumBox.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
+      +'<div><div style="font-size:20px;font-weight:800;color:#788">$'+(d.pendingOwed||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">待核查</div></div>'
+      +'<div><div style="font-size:20px;font-weight:800;color:#D6455D">$'+(d.confirmedUnsettled||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已核查・您目前應付</div></div>'
+      +'<div><div style="font-size:20px;font-weight:800;color:#1A9E6C">$'+(d.settledTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已結清累計</div></div>'
+      +'</div>';
+    var items=d.items||[];
+    if(items.length===0){ listBox.innerHTML='<div class="muted">還沒有回報過任何收款</div>'; return; }
+    var statusLabel={'待核查':'待核查','已核查':'已核查','已退回':'已退回（請確認後重新回報）'};
+    listBox.innerHTML='<table><thead><tr><th>日期</th><th>客人</th><th>類型</th><th style="text-align:right">您收的金額</th><th style="text-align:right">您應付元代謝</th><th>狀態</th></tr></thead><tbody>'
+      + items.map(function(it){
+        var settleTag = it.status==='已核查' ? ('<span class="src">'+(it.settleStatus==='已結清'?'已結清':'未結清')+'</span>') : '';
+        return '<tr><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td>'+esc(it.eventType)+'</td>'
+          +'<td class="amt">$'+(it.amount||0).toLocaleString()+'</td><td class="amt">$'+(it.owed||0).toLocaleString()+'</td>'
+          +'<td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span> '+settleTag+'</td></tr>';
+      }).join('')
+      + '</tbody></table>';
+  });
 }
 // ── 可預約時段自助維護（診所/檢測單位）──
 function loadMySlots(){

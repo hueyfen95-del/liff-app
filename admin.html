@@ -1649,7 +1649,7 @@ function goPg(id,el){
       return;
     }
   }
-  if(id==='review'){ setTimeout(rvLoad, 150); }
+  if(id==='review'){ setTimeout(rvLoad, 150); setTimeout(loadVendorReceivables, 150); }
   if(id==='stored-value'){ setTimeout(function(){ svLoadClients(); svLoadPointsToSelect(); svLoadRoleNames(); svLoadPointRules(function(){ svLoadPoints(); }); loadBalanceDeficitList(); }, 150); }
   if(id==='lab-integrate'){ setTimeout(function(){ liInitRows(); liLoadClients(); liLoadFamClients(); liLoadFamilyList(); }, 150); }
   if(id==='alerts' && typeof loadReportClients==='function') setTimeout(loadReportClients,150);
@@ -3309,7 +3309,7 @@ function openPartnerFeatures(btn) {
     groupRoleId = prompt('這家分店屬於哪個集團總部？\n請輸入總部的角色ID（在角色名單裡總部那筆項目的名稱旁邊可以看到，格式如 R20260814153000）：', '') || '';
     groupRoleId = groupRoleId.trim();
   }
-  var wantsReferral = confirm('要開通「客戶轉介來源標記＋推廣獎金」給「' + roleName + '」嗎？\n（純推廣行銷型合作夥伴用，例如美業集團——只給機構型合作單位，不涉及照顧、不接觸客人的檢測或健康資料）');
+  var wantsReferral = confirm('要開通「客戶轉介來源標記＋推廣獎金」給「' + roleName + '」嗎？\n（純推廣行銷型合作夥伴用，例如美業集團——只給機構型合作單位，不涉及照顧、不接觸客人的檢測或健康資料）\n\n這是「元代謝收款、付分潤給合作單位」的模式；如果是合作單位自己跟客人收費、再回報給元代謝的模式，請在下一個問題選擇。');
   var oneTime = '0', pct = '0';
   if (wantsReferral) {
     oneTime = prompt('首次消費一次性獎金（元，沒有就填0）：', '0');
@@ -3317,9 +3317,16 @@ function openPartnerFeatures(btn) {
     pct = prompt('後續持續分潤比例（0～100，沒有就填0，例如10代表10%）：', '0');
     if (pct === null) return;
   }
+  // 2026-08-14 新增：反過來的模式——合作單位自己跟客人收費，再回報進系統，元代謝核對後算應收帳款
+  // （用同一套 📊分帳規則設定 分帳比例，只是「誰欠誰」的方向相反，跟上面的推廣獎金模式是互斥的兩種用法，
+  // 通常一個合作單位只會用其中一種，但技術上兩個旗標互不影響，需要的話也可以同時開）
+  var wantsSelfCollect = confirm('要開通「合作單位自行收款、回報給元代謝」的模式嗎？\n（例如美業集團直接跟客人收整包套裝費用，再回報進系統，元代謝核對後知道對方欠多少——方向跟上面的推廣獎金相反）');
+  var features = [];
+  if (wantsReferral) features.push('referral');
+  if (wantsSelfCollect) features.push('selfCollect');
   adminAPI({
     action: 'setPartnerFeatures', roleId: roleId, orgType: orgType, groupRoleId: groupRoleId,
-    features: wantsReferral ? 'referral' : '', referralOneTime: oneTime, referralPercent: pct
+    features: features.join(','), referralOneTime: oneTime, referralPercent: pct
   }, function(d) {
     if (d.status === 'ok') {
       loadRoles();
@@ -8660,10 +8667,12 @@ function rvLoad(){
     if(badge){ if(pending.length){ badge.style.display='inline-block'; badge.textContent=pending.length; } else { badge.style.display='none'; } }
     if(pending.length===0){ box.innerHTML='<div style="color:var(--g3);font-size:13px;padding:10px">✅ 目前沒有待核查的項目，全部都核完了！</div>'; return; }
     box.innerHTML = pending.map(function(p){
-      var typeColor = p.type==='儲值' ? '#1A9E6C' : '#C88A2E';
+      var typeColor = p.type==='儲值' ? '#1A9E6C' : (p.type==='廠商回報' ? '#2E6FC8' : '#C88A2E');
       var detail = p.type==='儲值'
         ? ('付款方式：'+escH(p.method))
-        : ('服務點：'+escH(p.servicePoint)+'　項目：'+escH(p.item));
+        : p.type==='廠商回報'
+          ? ('廠商：'+escH(p.vendorCode)+'　服務類型：'+escH(p.eventType)+'　元代謝應收：$'+(p.owedToYuanDaixie||0).toLocaleString())
+          : ('服務點：'+escH(p.servicePoint)+'　項目：'+escH(p.item));
       return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">'
         + '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">'
         + '<div><span style="background:'+typeColor+';color:#fff;font-size:11px;padding:2px 8px;border-radius:6px">'+p.type+'</span>'
@@ -8687,9 +8696,41 @@ function rvDecide(type, row, decision){
   adminAPI({action:'reviewRecord', type:type, row:row, decision:decision, reviewer:reviewer, reason:reason}, function(d){
     if(d && d.status==='ok'){
       if(d.warning){ alert('⚠️ ' + d.warning); }
-      toast(decision==='通過'?'✅ 已核查通過':'已退回'); rvLoad();
+      toast(decision==='通過'?'✅ 已核查通過':'已退回'); rvLoad(); loadVendorReceivables();
     }
     else { toast('⚠️ 操作失敗'); }
+  });
+}
+
+// ══════ 廠商應收帳款（合作單位自行收款回報模式）══════
+function loadVendorReceivables(){
+  var box = document.getElementById('vendor-receivables-list');
+  if(!box) return;
+  box.innerHTML = '<div style="color:var(--text3);font-size:13px">載入中…</div>';
+  adminAPI({action:'getVendorReceivables'}, function(d){
+    box = document.getElementById('vendor-receivables-list');
+    if(!box) return;
+    var vendors = (d && d.vendors) || [];
+    if(vendors.length===0){ box.innerHTML='<div style="color:var(--text3);font-size:13px;padding:6px 0">目前沒有任何合作單位回報過收款</div>'; return; }
+    box.innerHTML = vendors.map(function(v){
+      return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">'
+        + '<div style="font-size:14px;font-weight:700;margin-bottom:8px">'+escH(v.vendorCode)+'</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px;margin-bottom:10px">'
+        + '<div><div style="color:var(--text3)">待核查</div><div style="font-weight:700">$'+(v.pendingOwed||0).toLocaleString()+'（'+(v.pendingCount||0)+'筆）</div></div>'
+        + '<div><div style="color:var(--text3)">已核查、未結清</div><div style="font-weight:700;color:var(--r)">$'+(v.confirmedUnsettled||0).toLocaleString()+'</div></div>'
+        + '<div><div style="color:var(--text3)">已結清累計</div><div style="font-weight:700;color:var(--g3)">$'+(v.settledTotal||0).toLocaleString()+'</div></div>'
+        + '</div>'
+        + (v.confirmedUnsettled > 0 ? '<button class="btn-primary" onclick="settleVendorReceivableUI(\''+escH(v.vendorCode)+'\','+v.confirmedUnsettled+')" style="font-size:12px">💰 標記已結清（收到匯款後按）</button>' : '')
+        + '</div>';
+    }).join('');
+  });
+}
+function settleVendorReceivableUI(vendorCode, amount){
+  if(!confirm('確認「'+vendorCode+'」已經把 $'+amount.toLocaleString()+' 匯款給元代謝了嗎？\n標記後這筆金額會列入已結清，無法直接復原（要改的話要再手動調整）。')) return;
+  var note = prompt('備註（選填，例如匯款日期/末五碼）：','') || '';
+  adminAPI({action:'settleVendorReceivable', vendorCode:vendorCode, note:note}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已標記結清 '+d.settledCount+' 筆，共 $'+d.settledTotal.toLocaleString()); loadVendorReceivables(); }
+    else { toast('⚠️ '+((d&&d.message)||'操作失敗')); }
   });
 }
 
@@ -8990,6 +9031,15 @@ function doLogout(){
         <button class="btn-ghost" onclick="rvLoad()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button>
       </div></div>
     <div class="card-body"><div id="rv-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-receipt-2"></i>合作單位應收帳款（自行收款回報）</div>
+      <button class="btn-ghost" onclick="loadVendorReceivables()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button>
+    </div>
+    <div class="card-body">
+      <div class="hint-box" style="margin-bottom:10px">🧾 這裡是「合作單位自己跟客人收費、回報給元代謝」模式的應收帳款總覽——待核查的先在上面「待核查清單」核對金額；核查通過後會出現在這裡，收到匯款後按「標記已結清」。</div>
+      <div id="vendor-receivables-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div>
+    </div>
   </div>
 </div>
 
