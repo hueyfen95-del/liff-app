@@ -1058,7 +1058,6 @@ window.openHealthForm = function() {
     </div>
     <!-- 本次分析結論（簡化版，完整細節只留在醫師/秘書端；加上user-select:none降低隨手複製的機率，但無法防止截圖）-->
     <div id="irct-summary-card" style="display:none;margin:10px 14px 0;background:linear-gradient(135deg,#085041,#158066);border-radius:14px;padding:16px 18px;color:#fff;user-select:none;-webkit-user-select:none;-moz-user-select:none" oncontextmenu="return false">
-      <div id="irct-summary-secnote" style="display:none;background:rgba(255,255,255,.16);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12.5px;line-height:1.7"></div>
       <div style="font-size:11px;opacity:.8;margin-bottom:4px">🔬 本次檢測分析結論</div>
       <div style="font-size:18px;font-weight:800;margin-bottom:6px" id="irct-summary-classification"></div>
       <div style="font-size:12px;line-height:1.7;opacity:.95" id="irct-summary-note"></div>
@@ -3232,14 +3231,7 @@ function loadIRCTOverview(){
       return;
     }
     var st = IRCT_CLASS_STYLE[d.overall.classification] || {color:'#374151', bg:'#F5F7FA', border:'#E5E7EB', emoji:'📊'};
-    // 秘書補充判讀：秘書/醫師針對這次檢測手動寫給你的說明，擺在最前面、比自動分型優先顯示——
-    // 人的狀況比系統的自動判斷複雜，這段話是有人真的看過你這次的數值之後親自寫的
-    var html = (d.secretaryNote ? '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:13px;padding:14px;margin-bottom:14px">'
-      + '<div style="font-size:12px;font-weight:700;color:#92400E;margin-bottom:7px;display:flex;align-items:center;gap:7px">'
-      + '<span style="font-size:18px">📝</span>秘書想跟你說</div>'
-      + '<div style="font-size:12.5px;line-height:1.8;color:#92400E">'+escHtml(d.secretaryNote)+'</div>'
-      + '</div>' : '')
-      + '<div style="background:'+st.bg+';border:1px solid '+st.border+';border-radius:13px;padding:14px;margin-bottom:14px">'
+    var html = '<div style="background:'+st.bg+';border:1px solid '+st.border+';border-radius:13px;padding:14px;margin-bottom:14px">'
       + '<div style="font-size:13px;font-weight:700;color:'+st.color+';margin-bottom:7px;display:flex;align-items:center;gap:7px">'
       + '<span style="font-size:20px">'+st.emoji+'</span>第 '+escHtml(d.count)+' 次檢測・'+escHtml(d.testDate)+'</div>'
       + (d.overall.classification ? '<div style="font-size:14px;font-weight:700;color:'+st.color+';margin-bottom:8px">'+escHtml(d.overall.classification)+'</div>' : '')
@@ -3498,6 +3490,17 @@ var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
     }
   } catch(e){}
 })();
+// 2026-08-14 新增：合作單位轉介碼擷取（美業集團等推廣行銷型深度合作夥伴用）。
+// 客人如果是透過合作單位的專屬連結/QR碼（例如 ...?ref=BEAUTY001）第一次打開這個APP，
+// 這裡先把代碼存進手機，等真正完成LINE綁定（clientAuth成功）的那一刻才會送到後端記錄轉介來源。
+// 不用 history.replaceState 把 ref 從網址拿掉——LIFF 登入導轉本身就可能改寫網址，
+// 越早存進 localStorage 越保險，不要依賴網址在整個登入流程中都保持不變。
+(function(){
+  try {
+    var m = location.search.match(/[?&]ref=([^&]+)/);
+    if (m && m[1]) localStorage.setItem('mx_referral_code', decodeURIComponent(m[1]));
+  } catch(e){}
+})();
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
 var _LINE_UID = "";
@@ -3537,6 +3540,10 @@ function mxShowLogin(msg){
   if (ov) ov.style.display = 'flex';
   var er = document.getElementById('mx-login-err');
   if (er) er.textContent = msg || '';
+  // 如果網址帶了合作單位的轉介碼，先幫客人帶入這個欄位，讓他知道系統已經記住了，不用自己再打一次
+  var refInp = document.getElementById('mx-bind-ref');
+  var savedRef = mxGetReferralCode();
+  if (refInp && savedRef && !refInp.value) refInp.value = savedRef;
 }
 function mxHideLogin(){
   var ov = document.getElementById('mx-login-overlay');
@@ -3546,17 +3553,23 @@ function mxSetIdentity(cid, cname){
   try {
     localStorage.setItem('mx_client_id', cid);
     localStorage.setItem('mx_client_name', cname || '');
+    localStorage.removeItem('mx_referral_code'); // 綁定成功、後端已經處理過轉介來源了，手機這邊不用再留著
   } catch(e){}
   if (!CLIENT_ID) { CLIENT_ID = cid; CLIENT_NAME = cname || ''; location.reload(); }
   else { CLIENT_ID = cid; CLIENT_NAME = cname || ''; mxHideLogin(); }
 }
+function mxGetReferralCode(){
+  try { return localStorage.getItem('mx_referral_code') || ''; } catch(e){ return ''; }
+}
 function mxDoBind(){
   var cid = (document.getElementById('mx-bind-id').value || '').trim();
   var cname = (document.getElementById('mx-bind-name').value || '').trim();
+  var refInp = document.getElementById('mx-bind-ref');
+  var refCode = (refInp && refInp.value ? refInp.value.trim() : '') || mxGetReferralCode();
   var er = document.getElementById('mx-login-err');
   if (!cid || !cname) { if(er) er.textContent = '請輸入客人編號和姓名'; return; }
   if (er) er.textContent = '驗證中…';
-  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname }, function(d){
+  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname, ref:refCode }, function(d){
     if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name); }
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
@@ -3570,7 +3583,7 @@ function mxStartAuth(){
       return liff.getProfile().then(function(p){
         _LINE_UID = p.userId || '';
         var nm = p.displayName || '';
-        callAPI({ action:'clientAuth', lineId:_LINE_UID }, function(d){
+        callAPI({ action:'clientAuth', lineId:_LINE_UID, ref:mxGetReferralCode() }, function(d){
           if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name); }
           else {
             var nmInp = document.getElementById('mx-bind-name');
@@ -6303,13 +6316,6 @@ function loadIrctSummary(){
     if(!d || d.status!=='ok' || !d.found || !d.overall || !d.overall.classification){ card.style.display='none'; return; }
     _irctSummaryLoaded = true;
     card.style.display='';
-    // 秘書補充判讀：這是客人一進報告頁最先看到的卡片，如果秘書針對這次數值有手動補充說明，
-    // 要放在結論文字之前，不能讓自動分型的結論（例如「維持現況即可」）先入為主
-    var secnoteEl = document.getElementById('irct-summary-secnote');
-    if(secnoteEl){
-      if(d.secretaryNote){ secnoteEl.style.display=''; secnoteEl.textContent = '📝 ' + d.secretaryNote; }
-      else { secnoteEl.style.display='none'; }
-    }
     var clsEl = document.getElementById('irct-summary-classification');
     if(clsEl) clsEl.textContent = d.overall.classification;
     var noteEl = document.getElementById('irct-summary-note');
@@ -7367,7 +7373,8 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
     <div style="font-size:17px;font-weight:800;color:#1E2B27;text-align:center;margin-bottom:4px">歡迎回來</div>
     <div style="font-size:12px;color:#8A9992;text-align:center;line-height:1.6;margin-bottom:18px">第一次使用請輸入您的客人編號與姓名<br>（編號請向您的健康秘書索取）</div>
     <input id="mx-bind-id" placeholder="客人編號（例：C001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px" autocapitalize="characters">
-    <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:14px" onkeydown="if(event.key==='Enter')mxDoBind()">
+    <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px" onkeydown="if(event.key==='Enter')mxDoBind()">
+    <input id="mx-bind-ref" placeholder="介紹代碼（選填，例：BEAUTY001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;box-sizing:border-box;margin-bottom:14px;color:#5C6B65" onkeydown="if(event.key==='Enter')mxDoBind()">
     <button onclick="mxDoBind()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">開始使用</button>
     <div id="mx-login-err" style="font-size:12px;color:#C0392B;text-align:center;margin-top:10px;min-height:16px;line-height:1.5"></div>
   </div>

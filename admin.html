@@ -224,11 +224,11 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒腺體友善餐廳 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
     <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
-    <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
-    <div class="si nav-item" onclick="goPg('clinic-slots',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-calendar-clock"></i>診所時間表</div>
-    <div class="si nav-item" onclick="goPg('lab-integrate',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-report-medical"></i>檢測整合</div>
-    <div class="si nav-item" onclick="goPg('stored-value',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-credit-card"></i>儲值消費</div>
-    <div class="si nav-item" onclick="goPg('review',this)" style="padding-left:28px;font-size:11.5px"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
+    <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>
+        <div class="nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所時間表</div>
+        <div class="nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
+        <div class="nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
+        <div class="nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>IRCT 區間</div>
     <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
     <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
     <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照 <span class="si-badge g">NEW</span></div>
@@ -474,6 +474,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
       <div id="new-cl-intern-chips" style="display:flex;gap:5px;flex-wrap:wrap"></div>
     </div>
     <div class="form-group"><label class="form-label">備註（選填）</label><input class="form-input" placeholder="介紹人等其他說明" id="new-cl-note"></div>
+    <div class="form-group"><label class="form-label">轉介來源（選填，這位客人是哪個合作單位介紹來的）</label><select id="new-cl-referral" class="form-select"><option value="">沒有／不是合作單位介紹的</option></select></div>
     <div class="form-group" style="display:flex;align-items:center;gap:7px;background:var(--bg);border-radius:8px;padding:9px 11px">
       <input type="checkbox" id="new-cl-active" style="width:16px;height:16px;accent-color:var(--g);cursor:pointer">
       <label for="new-cl-active" style="font-size:12.5px;color:var(--text2);cursor:pointer">建立時就開通陪跑（不勾的話預設鎖定，之後可以再到客人清單手動開通）</label>
@@ -705,7 +706,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
   </div>
 
   <div class="sync-success" id="sync-banner">✅ 已儲存到 ⚙️ 全域設定工作表。</div>
-  <div class="hint-box" style="background:#ECFDF5;border-color:#6EE7B7;color:#065F46"><strong>✅ 技術上真的串接了：</strong>QA症狀編輯／FAQ問答管理裡的答案文字，只要放入變數標記（例如 <code>{{g-salt}}</code>，標記名稱就是下面每個輸入框的id），顯示給客人看的時候，系統會自動替換成這裡目前設定的最新值。改這裡的數值，用了對應標記的問答內容就會立刻同步，不用再去每一則問答個別修改。<br><strong>但既有的問答如果本來就是寫死的純文字（沒有用變數標記），不會自動變成用標記寫</strong>——系統沒辦法安全判斷自由文字裡哪段話對應到哪個參數，如果你希望某一則問答也套用自動同步，要到「QA症狀編輯」把提到的數字改成對應的變數標記，之後就會自動跟著這裡更新了。</div>
+  <div class="hint-box" style="background:#ECFDF5;border-color:#6EE7B7;color:#065F46"><strong>✅ 技術上真的串接了：</strong>QA症狀編輯／FAQ問答管理裡的答案文字，只要放入變數標記（例如 <code>{{g-salt}}</code>，標記名稱就是下面每個輸入框的id），顯示給客人看的時候，系統會自動替換成這裡目前設定的最新值。改這裡的數值，用了對應標記的問答內容就會立刻同步，不用再去每一則問答個別修改。<br><strong>但既有的問答如果本來就是寫死的純文字（沒有用變數標記），不會自動變成用標記寫**——系統沒辦法安全判斷自由文字裡哪段話對應到哪個參數，如果你希望某一則問答也套用自動同步，要到「QA症狀編輯」把提到的數字改成對應的變數標記，之後就會自動跟著這裡更新了。</div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-salt"></i>補鹽原則</div><span class="badge" style="background:#D1FAE5;color:#065F46">用 {{g-salt}} 等標記可自動同步</span></div><div class="card-body" style="padding:0 16px">
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">每次補充量</div><div class="gi-desc">補鹽的基本說法，用於所有症狀回答・變數標記：<code>{{g-salt}}</code></div></div><input class="gi-inp" id="g-salt" value="約 1 小匙鹽 + 200cc 水（建議泡在電解質裡一起喝，比較好入口）"></div>
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">補充方式與頻率（體感原則）</div><div class="gi-desc">強調由體感決定，不是固定次數・變數標記：<code>{{g-salt-how}}</code></div></div><textarea class="gi-ta" id="g-salt-how">慢慢喝，喝到口不渴、不便秘、不頭暈頭痛為止。這個量由你的體感來決定，不是固定次數。穩定粒腺體的人一天至少需要補充 2–3 次。</textarea></div>
@@ -1467,12 +1468,20 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     </div>
   </div>
 
-  <!-- 陪跑服務費收款記錄 -->
+  <!-- 服務收款記錄（2026-08-14 改為可選任何服務類型，不再只限陪跑服務費——例如美業集團這類深度
+       合作夥伴的「陪跑＋課程＋檢測＋活動」整包套裝服務，只要先在「分帳規則設定」新增一個服務類型、
+       設定好元代謝跟合作單位各分多少比例，這裡選那個類型記錄收款，就會自動照比例分帳）-->
   <div class="card" style="margin-bottom:12px">
     <div class="card-hd">
-      <div class="card-title"><i class="ti ti-cash"></i>記錄陪跑服務費收款</div>
+      <div class="card-title"><i class="ti ti-cash"></i>記錄服務收款</div>
     </div>
     <div class="card-body">
+      <div style="margin-bottom:9px">
+        <div class="gi-lbl" style="margin-bottom:5px">服務類型（決定套用哪一條分帳規則）</div>
+        <select id="service-event-type" class="form-select">
+          <option value="">載入中…</option>
+        </select>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px">
         <select id="service-client" class="form-select">
           <option value="C001">陳小美</option>
@@ -1483,7 +1492,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
         <input id="service-amount" type="number" placeholder="這次收的金額 NT$" style="border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
       </div>
       <button onclick="recordServicePayment()" style="width:100%;background:var(--b);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄收款（依目前生效規則自動分帳）</button>
-      <div style="font-size:10px;color:var(--text3);margin-top:7px">這筆款項會依「分帳規則設定」裡目前生效的陪跑服務費規則，自動算出各角色應得金額</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:7px">這筆款項會依「分帳規則設定」裡目前生效的規則（依上面選的服務類型），自動算出各角色應得金額，包含元代謝跟合作單位之間怎麼分。還沒有妳要的服務類型（例如某個套裝服務）？先到「分帳規則設定」頁用「+新增」建立</div>
     </div>
   </div>
 
@@ -1621,170 +1630,6 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
   <div style="font-size:11px;color:var(--text3);margin-top:8px">💡 「傳關心」和「送禮物」都會寫入 🌱 秘書禮物，客人打開前台會即時看到，不需要另外傳 LINE。</div>
 </div>
 
-
-<div class="pg" id="pg-clinic-slots">
-  <div class="hint-box">在這裡維護各診所的可預約時段。<b>每月 25 日</b>更新下個月的時段，客人在前台預約 IRCT 複檢時就會看到正確的時間。改完馬上生效。<br>💡 診所名稱直接從「分帳角色名單」裡的診所選，跟分潤結算、加測檢測的送往、逾期提醒用的是同一份名單，名稱不會兜不起來。還沒登錄的診所，先到「分帳角色名單」新增再回來選。</div>
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>新增可預約時段</div></div>
-    <div class="card-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><div class="form-label">診所名稱</div>
-          <select id="cs-clinic-sel" class="form-select" onchange="csClinicSelChange()" style="margin-bottom:5px"><option value="">載入中…</option></select>
-          <input id="cs-clinic" class="form-input" placeholder="例：瑞絲得診所" style="display:none">
-        </div>
-        <div><div class="form-label">地區</div><input id="cs-region" class="form-input" placeholder="例：新竹"></div>
-      </div>
-      <div style="margin-bottom:10px"><div class="form-label">可預約日期時間</div><input id="cs-datetime" class="form-input" placeholder="例：7/20（六）08:30，或 每週六 08:30"></div>
-      <button class="btn-primary" onclick="addClinicSlot()"><i class="ti ti-plus"></i> 新增時段</button>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-list"></i>目前的可預約時段</div>
-      <button class="btn-ghost" onclick="loadClinicSlots()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button></div>
-    <div class="card-body"><div id="cs-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
-  </div>
-</div>
-  <div class="pg" id="pg-lab-integrate">
-  <div class="hint-box">把客人的檢測報告數據輸入這裡，就能看到<b>個人歷次趨勢</b>和<b>全部客人總覽</b>。檢測項目可以自由增加，加測新項目直接打上去就好，不受限制。<br><span style="color:#1A9E6C;font-weight:700">綠色</span>=在理想區間內、<span style="color:#D6455D;font-weight:700">紅色⚠</span>=超出範圍，一眼看出哪些要注意。</div>
-
-  <!-- 輸入區 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-plus"></i>輸入檢測數據</div></div>
-    <div class="card-body">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div><div class="form-label">客人</div><select id="li-client" class="form-select" onchange="if(this.value) liLoadCurrentMeds(this.value)"><option value="">載入中…</option></select></div>
-        <div><div class="form-label">檢測日期</div><input id="li-date" class="form-input" type="date"></div>
-      </div>
-      <div style="margin-bottom:10px;background:#FBF9F4;border-radius:10px;padding:11px 13px">
-        <div class="form-label" style="margin-bottom:6px">💊 複測時順便更新用藥（會寫進用藥記錄）</div>
-        <div style="font-size:10px;color:var(--text3);margin-bottom:8px">複測問客人「現在還有沒有在吃這些藥」，在這裡更新，之後檢測會自動對照。很多客人吃多種藥，可以逐一更新或新增。</div>
-        <div id="li-meds-list"><div style="color:var(--text3);font-size:12px">選客人後，這裡會顯示他目前在吃的藥</div></div>
-        <button class="btn-ghost" onclick="liAddMedRow()" style="font-size:12px;margin-top:6px"><i class="ti ti-plus"></i> 新增一種藥</button>
-      </div>
-      <div class="form-label" style="margin-bottom:6px">檢測項目（可自由增加，加測新項目直接填）</div>
-      <div id="li-items"></div>
-      <button class="btn-ghost" onclick="liAddRow()" style="font-size:12px;margin:6px 0"><i class="ti ti-plus"></i> 再加一項</button>
-      <button class="btn-primary" onclick="liSave()" style="width:100%;margin-top:8px"><i class="ti ti-device-floppy"></i> 儲存這次檢測</button>
-    </div>
-  </div>
-
-  <!-- 個人趨勢 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-line"></i>個人檢測趨勢</div>
-      <select id="li-trend-client" class="form-select" style="width:auto;font-size:12px" onchange="liLoadTrend()"><option value="">選客人…</option></select></div>
-    <div class="card-body"><div id="li-trend"><div style="color:var(--text3);font-size:13px">選一位客人看他歷次檢測的變化</div></div></div>
-  </div>
-
-  <!-- 家庭比較 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-home"></i>一家人比較</div>
-      <select id="li-family-sel" class="form-select" style="width:auto;font-size:12px" onchange="liLoadFamily()"><option value="">選家庭…</option></select></div>
-    <div class="card-body">
-      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2)">
-        💡 先幫客人設定家庭：<select id="li-fam-client" class="form-select" style="width:auto;font-size:12px;display:inline-block;margin:0 4px"><option value="">選客人</option></select>
-        屬於 <input id="li-fam-name" class="form-input" style="width:100px;font-size:12px;display:inline-block" placeholder="家庭名稱">
-        <button class="btn-ghost" onclick="liSetFamily()" style="font-size:12px"><i class="ti ti-check"></i> 設定</button>
-      </div>
-      <div id="li-family"><div style="color:var(--text3);font-size:13px">選一個家庭，看全家人的檢測並排比較</div></div>
-    </div>
-  </div>
-
-  <!-- 全部總覽 -->
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>全部客人總覽（最新檢測）</div>
-      <button class="btn-ghost" onclick="liLoadOverview()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
-    <div class="card-body"><div id="li-overview"><div style="color:var(--text3);font-size:13px">點「載入」看所有客人的最新檢測</div></div></div>
-  </div>
-  </div>
-<div class="pg" id="pg-stored-value">
-  <div class="hint-box">客人儲值後，可在各服務點（陪跑、診所、美業、體適能、瑜珈、藥局…）消費扣款。<b>系統只記帳、不經手金流</b>——實際收款請走正規刷卡／Line Pay。<br>⚠️ 提醒：預收儲值涉及消費者保護法規，上線前請先與會計師／律師確認履約與退費機制。</div>
-
-  <!-- 营运总览 -->
-  <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);color:#fff">
-    <div class="card-hd" style="border:none"><div class="card-title" style="color:#fff"><i class="ti ti-chart-bar"></i>營運總覽</div>
-      <input id="sv-ov-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadOverview()"></div>
-    <div class="card-body"><div id="sv-overview" style="color:#fff"><div style="opacity:.8;font-size:13px">選月份看營運狀況（留空看全部）</div>
-      <button class="btn-ghost" onclick="svLoadOverview()" style="font-size:12px;color:#fff;border-color:rgba(255,255,255,.3);margin-top:8px">看全部</button></div></div>
-  </div>
-
-  <!-- 负余额客人清单：消费超过储值，需要提醒补款 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-alert-triangle"></i>餘額是負的客人（需提醒補款）</div>
-      <button class="tb-btn" onclick="loadBalanceDeficitList()"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button></div>
-    <div class="card-body"><div id="sv-deficit-list" style="font-size:12px;color:var(--text3)">載入中…</div></div>
-  </div>
-
-  <!-- 客人储值卡 -->
-  <div class="card" id="sv-client-card" style="margin-bottom:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-credit-card"></i>客人儲值卡</div>
-      <select id="sv-client" class="form-select" style="width:auto;font-size:12px" onchange="svLoadCard()"><option value="">選客人…</option></select></div>
-    <div class="card-body">
-      <div id="sv-balance" style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;color:var(--text3);font-size:13px">選一位客人看儲值卡餘額</div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
-          <div style="font-weight:700;font-size:12px;margin-bottom:7px">💳 儲值</div>
-          <input id="sv-amount" class="form-input" type="number" placeholder="儲值金額" style="font-size:12px;margin-bottom:6px">
-          <input id="sv-method" class="form-input" placeholder="付款方式（刷卡/現金）" style="font-size:12px;margin-bottom:6px">
-          <button class="btn-primary" onclick="svAddValue()" style="width:100%;font-size:12px"><i class="ti ti-plus"></i> 儲值</button>
-        </div>
-        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
-          <div style="font-weight:700;font-size:12px;margin-bottom:7px">🧾 消費扣款</div>
-          <select id="sv-point" class="form-select" style="font-size:12px;margin-bottom:6px"><option value="">選服務點</option></select>
-          <input id="sv-item" class="form-input" placeholder="消費項目" style="font-size:12px;margin-bottom:6px">
-          <input id="sv-cons-amount" class="form-input" type="number" placeholder="金額" style="font-size:12px;margin-bottom:6px">
-          <button class="btn-primary" onclick="svAddConsumption()" style="width:100%;font-size:12px"><i class="ti ti-minus"></i> 扣款</button>
-        </div>
-      </div>
-      <div id="sv-records" style="margin-top:12px"></div>
-    </div>
-  </div>
-
-  <!-- 服务点目录管理 -->
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-building-store"></i>服務點目錄</div>
-      <button class="btn-ghost" onclick="svLoadPoints()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
-    <div class="card-body">
-      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px">
-        新增服務點：<input id="sv-pt-name" class="form-input" style="width:130px;font-size:12px;display:inline-block;margin:0 4px" placeholder="名稱">
-        <input id="sv-pt-cat" class="form-input" style="width:90px;font-size:12px;display:inline-block;margin:0 4px" placeholder="類別">
-        <button class="btn-ghost" onclick="svAddPoint()" style="font-size:12px"><i class="ti ti-plus"></i> 新增</button>
-      </div>
-      <div id="sv-points-list"><div style="color:var(--text3);font-size:13px">點「載入」看所有服務點</div></div>
-    </div>
-  </div>
-
-  <!-- 分潤結算 -->
-  <div class="card" style="margin-top:14px">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-pie"></i>消費分潤結算</div>
-      <input id="sv-settle-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadSettlement()"></div>
-    <div class="card-body"><div id="sv-settlement"><div style="color:var(--text3);font-size:13px">選月份看各服務點、各角色的分潤</div></div></div>
-  </div>
-
-  <!-- 合并结算（每个人从A+B总共分多少）-->
-  <div class="card" style="margin-top:14px;border:2px solid var(--g)">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-users-group"></i>合併結算・每人總分潤（發薪用）</div>
-      <input id="sv-merged-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadMerged()"></div>
-    <div class="card-body">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">把「健康秘書分潤」和「服務點分潤」兩套合起來，看每個人這個月總共該分多少。</div>
-      <div id="sv-merged"><div style="color:var(--text3);font-size:13px">選月份看每個人的總分潤</div></div>
-    </div>
-  </div>
-</div>
-
-
-<div class="pg" id="pg-review">
-  <div class="hint-box">💰 <b>會計核查台</b>：秘書登錄的儲值和消費，都要在這裡核查通過後才會生效（算進餘額、算分潤）。核對金額、發票、付款方式無誤後按「核查通過」；有問題按「退回」並填原因。每筆都會記下誰核查、時間。</div>
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-checklist"></i>待核查清單</div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="rv-reviewer" class="form-input" style="width:110px;font-size:12px" placeholder="核查人姓名">
-        <button class="btn-ghost" onclick="rvLoad()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button>
-      </div></div>
-    <div class="card-body"><div id="rv-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
-  </div>
-</div>
-
 </div><!-- end content -->
 </div><!-- end main -->
 </div><!-- end layout -->
@@ -1817,7 +1662,7 @@ function goPg(id,el){
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
   if(el)el.classList.add('on');
-  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查'};
+  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存'};
   document.getElementById('page-title').textContent=titles[id]||id;
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
   if (typeof runPageLoader === 'function') runPageLoader(id);
@@ -2395,17 +2240,6 @@ function loadIRCTAnalysisFull(clientId){
     }
     var a = d.analysis;
     var typeHtml = '';
-    if(a.secretaryNote){
-      typeHtml += '<div style="margin-bottom:8px;padding:9px 11px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:9px">'
-        + '<b style="color:#92400E">📝 秘書補充判讀（前台已顯示給客人）：</b><br>'
-        + '<span style="font-size:11px;color:var(--text)">'+escH(a.secretaryNote)+'</span></div>';
-    }
-    if(a.constitutionType){
-      typeHtml += '<div style="margin-bottom:8px;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:9px">'
-        + '<b style="color:var(--text2)">🧬 天生體質（人工判定）：'+escH(a.constitutionType.type)+'型</b>'
-        + (a.constitutionType.note ? '<br><span style="font-size:10.5px;color:var(--text3)">'+escH(a.constitutionType.note)+'</span>' : '')
-        + '<div style="font-size:10px;color:var(--text3);margin-top:2px">目前僅秘書/醫師端可見，尚未顯示給客人</div></div>';
-    }
     if(a.specialCase){
       typeHtml += '<div style="margin-bottom:8px;padding:9px 11px;background:var(--bg);border:1px solid var(--border);border-radius:9px">'
         + '<b style="color:var(--text2)">📋 特殊情境：'+escH(a.specialCase)+'</b><br>'
@@ -2564,7 +2398,6 @@ function saveIRCTFull(clientId){
     na:g('irct-f-na'), k:g('irct-f-k'), cl:g('irct-f-cl'), freeT4:g('irct-f-freeT4'), tsh:g('irct-f-tsh'),
     lipoproteinA:g('irct-f-lipoproteinA'), apob:g('irct-f-apob'),
     acquiredMode:g('irct-f-acquiredMode'), bodyCompDevice:g('irct-f-bodyCompDevice'),
-    note:g('irct-f-note'),
     stateSurvey:(window._irctStateSurvey||'') };
   adminAPIPost(payload, function(d){
     if(d && d.status === 'ok'){
@@ -3392,10 +3225,13 @@ function loadRoles() {
         var isLab = (r.roleType === '診所' || r.roleType === '實驗室');
         var labInfo = isLab && (r.contactPerson || r.defaultDays)
           ? '<div style="font-size:10px;color:var(--text3)">' + (r.contactPerson ? '對接：'+r.contactPerson+'　' : '') + (r.defaultDays ? '預設 '+r.defaultDays+' 天回報' : '') + '</div>' : '';
+        var partnerInfo = (r.orgType || r.referralCode)
+          ? '<div style="font-size:10px;color:#0F6E56">' + (r.orgType ? r.orgType + '　' : '') + (r.referralCode ? '轉介碼：'+r.referralCode : '') + '</div>' : '';
         return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px">' +
           '<span style="font-size:16px">' + (typeIcons[r.roleType] || '•') + '</span>' +
           '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">' + r.roleName + '</div>' +
-          '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + '</div>' +
+          '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + partnerInfo + '</div>' +
+          '<button onclick="openPartnerFeatures(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:#E6F3EE;color:#0F6E56;border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">深度合作</button>' +
           '<button onclick="editRole(this)" data-id="' + r.roleId + '" data-type="' + r.roleType + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" data-cp="' + (r.contactPerson||'').replace(/"/g,'&quot;') + '" data-ci="' + (r.contactInfo||'').replace(/"/g,'&quot;') + '" data-dd="' + (r.defaultDays||'') + '" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>' +
           '<button onclick="deleteRole(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:var(--r2);color:var(--r);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">刪除</button>' +
           '</div>';
@@ -3453,6 +3289,49 @@ function deleteRole(btn) {
       loadRoles();
     } else {
       toast('⚠️ 刪除失敗，請重試');
+    }
+  });
+}
+
+// ══ 2026-08-14 新增：深度合作開通設定（推廣行銷型合作夥伴，例如美業集團）══
+// 沿用這頁既有的 prompt() 快速編輯風格，不另外做彈窗介面。
+// 提醒：這裡的角色只要用「刪除」鍵刪掉（軟刪除，狀態=deleted），之後所有轉介分潤
+// （一次性獎金＋持續分潤）都會自動停止發放，對應合約談好的「合作終止即停止分潤」規則，
+// 不需要額外的「終止」按鈕。
+function openPartnerFeatures(btn) {
+  var roleId = btn.getAttribute('data-id');
+  var roleName = btn.getAttribute('data-name');
+  var orgType = prompt('「' + roleName + '」的單位層級？\n請輸入：一般廠商／集團總部／集團分店\n（不確定就先留空白，維持現況）', '');
+  if (orgType === null) return;
+  orgType = orgType.trim();
+  var groupRoleId = '';
+  if (orgType === '集團分店') {
+    groupRoleId = prompt('這家分店屬於哪個集團總部？\n請輸入總部的角色ID（在角色名單裡總部那筆項目的名稱旁邊可以看到，格式如 R20260814153000）：', '') || '';
+    groupRoleId = groupRoleId.trim();
+  }
+  var wantsReferral = confirm('要開通「客戶轉介來源標記＋推廣獎金」給「' + roleName + '」嗎？\n（純推廣行銷型合作夥伴用，例如美業集團——只給機構型合作單位，不涉及照顧、不接觸客人的檢測或健康資料）');
+  var oneTime = '0', pct = '0';
+  if (wantsReferral) {
+    oneTime = prompt('首次消費一次性獎金（元，沒有就填0）：', '0');
+    if (oneTime === null) return;
+    pct = prompt('後續持續分潤比例（0～100，沒有就填0，例如10代表10%）：', '0');
+    if (pct === null) return;
+  }
+  adminAPI({
+    action: 'setPartnerFeatures', roleId: roleId, orgType: orgType, groupRoleId: groupRoleId,
+    features: wantsReferral ? 'referral' : '', referralOneTime: oneTime, referralPercent: pct
+  }, function(d) {
+    if (d.status === 'ok') {
+      loadRoles();
+      if (wantsReferral && d.referralCode) {
+        var link = location.origin + location.pathname.replace(/admin\.html$/, '') + 'index.html?ref=' + d.referralCode;
+        toast('✅ 已設定，轉介碼：' + d.referralCode);
+        prompt('轉介連結（複製給合作單位，之後也能在店家工作台「我的推廣」看到）：', link);
+      } else {
+        toast('✅ 已設定「' + roleName + '」的合作層級');
+      }
+    } else {
+      toast('⚠️ 設定失敗：' + (d.message || '請重試'));
     }
   });
 }
@@ -4178,17 +4057,37 @@ function savePlanForm() {
   document.getElementById('plan-discount').value = '';
 }
 
-// ── 記錄陪跑服務費收款 ──
+// ── 記錄服務收款（2026-08-14：不再限定陪跑服務費，可選任何服務類型，例如深度合作夥伴的套裝服務）──
+function loadServiceEventTypeDropdown(){
+  var sel = document.getElementById('service-event-type');
+  if (!sel) return;
+  adminAPI({action:'getServiceTypes'}, function(d){
+    sel = document.getElementById('service-event-type');
+    if (!sel) return;
+    var types = (d && d.types) || [];
+    var cur = sel.value;
+    sel.innerHTML = types.map(function(t){ return '<option value="'+escH(t.id)+'">'+escH(t.name)+'</option>'; }).join('');
+    // 預設選陪跑服務費（跟這顆按鈕原本的行為一致），除非使用者已經自己選過別的
+    if (cur) sel.value = cur;
+    else { var defOpt = Array.prototype.find.call(sel.options, function(o){ return o.value === '陪跑服務費'; }); if (defOpt) sel.value = '陪跑服務費'; }
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if (document.getElementById('service-event-type')) setTimeout(loadServiceEventTypeDropdown, 300);
+});
 function recordServicePayment() {
   var clientId = document.getElementById('service-client').value;
   var amount = document.getElementById('service-amount').value;
+  var eventTypeSel = document.getElementById('service-event-type');
+  var eventType = eventTypeSel ? eventTypeSel.value : '陪跑服務費';
 
+  if (!eventType) { toast('請選擇服務類型'); return; }
   if (!amount) { toast('請輸入收款金額'); return; }
 
   adminAPI({
     action: 'addServiceRecord',
     clientId: clientId,
-    eventType: '陪跑服務費',
+    eventType: eventType,
     amount: amount
   }, function(d) {
     if (d.status === 'ok') {
@@ -4198,7 +4097,7 @@ function recordServicePayment() {
       toast('✅ 收款已記錄！' + (shareText ? '分帳：' + shareText : ''));
       document.getElementById('service-amount').value = '';
     } else {
-      toast('⚠️ 記錄失敗，請確認「分帳規則設定」是否已設好陪跑服務費規則');
+      toast('⚠️ 記錄失敗，請確認「分帳規則設定」是否已設好「'+eventType+'」這個服務類型的規則');
     }
   });
 }
@@ -4562,20 +4461,6 @@ function setClientSpecialCaseUI(id){
     else toast('⚠️ 更新失敗');
   });
 }
-// 天生體質A/B/C手動判定（創始人2026-08-13要求）：ABC自動判定標準還沒定案，先讓秘書/醫師憑專業判斷
-// 手動填這個空格，補上「還沒有完整分型」的情況；選了型態才問說明，方便之後累積案例、回頭定自動判定門檻
-function setClientConstitutionUI(id){
-  var sel = document.getElementById('cd-constitution-sel');
-  if(!sel) return;
-  var noteVal = '';
-  if(sel.value){
-    noteVal = prompt('判定為「'+sel.value+'型」的依據／觀察說明（選填，僅秘書/醫師內部參考，之後可再修改）：', '') || '';
-  }
-  adminAPIPost({action:'setClientConstitutionType', clientId:id, type:sel.value, note:noteVal}, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 已更新天生體質判定'); if(_clientsCache) loadClientsList(function(){}, true); }
-    else toast('⚠️ 更新失敗');
-  });
-}
 function setClientStageUI(id){
   var sel = document.getElementById('cd-stage-sel');
   if(!sel) return;
@@ -4646,9 +4531,6 @@ function openClientDetail(id, name){
     + '</select>'
     + '<select id="cd-special-sel" onchange="setClientSpecialCaseUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
     + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'特殊情境：無（一般客人）')+'</option>'; }).join('')
-    + '</select>'
-    + '<select id="cd-constitution-sel" onchange="setClientConstitutionUI(\''+escH(id)+'\')" title="自動判定標準還沒定案前，先讓秘書/醫師憑觀察手動標註；累積夠多案例後再回頭定門檻" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
-    + ['','A','B','C'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.constitutionType:'')?'selected':'')+'>'+(s?'天生體質：'+s+'型':'天生體質：尚未判定')+'</option>'; }).join('')
     + '</select>'
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '</div>'
@@ -4869,11 +4751,6 @@ function openClientDetail(id, name){
     + '<input id="irct-f-tsh" class="form-input" style="font-size:12px" placeholder="甲狀腺促進素TSH">'
     + '<input id="irct-f-lipoproteinA" class="form-input" style="font-size:12px" placeholder="脂蛋白元A">'
     + '<input id="irct-f-apob" class="form-input" style="font-size:12px" placeholder="載脂蛋白B ApoB">'
-    + '</div>'
-    + '<div style="margin-bottom:8px;padding:9px 11px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:9px">'
-    + '<div style="font-size:10.5px;font-weight:700;color:#92400E;margin-bottom:4px">📝 秘書補充判讀（選填・前台會顯示給客人，位置在自動分型之前）</div>'
-    + '<div style="font-size:10px;color:#92400E;margin-bottom:5px">自動分型判斷不出來、或這次數值有需要額外說明的地方（例如某項數值大反應但其他都正常），直接在這裡手動寫給客人看的說明，不用等自動判定邏輯都補齊。</div>'
-    + '<textarea id="irct-f-note" class="form-input" style="font-size:12px;width:100%;min-height:56px" placeholder="例如：這次膽固醇/LDL明顯上升，但其他代謝指標都在進步，這跟妳的體質有關，我們會持續追蹤，不用太擔心……"></textarea>'
     + '</div>'
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="saveIRCTFull(\''+escH(id)+'\')">儲存 IRCT 完整記錄（同步解鎖前台報告）</button>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">IRCT 檢測歷史</div>'
@@ -6008,7 +5885,25 @@ function loadClientsPage(){
     tb.innerHTML = html;
   }, true);
 }
-function toggleClientForm(){ document.getElementById('add-client-form').classList.toggle('on'); }
+function toggleClientForm(){
+  document.getElementById('add-client-form').classList.toggle('on');
+  populateReferralDropdown();
+}
+// 2026-08-14 新增：新增客人時可以選「這位是哪個合作單位轉介來的」，只列出有開通「轉介」功能的合作單位
+// （沒開通這項的角色，例如一般的診所/實驗室，不會出現在這裡，避免列表太長找不到）
+function populateReferralDropdown(){
+  var sel = document.getElementById('new-cl-referral');
+  if (!sel) return;
+  adminAPI({action:'getRoles'}, function(d){
+    if (!(d && d.roles)) return;
+    var opts = '<option value="">沒有／不是合作單位介紹的</option>';
+    d.roles.forEach(function(r){
+      if (!r.features || r.features.indexOf('referral') < 0) return;
+      opts += '<option value="' + r.roleId + '">' + r.roleName + (r.orgType ? '（' + r.orgType + '）' : '') + '</option>';
+    });
+    sel.innerHTML = opts;
+  });
+}
 function saveClientForm(){
   var id=document.getElementById('new-cl-id').value.trim();
   var name=document.getElementById('new-cl-name').value.trim();
@@ -6022,6 +5917,7 @@ function saveClientForm(){
     serviceSecretary:document.getElementById('new-cl-svc-sec').value,
     internSecretaries:_internSecretaries.join(','),
     note:document.getElementById('new-cl-note').value.trim(),
+    referralRoleId:document.getElementById('new-cl-referral') ? document.getElementById('new-cl-referral').value : '',
     runStatus: openActive ? '陪跑中' : '一般客人'}, function(d){
     if(d.status==='ok'){
       toast('✅ 已新增客人「'+name+'」（陪跑狀態：'+(openActive?'已開通':'尚未開通，鎖定中')+'）');
@@ -6029,6 +5925,7 @@ function saveClientForm(){
       document.getElementById('new-cl-plan').value = '';
       document.getElementById('new-cl-prof-sec').value = '';
       document.getElementById('new-cl-svc-sec').value = '';
+      if (document.getElementById('new-cl-referral')) document.getElementById('new-cl-referral').value = '';
       _internSecretaries = []; renderInternChips();
       document.getElementById('new-cl-active').checked = false;
       document.getElementById('add-client-form').classList.remove('on');
@@ -8885,17 +8782,6 @@ function applyPermissions(){
     var m = oc.match(/goPg\('([\w-]+)'/);
     if(m && Array.isArray(allowed)){ var pg = m[1]; if(allowed.indexOf(pg) < 0 && extra.indexOf(pg) < 0){ nav.style.display='none'; } }
   });
-  // 分類標題（如「追蹤管理」）底下的項目如果全部被隱藏，標題自己也要跟著隱藏，
-  // 不然畫面上會出現一個標題掛在那裡、底下卻什麼都沒有，看起來像壞掉了
-  var sbNavKids = document.querySelectorAll('.sb-nav > *');
-  var curSec = null;
-  sbNavKids.forEach(function(el){
-    if(el.classList.contains('sb-sec')){ curSec = el; curSec._hasVisibleItem = false; }
-    else if(curSec && el.style.display !== 'none'){ curSec._hasVisibleItem = true; }
-  });
-  sbNavKids.forEach(function(el){
-    if(el.classList.contains('sb-sec')) el.style.display = el._hasVisibleItem ? '' : 'none';
-  });
   // 若目前显示的分页不允许，跳到 dashboard
   setTimeout(function(){
     if(typeof goPg==='function') goPg('dashboard');
@@ -8944,6 +8830,168 @@ function doLogout(){
 
 </script>
 </body>
+<div class="pg" id="pg-clinic-slots">
+  <div class="hint-box">在這裡維護各診所的可預約時段。<b>每月 25 日</b>更新下個月的時段，客人在前台預約 IRCT 複檢時就會看到正確的時間。改完馬上生效。<br>💡 診所名稱直接從「分帳角色名單」裡的診所選，跟分潤結算、加測檢測的送往、逾期提醒用的是同一份名單，名稱不會兜不起來。還沒登錄的診所，先到「分帳角色名單」新增再回來選。</div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>新增可預約時段</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div class="form-label">診所名稱</div>
+          <select id="cs-clinic-sel" class="form-select" onchange="csClinicSelChange()" style="margin-bottom:5px"><option value="">載入中…</option></select>
+          <input id="cs-clinic" class="form-input" placeholder="例：瑞絲得診所" style="display:none">
+        </div>
+        <div><div class="form-label">地區</div><input id="cs-region" class="form-input" placeholder="例：新竹"></div>
+      </div>
+      <div style="margin-bottom:10px"><div class="form-label">可預約日期時間</div><input id="cs-datetime" class="form-input" placeholder="例：7/20（六）08:30，或 每週六 08:30"></div>
+      <button class="btn-primary" onclick="addClinicSlot()"><i class="ti ti-plus"></i> 新增時段</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-list"></i>目前的可預約時段</div>
+      <button class="btn-ghost" onclick="loadClinicSlots()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button></div>
+    <div class="card-body"><div id="cs-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
+  <div class="pg" id="pg-lab-integrate">
+  <div class="hint-box">把客人的檢測報告數據輸入這裡，就能看到<b>個人歷次趨勢</b>和<b>全部客人總覽</b>。檢測項目可以自由增加，加測新項目直接打上去就好，不受限制。<br><span style="color:#1A9E6C;font-weight:700">綠色</span>=在理想區間內、<span style="color:#D6455D;font-weight:700">紅色⚠</span>=超出範圍，一眼看出哪些要注意。</div>
+
+  <!-- 輸入區 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-plus"></i>輸入檢測數據</div></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div><div class="form-label">客人</div><select id="li-client" class="form-select" onchange="if(this.value) liLoadCurrentMeds(this.value)"><option value="">載入中…</option></select></div>
+        <div><div class="form-label">檢測日期</div><input id="li-date" class="form-input" type="date"></div>
+      </div>
+      <div style="margin-bottom:10px;background:#FBF9F4;border-radius:10px;padding:11px 13px">
+        <div class="form-label" style="margin-bottom:6px">💊 複測時順便更新用藥（會寫進用藥記錄）</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:8px">複測問客人「現在還有沒有在吃這些藥」，在這裡更新，之後檢測會自動對照。很多客人吃多種藥，可以逐一更新或新增。</div>
+        <div id="li-meds-list"><div style="color:var(--text3);font-size:12px">選客人後，這裡會顯示他目前在吃的藥</div></div>
+        <button class="btn-ghost" onclick="liAddMedRow()" style="font-size:12px;margin-top:6px"><i class="ti ti-plus"></i> 新增一種藥</button>
+      </div>
+      <div class="form-label" style="margin-bottom:6px">檢測項目（可自由增加，加測新項目直接填）</div>
+      <div id="li-items"></div>
+      <button class="btn-ghost" onclick="liAddRow()" style="font-size:12px;margin:6px 0"><i class="ti ti-plus"></i> 再加一項</button>
+      <button class="btn-primary" onclick="liSave()" style="width:100%;margin-top:8px"><i class="ti ti-device-floppy"></i> 儲存這次檢測</button>
+    </div>
+  </div>
+
+  <!-- 個人趨勢 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-line"></i>個人檢測趨勢</div>
+      <select id="li-trend-client" class="form-select" style="width:auto;font-size:12px" onchange="liLoadTrend()"><option value="">選客人…</option></select></div>
+    <div class="card-body"><div id="li-trend"><div style="color:var(--text3);font-size:13px">選一位客人看他歷次檢測的變化</div></div></div>
+  </div>
+
+  <!-- 家庭比較 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-home"></i>一家人比較</div>
+      <select id="li-family-sel" class="form-select" style="width:auto;font-size:12px" onchange="liLoadFamily()"><option value="">選家庭…</option></select></div>
+    <div class="card-body">
+      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2)">
+        💡 先幫客人設定家庭：<select id="li-fam-client" class="form-select" style="width:auto;font-size:12px;display:inline-block;margin:0 4px"><option value="">選客人</option></select>
+        屬於 <input id="li-fam-name" class="form-input" style="width:100px;font-size:12px;display:inline-block" placeholder="家庭名稱">
+        <button class="btn-ghost" onclick="liSetFamily()" style="font-size:12px"><i class="ti ti-check"></i> 設定</button>
+      </div>
+      <div id="li-family"><div style="color:var(--text3);font-size:13px">選一個家庭，看全家人的檢測並排比較</div></div>
+    </div>
+  </div>
+
+  <!-- 全部總覽 -->
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>全部客人總覽（最新檢測）</div>
+      <button class="btn-ghost" onclick="liLoadOverview()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
+    <div class="card-body"><div id="li-overview"><div style="color:var(--text3);font-size:13px">點「載入」看所有客人的最新檢測</div></div></div>
+  </div>
+<div class="pg" id="pg-stored-value">
+  <div class="hint-box">客人儲值後，可在各服務點（陪跑、診所、美業、體適能、瑜珈、藥局…）消費扣款。<b>系統只記帳、不經手金流</b>——實際收款請走正規刷卡／Line Pay。<br>⚠️ 提醒：預收儲值涉及消費者保護法規，上線前請先與會計師／律師確認履約與退費機制。</div>
+
+  <!-- 营运总览 -->
+  <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);color:#fff">
+    <div class="card-hd" style="border:none"><div class="card-title" style="color:#fff"><i class="ti ti-chart-bar"></i>營運總覽</div>
+      <input id="sv-ov-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadOverview()"></div>
+    <div class="card-body"><div id="sv-overview" style="color:#fff"><div style="opacity:.8;font-size:13px">選月份看營運狀況（留空看全部）</div>
+      <button class="btn-ghost" onclick="svLoadOverview()" style="font-size:12px;color:#fff;border-color:rgba(255,255,255,.3);margin-top:8px">看全部</button></div></div>
+  </div>
+
+  <!-- 负余额客人清单：消费超过储值，需要提醒补款 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-alert-triangle"></i>餘額是負的客人（需提醒補款）</div>
+      <button class="tb-btn" onclick="loadBalanceDeficitList()"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button></div>
+    <div class="card-body"><div id="sv-deficit-list" style="font-size:12px;color:var(--text3)">載入中…</div></div>
+  </div>
+
+  <!-- 客人储值卡 -->
+  <div class="card" id="sv-client-card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-credit-card"></i>客人儲值卡</div>
+      <select id="sv-client" class="form-select" style="width:auto;font-size:12px" onchange="svLoadCard()"><option value="">選客人…</option></select></div>
+    <div class="card-body">
+      <div id="sv-balance" style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:12px;text-align:center;color:var(--text3);font-size:13px">選一位客人看儲值卡餘額</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:7px">💳 儲值</div>
+          <input id="sv-amount" class="form-input" type="number" placeholder="儲值金額" style="font-size:12px;margin-bottom:6px">
+          <input id="sv-method" class="form-input" placeholder="付款方式（刷卡/現金）" style="font-size:12px;margin-bottom:6px">
+          <button class="btn-primary" onclick="svAddValue()" style="width:100%;font-size:12px"><i class="ti ti-plus"></i> 儲值</button>
+        </div>
+        <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
+          <div style="font-weight:700;font-size:12px;margin-bottom:7px">🧾 消費扣款</div>
+          <select id="sv-point" class="form-select" style="font-size:12px;margin-bottom:6px"><option value="">選服務點</option></select>
+          <input id="sv-item" class="form-input" placeholder="消費項目" style="font-size:12px;margin-bottom:6px">
+          <input id="sv-cons-amount" class="form-input" type="number" placeholder="金額" style="font-size:12px;margin-bottom:6px">
+          <button class="btn-primary" onclick="svAddConsumption()" style="width:100%;font-size:12px"><i class="ti ti-minus"></i> 扣款</button>
+        </div>
+      </div>
+      <div id="sv-records" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- 服务点目录管理 -->
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-building-store"></i>服務點目錄</div>
+      <button class="btn-ghost" onclick="svLoadPoints()" style="font-size:12px"><i class="ti ti-refresh"></i> 載入</button></div>
+    <div class="card-body">
+      <div style="background:var(--bg);border-radius:9px;padding:10px 12px;margin-bottom:10px;font-size:12px">
+        新增服務點：<input id="sv-pt-name" class="form-input" style="width:130px;font-size:12px;display:inline-block;margin:0 4px" placeholder="名稱">
+        <input id="sv-pt-cat" class="form-input" style="width:90px;font-size:12px;display:inline-block;margin:0 4px" placeholder="類別">
+        <button class="btn-ghost" onclick="svAddPoint()" style="font-size:12px"><i class="ti ti-plus"></i> 新增</button>
+      </div>
+      <div id="sv-points-list"><div style="color:var(--text3);font-size:13px">點「載入」看所有服務點</div></div>
+    </div>
+  </div>
+
+  <!-- 分潤結算 -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-pie"></i>消費分潤結算</div>
+      <input id="sv-settle-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadSettlement()"></div>
+    <div class="card-body"><div id="sv-settlement"><div style="color:var(--text3);font-size:13px">選月份看各服務點、各角色的分潤</div></div></div>
+  </div>
+
+  <!-- 合并结算（每个人从A+B总共分多少）-->
+  <div class="card" style="margin-top:14px;border:2px solid var(--g)">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-users-group"></i>合併結算・每人總分潤（發薪用）</div>
+      <input id="sv-merged-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadMerged()"></div>
+    <div class="card-body">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">把「健康秘書分潤」和「服務點分潤」兩套合起來，看每個人這個月總共該分多少。</div>
+      <div id="sv-merged"><div style="color:var(--text3);font-size:13px">選月份看每個人的總分潤</div></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+</div>
+</div>
+<div class="pg" id="pg-review">
+  <div class="hint-box">💰 <b>會計核查台</b>：秘書登錄的儲值和消費，都要在這裡核查通過後才會生效（算進餘額、算分潤）。核對金額、發票、付款方式無誤後按「核查通過」；有問題按「退回」並填原因。每筆都會記下誰核查、時間。</div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-checklist"></i>待核查清單</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="rv-reviewer" class="form-input" style="width:110px;font-size:12px" placeholder="核查人姓名">
+        <button class="btn-ghost" onclick="rvLoad()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button>
+      </div></div>
+    <div class="card-body"><div id="rv-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
+  </div>
+</div>
 
 
 

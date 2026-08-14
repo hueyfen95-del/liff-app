@@ -55,6 +55,7 @@
     <div class="tab" id="tab-upload" onclick="switchTab('upload')" style="display:none">📤 上傳報告</div>
     <div class="tab" id="tab-slots" onclick="switchTab('slots')" style="display:none">📅 可預約時段</div>
     <div class="tab" id="tab-stmt" onclick="switchTab('stmt')">📄 月結對帳單</div>
+    <div class="tab" id="tab-referral" onclick="switchTab('referral')" style="display:none">🤝 我的推廣</div>
   </div>
 
   <!-- 可預約時段（只有診所／檢測單位帳號看得到）：自己維護開放給客人預約的時間 -->
@@ -140,6 +141,33 @@
       <div class="err" id="confirm-err"></div>
     </div>
   </div>
+
+  <!-- 我的推廣（只有開通「客戶轉介來源標記」的合作單位看得到）-->
+  <div id="pane-referral" style="display:none">
+    <div class="card" id="referral-code-card">
+      <div class="lbl" style="margin-top:0">我的專屬轉介連結</div>
+      <div style="font-size:12px;color:#788;margin-bottom:10px">客人透過這個連結（或掃這組QR碼）第一次打開元代謝APP並完成綁定，系統就會記錄這位是您介紹來的。已經是元代謝客戶的人不會被重複認列。</div>
+      <div id="referral-link-box" class="muted">載入中…</div>
+    </div>
+    <div class="card" id="referral-stats-card">
+      <div class="lbl" style="margin-top:0">我的推廣成效</div>
+      <div id="referral-stats-box" class="muted">載入中…</div>
+    </div>
+    <div class="card" id="referral-group-card" style="display:none">
+      <div class="lbl" style="margin-top:0">跨店總覽（集團總部）</div>
+      <button style="width:100%;margin-bottom:8px" onclick="loadGroupOverview()">重新整理</button>
+      <div id="referral-group-box" class="muted">點「重新整理」查看底下各分店成效</div>
+    </div>
+    <div class="card">
+      <div class="lbl" style="margin-top:0">推廣獎金明細</div>
+      <div class="login-row" style="margin-bottom:0">
+        <input id="rmonth" type="month">
+        <button onclick="loadReferralStatement()">查詢</button>
+      </div>
+      <div class="err" id="referral-err"></div>
+      <div id="referral-result" style="margin-top:10px"></div>
+    </div>
+  </div>
 </div>
 
 <div style="text-align:center;font-size:11px;color:#bbb;margin-top:20px">
@@ -149,15 +177,17 @@
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbwq-qqCxSJtzBJAreLCSKuF1UXn8wM90L6E7nIhMlziZTQTxeJzJPEGWxN5t_W59VOl/exec';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
-var V_CODE='',V_PW='',V_ROLETYPE='';
-try{ V_CODE=localStorage.getItem('mx_v_code')||''; V_PW=localStorage.getItem('mx_v_pw')||''; V_ROLETYPE=localStorage.getItem('mx_v_roletype')||''; }catch(e){}
+var V_CODE='',V_PW='',V_ROLETYPE='',V_FEATURES='',V_ORGTYPE='';
+try{ V_CODE=localStorage.getItem('mx_v_code')||''; V_PW=localStorage.getItem('mx_v_pw')||''; V_ROLETYPE=localStorage.getItem('mx_v_roletype')||''; V_FEATURES=localStorage.getItem('mx_v_features')||''; V_ORGTYPE=localStorage.getItem('mx_v_orgtype')||''; }catch(e){}
+// index.html 所在位置跟 vendor.html 同一層目錄，用來組轉介連結
+var CLIENT_APP_URL = location.origin + location.pathname.replace(/vendor\.html$/, '') + 'index.html';
 
 function api(params,cb){
   params.vendorCode=V_CODE; params.vendorPw=V_PW;
   var q=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
   fetch(API_URL+'?'+q).then(function(r){return r.json();}).then(cb).catch(function(){cb(null);});
 }
-function showWorkspace(){
+function showWorkspace(skipAutoSwitch){
   document.getElementById('login-card').style.display='none';
   document.getElementById('workspace').style.display='';
   document.getElementById('logout-btn').style.display='';
@@ -165,7 +195,11 @@ function showWorkspace(){
   var isLab = (V_ROLETYPE === '診所' || V_ROLETYPE === '實驗室');
   document.getElementById('tab-upload').style.display = isLab ? '' : 'none';
   document.getElementById('tab-slots').style.display = isLab ? '' : 'none';
+  var hasReferral = (V_FEATURES||'').indexOf('referral') >= 0;
+  document.getElementById('tab-referral').style.display = hasReferral ? '' : 'none';
+  if(skipAutoSwitch) return; // 背景重新整理開通項目用，不要打斷使用者目前正在看的分頁
   if(isLab) switchTab('upload'); // 診所/實驗室帳號打開直接看待回報清單，比消費扣款更常用
+  else if(hasReferral) switchTab('referral'); // 純推廣型合作單位（例如美業集團）打開直接看推廣成效，比扣款更常用
 }
 function vLogin(){
   var code=document.getElementById('vcode').value.trim();
@@ -178,7 +212,9 @@ function vLogin(){
     if(d&&d.status==='ok'){
       try{ localStorage.setItem('mx_v_code',V_CODE); localStorage.setItem('mx_v_pw',V_PW); }catch(e){}
       V_ROLETYPE = d.roleType || '';
-      try{ localStorage.setItem('mx_v_roletype',V_ROLETYPE); }catch(e){}
+      V_FEATURES = d.features || '';
+      V_ORGTYPE = d.orgType || '';
+      try{ localStorage.setItem('mx_v_roletype',V_ROLETYPE); localStorage.setItem('mx_v_features',V_FEATURES); localStorage.setItem('mx_v_orgtype',V_ORGTYPE); }catch(e){}
       err.textContent=''; showWorkspace();
     } else {
       var m=(d&&d.message)||'連線失敗，請稍後再試';
@@ -188,7 +224,7 @@ function vLogin(){
   });
 }
 function vLogout(){
-  try{ localStorage.removeItem('mx_v_code'); localStorage.removeItem('mx_v_pw'); localStorage.removeItem('mx_v_roletype'); }catch(e){}
+  try{ localStorage.removeItem('mx_v_code'); localStorage.removeItem('mx_v_pw'); localStorage.removeItem('mx_v_roletype'); localStorage.removeItem('mx_v_features'); localStorage.removeItem('mx_v_orgtype'); }catch(e){}
   location.reload();
 }
 function switchTab(t){
@@ -196,12 +232,94 @@ function switchTab(t){
   document.getElementById('tab-upload').className='tab'+(t==='upload'?' on':'');
   document.getElementById('tab-slots').className='tab'+(t==='slots'?' on':'');
   document.getElementById('tab-stmt').className='tab'+(t==='stmt'?' on':'');
+  document.getElementById('tab-referral').className='tab'+(t==='referral'?' on':'');
   document.getElementById('pane-charge').style.display=t==='charge'?'':'none';
   document.getElementById('pane-upload').style.display=t==='upload'?'':'none';
   document.getElementById('pane-slots').style.display=t==='slots'?'':'none';
   document.getElementById('pane-stmt').style.display=t==='stmt'?'':'none';
+  document.getElementById('pane-referral').style.display=t==='referral'?'':'none';
   if(t==='upload') loadPendingTests();
   if(t==='slots') loadMySlots();
+  if(t==='referral') loadReferralInfo();
+}
+// ── 2026-08-14 新增：我的推廣（合作單位轉介，例如美業集團）──
+function loadReferralInfo(){
+  var linkBox=document.getElementById('referral-link-box');
+  var statsBox=document.getElementById('referral-stats-box');
+  linkBox.innerHTML='<div class="muted">載入中…</div>';
+  statsBox.innerHTML='<div class="muted">載入中…</div>';
+  api({action:'vendorGetReferralInfo'},function(d){
+    if(!d||d.status!=='ok'){
+      linkBox.innerHTML='<div class="muted">'+((d&&d.message)||'查詢失敗')+'</div>';
+      statsBox.innerHTML='';
+      return;
+    }
+    var link = CLIENT_APP_URL + '?ref=' + encodeURIComponent(d.referralCode);
+    var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(link);
+    linkBox.innerHTML =
+      '<div style="text-align:center;margin-bottom:10px"><img src="'+qrSrc+'" alt="QR碼" style="width:160px;height:160px;border:1px solid #eee;border-radius:8px"></div>'
+      +'<div style="word-break:break-all;font-size:12px;background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:8px">'+esc(link)+'</div>'
+      +'<button style="width:100%" onclick="copyReferralLink(\''+link.replace(/'/g,"\\'")+'\')">📋 複製連結</button>'
+      +'<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">轉介碼：'+esc(d.referralCode)+'</div>';
+    statsBox.innerHTML =
+      '<div style="display:flex;gap:10px;text-align:center;margin-bottom:6px">'
+      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D5FA8">'+(d.newClients||0)+'</div><div style="font-size:11px;color:#788">帶進來的新客</div></div>'
+      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D5FA8">$'+(d.oneTimeTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#788">首次獎金累計</div></div>'
+      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D5FA8">$'+(d.ongoingTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#788">持續分潤累計</div></div>'
+      +'</div>';
+    document.getElementById('referral-group-card').style.display = (d.orgType==='集團總部') ? '' : 'none';
+  });
+}
+function copyReferralLink(link){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(function(){ alert('已複製連結'); }).catch(function(){ prompt('請手動複製：',link); });
+  } else {
+    prompt('請手動複製：',link);
+  }
+}
+function loadGroupOverview(){
+  var box=document.getElementById('referral-group-box');
+  box.innerHTML='<div class="muted">載入中…</div>';
+  api({action:'vendorGroupOverview'},function(d){
+    if(!d||d.status!=='ok'){ box.innerHTML='<div class="muted">'+((d&&d.message)||'查詢失敗')+'</div>'; return; }
+    var branches=d.branches||[];
+    if(branches.length===0){ box.innerHTML='<div class="muted">目前底下還沒有分店</div>'; return; }
+    var html='<table><thead><tr><th>分店</th><th>新客</th><th style="text-align:right">首次獎金</th><th style="text-align:right">持續分潤</th></tr></thead><tbody>';
+    branches.forEach(function(b){
+      html+='<tr><td>'+esc(b.roleName)+'</td><td>'+(b.newClients||0)+'</td><td class="amt">$'+(b.oneTimeTotal||0).toLocaleString()+'</td><td class="amt">$'+(b.ongoingTotal||0).toLocaleString()+'</td></tr>';
+    });
+    html+='</tbody></table>';
+    html+='<div class="total" style="margin-top:10px"><div class="total-n">$'+(d.grandTotal||0).toLocaleString()+'</div><div class="total-l">集團全部分店合計</div></div>';
+    box.innerHTML=html;
+  });
+}
+function loadReferralStatement(){
+  var month=document.getElementById('rmonth').value;
+  var err=document.getElementById('referral-err');
+  err.textContent='查詢中…';
+  var action = (V_ORGTYPE==='集團總部') ? 'vendorGroupStatement' : 'vendorReferralStatement';
+  var p={action:action};
+  if(month)p.month=month;
+  api(p,function(d){
+    err.textContent='';
+    if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'查詢失敗'; return; }
+    renderReferralResult(d, action==='vendorGroupStatement');
+  });
+}
+function renderReferralResult(d, isGroup){
+  var box=document.getElementById('referral-result');
+  var label=d.month? d.month : '全部期間';
+  var html='<div class="total"><div class="total-n">$'+(d.total||0).toLocaleString()+'</div><div class="total-l">'+label+' 推廣獎金總額</div></div>';
+  if(d.items&&d.items.length){
+    html+='<table><thead><tr>'+(isGroup?'<th>分店</th>':'')+'<th>日期</th><th>客人</th><th>類型</th><th style="text-align:right">金額</th></tr></thead><tbody>';
+    d.items.forEach(function(it){
+      html+='<tr>'+(isGroup?'<td>'+esc(it.branchName)+'</td>':'')+'<td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td><span class="src">'+esc(it.type)+'</span></td><td class="amt">$'+(it.amount||0).toLocaleString()+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  } else {
+    html+='<div class="muted">這個期間沒有推廣獎金記錄</div>';
+  }
+  box.innerHTML=html;
 }
 // ── 可預約時段自助維護（診所/檢測單位）──
 function loadMySlots(){
@@ -378,7 +496,18 @@ function renderResult(d){
   cc.style.display = (d.total||0) > 0 ? '' : 'none';
   cc.innerHTML='<button style="width:100%;font-size:15px;padding:13px" onclick="confirmMyStatement()">✅ 確認本月對帳單無誤</button><div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">確認後元代謝會知道您已核對過這份金額</div><div class="err" id="confirm-err"></div>';
 }
-if(V_CODE&&V_PW){ showWorkspace(); }
+if(V_CODE&&V_PW){
+  showWorkspace();
+  // 背景重新確認一次角色類型／開通項目（避免創始人後來才開通轉介功能，或改了角色類型，
+  // 這台裝置卻因為快取舊資料看不到新分頁）
+  api({action:'vendorPing'},function(d){
+    if(d&&d.status==='ok'){
+      V_ROLETYPE=d.roleType||''; V_FEATURES=d.features||''; V_ORGTYPE=d.orgType||'';
+      try{ localStorage.setItem('mx_v_roletype',V_ROLETYPE); localStorage.setItem('mx_v_features',V_FEATURES); localStorage.setItem('mx_v_orgtype',V_ORGTYPE); }catch(e){}
+      showWorkspace(true);
+    }
+  });
+}
 </script>
 </body>
 </html>
