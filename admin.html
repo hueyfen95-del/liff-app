@@ -8671,7 +8671,9 @@ function rvLoad(){
       var detail = p.type==='儲值'
         ? ('付款方式：'+escH(p.method))
         : p.type==='廠商回報'
-          ? ('廠商：'+escH(p.vendorCode)+'　服務類型：'+escH(p.eventType)+'　元代謝應收：$'+(p.owedToYuanDaixie||0).toLocaleString())
+          // 元代謝應收：廠商要匯過來的總額（可能含要轉付診所/實驗室等下游的部分）；
+          // 真實margin：元代謝這筆實際留下來的部分——兩者只有後台看得到，廠商自己畫面上只會看到「應收」那個數字
+          ? ('廠商：'+escH(p.vendorCode)+'　服務類型：'+escH(p.eventType)+'　元代謝應收：$'+(p.owedToYuanDaixie||0).toLocaleString()+'　<span style="color:var(--g3)">真實margin：$'+(p.platformMargin||0).toLocaleString()+'</span>')
           : ('服務點：'+escH(p.servicePoint)+'　項目：'+escH(p.item));
       return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">'
         + '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">'
@@ -8703,6 +8705,22 @@ function rvDecide(type, row, decision){
 }
 
 // ══════ 廠商應收帳款（合作單位自行收款回報模式）══════
+function vendorReceivableCardHtml(v, indent){
+  // 2026-08-15：新增「元代謝真實margin」欄——「應收總額」如果這個廠商的規則裡有診所/實驗室等下游角色，
+  // 會比元代謝真正留下來的margin大（差額是要再轉付給下游的），這裡把兩者分開顯示，後台自己看得清楚，
+  // 但這個欄位只在後台（這裡）出現，vendor.html 合作單位自己的畫面絕對不會顯示
+  var vMargin = (v.pendingMargin||0) + (v.confirmedMargin||0) + (v.settledMargin||0);
+  return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px'+(indent?';margin-left:18px':'')+'">'
+    + '<div style="font-size:14px;font-weight:700;margin-bottom:8px">'+(indent?'↳ ':'')+escH(v.vendorCode)+(v.orgType?'　<span style="font-size:11px;font-weight:400;color:var(--text3)">（'+escH(v.orgType)+'）</span>':'')+'</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;font-size:12px;margin-bottom:10px">'
+    + '<div><div style="color:var(--text3)">待核查</div><div style="font-weight:700">$'+(v.pendingOwed||0).toLocaleString()+'（'+(v.pendingCount||0)+'筆）</div></div>'
+    + '<div><div style="color:var(--text3)">已核查、未結清</div><div style="font-weight:700;color:var(--r)">$'+(v.confirmedUnsettled||0).toLocaleString()+'</div></div>'
+    + '<div><div style="color:var(--text3)">已結清累計</div><div style="font-weight:700;color:var(--g3)">$'+(v.settledTotal||0).toLocaleString()+'</div></div>'
+    + '<div><div style="color:var(--text3)">元代謝真實margin</div><div style="font-weight:700;color:#2E6FC8">$'+vMargin.toLocaleString()+'</div></div>'
+    + '</div>'
+    + (v.confirmedUnsettled > 0 ? '<button class="btn-primary" onclick="settleVendorReceivableUI(\''+escH(v.vendorCode)+'\','+v.confirmedUnsettled+')" style="font-size:12px">💰 標記已結清（收到匯款後按）</button>' : '')
+    + '</div>';
+}
 function loadVendorReceivables(){
   var box = document.getElementById('vendor-receivables-list');
   if(!box) return;
@@ -8712,17 +8730,25 @@ function loadVendorReceivables(){
     if(!box) return;
     var vendors = (d && d.vendors) || [];
     if(vendors.length===0){ box.innerHTML='<div style="color:var(--text3);font-size:13px;padding:6px 0">目前沒有任何合作單位回報過收款</div>'; return; }
-    box.innerHTML = vendors.map(function(v){
-      return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">'
-        + '<div style="font-size:14px;font-weight:700;margin-bottom:8px">'+escH(v.vendorCode)+'</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px;margin-bottom:10px">'
-        + '<div><div style="color:var(--text3)">待核查</div><div style="font-weight:700">$'+(v.pendingOwed||0).toLocaleString()+'（'+(v.pendingCount||0)+'筆）</div></div>'
-        + '<div><div style="color:var(--text3)">已核查、未結清</div><div style="font-weight:700;color:var(--r)">$'+(v.confirmedUnsettled||0).toLocaleString()+'</div></div>'
-        + '<div><div style="color:var(--text3)">已結清累計</div><div style="font-weight:700;color:var(--g3)">$'+(v.settledTotal||0).toLocaleString()+'</div></div>'
-        + '</div>'
-        + (v.confirmedUnsettled > 0 ? '<button class="btn-primary" onclick="settleVendorReceivableUI(\''+escH(v.vendorCode)+'\','+v.confirmedUnsettled+')" style="font-size:12px">💰 標記已結清（收到匯款後按）</button>' : '')
+    // 2026-08-15：分店掛在自己總部底下分組顯示，展店變多之後才看得清楚；沒有集團歸屬的合作單位照舊各自一行
+    var groups = {}; // groupName -> [branches]
+    var standalone = [];
+    vendors.forEach(function(v){
+      if(v.groupName){ if(!groups[v.groupName]) groups[v.groupName]=[]; groups[v.groupName].push(v); }
+      else standalone.push(v);
+    });
+    var html = '';
+    Object.keys(groups).forEach(function(gName){
+      var branches = groups[gName];
+      var gPending=0, gConfirmed=0, gSettled=0;
+      branches.forEach(function(b){ gPending+=b.pendingOwed||0; gConfirmed+=b.confirmedUnsettled||0; gSettled+=b.settledTotal||0; });
+      html += '<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:14px">'
+        + '<div style="font-size:13px;font-weight:700;color:var(--g3);margin-bottom:8px">🏢 '+escH(gName)+'　<span style="font-weight:400;color:var(--text3)">（集團合計：待核查$'+gPending.toLocaleString()+'　未結清$'+gConfirmed.toLocaleString()+'　已結清$'+gSettled.toLocaleString()+'）</span></div>'
+        + branches.map(function(v){ return vendorReceivableCardHtml(v, true); }).join('')
         + '</div>';
-    }).join('');
+    });
+    standalone.forEach(function(v){ html += vendorReceivableCardHtml(v, false); });
+    box.innerHTML = html;
   });
 }
 function settleVendorReceivableUI(vendorCode, amount){

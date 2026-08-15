@@ -187,6 +187,21 @@
       <div id="rs-summary" class="muted">點「重新整理」查看</div>
       <div id="rs-list" style="margin-top:10px"></div>
     </div>
+    <!-- 跨店應收總覽（只有集團總部帳號看得到）-->
+    <div class="card" id="rs-group-card" style="display:none">
+      <div class="lbl" style="margin-top:0">跨店應收總覽（集團總部）</div>
+      <button style="width:100%;margin-bottom:8px" onclick="loadGroupReceivablesOverview()">重新整理</button>
+      <div id="rs-group-box" class="muted">點「重新整理」查看底下各分店目前的應收狀況</div>
+    </div>
+    <div class="card" id="rs-group-stmt-card" style="display:none">
+      <div class="lbl" style="margin-top:0">跨店回報明細</div>
+      <div class="login-row" style="margin-bottom:0">
+        <input id="rs-group-month" type="month">
+        <button onclick="loadGroupReportedSalesStatement()">查詢</button>
+      </div>
+      <div class="err" id="rs-group-stmt-err"></div>
+      <div id="rs-group-stmt-result" style="margin-top:10px"></div>
+    </div>
   </div>
 </div>
 
@@ -266,7 +281,13 @@ function switchTab(t){
   if(t==='upload') loadPendingTests();
   if(t==='slots') loadMySlots();
   if(t==='referral') loadReferralInfo();
-  if(t==='report-sale'){ loadReportSaleEventTypes(); loadMyReportedSales(); }
+  if(t==='report-sale'){
+    loadReportSaleEventTypes(); loadMyReportedSales();
+    var isHqSelfCollect = V_ORGTYPE==='集團總部';
+    document.getElementById('rs-group-card').style.display = isHqSelfCollect ? '' : 'none';
+    document.getElementById('rs-group-stmt-card').style.display = isHqSelfCollect ? '' : 'none';
+    if(isHqSelfCollect) loadGroupReceivablesOverview();
+  }
 }
 // ── 2026-08-14 新增：我的推廣（合作單位轉介，例如美業集團）──
 function loadReferralInfo(){
@@ -394,7 +415,10 @@ function loadMyReportedSales(){
       +'<div><div style="font-size:20px;font-weight:800;color:#788">$'+(d.pendingOwed||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">待核查</div></div>'
       +'<div><div style="font-size:20px;font-weight:800;color:#D6455D">$'+(d.confirmedUnsettled||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已核查・您目前應付</div></div>'
       +'<div><div style="font-size:20px;font-weight:800;color:#1A9E6C">$'+(d.settledTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已結清累計</div></div>'
-      +'</div>';
+      +'</div>'
+      // 2026-08-15 新增：這筆「應付元代謝」不是元代謝的淨利，裡面包含要付給診所抽血、實驗室檢測、
+      // 陪跑教練等履約成本——避免合作單位看到數字誤以為元代謝把這些錢都留下來
+      +'<div class="muted" style="font-size:11px;margin-top:8px;line-height:1.6">💡 元代謝是您的服務統包夥伴，整合檢測、診所、陪跑教練等單位——這筆是整合服務成本。謝謝合作！</div>';
     var items=d.items||[];
     if(items.length===0){ listBox.innerHTML='<div class="muted">還沒有回報過任何收款</div>'; return; }
     var statusLabel={'待核查':'待核查','已核查':'已核查','已退回':'已退回（請確認後重新回報）'};
@@ -406,6 +430,52 @@ function loadMyReportedSales(){
           +'<td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span> '+settleTag+'</td></tr>';
       }).join('')
       + '</tbody></table>';
+  });
+}
+// ── 2026-08-15 新增：跨店應收總覽／明細（自行收款回報模式，集團總部帳號才看得到）──
+function loadGroupReceivablesOverview(){
+  var box=document.getElementById('rs-group-box');
+  if(!box) return;
+  box.innerHTML='<div class="muted">載入中…</div>';
+  api({action:'vendorGroupReceivablesOverview'},function(d){
+    box=document.getElementById('rs-group-box');
+    if(!box) return;
+    if(!d||d.status!=='ok'){ box.innerHTML='<div class="muted">'+((d&&d.message)||'查詢失敗')+'</div>'; return; }
+    var branches=d.branches||[];
+    var html='<div class="total"><div class="total-n">$'+(d.grandConfirmedUnsettled||0).toLocaleString()+'</div><div class="total-l">全集團目前應付元代謝（已核查、未結清）</div></div>'
+      +'<div class="muted" style="font-size:11px;margin:6px 0 10px;line-height:1.6">💡 元代謝是全集團的服務統包夥伴，整合各分店的檢測、診所、陪跑教練等單位——這筆是整合服務成本。謝謝合作！</div>';
+    if(branches.length===0){ html+='<div class="muted">這個總部底下還沒有設定任何分店</div>'; }
+    else{
+      html+='<table><thead><tr><th>分店</th><th style="text-align:right">待核查</th><th style="text-align:right">應付未結清</th><th style="text-align:right">已結清累計</th></tr></thead><tbody>';
+      branches.forEach(function(b){
+        html+='<tr><td>'+esc(b.branchName)+'</td><td class="amt" style="color:#788">$'+(b.pendingOwed||0).toLocaleString()+'</td>'
+          +'<td class="amt" style="color:#D6455D">$'+(b.confirmedUnsettled||0).toLocaleString()+'</td>'
+          +'<td class="amt" style="color:#1A9E6C">$'+(b.settledTotal||0).toLocaleString()+'</td></tr>';
+      });
+      html+='</tbody></table>';
+    }
+    box.innerHTML=html;
+  });
+}
+function loadGroupReportedSalesStatement(){
+  var month=document.getElementById('rs-group-month').value;
+  var err=document.getElementById('rs-group-stmt-err');
+  var box=document.getElementById('rs-group-stmt-result');
+  err.textContent=''; box.innerHTML='<div class="muted">查詢中…</div>';
+  api({action:'vendorGroupReportedSalesStatement',month:month},function(d){
+    if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'查詢失敗'; box.innerHTML=''; return; }
+    var label=d.month?d.month:'全部期間';
+    var html='<div class="total"><div class="total-n">$'+(d.total||0).toLocaleString()+'</div><div class="total-l">'+esc(label)+' 全集團應付元代謝總額</div></div>';
+    if(d.items&&d.items.length){
+      html+='<table><thead><tr><th>分店</th><th>日期</th><th>客人</th><th>類型</th><th style="text-align:right">應付元代謝</th><th>狀態</th></tr></thead><tbody>';
+      d.items.forEach(function(it){
+        var statusLabel={'待核查':'待核查','已核查':(it.settleStatus==='已結清'?'已結清':'已核查・未結清'),'已退回':'已退回'};
+        html+='<tr><td>'+esc(it.branchName)+'</td><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td><span class="src">'+esc(it.eventType)+'</span></td>'
+          +'<td class="amt">$'+(it.owed||0).toLocaleString()+'</td><td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span></td></tr>';
+      });
+      html+='</tbody></table>';
+    } else { html+='<div class="muted">這個期間沒有任何分店回報收款</div>'; }
+    box.innerHTML=html;
   });
 }
 // ── 可預約時段自助維護（診所/檢測單位）──
