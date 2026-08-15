@@ -8673,7 +8673,7 @@ function rvLoad(){
         : p.type==='廠商回報'
           // 元代謝應收：廠商要匯過來的總額（可能含要轉付診所/實驗室等下游的部分）；
           // 真實margin：元代謝這筆實際留下來的部分——兩者只有後台看得到，廠商自己畫面上只會看到「應收」那個數字
-          ? ('廠商：'+escH(p.vendorCode)+'　服務類型：'+escH(p.eventType)+'　元代謝應收：$'+(p.owedToYuanDaixie||0).toLocaleString()+'　<span style="color:var(--g3)">真實margin：$'+(p.platformMargin||0).toLocaleString()+'</span>')
+          ? ('廠商：'+escH(p.vendorCode)+'　服務類型：'+escH(p.eventType)+'　客人來源：'+escH(p.clientSource||'元代謝介紹')+'　元代謝應收：$'+(p.owedToYuanDaixie||0).toLocaleString()+'　<span style="color:var(--g3)">真實margin：$'+(p.platformMargin||0).toLocaleString()+'</span>')
           : ('服務點：'+escH(p.servicePoint)+'　項目：'+escH(p.item));
       return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">'
         + '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">'

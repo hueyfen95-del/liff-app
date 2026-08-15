@@ -141,6 +141,21 @@
       <div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">確認後元代謝會知道您已核對過這份金額</div>
       <div class="err" id="confirm-err"></div>
     </div>
+    <!-- 2026-08-15 新增：跨分店/分院月結彙總（只有集團總部帳號看得到，適用診所、實驗室等各種集團合作） -->
+    <div class="card" id="stmt-group-card" style="display:none">
+      <div class="lbl" style="margin-top:0">跨分店月結彙總（集團總部）</div>
+      <button style="width:100%;margin-bottom:8px" onclick="loadGroupPayeeOverview()">重新整理</button>
+      <div id="stmt-group-box" class="muted">點「重新整理」查看底下各分店/分院元代謝月結金額</div>
+    </div>
+    <div class="card" id="stmt-group-detail-card" style="display:none">
+      <div class="lbl" style="margin-top:0">跨分店月結明細</div>
+      <div class="login-row" style="margin-bottom:0">
+        <input id="stmt-group-month" type="month">
+        <button onclick="loadGroupPayeeStatement()">查詢</button>
+      </div>
+      <div class="err" id="stmt-group-err"></div>
+      <div id="stmt-group-result" style="margin-top:10px"></div>
+    </div>
   </div>
 
   <!-- 我的推廣（只有開通「客戶轉介來源標記」的合作單位看得到）-->
@@ -281,6 +296,12 @@ function switchTab(t){
   if(t==='upload') loadPendingTests();
   if(t==='slots') loadMySlots();
   if(t==='referral') loadReferralInfo();
+  if(t==='stmt'){
+    var isHqStmt = V_ORGTYPE==='集團總部';
+    document.getElementById('stmt-group-card').style.display = isHqStmt ? '' : 'none';
+    document.getElementById('stmt-group-detail-card').style.display = isHqStmt ? '' : 'none';
+    if(isHqStmt) loadGroupPayeeOverview();
+  }
   if(t==='report-sale'){
     loadReportSaleEventTypes(); loadMyReportedSales();
     var isHqSelfCollect = V_ORGTYPE==='集團總部';
@@ -418,14 +439,20 @@ function loadMyReportedSales(){
       +'</div>'
       // 2026-08-15 新增：這筆「應付元代謝」不是元代謝的淨利，裡面包含要付給診所抽血、實驗室檢測、
       // 陪跑教練等履約成本——避免合作單位看到數字誤以為元代謝把這些錢都留下來
-      +'<div class="muted" style="font-size:11px;margin-top:8px;line-height:1.6">💡 元代謝是您的服務統包夥伴，整合檢測、診所、陪跑教練等單位——這筆是整合服務成本。謝謝合作！</div>';
+      +'<div class="muted" style="font-size:11px;margin-top:8px;line-height:1.6">💡 元代謝是您的服務統包夥伴，整合檢測、診所、陪跑教練等單位——這筆是整合服務成本。謝謝合作！</div>'
+      // 2026-08-15 新增：客人來源分兩類——自己的客人 vs 元代謝介紹過去的客人，方便像功能醫學/後續療程
+      // 這種「自己也會直接跟病人收費」的合作單位，一眼看出這個月業績裡有多少是原本就認識的病人
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center;margin-top:10px">'
+      +'<div><div style="font-size:15px;font-weight:800">$'+(d.ownClientRevenue||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">自己的客人（回報收款總額）</div></div>'
+      +'<div><div style="font-size:15px;font-weight:800">$'+(d.referredClientRevenue||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">元代謝介紹的客人（回報收款總額）</div></div>'
+      +'</div>';
     var items=d.items||[];
     if(items.length===0){ listBox.innerHTML='<div class="muted">還沒有回報過任何收款</div>'; return; }
     var statusLabel={'待核查':'待核查','已核查':'已核查','已退回':'已退回（請確認後重新回報）'};
-    listBox.innerHTML='<table><thead><tr><th>日期</th><th>客人</th><th>類型</th><th style="text-align:right">您收的金額</th><th style="text-align:right">您應付元代謝</th><th>狀態</th></tr></thead><tbody>'
+    listBox.innerHTML='<table><thead><tr><th>日期</th><th>客人</th><th>類型</th><th>客人來源</th><th style="text-align:right">您收的金額</th><th style="text-align:right">您應付元代謝</th><th>狀態</th></tr></thead><tbody>'
       + items.map(function(it){
         var settleTag = it.status==='已核查' ? ('<span class="src">'+(it.settleStatus==='已結清'?'已結清':'未結清')+'</span>') : '';
-        return '<tr><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td>'+esc(it.eventType)+'</td>'
+        return '<tr><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td>'+esc(it.eventType)+'</td><td><span class="src">'+esc(it.clientSource||'元代謝介紹')+'</span></td>'
           +'<td class="amt">$'+(it.amount||0).toLocaleString()+'</td><td class="amt">$'+(it.owed||0).toLocaleString()+'</td>'
           +'<td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span> '+settleTag+'</td></tr>';
       }).join('')
@@ -467,14 +494,56 @@ function loadGroupReportedSalesStatement(){
     var label=d.month?d.month:'全部期間';
     var html='<div class="total"><div class="total-n">$'+(d.total||0).toLocaleString()+'</div><div class="total-l">'+esc(label)+' 全集團應付元代謝總額</div></div>';
     if(d.items&&d.items.length){
-      html+='<table><thead><tr><th>分店</th><th>日期</th><th>客人</th><th>類型</th><th style="text-align:right">應付元代謝</th><th>狀態</th></tr></thead><tbody>';
+      html+='<table><thead><tr><th>分店</th><th>日期</th><th>客人</th><th>類型</th><th>客人來源</th><th style="text-align:right">應付元代謝</th><th>狀態</th></tr></thead><tbody>';
       d.items.forEach(function(it){
         var statusLabel={'待核查':'待核查','已核查':(it.settleStatus==='已結清'?'已結清':'已核查・未結清'),'已退回':'已退回'};
-        html+='<tr><td>'+esc(it.branchName)+'</td><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td><span class="src">'+esc(it.eventType)+'</span></td>'
+        html+='<tr><td>'+esc(it.branchName)+'</td><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td><span class="src">'+esc(it.eventType)+'</span></td><td><span class="src">'+esc(it.clientSource||'元代謝介紹')+'</span></td>'
           +'<td class="amt">$'+(it.owed||0).toLocaleString()+'</td><td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span></td></tr>';
       });
       html+='</tbody></table>';
     } else { html+='<div class="muted">這個期間沒有任何分店回報收款</div>'; }
+    box.innerHTML=html;
+  });
+}
+// ── 2026-08-15 新增：跨分店/分院月結彙總（元代謝收款、依分帳規則付給合作單位這套最基礎模式的集團總部視角，
+// 適用診所集團、實驗室集團等各種產業，不限美業）──
+function loadGroupPayeeOverview(){
+  var box=document.getElementById('stmt-group-box');
+  if(!box) return;
+  box.innerHTML='<div class="muted">載入中…</div>';
+  api({action:'vendorGroupPayeeOverview'},function(d){
+    box=document.getElementById('stmt-group-box');
+    if(!box) return;
+    if(!d||d.status!=='ok'){ box.innerHTML='<div class="muted">'+((d&&d.message)||'查詢失敗')+'</div>'; return; }
+    var branches=d.branches||[];
+    var html='<div class="total"><div class="total-n">$'+(d.grandTotal||0).toLocaleString()+'</div><div class="total-l">全集團元代謝月結分潤總額（全部期間）</div></div>';
+    if(branches.length===0){ html+='<div class="muted">這個總部底下還沒有設定任何分店/分院</div>'; }
+    else{
+      html+='<table><thead><tr><th>分店/分院</th><th style="text-align:right">元代謝分潤累計</th></tr></thead><tbody>';
+      branches.forEach(function(b){
+        html+='<tr><td>'+esc(b.branchName)+'</td><td class="amt">$'+(b.total||0).toLocaleString()+'</td></tr>';
+      });
+      html+='</tbody></table>';
+    }
+    box.innerHTML=html;
+  });
+}
+function loadGroupPayeeStatement(){
+  var month=document.getElementById('stmt-group-month').value;
+  var err=document.getElementById('stmt-group-err');
+  var box=document.getElementById('stmt-group-result');
+  err.textContent=''; box.innerHTML='<div class="muted">查詢中…</div>';
+  api({action:'vendorGroupPayeeStatement',month:month},function(d){
+    if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'查詢失敗'; box.innerHTML=''; return; }
+    var label=d.month?d.month:'全部期間';
+    var html='<div class="total"><div class="total-n">$'+(d.total||0).toLocaleString()+'</div><div class="total-l">'+esc(label)+' 全集團分潤總額</div></div>';
+    if(d.items&&d.items.length){
+      html+='<table><thead><tr><th>分店/分院</th><th>日期</th><th>來源</th><th>說明</th><th style="text-align:right">金額</th></tr></thead><tbody>';
+      d.items.forEach(function(it){
+        html+='<tr><td>'+esc(it.branchName)+'</td><td>'+esc(it.date)+'</td><td><span class="src">'+esc(it.source)+'</span></td><td>'+esc(it.detail)+'</td><td class="amt">$'+(it.amount||0).toLocaleString()+'</td></tr>';
+      });
+      html+='</tbody></table>';
+    } else { html+='<div class="muted">這個期間沒有任何分店/分院的分潤記錄</div>'; }
     box.innerHTML=html;
   });
 }
