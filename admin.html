@@ -26,6 +26,8 @@ body[data-role="行政"] .sidebar{background:#2E2450}
 body[data-role="行政"] .si.on{border-left-color:#B39DFF}
 body[data-role="會計"] .sidebar{background:#4A3208}
 body[data-role="會計"] .si.on{border-left-color:#F5C560}
+body[data-role="財務主管"] .sidebar{background:#0F4A2C}
+body[data-role="財務主管"] .si.on{border-left-color:#5FD68F}
 #role-chip{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;flex-shrink:0}
 .si i{font-size:16px;flex-shrink:0}
 .si-badge{border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin-left:auto}
@@ -733,8 +735,9 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 <!-- ══ 分帳角色名單 ══ -->
 <div class="pg" id="pg-roles">
   <div class="hint-box">先建立所有會參與分帳的角色（人或單位），之後在「分帳規則設定」決定每種服務怎麼分給誰。</div>
+  <div id="roles-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——可以核對名單，但新增/編輯/刪除角色要請財務主管或創始人來處理。</div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card" id="role-add-card" style="margin-bottom:14px">
     <div class="card-hd">
       <div class="card-title"><i class="ti ti-users-group"></i>新增分帳角色</div>
     </div>
@@ -821,16 +824,18 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
             <option value="秘書">💁 秘書</option>
             <option value="會計">🧾 會計</option>
             <option value="行政">📋 行政</option>
+            <option value="財務主管">💰 財務主管</option>
             <option value="創始人">👑 創始人（看得到全部）</option>
           </select>
         </div>
       </div>
       <div style="margin-bottom:12px">
-        <div class="gi-lbl" style="margin-bottom:5px">身兼職務（可複選，純顯示參考用，不影響看得到的頁面）</div>
+        <div class="gi-lbl" style="margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，例如設定合作單位收費模式跟分帳比例，其餘職務純顯示參考用）</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="秘書">💁 秘書</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="會計">🧾 會計</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="行政">📋 行政</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="財務主管">💰 財務主管</label>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -910,8 +915,9 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 
 <div class="pg" id="pg-rules">
   <div class="hint-box">設定每種服務（IRCT檢測 / 陪跑服務費）要分給哪些角色、各分多少。每次調整都保留歷史，已收的款項不受新規則影響。</div>
+  <div id="rules-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——可以核對現有規則，但新增或調整分帳比例要請財務主管或創始人來設定。</div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card" id="rule-add-card" style="margin-bottom:14px">
     <div class="card-hd">
       <div class="card-title"><i class="ti ti-settings-2"></i>新增分帳規則</div>
     </div>
@@ -939,6 +945,23 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
       <button onclick="ruleAddRoleRow()" style="width:100%;background:var(--bg);border:1px dashed var(--border);border-radius:9px;padding:8px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:12px">+ 新增分帳角色</button>
 
       <div id="rule-remain-hint" style="font-size:11px;color:var(--text3);margin-bottom:12px;padding:8px 10px;background:var(--bg);border-radius:8px">尚未設定任何角色</div>
+
+      <!-- 2026-08-16 新增：合作單位自行收費時，「自己的客人」跟「元代謝介紹的客人」可以分開設定不同比例——
+           上面設定的是預設比例（元代謝介紹的客人固定用這份），這裡是選填的「自己客人」專屬比例，只影響
+           合作單位自行收款回報（vendorReportSale）判斷出來是「自己客人」的那些交易 -->
+      <div style="margin-bottom:12px;padding:10px;background:var(--bg);border-radius:9px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:6px">
+          <input type="checkbox" id="rule-has-own-variant" onchange="ruleToggleOwnVariant()">
+          這個服務類型，合作單位自行收費時，服務「自己的客人」要用不同比例
+        </label>
+        <div style="font-size:10.5px;color:var(--text3);margin-bottom:8px">留空不勾選＝不分客人來源，大家都用上面同一個比例（也是既有規則的預設行為，完全不受影響）。「元代謝介紹的客人」固定沿用上面的比例，不用另外設定。</div>
+        <div id="rule-own-variant-box" style="display:none">
+          <div class="gi-lbl" style="margin-bottom:8px">服務「自己的客人」時，這個服務要分給哪些角色？</div>
+          <div id="rule-role-rows-own" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+          <button onclick="ruleAddRoleRow('rule-role-rows-own')" style="width:100%;background:var(--card);border:1px dashed var(--border);border-radius:9px;padding:8px;font-size:12px;color:var(--text2);cursor:pointer;margin-bottom:8px">+ 新增分帳角色</button>
+          <div id="rule-remain-hint-own" style="font-size:11px;color:var(--text3);padding:8px 10px;background:var(--card);border-radius:8px">尚未設定任何角色</div>
+        </div>
+      </div>
 
       <button onclick="saveRule()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">儲存這筆規則（套用於之後的新服務）</button>
     </div>
@@ -3042,13 +3065,13 @@ function loadAdminAccounts(){
     if(!d || d.status !== 'ok'){ listEl.innerHTML = '<div style="font-size:11px;color:var(--r);text-align:center;padding:14px">'+((d&&d.message)||'讀取失敗，可能沒有創始人權限')+'</div>'; return; }
     if(!d.accounts || d.accounts.length === 0){ listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有帳號</div>'; return; }
     _acctCache = d.accounts;
-    var roleIcon = {'創始人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋'};
+    var roleIcon = {'創始人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋','財務主管':'💰'};
     listEl.innerHTML = d.accounts.map(function(a, i){
       var isMe = CURRENT_USER && CURRENT_USER.username === a.username;
       var isActive = a.status !== '停用';
       var isFounder = (a.role === '創始人' || a.role === '老闆');
       var extraCount = (a.extraPages || []).length;
-      var isClientRestrictedRole = (a.role === '行政' || a.role === '會計');
+      var isClientRestrictedRole = (a.role === '行政' || a.role === '會計' || a.role === '財務主管');
       return '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px'+(isActive?'':';opacity:.55')+'">'+
         '<div style="display:flex;align-items:center;gap:10px">'+
         '<span style="font-size:16px">'+(roleIcon[a.role]||'👤')+'</span>'+
@@ -3063,11 +3086,11 @@ function loadAdminAccounts(){
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
         '<input id="edit-name-'+i+'" value="'+escH(a.name||'')+'" placeholder="姓名" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
         '<select id="edit-role-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
-        ['秘書','會計','行政','創始人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
+        ['秘書','會計','行政','財務主管','創始人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
         '</select></div>'+
-        '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選，純顯示參考用）</div>'+
+        '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，其餘純顯示參考用）</div>'+
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
-        ['秘書','會計','行政'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'')+' '+r+'</label>'; }).join('')+
+        ['秘書','會計','行政','財務主管'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'')+' '+r+'</label>'; }).join('')+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">'+
         '<select id="edit-paytype-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
@@ -3227,13 +3250,18 @@ function loadRoles() {
           ? '<div style="font-size:10px;color:var(--text3)">' + (r.contactPerson ? '對接：'+r.contactPerson+'　' : '') + (r.defaultDays ? '預設 '+r.defaultDays+' 天回報' : '') + '</div>' : '';
         var partnerInfo = (r.orgType || r.referralCode)
           ? '<div style="font-size:10px;color:#0F6E56">' + (r.orgType ? r.orgType + '　' : '') + (r.referralCode ? '轉介碼：'+r.referralCode : '') + '</div>' : '';
+        // 會計＝核對日常帳務，只能看角色名單，不顯示「深度合作／編輯／刪除」這幾個設定型按鈕
+        // （後端 updateRole/deleteRole/setPartnerFeatures 也都已經擋下非財務主管層級的帳號）
+        var roleActionBtns = isFinanceTier()
+          ? '<button onclick="openPartnerFeatures(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:#E6F3EE;color:#0F6E56;border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">深度合作</button>' +
+            '<button onclick="editRole(this)" data-id="' + r.roleId + '" data-type="' + r.roleType + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" data-cp="' + (r.contactPerson||'').replace(/"/g,'&quot;') + '" data-ci="' + (r.contactInfo||'').replace(/"/g,'&quot;') + '" data-dd="' + (r.defaultDays||'') + '" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>' +
+            '<button onclick="deleteRole(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:var(--r2);color:var(--r);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">刪除</button>'
+          : '<span style="font-size:10px;color:var(--text3)">僅查看</span>';
         return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px">' +
           '<span style="font-size:16px">' + (typeIcons[r.roleType] || '•') + '</span>' +
           '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">' + r.roleName + '</div>' +
           '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + partnerInfo + '</div>' +
-          '<button onclick="openPartnerFeatures(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:#E6F3EE;color:#0F6E56;border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">深度合作</button>' +
-          '<button onclick="editRole(this)" data-id="' + r.roleId + '" data-type="' + r.roleType + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" data-cp="' + (r.contactPerson||'').replace(/"/g,'&quot;') + '" data-ci="' + (r.contactInfo||'').replace(/"/g,'&quot;') + '" data-dd="' + (r.defaultDays||'') + '" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>' +
-          '<button onclick="deleteRole(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:var(--r2);color:var(--r);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">刪除</button>' +
+          roleActionBtns +
           '</div>';
       }).join('');
       // 同時把角色快取起來，給規則設定的下拉選單用
@@ -3402,14 +3430,26 @@ document.addEventListener('DOMContentLoaded', function(){
   if(document.getElementById('rule-event-type')) setTimeout(loadServiceTypes, 300);
 });
 function ruleOnEventChange() {
-  // 切換服務類型時清空已加的角色列
+  // 切換服務類型時清空已加的角色列（含「自己客人」專屬那組）
   document.getElementById('rule-role-rows').innerHTML = '';
+  document.getElementById('rule-role-rows-own').innerHTML = '';
+  document.getElementById('rule-has-own-variant').checked = false;
+  document.getElementById('rule-own-variant-box').style.display = 'none';
   ruleRoleRowCount = 0;
-  ruleAddRoleRow();
+  ruleAddRoleRow('rule-role-rows');
 }
 
-function ruleAddRoleRow() {
-  var container = document.getElementById('rule-role-rows');
+// 2026-08-16 新增：勾選/取消「自己客人不同比例」時，展開/收起下面那組專屬角色列
+function ruleToggleOwnVariant() {
+  var on = document.getElementById('rule-has-own-variant').checked;
+  document.getElementById('rule-own-variant-box').style.display = on ? '' : 'none';
+  if (on && document.querySelectorAll('#rule-role-rows-own > div').length === 0) ruleAddRoleRow('rule-role-rows-own');
+}
+
+// containerId 選填：預設的分帳角色列表，或「自己客人」專屬那組（'rule-role-rows-own'）
+function ruleAddRoleRow(containerId) {
+  containerId = containerId || 'rule-role-rows';
+  var container = document.getElementById(containerId);
   var rowId = 'rule-row-' + (ruleRoleRowCount++);
 
   var roles = window._cachedRoles || [];
@@ -3418,19 +3458,21 @@ function ruleAddRoleRow() {
   }).join('');
 
   var rowHtml = '<div id="' + rowId + '" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;align-items:center">' +
-    '<select class="rule-role-select" onchange="ruleCalcRemain()" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text)">' + optionsHtml + '</select>' +
-    '<select class="rule-mode-select" onchange="ruleCalcRemain()" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text)"><option value="percent">%</option><option value="fixed">NT$</option></select>' +
-    '<input class="rule-value-input" type="number" placeholder="數值" oninput="ruleCalcRemain()" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text);text-align:center">' +
-    '<button onclick="document.getElementById(\'' + rowId + '\').remove();ruleCalcRemain()" style="background:var(--r2);color:var(--r);border:none;border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer">✕</button>' +
+    '<select class="rule-role-select" onchange="ruleCalcRemain(\'' + containerId + '\')" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text)">' + optionsHtml + '</select>' +
+    '<select class="rule-mode-select" onchange="ruleCalcRemain(\'' + containerId + '\')" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text)"><option value="percent">%</option><option value="fixed">NT$</option></select>' +
+    '<input class="rule-value-input" type="number" placeholder="數值" oninput="ruleCalcRemain(\'' + containerId + '\')" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text);text-align:center">' +
+    '<button onclick="document.getElementById(\'' + rowId + '\').remove();ruleCalcRemain(\'' + containerId + '\')" style="background:var(--r2);color:var(--r);border:none;border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer">✕</button>' +
     '</div>';
 
   container.insertAdjacentHTML('beforeend', rowHtml);
-  ruleCalcRemain();
+  ruleCalcRemain(containerId);
 }
 
-function ruleCalcRemain() {
+function ruleCalcRemain(containerId) {
+  containerId = containerId || 'rule-role-rows';
+  var hintId = containerId === 'rule-role-rows-own' ? 'rule-remain-hint-own' : 'rule-remain-hint';
   var totalPrice = parseFloat(document.getElementById('rule-total-price').value) || 0;
-  var rows = document.querySelectorAll('#rule-role-rows > div');
+  var rows = document.querySelectorAll('#' + containerId + ' > div');
   var percentSum = 0, fixedSum = 0;
   var hasPercent = false, hasFixed = false;
 
@@ -3441,7 +3483,7 @@ function ruleCalcRemain() {
     else { fixedSum += val; hasFixed = true; }
   });
 
-  var hint = document.getElementById('rule-remain-hint');
+  var hint = document.getElementById(hintId);
   if (rows.length === 0) {
     hint.textContent = '尚未設定任何角色';
     return;
@@ -3460,14 +3502,8 @@ function ruleCalcRemain() {
   hint.style.color = (remainAmount < 0 || percentSum > 100) ? 'var(--r)' : 'var(--text3)';
 }
 
-function saveRule() {
-  var eventType = document.getElementById('rule-event-type').value;
-  var totalPrice = document.getElementById('rule-total-price').value;
-  if (!totalPrice) { toast('請輸入服務總價'); return; }
-
-  var rows = document.querySelectorAll('#rule-role-rows > div');
-  if (rows.length === 0) { toast('請至少新增一個分帳角色'); return; }
-
+// 共用：把一組角色列（rows）收集成 shares 陣列，回傳收集結果＋是否合法＋比例/固定金額加總
+function ruleCollectShares_(rows) {
   var shares = [];
   var valid = true;
   var percentSum = 0, fixedSum = 0;
@@ -3481,24 +3517,47 @@ function saveRule() {
     if (mode === 'percent') percentSum += parseFloat(value) || 0;
     else fixedSum += parseFloat(value) || 0;
   });
+  return { shares: shares, valid: valid, percentSum: percentSum, fixedSum: fixedSum };
+}
 
-  if (!valid) { toast('請確認每一列都選好角色並填入數值'); return; }
-  if (percentSum > 100) { toast('⚠️ 比例分帳的百分比總和是 '+percentSum+'%，超過100%了，請檢查（固定金額的部分不算在這裡）'); return; }
+function saveRule() {
+  var eventType = document.getElementById('rule-event-type').value;
+  var totalPrice = document.getElementById('rule-total-price').value;
+  if (!totalPrice) { toast('請輸入服務總價'); return; }
+
+  var rows = document.querySelectorAll('#rule-role-rows > div');
+  if (rows.length === 0) { toast('請至少新增一個分帳角色'); return; }
+
+  var main = ruleCollectShares_(rows);
+  if (!main.valid) { toast('請確認每一列都選好角色並填入數值'); return; }
+  if (main.percentSum > 100) { toast('⚠️ 比例分帳的百分比總和是 '+main.percentSum+'%，超過100%了，請檢查（固定金額的部分不算在這裡）'); return; }
 
   // 自動把剩餘部分補成「元代謝」這個固定角色，讓分帳明細永遠加總=100%
-  var remainPercent = Math.round((100 - percentSum) * 100) / 100;
+  var remainPercent = Math.round((100 - main.percentSum) * 100) / 100;
   if (remainPercent > 0) {
-    shares.push({roleId: 'PLATFORM', roleName: '元代謝', mode: 'percent', value: remainPercent});
+    main.shares.push({roleId: 'PLATFORM', roleName: '元代謝', mode: 'percent', value: remainPercent});
   }
 
-  adminAPI({
-    action: 'addRule',
-    eventType: eventType,
-    totalPrice: totalPrice,
-    shares: JSON.stringify(shares)
-  }, function(d) {
+  var payload = { action: 'addRule', eventType: eventType, totalPrice: totalPrice, shares: JSON.stringify(main.shares) };
+
+  // 2026-08-16 新增：如果有勾選「自己客人不同比例」，額外收集那組角色列、一樣自動補上元代謝的剩餘份額，
+  // 存成 sharesBySource（後端只認「自己客人」這個key，「元代謝介紹」的客人固定用上面的預設比例）
+  var hasOwnVariant = document.getElementById('rule-has-own-variant').checked;
+  var ownRemainPercent = 0;
+  if (hasOwnVariant) {
+    var ownRows = document.querySelectorAll('#rule-role-rows-own > div');
+    if (ownRows.length === 0) { toast('已勾選「自己客人不同比例」，請至少新增一個分帳角色，或取消勾選'); return; }
+    var own = ruleCollectShares_(ownRows);
+    if (!own.valid) { toast('「自己客人」那組請確認每一列都選好角色並填入數值'); return; }
+    if (own.percentSum > 100) { toast('⚠️「自己客人」比例分帳的百分比總和是 '+own.percentSum+'%，超過100%了，請檢查'); return; }
+    ownRemainPercent = Math.round((100 - own.percentSum) * 100) / 100;
+    if (ownRemainPercent > 0) own.shares.push({roleId: 'PLATFORM', roleName: '元代謝', mode: 'percent', value: ownRemainPercent});
+    payload.sharesBySource = JSON.stringify({ '自己客人': own.shares });
+  }
+
+  adminAPI(payload, function(d) {
     if (d.status === 'ok') {
-      toast('✅ 分帳規則已儲存！元代謝自動分得剩餘 ' + remainPercent + '%');
+      toast('✅ 分帳規則已儲存！元代謝自動分得剩餘 ' + remainPercent + '%' + (hasOwnVariant ? '（自己客人另外用專屬比例，元代謝分得 ' + ownRemainPercent + '%）' : ''));
       loadRules();
     } else {
       toast('⚠️ 儲存失敗，請重試');
@@ -3520,11 +3579,23 @@ function loadRules() {
           var style = isPlatform ? 'color:var(--g3);font-weight:700' : '';
           return '<span style="' + style + '">' + s.roleName + ' ' + s.value + unit + '</span>';
         }).join('　');
+        // 2026-08-16 新增：如果這個服務類型有針對「自己客人」設定不同比例，額外顯示那一份給創始人/財務主管參考
+        var ownVariantHtml = '';
+        if (r.sharesBySource && r.sharesBySource['自己客人'] && r.sharesBySource['自己客人'].length) {
+          var ownSharesHtml = r.sharesBySource['自己客人'].map(function(s) {
+            var unit = s.mode === 'percent' ? '%' : 'NT$';
+            var isPlatform = s.roleId === 'PLATFORM';
+            var style = isPlatform ? 'color:var(--g3);font-weight:700' : '';
+            return '<span style="' + style + '">' + s.roleName + ' ' + s.value + unit + '</span>';
+          }).join('　');
+          ownVariantHtml = '<div style="font-size:10.5px;color:var(--b3);margin-top:4px">💰 自己客人專屬比例：' + ownSharesHtml + '</div>';
+        }
         return '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:11px 13px">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
           '<div style="font-size:13px;font-weight:700;color:var(--text)">' + r.eventType + '</div>' +
           '<div style="font-size:12px;color:var(--g3);font-weight:700">NT$' + r.totalPrice + '</div></div>' +
           '<div style="font-size:11px;color:var(--text2)">' + sharesHtml + '</div>' +
+          ownVariantHtml +
           '<div style="font-size:10px;color:var(--text3);margin-top:4px">生效起始：' + r.effectiveDate + '</div></div>';
       }).join('');
     } else {
@@ -8792,10 +8863,23 @@ var ROLE_PAGES = {
   '老闆': null, // 舊帳號相容用，效果同創始人
   '秘書': ['dashboard','clients','alerts','duty','lab-integrate','stored-value','tracking','remind','keto-rest-mgmt','garden-mgmt','qa-list','upload','diet-compare','extra-test','irct-mgmt','report','irt-models','sales-script','faq-mgmt','food-mgmt','supplement-mgmt','all-tests'],
   '會計': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
-  '行政': ['dashboard','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','inventory']
+  '行政': ['dashboard','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','inventory'],
+  // 2026-08-16 新增：財務主管——側重合作單位收費模式、分帳比例、應收帳款、月結算，跟會計看的頁面一致，
+  // 差別在於財務主管額外有 setPartnerFeatures／addRule 這兩個動作層級的權限（後端已限定創始人/財務主管才能呼叫）
+  '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles']
 };
 // 舊帳號顯示「老闆」時，畫面一律改顯示「創始人」（權限判斷不受影響）
 function roleDisplayName(r){ return r === '老闆' ? '創始人' : r; }
+// 2026-08-16 新增：判斷目前登入的帳號是不是「財務主管」層級（設定重要資訊），還是只是「會計」層級（核對日常帳務）。
+// 跟後端 FIN_TIER_ACTIONS 的判斷邏輯對齊：主要角色是財務主管/創始人/老闆，或身兼職務裡有掛財務主管，都算。
+// 純粹用來決定畫面上要不要顯示「新增/編輯/刪除」這類設定型按鈕——真正擋下操作的是後端，這裡只是避免
+// 會計帳號看到按鈕、點了才發現被拒絕的困惑體驗。
+function isFinanceTier(){
+  if (!CURRENT_USER) return false;
+  var r = CURRENT_USER.role;
+  var other = CURRENT_USER.otherRoles || [];
+  return r === '創始人' || r === '老闆' || r === '財務主管' || other.indexOf('財務主管') >= 0;
+}
 function doLogin(){
   var u = document.getElementById('lg-user').value.trim();
   var p = document.getElementById('lg-pass').value;
@@ -8804,7 +8888,7 @@ function doLogin(){
   err.textContent='登入中…';
   adminAPI({action:'adminLogin', username:u, password:p}, function(d){
     if(d && d.status==='ok'){
-      CURRENT_USER = { username:d.username, role:d.role, name:d.name, extraPages:d.extraPages||[], canEditClients:d.canEditClients !== false };
+      CURRENT_USER = { username:d.username, role:d.role, name:d.name, extraPages:d.extraPages||[], canEditClients:d.canEditClients !== false, otherRoles:d.otherRoles||[] };
       ADMIN_TOKEN = d.token || null;
       try { sessionStorage.setItem('mx_admin_sess', JSON.stringify({user:CURRENT_USER, token:ADMIN_TOKEN})); } catch(e){}
       err.textContent='';
@@ -8822,7 +8906,7 @@ function applyPermissions(){
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');
   if(tbT && !document.getElementById('role-chip')){
-    var chipColors = {'創始人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806']};
+    var chipColors = {'創始人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C']};
     var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['創始人'];
     var rc = document.createElement('span');
     rc.id = 'role-chip';
@@ -8841,6 +8925,18 @@ function applyPermissions(){
       +'<span onclick="doLogout()" style="cursor:pointer;text-decoration:underline;margin-left:6px">登出</span>';
     logo.appendChild(ui);
   }
+  // 2026-08-16 新增：會計＝核對日常帳務，可以「看」分帳規則／角色名單頁面，但不該看到新增/編輯/刪除
+  // 這類設定型按鈕（點了也會被後端擋下來，畫面上乾脆先不放，避免會計以為卡bug）。財務主管／創始人／
+  // 老闆才看得到這些設定型 UI。
+  var _fin = isFinanceTier();
+  var _ruleAddCard = document.getElementById('rule-add-card');
+  var _rulesHint = document.getElementById('rules-readonly-hint');
+  if(_ruleAddCard) _ruleAddCard.style.display = _fin ? '' : 'none';
+  if(_rulesHint) _rulesHint.style.display = _fin ? 'none' : '';
+  var _roleAddCard = document.getElementById('role-add-card');
+  var _rolesHint = document.getElementById('roles-readonly-hint');
+  if(_roleAddCard) _roleAddCard.style.display = _fin ? '' : 'none';
+  if(_rolesHint) _rolesHint.style.display = _fin ? 'none' : '';
   if(allowed === null) return; // 創始人／老闆看全部
   var extra = (CURRENT_USER.extraPages || []);
   // 隐藏不该看的分页（基本角色允許的 或 額外加開的，兩者取聯集，都不隱藏）
