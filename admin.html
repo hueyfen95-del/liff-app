@@ -4611,6 +4611,7 @@ function openClientDetail(id, name){
     + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'特殊情境：無（一般客人）')+'</option>'; }).join('')
     + '</select>'
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
+    + '<span id="cd-abc-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;font-weight:700"></span>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）</div>'
@@ -4907,11 +4908,22 @@ function openClientDetail(id, name){
   // 這裡唯讀顯示、不給改；旁邊的下拉選單是「特殊情境」（原本標籤誤寫成代謝分型，已更正）
   adminAPI({action:'getIRCTAnalysisFull', clientId:id}, function(d){
     var b = document.getElementById('cd-metatype-badge');
-    if(!b) return;
-    if(d && d.status === 'ok' && d.found && d.analysis && d.analysis.metabolicType){
+    if(b && d && d.status === 'ok' && d.found && d.analysis && d.analysis.metabolicType){
       b.style.display = '';
       b.textContent = '🔬 代謝分型：' + d.analysis.metabolicType.type + '（依最新IRCT自動判定）';
       b.title = d.analysis.metabolicType.note || '';
+    }
+    // 2026-08-16新增：ABC胰島素體質分型（低/中/高胰島素，天生體質，跟上面代謝分型是兩件不同的事——
+    // 代謝分型是十維度綜合判定的「目前情況」，這裡是相對穩定的「體質底色」，客人端也看得到同一套結果
+    var ab = document.getElementById('cd-abc-badge');
+    if(ab && d && d.status === 'ok' && d.found && d.analysis && d.analysis.insulin && d.analysis.insulin.constitution){
+      var abcColors = { A:['#ECFDF5','#065F46'], B:['#FFFBEB','#92400E'], C:['#FFF7ED','#9A3412'] };
+      var c = d.analysis.insulin.constitution;
+      var cc = abcColors[c.code] || ['var(--p2)','var(--p3)'];
+      ab.style.display = '';
+      ab.style.background = cc[0]; ab.style.color = cc[1];
+      ab.textContent = '🧬 ' + c.type + '（' + c.shortLabel + '・' + (c.nickname || '') + '）';
+      ab.title = c.note || '';
     }
   });
   applyClientPanelReadonlyMode(m);

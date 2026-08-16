@@ -3241,6 +3241,27 @@ function loadIRCTOverview(){
       html += '<div style="background:#F5F7FA;border:1px solid #E5E7EB;border-radius:13px;padding:14px;margin-bottom:14px;text-align:center">'
         + '<div style="font-size:12px;color:#4B5563;line-height:1.8">你的狀況比較個別化，健康秘書會依你的目標與紀錄提供調整建議 😊</div></div>';
     }
+    // ── 2026-08-16新增：ABC胰島素體質分型卡（低/中/高胰島素，天生體質，跟上面「現在狀態」是兩件不同的事）──
+    // 創始人特別交代這張卡要「精美、有人性」、60-70歲的人也要看得清楚——字級刻意比其他卡片大一階，
+    // 用溫暖的漸層色系跟其他資訊卡區隔開來，三種體質各自配色但刻意避開紅／危險色，避免暗示某個體質「不好」。
+    if(d.insulinConstitution){
+      var abcTheme = {
+        A: { grad:'linear-gradient(135deg,#ECFDF5 0%,#D1FAE5 100%)', border:'#6EE7B7', text:'#065F46', sub:'#0D9488', icon:'🌿' },
+        B: { grad:'linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)', border:'#FCD34D', text:'#92400E', sub:'#B45309', icon:'⚖️' },
+        C: { grad:'linear-gradient(135deg,#FFF7ED 0%,#FFEDD5 100%)', border:'#FDBA74', text:'#9A3412', sub:'#C2410C', icon:'🌾' }
+      };
+      var abcT = abcTheme[d.insulinConstitution.code] || abcTheme.B;
+      html += '<div style="background:'+abcT.grad+';border:1.5px solid '+abcT.border+';border-radius:16px;padding:18px 16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'
+        + '<span style="font-size:26px;line-height:1">'+abcT.icon+'</span>'
+        + '<div><div style="font-size:12.5px;font-weight:700;color:'+abcT.sub+';letter-spacing:.08em">你的胰島素體質</div>'
+        + '<div style="font-size:18px;font-weight:800;color:'+abcT.text+';margin-top:2px">'+escHtml(d.insulinConstitution.type)+(d.insulinConstitution.nickname?'　<span style="font-size:13px;font-weight:600;opacity:.75">「'+escHtml(d.insulinConstitution.nickname)+'」</span>':'')+'</div></div>'
+        + '</div>'
+        + '<div style="font-size:14.5px;line-height:2;color:'+abcT.text+'">'+escHtml(d.insulinConstitution.note)+'</div>'
+        + '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed '+abcT.border+';font-size:12.5px;line-height:1.9;color:'+abcT.sub+'">'
+        + '💡 體質是比較穩定的天生傾向，跟上面「這次檢測結果」是兩件不同的事——體質提醒你長期要留意的方向，現在狀態則是這次檢測當下的具體數字，兩者一起參考，更能完整了解自己的健康全貌。'
+        + '</div></div>';
+    }
     if(d.metabolicType){
       html += '<div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:13px;padding:14px;margin-bottom:14px">'
         + '<div style="font-size:12px;font-weight:700;color:#4338CA;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">代謝分型</div>'
@@ -3490,17 +3511,6 @@ var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
     }
   } catch(e){}
 })();
-// 2026-08-14 新增：合作單位轉介碼擷取（美業集團等推廣行銷型深度合作夥伴用）。
-// 客人如果是透過合作單位的專屬連結/QR碼（例如 ...?ref=BEAUTY001）第一次打開這個APP，
-// 這裡先把代碼存進手機，等真正完成LINE綁定（clientAuth成功）的那一刻才會送到後端記錄轉介來源。
-// 不用 history.replaceState 把 ref 從網址拿掉——LIFF 登入導轉本身就可能改寫網址，
-// 越早存進 localStorage 越保險，不要依賴網址在整個登入流程中都保持不變。
-(function(){
-  try {
-    var m = location.search.match(/[?&]ref=([^&]+)/);
-    if (m && m[1]) localStorage.setItem('mx_referral_code', decodeURIComponent(m[1]));
-  } catch(e){}
-})();
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
 var _LINE_UID = "";
@@ -3540,10 +3550,6 @@ function mxShowLogin(msg){
   if (ov) ov.style.display = 'flex';
   var er = document.getElementById('mx-login-err');
   if (er) er.textContent = msg || '';
-  // 如果網址帶了合作單位的轉介碼，先幫客人帶入這個欄位，讓他知道系統已經記住了，不用自己再打一次
-  var refInp = document.getElementById('mx-bind-ref');
-  var savedRef = mxGetReferralCode();
-  if (refInp && savedRef && !refInp.value) refInp.value = savedRef;
 }
 function mxHideLogin(){
   var ov = document.getElementById('mx-login-overlay');
@@ -3553,23 +3559,17 @@ function mxSetIdentity(cid, cname){
   try {
     localStorage.setItem('mx_client_id', cid);
     localStorage.setItem('mx_client_name', cname || '');
-    localStorage.removeItem('mx_referral_code'); // 綁定成功、後端已經處理過轉介來源了，手機這邊不用再留著
   } catch(e){}
   if (!CLIENT_ID) { CLIENT_ID = cid; CLIENT_NAME = cname || ''; location.reload(); }
   else { CLIENT_ID = cid; CLIENT_NAME = cname || ''; mxHideLogin(); }
 }
-function mxGetReferralCode(){
-  try { return localStorage.getItem('mx_referral_code') || ''; } catch(e){ return ''; }
-}
 function mxDoBind(){
   var cid = (document.getElementById('mx-bind-id').value || '').trim();
   var cname = (document.getElementById('mx-bind-name').value || '').trim();
-  var refInp = document.getElementById('mx-bind-ref');
-  var refCode = (refInp && refInp.value ? refInp.value.trim() : '') || mxGetReferralCode();
   var er = document.getElementById('mx-login-err');
   if (!cid || !cname) { if(er) er.textContent = '請輸入客人編號和姓名'; return; }
   if (er) er.textContent = '驗證中…';
-  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname, ref:refCode }, function(d){
+  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname }, function(d){
     if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name); }
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
@@ -3583,7 +3583,7 @@ function mxStartAuth(){
       return liff.getProfile().then(function(p){
         _LINE_UID = p.userId || '';
         var nm = p.displayName || '';
-        callAPI({ action:'clientAuth', lineId:_LINE_UID, ref:mxGetReferralCode() }, function(d){
+        callAPI({ action:'clientAuth', lineId:_LINE_UID }, function(d){
           if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name); }
           else {
             var nmInp = document.getElementById('mx-bind-name');
@@ -7373,8 +7373,7 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
     <div style="font-size:17px;font-weight:800;color:#1E2B27;text-align:center;margin-bottom:4px">歡迎回來</div>
     <div style="font-size:12px;color:#8A9992;text-align:center;line-height:1.6;margin-bottom:18px">第一次使用請輸入您的客人編號與姓名<br>（編號請向您的健康秘書索取）</div>
     <input id="mx-bind-id" placeholder="客人編號（例：C001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px" autocapitalize="characters">
-    <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px" onkeydown="if(event.key==='Enter')mxDoBind()">
-    <input id="mx-bind-ref" placeholder="介紹代碼（選填，例：BEAUTY001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;box-sizing:border-box;margin-bottom:14px;color:#5C6B65" onkeydown="if(event.key==='Enter')mxDoBind()">
+    <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:14px" onkeydown="if(event.key==='Enter')mxDoBind()">
     <button onclick="mxDoBind()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">開始使用</button>
     <div id="mx-login-err" style="font-size:12px;color:#C0392B;text-align:center;margin-top:10px;min-height:16px;line-height:1.5"></div>
   </div>
