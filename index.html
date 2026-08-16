@@ -1637,7 +1637,7 @@ window.openHealthForm = function() {
       <div style="background:var(--b2);border:1px solid #85B7EB;border-radius:12px;padding:11px 12px">
         <div style="font-size:22px;font-weight:700;color:var(--b3);line-height:1;margin-bottom:3px" id="jn-homa">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--b3);margin-bottom:2px">HOMA-IR</div>
-        <div style="font-size:12px;color:#185FA5">從 2.8 大幅改善</div>
+        <div style="font-size:12px;color:#185FA5" id="jn-homa-detail">完成檢驗後顯示</div>
       </div>
       <div style="background:var(--a2);border:1px solid #FAC775;border-radius:12px;padding:11px 12px">
         <div style="font-size:22px;font-weight:700;color:var(--a3);line-height:1;margin-bottom:3px">1.8<span style="font-size:13px">mmol</span></div>
@@ -7034,8 +7034,13 @@ function loadMyStats(){
     }
     // ── 旅程頁：檢驗值成就牆（HOMA-IR/TG/HDL）──
     var labs = d.labs || {};
-    var homaEl=document.getElementById('jn-homa');
+    var homaEl=document.getElementById('jn-homa'), homaD=document.getElementById('jn-homa-detail');
     if(homaEl) homaEl.textContent = (labs.homaIR!==null&&labs.homaIR!==undefined) ? labs.homaIR : '待檢測';
+    if(homaD){
+      if(labs.homaIR===null||labs.homaIR===undefined) homaD.textContent = '完成檢驗後顯示';
+      else if(labs.homaIRFirst!==null&&labs.homaIRFirst!==undefined&&labs.homaIRFirst!==labs.homaIR) homaD.textContent = '從 '+labs.homaIRFirst+' 大幅改善';
+      else homaD.textContent = '最新檢驗值';
+    }
     var tgEl=document.getElementById('jn-tg'), tgD=document.getElementById('jn-tg-detail');
     if(tgEl) tgEl.innerHTML = (labs.tg!==null&&labs.tg!==undefined) ? labs.tg+'<span style="font-size:12px"> mg/dL</span>' : '<span style="font-size:14px">待檢測</span>';
     if(tgD) tgD.textContent = (labs.tg!==null&&labs.tg!==undefined) ? '最新檢驗值' : '完成檢驗後顯示';

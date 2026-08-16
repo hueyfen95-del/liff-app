@@ -1673,7 +1673,7 @@ function goPg(id,el){
     }
   }
   if(id==='review'){ setTimeout(rvLoad, 150); setTimeout(loadVendorReceivables, 150); }
-  if(id==='stored-value'){ setTimeout(function(){ svLoadClients(); svLoadPointsToSelect(); svLoadRoleNames(); svLoadPointRules(function(){ svLoadPoints(); }); loadBalanceDeficitList(); }, 150); }
+  if(id==='stored-value'){ setTimeout(function(){ svLoadClients(); svLoadPointsToSelect(); svLoadRoleNames(); svLoadPointRules(function(){ svLoadPoints(); }); loadBalanceDeficitList(); svpLoad(); }, 150); }
   if(id==='lab-integrate'){ setTimeout(function(){ liInitRows(); liLoadClients(); liLoadFamClients(); liLoadFamilyList(); }, 150); }
   if(id==='alerts' && typeof loadReportClients==='function') setTimeout(loadReportClients,150);
   if(id==='clinic-slots' && typeof loadClinicSlots==='function') setTimeout(loadClinicSlots,150);
@@ -8660,6 +8660,56 @@ function svLoadSettlement(){
 }
 
 
+// ══════ 儲值優惠方案（2026-08-16新增）══════
+function svpLoad(){
+  var box = document.getElementById('sv-promo-list');
+  if(!box) return;
+  box.innerHTML = '<div style="color:var(--text3);font-size:13px">載入中…</div>';
+  adminAPI({action:'getStoredValuePromotionsFull'}, function(d){
+    if(!d || d.status!=='ok'){ box.innerHTML='<div style="color:var(--text3);font-size:13px">載入失敗</div>'; return; }
+    var list = d.promotions || [];
+    if(!list.length){ box.innerHTML='<div style="color:var(--text3);font-size:13px">還沒有設定任何儲值優惠方案</div>'; return; }
+    var fin = isFinanceTier();
+    box.innerHTML = list.map(function(p){
+      var off = p.status === '停用';
+      var actionBtns = fin
+        ? '<button class="btn-ghost" onclick="svpDelete(\''+p.id+'\')" style="font-size:11px;padding:3px 9px;color:#D6455D">'+(off?'已停用':'停用')+'</button>'
+        : '<span style="font-size:11px;color:var(--text3)">僅查看</span>';
+      return '<div style="border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:8px'+(off?';opacity:.5':'')+'">'
+        + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+        + '<div><div style="font-weight:700;font-size:13px">'+escH(p.title)+(p.threshold?'　<span style="color:var(--text3);font-weight:500;font-size:12px">('+escH(String(p.threshold))+')</span>':'')+'</div>'
+        + '<div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.6">'+escH(p.detail)+'</div></div>'
+        + actionBtns
+        + '</div></div>';
+    }).join('');
+  });
+}
+function svpAdd(){
+  if(!isFinanceTier()){ toast('僅財務主管或創始人可以新增儲值優惠方案'); return; }
+  var title = (document.getElementById('svp-title')||{}).value || '';
+  var threshold = (document.getElementById('svp-threshold')||{}).value || '';
+  var detail = (document.getElementById('svp-detail')||{}).value || '';
+  var sortOrder = (document.getElementById('svp-sort')||{}).value || '';
+  if(!title || !detail){ toast('請至少填標題和優惠內容'); return; }
+  adminAPI({action:'addStoredValuePromotion', title:title, threshold:threshold, detail:detail, sortOrder:sortOrder}, function(d){
+    if(!d || d.status!=='ok'){ toast((d&&d.message)||'新增失敗'); return; }
+    toast('已新增儲值優惠方案');
+    document.getElementById('svp-title').value='';
+    document.getElementById('svp-threshold').value='';
+    document.getElementById('svp-detail').value='';
+    document.getElementById('svp-sort').value='';
+    svpLoad();
+  });
+}
+function svpDelete(id){
+  if(!isFinanceTier()){ toast('僅財務主管或創始人可以調整儲值優惠方案'); return; }
+  adminAPI({action:'deleteStoredValuePromotion', id:id}, function(d){
+    if(!d || d.status!=='ok'){ toast((d&&d.message)||'操作失敗'); return; }
+    toast('已停用該方案');
+    svpLoad();
+  });
+}
+
 // ══════ 營運總覽 ══════
 function svLoadOverview(){
   var month = (document.getElementById('sv-ov-month')||{}).value || '';
@@ -8949,6 +8999,11 @@ function applyPermissions(){
   var _rolesHint = document.getElementById('roles-readonly-hint');
   if(_roleAddCard) _roleAddCard.style.display = _fin ? '' : 'none';
   if(_rolesHint) _rolesHint.style.display = _fin ? 'none' : '';
+  // 儲值優惠方案：同樣屬於財務主管層級的設定，會計/一般秘書只能看
+  var _svPromoAdd = document.getElementById('sv-promo-add');
+  var _svPromoHint = document.getElementById('sv-promo-readonly-hint');
+  if(_svPromoAdd) _svPromoAdd.style.display = _fin ? '' : 'none';
+  if(_svPromoHint) _svPromoHint.style.display = _fin ? 'none' : '';
   if(allowed === null) return; // 創始人／老闆看全部
   var extra = (CURRENT_USER.extraPages || []);
   // 隐藏不该看的分页（基本角色允許的 或 額外加開的，兩者取聯集，都不隱藏）
@@ -9092,6 +9147,27 @@ function doLogout(){
     <div class="card-hd"><div class="card-title"><i class="ti ti-alert-triangle"></i>餘額是負的客人（需提醒補款）</div>
       <button class="tb-btn" onclick="loadBalanceDeficitList()"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button></div>
     <div class="card-body"><div id="sv-deficit-list" style="font-size:12px;color:var(--text3)">載入中…</div></div>
+  </div>
+
+  <!-- 儲值優惠方案（2026-08-16新增）：財務主管維護，客人前台/紙本報告都會顯示 -->
+  <div class="card" id="sv-promo-card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-gift"></i>儲值優惠方案</div>
+      <button class="tb-btn" onclick="svpLoad()"><i class="ti ti-refresh" style="font-size:13px"></i>重新載入</button></div>
+    <div class="card-body">
+      <div id="sv-promo-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——儲值優惠內容要請財務主管或創始人來新增/調整。</div>
+      <div id="sv-promo-add" style="background:var(--bg);border-radius:9px;padding:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <input id="svp-title" class="form-input" style="font-size:12.5px" placeholder="方案標題，例如：儲值1萬元方案">
+          <input id="svp-threshold" class="form-input" style="font-size:12.5px" placeholder="儲值門檻，例如：NT$10,000">
+        </div>
+        <textarea id="svp-detail" class="form-input" style="font-size:12.5px;margin-bottom:8px;min-height:52px" placeholder="優惠內容，例如：加贈NT$1,000儲值金，等於95折"></textarea>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="svp-sort" class="form-input" type="number" style="width:90px;font-size:12.5px" placeholder="排序(數字小在前)">
+          <button class="btn-primary" onclick="svpAdd()" style="font-size:12.5px"><i class="ti ti-plus"></i> 新增方案</button>
+        </div>
+      </div>
+      <div id="sv-promo-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div>
+    </div>
   </div>
 
   <!-- 客人储值卡 -->
