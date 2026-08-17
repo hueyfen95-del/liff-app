@@ -4,31 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>元代謝・店家工作台</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;background:#F4F7F5;color:#2A3B35;padding:16px;max-width:560px;margin:0 auto}
-  .hd{background:linear-gradient(135deg,#1D5FA8,#2E7BC4);color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  /* 2026-08-16 品牌統一：原本 vendor 頁是獨立的藍色系配色，跟 admin/index 的綠色主色不一致；
+     現在改成沿用主系統的綠（#1D9E75／#085041 深綠漸層），紅色也統一用系統紅 #E24B4A，
+     讓廠商/店家打開這個頁面時，視覺上跟秘書後台、客人端是同一個品牌 */
+  .hd{background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .hd-t{font-size:19px;font-weight:800}
   .hd-s{font-size:12px;opacity:.85;margin-top:3px}
   .card{background:#fff;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.05)}
   .login-row{display:flex;gap:8px;margin-bottom:10px}
   input,select{padding:12px 13px;border:1px solid #ddd;border-radius:9px;font-size:15px;width:100%}
-  button{padding:12px 18px;background:#1D5FA8;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap}
-  .tabs{display:flex;gap:8px;margin-bottom:14px}
-  .tab{flex:1;text-align:center;padding:12px;border-radius:11px;background:#fff;border:1.5px solid #E0EAE5;font-size:14px;font-weight:700;color:#788;cursor:pointer}
-  .tab.on{background:#1D5FA8;color:#fff;border-color:#1D5FA8}
-  .total{text-align:center;padding:16px;background:#F0F5FB;border-radius:12px;margin-bottom:14px}
-  .total-n{font-size:30px;font-weight:800;color:#1D5FA8}
+  button{padding:12px 18px;background:#1D9E75;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;white-space:nowrap}
+  .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .tab{flex:1;text-align:center;padding:12px 8px;border-radius:11px;background:#fff;border:1.5px solid #E0EAE5;font-size:13px;font-weight:700;color:#788;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;min-width:0}
+  .tab i{font-size:15px}
+  .tab.on{background:#1D9E75;color:#fff;border-color:#1D9E75}
+  .total{text-align:center;padding:16px;background:#E1F5EE;border-radius:12px;margin-bottom:14px}
+  .total-n{font-size:30px;font-weight:800;color:#1D9E75}
   .total-l{font-size:12px;color:#788}
   table{width:100%;border-collapse:collapse;font-size:13px}
   th{text-align:left;padding:8px;border-bottom:2px solid #eee;color:#788;font-size:12px}
   td{padding:8px;border-bottom:1px solid #f0f0f0}
-  .amt{text-align:right;font-weight:700;color:#1D5FA8}
+  .amt{text-align:right;font-weight:700;color:#1D9E75}
   .src{font-size:11px;color:#999;background:#f5f5f5;padding:1px 6px;border-radius:5px}
-  .err{color:#D6455D;font-size:13px;text-align:center;margin-top:8px;min-height:18px}
+  .err{color:#E24B4A;font-size:13px;text-align:center;margin-top:8px;min-height:18px}
   .muted{color:#999;font-size:13px;text-align:center;padding:20px}
-  .big-ok{text-align:center;padding:26px 16px;background:#F0F5FB;border-radius:14px}
+  .big-ok{text-align:center;padding:26px 16px;background:#E1F5EE;border-radius:14px}
   .lbl{font-size:12px;font-weight:700;color:#788;margin:10px 0 5px}
+  /* 2026-08-16 新增：取代原生 alert()/confirm() 的客製化提示元件，讓送出成功/確認動作跟頁面風格一致，
+     也讓成功訊息在畫面上停留久一點，不會因為使用者手滑點掉彈窗就完全找不到剛剛的回饋 */
+  .v-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;max-width:88vw;text-align:center;line-height:1.6;box-shadow:0 4px 20px rgba(29,158,117,.35)}
+  .v-modal-mask{position:fixed;inset:0;background:rgba(20,30,40,.45);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px}
+  .v-modal-box{background:#fff;border-radius:14px;padding:20px;max-width:360px;width:100%;box-shadow:0 8px 30px rgba(0,0,0,.2)}
+  .v-modal-msg{font-size:14px;color:#2A3B35;line-height:1.7;white-space:pre-line;margin-bottom:16px}
+  .v-modal-btns{display:flex;gap:8px}
+  .v-modal-btns button{flex:1;padding:11px}
+  .v-modal-cancel{background:#F0F2F4;color:#667}
 </style>
 </head>
 <body>
@@ -50,13 +64,17 @@
 </div>
 
 <div id="workspace" style="display:none">
+  <div id="conn-warning" style="display:none;background:#FFF4E0;border:1px solid #F0C674;color:#7A5A10;border-radius:10px;padding:10px 13px;font-size:12px;margin-bottom:10px;line-height:1.6">
+    ⚠️ 剛剛跟元代謝系統連線不太穩定，畫面上的分頁可能沒有完全顯示您開通的功能。
+    <span id="conn-warning-retry" onclick="location.reload()" style="text-decoration:underline;cursor:pointer;font-weight:700">點這裡重新整理</span>
+  </div>
   <div class="tabs" id="tabs-row">
-    <div class="tab on" id="tab-charge" onclick="switchTab('charge')">💳 客人消費扣款</div>
-    <div class="tab" id="tab-upload" onclick="switchTab('upload')" style="display:none">📤 上傳報告</div>
-    <div class="tab" id="tab-slots" onclick="switchTab('slots')" style="display:none">📅 可預約時段</div>
-    <div class="tab" id="tab-stmt" onclick="switchTab('stmt')">📄 月結對帳單</div>
-    <div class="tab" id="tab-referral" onclick="switchTab('referral')" style="display:none">🤝 我的推廣</div>
-    <div class="tab" id="tab-report-sale" onclick="switchTab('report-sale')" style="display:none">💰 回報收款</div>
+    <div class="tab on" id="tab-charge" onclick="switchTab('charge')"><i class="ti ti-cash"></i>客人消費扣款</div>
+    <div class="tab" id="tab-upload" onclick="switchTab('upload')" style="display:none"><i class="ti ti-upload"></i>上傳報告</div>
+    <div class="tab" id="tab-slots" onclick="switchTab('slots')" style="display:none"><i class="ti ti-calendar-event"></i>可預約時段</div>
+    <div class="tab" id="tab-stmt" onclick="switchTab('stmt')"><i class="ti ti-file-text"></i>月結對帳單</div>
+    <div class="tab" id="tab-referral" onclick="switchTab('referral')" style="display:none"><i class="ti ti-speakerphone"></i>我的推廣</div>
+    <div class="tab" id="tab-report-sale" onclick="switchTab('report-sale')" style="display:none"><i class="ti ti-report-money"></i>回報收款</div>
   </div>
 
   <!-- 可預約時段（只有診所／檢測單位帳號看得到）：自己維護開放給客人預約的時間 -->
@@ -107,11 +125,12 @@
     <div class="card" id="charge-step2" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
         <div><span style="font-size:16px;font-weight:800" id="c-name"></span> <span style="color:#999;font-size:12px" id="c-cid-show"></span></div>
-        <div style="text-align:right"><div style="font-size:11px;color:#788">可用餘額</div><div style="font-size:22px;font-weight:800;color:#1D5FA8" id="c-bal"></div></div>
+        <div style="text-align:right"><div style="font-size:11px;color:#788">可用餘額</div><div style="font-size:22px;font-weight:800;color:#1D9E75" id="c-bal"></div></div>
       </div>
       <div class="lbl">STEP 2・輸入這次消費</div>
       <input id="c-item" placeholder="消費項目（例：頭皮護理、功醫檢測）" style="margin-bottom:8px">
-      <input id="c-amt" type="number" inputmode="numeric" placeholder="金額（元）" style="margin-bottom:10px;font-size:20px;font-weight:700;text-align:center">
+      <input id="c-amt" type="number" inputmode="numeric" placeholder="金額（元）" style="margin-bottom:4px;font-size:20px;font-weight:700;text-align:center" oninput="updateAmountPreview('c-amt','c-amt-preview','您將扣款')">
+      <div id="c-amt-preview" style="font-size:13px;color:#1D9E75;font-weight:700;min-height:18px;margin-bottom:6px;text-align:center"></div>
       <button style="width:100%;font-size:17px;padding:14px" onclick="doCharge()">確認扣款</button>
       <div class="err" id="c-err2"></div>
       <div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">扣款後由元代謝會計核查，月底自動列入您的對帳單結算</div>
@@ -120,7 +139,7 @@
       <div style="font-size:40px;margin-bottom:6px">✅</div>
       <div style="font-size:17px;font-weight:800;margin-bottom:4px">扣款成功</div>
       <div style="font-size:14px;color:#556;margin-bottom:2px" id="done-detail"></div>
-      <div style="font-size:13px;color:#788;margin-bottom:16px">客人剩餘可用餘額：<b style="color:#1D5FA8;font-size:17px" id="done-bal"></b><br><span style="font-size:11px;color:#aaa">可以把這個畫面拿給客人看 😊</span></div>
+      <div style="font-size:13px;color:#788;margin-bottom:16px">客人剩餘可用餘額：<b style="color:#1D9E75;font-size:17px" id="done-bal"></b><br><span style="font-size:11px;color:#aaa">可以把這個畫面拿給客人看 😊</span></div>
       <button style="width:100%" onclick="resetCharge()">完成，扣下一位</button>
     </div>
   </div>
@@ -192,7 +211,8 @@
       <div style="font-size:12px;color:#788;margin-bottom:10px">您直接跟客人收費後，在這裡回報，元代謝核對金額無誤後，會依約定比例算出您該付給元代謝多少。</div>
       <input id="rs-client-id" placeholder="客人編號（例：C001）" style="margin-bottom:8px">
       <select id="rs-event-type" style="margin-bottom:8px"><option value="">載入中…</option></select>
-      <input id="rs-amount" type="number" placeholder="您跟客人收了多少（元）" style="margin-bottom:10px">
+      <input id="rs-amount" type="number" placeholder="您跟客人收了多少（元）" style="margin-bottom:4px" oninput="updateAmountPreview('rs-amount','rs-amount-preview','您將回報')">
+      <div id="rs-amount-preview" style="font-size:12px;color:#1D9E75;font-weight:700;min-height:16px;margin-bottom:6px"></div>
       <button style="width:100%" onclick="reportSale()">回報這筆收款</button>
       <div class="err" id="rs-err"></div>
     </div>
@@ -231,6 +251,33 @@ var V_CODE='',V_PW='',V_ROLETYPE='',V_FEATURES='',V_ORGTYPE='';
 try{ V_CODE=localStorage.getItem('mx_v_code')||''; V_PW=localStorage.getItem('mx_v_pw')||''; V_ROLETYPE=localStorage.getItem('mx_v_roletype')||''; V_FEATURES=localStorage.getItem('mx_v_features')||''; V_ORGTYPE=localStorage.getItem('mx_v_orgtype')||''; }catch(e){}
 // index.html 所在位置跟 vendor.html 同一層目錄，用來組轉介連結
 var CLIENT_APP_URL = location.origin + location.pathname.replace(/vendor\.html$/, '') + 'index.html';
+
+// 2026-08-16 新增：取代原生 alert()/confirm()，跟品牌風格一致，也讓成功訊息不會因為手滑點掉彈窗就完全消失不見
+function toast(msg){
+  var t=document.createElement('div');
+  t.className='v-toast';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.remove(); },3200);
+}
+// 2026-08-16 新增：金額輸入框旁邊即時顯示千分位預覽，送出前有機會抓到多打/少打一個零的情況
+function updateAmountPreview(inputId,previewId,label){
+  var v=Number(document.getElementById(inputId).value);
+  var box=document.getElementById(previewId);
+  if(!box) return;
+  box.textContent = (v>0) ? ((label||'金額')+'：$'+v.toLocaleString()) : '';
+}
+function vConfirm(msg,onYes){
+  var mask=document.createElement('div');
+  mask.className='v-modal-mask';
+  mask.innerHTML='<div class="v-modal-box"><div class="v-modal-msg"></div><div class="v-modal-btns"><button class="v-modal-cancel">取消</button><button class="v-modal-ok">確認</button></div></div>';
+  mask.querySelector('.v-modal-msg').textContent=msg; // 用 textContent 賦值，避免訊息內容（例如客人自己填的項目名稱）被當成 HTML 解析
+  document.body.appendChild(mask);
+  function close(){ mask.remove(); }
+  mask.querySelector('.v-modal-cancel').onclick=close;
+  mask.addEventListener('click',function(e){ if(e.target===mask) close(); });
+  mask.querySelector('.v-modal-ok').onclick=function(){ close(); onYes(); };
+}
 
 function api(params,cb){
   params.vendorCode=V_CODE; params.vendorPw=V_PW;
@@ -331,16 +378,16 @@ function loadReferralInfo(){
       +'<div style="font-size:11px;color:#aaa;text-align:center;margin-top:8px">轉介碼：'+esc(d.referralCode)+'</div>';
     statsBox.innerHTML =
       '<div style="display:flex;gap:10px;text-align:center;margin-bottom:6px">'
-      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D5FA8">'+(d.newClients||0)+'</div><div style="font-size:11px;color:#788">帶進來的新客</div></div>'
-      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D5FA8">$'+(d.oneTimeTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#788">首次獎金累計</div></div>'
-      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D5FA8">$'+(d.ongoingTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#788">持續分潤累計</div></div>'
+      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D9E75">'+(d.newClients||0)+'</div><div style="font-size:11px;color:#788">帶進來的新客</div></div>'
+      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D9E75">$'+(d.oneTimeTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#788">首次獎金累計</div></div>'
+      +'<div style="flex:1"><div style="font-size:22px;font-weight:800;color:#1D9E75">$'+(d.ongoingTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#788">持續分潤累計</div></div>'
       +'</div>';
     document.getElementById('referral-group-card').style.display = (d.orgType==='集團總部') ? '' : 'none';
   });
 }
 function copyReferralLink(link){
   if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(link).then(function(){ alert('已複製連結'); }).catch(function(){ prompt('請手動複製：',link); });
+    navigator.clipboard.writeText(link).then(function(){ toast('已複製連結'); }).catch(function(){ prompt('請手動複製：',link); });
   } else {
     prompt('請手動複製：',link);
   }
@@ -409,19 +456,21 @@ function reportSale(){
   if(!clientId){ err.textContent='請填寫客人編號'; return; }
   if(!eventType){ err.textContent='請選擇服務類型'; return; }
   if(!(amount>0)){ err.textContent='請填寫正確的收款金額'; return; }
-  if(!confirm('確認回報：\n客人：'+clientId+'\n服務類型：'+eventType+'\n您收了：$'+amount.toLocaleString()+'\n\n送出後元代謝會核對，核對通過才會正式算進您該付給元代謝的金額。')) return;
-  _reportSaleSaving=true;
-  err.textContent='回報中…';
-  api({action:'vendorReportSale',clientId:clientId,eventType:eventType,amount:amount},function(d){
-    _reportSaleSaving=false;
-    if(!d){ err.textContent='連線失敗，請稍後再試'; return; }
-    if(d.status!=='ok'){ err.textContent=d.message||'回報失敗'; return; }
-    err.textContent='';
-    document.getElementById('rs-client-id').value='';
-    document.getElementById('rs-amount').value='';
-    var owedMsg = (d.estimatedOwed>0) ? ('\n\n這筆核對通過後，您預估要付給元代謝 $'+d.estimatedOwed.toLocaleString()) : '';
-    alert('✅ 已回報，等待元代謝核對'+owedMsg + (d.warning?('\n\n⚠️ '+d.warning):''));
-    loadMyReportedSales();
+  vConfirm('確認回報：\n客人：'+clientId+'\n服務類型：'+eventType+'\n您收了：$'+amount.toLocaleString()+'\n\n送出後元代謝會核對，核對通過才會正式算進您該付給元代謝的金額。', function(){
+    _reportSaleSaving=true;
+    err.textContent='回報中…';
+    api({action:'vendorReportSale',clientId:clientId,eventType:eventType,amount:amount},function(d){
+      _reportSaleSaving=false;
+      if(!d){ err.textContent='連線失敗，請稍後再試'; return; }
+      if(d.status!=='ok'){ err.textContent=d.message||'回報失敗'; return; }
+      err.textContent='';
+      document.getElementById('rs-client-id').value='';
+      document.getElementById('rs-amount').value='';
+      document.getElementById('rs-amount-preview').textContent='';
+      var owedMsg = (d.estimatedOwed>0) ? ('，預估應付元代謝 $'+d.estimatedOwed.toLocaleString()) : '';
+      toast('✅ 已回報，等待元代謝核對'+owedMsg + (d.warning?('（⚠️ '+d.warning+'）'):''));
+      loadMyReportedSales();
+    });
   });
 }
 function loadMyReportedSales(){
@@ -434,8 +483,8 @@ function loadMyReportedSales(){
     if(!d||d.status!=='ok'){ sumBox.innerHTML='<div class="muted">'+((d&&d.message)||'查詢失敗')+'</div>'; return; }
     sumBox.innerHTML='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
       +'<div><div style="font-size:20px;font-weight:800;color:#788">$'+(d.pendingOwed||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">待核查</div></div>'
-      +'<div><div style="font-size:20px;font-weight:800;color:#D6455D">$'+(d.confirmedUnsettled||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已核查・您目前應付</div></div>'
-      +'<div><div style="font-size:20px;font-weight:800;color:#1A9E6C">$'+(d.settledTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已結清累計</div></div>'
+      +'<div><div style="font-size:20px;font-weight:800;color:#E24B4A">$'+(d.confirmedUnsettled||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已核查・您目前應付</div></div>'
+      +'<div><div style="font-size:20px;font-weight:800;color:#1D9E75">$'+(d.settledTotal||0).toLocaleString()+'</div><div style="font-size:11px;color:#999">已結清累計</div></div>'
       +'</div>'
       // 2026-08-15 新增：這筆「應付元代謝」不是元代謝的淨利，裡面包含要付給診所抽血、實驗室檢測、
       // 陪跑教練等履約成本——避免合作單位看到數字誤以為元代謝把這些錢都留下來
@@ -476,8 +525,8 @@ function loadGroupReceivablesOverview(){
       html+='<table><thead><tr><th>分店</th><th style="text-align:right">待核查</th><th style="text-align:right">應付未結清</th><th style="text-align:right">已結清累計</th></tr></thead><tbody>';
       branches.forEach(function(b){
         html+='<tr><td>'+esc(b.branchName)+'</td><td class="amt" style="color:#788">$'+(b.pendingOwed||0).toLocaleString()+'</td>'
-          +'<td class="amt" style="color:#D6455D">$'+(b.confirmedUnsettled||0).toLocaleString()+'</td>'
-          +'<td class="amt" style="color:#1A9E6C">$'+(b.settledTotal||0).toLocaleString()+'</td></tr>';
+          +'<td class="amt" style="color:#E24B4A">$'+(b.confirmedUnsettled||0).toLocaleString()+'</td>'
+          +'<td class="amt" style="color:#1D9E75">$'+(b.settledTotal||0).toLocaleString()+'</td></tr>';
       });
       html+='</tbody></table>';
     }
@@ -560,7 +609,7 @@ function loadMySlots(){
       return '<div style="display:flex;align-items:center;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f0f0'+(off?';opacity:.5':'')+'">'
         +'<div style="flex:1"><div style="font-weight:700;font-size:14px">🕐 '+esc(it.datetime)+'</div>'
         +'<div style="font-size:11px;color:#999">'+esc(it.region||'')+(off?'・已停用':'・開放中')+'</div></div>'
-        +'<button style="font-size:12px;padding:8px 12px;background:'+(off?'#1D5FA8':'#eee')+';color:'+(off?'#fff':'#556')+'" onclick="toggleMySlot('+it.row+')">'+(off?'重新開放':'停用')+'</button>'
+        +'<button style="font-size:12px;padding:8px 12px;background:'+(off?'#1D9E75':'#eee')+';color:'+(off?'#fff':'#556')+'" onclick="toggleMySlot('+it.row+')">'+(off?'重新開放':'停用')+'</button>'
         +'</div>';
     }).join('');
   });
@@ -584,7 +633,7 @@ function addMySlot(){
 function toggleMySlot(row){
   api({action:'vendorToggleSlot',row:row},function(d){
     if(d&&d.status==='ok') loadMySlots();
-    else alert((d&&d.message)||'操作失敗');
+    else toast((d&&d.message)||'操作失敗');
   });
 }
 var PENDING_CACHE=[], UPLOAD_TARGET=null;
@@ -634,12 +683,13 @@ function submitReport(){
 var LAST_STMT_MONTH='', LAST_STMT_TOTAL=0;
 function confirmMyStatement(){
   var err=document.getElementById('confirm-err');
-  if(!confirm('確認這份對帳單金額（$'+LAST_STMT_TOTAL.toLocaleString()+'）沒有問題嗎？')) return;
-  err.textContent='送出中…';
-  api({action:'vendorConfirmSettlement',month:LAST_STMT_MONTH,total:LAST_STMT_TOTAL},function(d){
-    if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'送出失敗'; return; }
-    err.textContent='';
-    document.getElementById('confirm-card').innerHTML='<div style="text-align:center;color:#1D5FA8;font-weight:700">✅ 已確認，謝謝您的核對</div>';
+  vConfirm('確認這份對帳單金額（$'+LAST_STMT_TOTAL.toLocaleString()+'）沒有問題嗎？', function(){
+    err.textContent='送出中…';
+    api({action:'vendorConfirmSettlement',month:LAST_STMT_MONTH,total:LAST_STMT_TOTAL},function(d){
+      if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'送出失敗'; return; }
+      err.textContent='';
+      document.getElementById('confirm-card').innerHTML='<div style="text-align:center;color:#1D9E75;font-weight:700">✅ 已確認，謝謝您的核對</div>';
+    });
   });
 }
 var CUR_CID='';
@@ -666,17 +716,18 @@ function doCharge(){
   var err=document.getElementById('c-err2');
   if(!item){ err.textContent='請填寫消費項目'; return; }
   if(!(amt>0)){ err.textContent='請輸入正確金額'; return; }
-  if(!confirm('確認扣款？\n\n客人：'+document.getElementById('c-name').textContent+'（'+CUR_CID+'）\n項目：'+item+'\n金額：$'+amt.toLocaleString())) return;
-  err.textContent='扣款中…';
-  api({action:'vendorCharge',clientId:CUR_CID,amount:amt,item:item},function(d){
-    if(!d){ err.textContent='連線失敗，請稍後再試（請勿重複按，先到對帳單確認是否已扣款）'; return; }
-    if(d.status!=='ok'){ err.textContent=d.message||'扣款失敗'; return; }
-    err.textContent='';
-    document.getElementById('charge-step1').style.display='none';
-    document.getElementById('charge-step2').style.display='none';
-    document.getElementById('done-detail').textContent=item+'・$'+(d.amount||0).toLocaleString();
-    document.getElementById('done-bal').textContent='$'+(d.newBalance||0).toLocaleString();
-    document.getElementById('charge-done').style.display='';
+  vConfirm('確認扣款？\n\n客人：'+document.getElementById('c-name').textContent+'（'+CUR_CID+'）\n項目：'+item+'\n金額：$'+amt.toLocaleString(), function(){
+    err.textContent='扣款中…';
+    api({action:'vendorCharge',clientId:CUR_CID,amount:amt,item:item},function(d){
+      if(!d){ err.textContent='連線失敗，請稍後再試（請勿重複按，先到對帳單確認是否已扣款）'; return; }
+      if(d.status!=='ok'){ err.textContent=d.message||'扣款失敗'; return; }
+      err.textContent='';
+      document.getElementById('charge-step1').style.display='none';
+      document.getElementById('charge-step2').style.display='none';
+      document.getElementById('done-detail').textContent=item+'・$'+(d.amount||0).toLocaleString();
+      document.getElementById('done-bal').textContent='$'+(d.newBalance||0).toLocaleString();
+      document.getElementById('charge-done').style.display='';
+    });
   });
 }
 function resetCharge(){
@@ -726,13 +777,24 @@ if(V_CODE&&V_PW){
   showWorkspace();
   // 背景重新確認一次角色類型／開通項目（避免創始人後來才開通轉介功能，或改了角色類型，
   // 這台裝置卻因為快取舊資料看不到新分頁）
-  api({action:'vendorPing'},function(d){
-    if(d&&d.status==='ok'){
-      V_ROLETYPE=d.roleType||''; V_FEATURES=d.features||''; V_ORGTYPE=d.orgType||'';
-      try{ localStorage.setItem('mx_v_roletype',V_ROLETYPE); localStorage.setItem('mx_v_features',V_FEATURES); localStorage.setItem('mx_v_orgtype',V_ORGTYPE); }catch(e){}
-      showWorkspace(true);
-    }
-  });
+  // 2026-08-16 修正：如果這次背景確認失敗（連線問題），過去畫面會靜默停在裝置快取的（可能不完整的）
+  // 分頁狀態，完全沒有任何提示，容易讓合作夥伴誤以為自己的功能權限被收回。改成失敗時顯示提示條、
+  // 並自動重試一次；重試仍失敗才維持提示，讓使用者知道可以手動重新整理。
+  function pingVendorStatus(isRetry){
+    api({action:'vendorPing'},function(d){
+      if(d&&d.status==='ok'){
+        V_ROLETYPE=d.roleType||''; V_FEATURES=d.features||''; V_ORGTYPE=d.orgType||'';
+        try{ localStorage.setItem('mx_v_roletype',V_ROLETYPE); localStorage.setItem('mx_v_features',V_FEATURES); localStorage.setItem('mx_v_orgtype',V_ORGTYPE); }catch(e){}
+        var w=document.getElementById('conn-warning'); if(w) w.style.display='none';
+        showWorkspace(true);
+      } else if(!isRetry){
+        setTimeout(function(){ pingVendorStatus(true); }, 3000); // 3秒後自動重試一次
+      } else {
+        var w=document.getElementById('conn-warning'); if(w) w.style.display='';
+      }
+    });
+  }
+  pingVendorStatus(false);
 }
 </script>
 </body>

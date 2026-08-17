@@ -371,11 +371,11 @@ window.openHealthForm = function() {
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
           <div style="font-size:32px" id="garden-plant">🌿</div>
           <div style="flex:1">
-            <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:3px" id="garden-stage">第 32 天・小樹成長中</div>
+            <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:3px" id="garden-stage">記錄中，計算天數…</div>
             <div style="height:6px;background:#D1FAE5;border-radius:3px;overflow:hidden">
-              <div style="height:100%;width:68%;background:#1D9E75;border-radius:3px;transition:width .6s"></div>
+              <div style="height:100%;width:0%;background:#1D9E75;border-radius:3px;transition:width .6s" id="garden-stage-fill"></div>
             </div>
-            <div style="font-size:12px;color:#4B5563;margin-top:3px">距離花圃還差 5 天 · 第 37 天解鎖</div>
+            <div style="font-size:12px;color:#4B5563;margin-top:3px" id="garden-next-stage"></div>
           </div>
         </div>
 
@@ -505,6 +505,9 @@ window.openHealthForm = function() {
       <div class="qg" onclick="goPage('food','外食指南')"><i class="ti ti-tools-kitchen-2"></i><div class="qg-l">外食指南</div><div class="qg-n">NEW</div></div>
       <div class="qg" onclick="goPage('irct','IRCT 報告')"><i class="ti ti-microscope"></i><div class="qg-l" id="home-irct-label">IRCT 報告</div><div class="qg-n" id="home-irct-badge" style="color:var(--g)">最新</div></div>
       <div class="qg" onclick="goPage('garden','代謝花園')"><i class="ti ti-plant-2"></i><div class="qg-l">代謝花園</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
+      <!-- 2026-08-16 新增：「健康旅程」頁面(#p-journey)原本做得很完整（旅程階段/下一個目標/成就數字牆/獲得的獎勵），
+           但整個系統找不到任何入口能進去，只有一個從別的子頁「返回」用的連結——等於孤兒頁面，客人永遠看不到，補上常用功能入口 -->
+      <div class="qg" onclick="goPage('journey','粒腺體健康旅程')"><i class="ti ti-route"></i><div class="qg-l">健康旅程</div></div>
       <div class="qg" onclick="goPage('qa','問答')"><i class="ti ti-message-circle"></i><div class="qg-l">問答</div></div>
       <div class="qg" onclick="goPage('sec-hub','秘書互動')"><i class="ti ti-heart-handshake"></i><div class="qg-l">秘書互動</div><div class="qg-n" id="home-sechub-badge" style="display:none;color:var(--r)"></div></div>
     </div>
@@ -570,16 +573,19 @@ window.openHealthForm = function() {
       <div class="chip" onclick="selChip(this,'t')">晚餐後 3–4h</div>
     </div>
     <!-- 2026-08-12修正：體重/腰圍原本只靠placeholder標示欄位名稱，但欄位一開始就帶著預設數字，
-         placeholder會被蓋掉，客人完全看不出「50」「65」代表體重還是腰圍，補上明確文字標籤 -->
+         placeholder會被蓋掉，客人完全看不出「50」「65」代表體重還是腰圍，補上明確文字標籤
+         2026-08-16再修正：光補文字標籤還不夠——欄位帶著預設數字「50」「65」這件事本身就有風險，
+         會被calcProg()誤判成「已經填寫」，客人如果沒注意到、直接按儲存，等於把假數字當真實體重/腰圍存進紀錄。
+         這裡把預設數字整個拿掉，改成只留placeholder提示，真的要送出必須自己輸入 -->
     <div style="font-size:11px;color:var(--text2);margin-bottom:4px">⚖️ 體重 kg</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
-      <input class="inp" type="number" step="0.1" placeholder="體重 kg" id="w-inp" value="50" oninput="calcProg();syncWeightSlider()" style="flex:1">
+      <input class="inp" type="number" step="0.1" placeholder="體重 kg" id="w-inp" oninput="calcProg();syncWeightSlider()" style="flex:1">
       <button onclick="quickSave('weight')" style="background:var(--b);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <input type="range" id="w-slider" min="30" max="150" step="0.1" value="50" oninput="document.getElementById('w-inp').value=this.value;calcProg()" style="width:100%;margin:6px 0 10px;accent-color:var(--b)">
     <div style="font-size:11px;color:var(--text2);margin-bottom:4px">📏 腰圍 cm（選填）</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
-      <input class="inp" type="number" step="0.5" placeholder="腰圍 cm（選填）" id="waist-inp" value="65" oninput="calcProg();syncWaistSlider()" style="flex:1">
+      <input class="inp" type="number" step="0.5" placeholder="腰圍 cm（選填）" id="waist-inp" oninput="calcProg();syncWaistSlider()" style="flex:1">
       <button onclick="quickSave('waist')" style="background:var(--p);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <input type="range" id="waist-slider" min="40" max="150" step="0.5" value="65" oninput="document.getElementById('waist-inp').value=this.value;calcProg()" style="width:100%;margin:6px 0 10px;accent-color:var(--p)">
@@ -1280,7 +1286,7 @@ window.openHealthForm = function() {
 <!-- ══ IRCT 完整檢測數據對照表（多次檢測並排，含理想/正常區間） ══ -->
 <div class="page" id="p-irct-table">
   <div style="padding:12px 14px">
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">下面是你每一次 IRCT 檢測的數值紀錄，可以左右滑動看不同次數的對照。紅色數字代表這個數值超出了「現行正常區間」，建議與醫師討論。</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">下面是你每一次 IRCT 檢測的數值紀錄，依🩸血糖・💧胰島素・🫀血脂・🧍體態・🔬特殊因子分區呈現，可以左右滑動看不同次數的對照，也可以對照後面的理想／正常區間。有任何疑問都可以跟秘書或醫師討論。</div>
     <div id="irct-trend-wrap" style="display:none;margin-bottom:16px">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
@@ -1773,16 +1779,16 @@ window.openHealthForm = function() {
 <div class="gs-wrap">
   <div class="gs-hd">
     <div class="gs-hd-row">
-      <div><div class="gs-hd-sub">陳小美的</div><div class="gs-hd-title">代謝花園</div></div>
-      <div class="gs-days"><i class="ti ti-calendar" style="font-size:13px"></i>第 32 天</div>
+      <div><div class="gs-hd-sub" id="gs-hd-sub">我的</div><div class="gs-hd-title">代謝花園</div></div>
+      <div class="gs-days" id="gs-days-badge"><i class="ti ti-calendar" style="font-size:13px"></i>–</div>
     </div>
-    <div class="gs-pills">
-      <div class="gs-pill gdone" onclick="gsStage(0)">種子</div>
-      <div class="gs-pill gdone" onclick="gsStage(1)">幼苗</div>
-      <div class="gs-pill active" onclick="gsStage(2)">小樹</div>
-      <div class="gs-pill" onclick="gsStage(3)">花圃</div>
-      <div class="gs-pill" onclick="gsStage(4)">花園</div>
-      <div class="gs-pill" onclick="gsStage(5)">森林小徑</div>
+    <div class="gs-pills" id="gs-pills">
+      <div class="gs-pill" id="gs-pill-0" onclick="gsStage(0)">種子</div>
+      <div class="gs-pill" id="gs-pill-1" onclick="gsStage(1)">幼苗</div>
+      <div class="gs-pill" id="gs-pill-2" onclick="gsStage(2)">小樹</div>
+      <div class="gs-pill" id="gs-pill-3" onclick="gsStage(3)">花圃</div>
+      <div class="gs-pill" id="gs-pill-4" onclick="gsStage(4)">花園</div>
+      <div class="gs-pill" id="gs-pill-5" onclick="gsStage(5)">森林小徑</div>
     </div>
   </div>
   <div style="background:#FFFBEB;border:2px solid #FCD34D;border-radius:12px;margin:10px 14px;padding:11px 14px;display:flex;align-items:flex-start;gap:8px">
@@ -2204,7 +2210,7 @@ window.openHealthForm = function() {
     <div class="chat-area" id="chat-area">
       <div style="margin-bottom:8px">
         <div style="font-size:12px;color:var(--text3);margin-bottom:3px;display:flex;align-items:center;gap:5px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:600">代謝小幫手・AI</span></div>
-        <div class="cm-b bot">嗨！嗨，有什麼讓你困惑或不舒服的嗎？😊 說出來就好，我會先幫你找找看大家問過的類似問題。找不到的話，秘書會親自來陪你一起想辦法！</div>
+        <div class="cm-b bot">嗨！有什麼讓你困惑或不舒服的嗎？😊 說出來就好，我會先幫你找找看大家問過的類似問題。找不到的話，秘書會親自來陪你一起想辦法！</div>
       </div>
     </div>
     <!-- 打字時即時顯示符合的問題，點了立刻看答案；沒點的話按送出走完整聊天流程 -->
@@ -3611,9 +3617,14 @@ function loadWallet(){
     var card = document.getElementById('wallet-card');
     if(!card) return;
     card.style.display = '';
-    document.getElementById('wallet-bal').textContent = '$' + (d.balance||0).toLocaleString();
+    var bal = d.balance||0;
+    document.getElementById('wallet-bal').textContent = '$' + bal.toLocaleString();
     document.getElementById('wallet-cid').textContent = CLIENT_ID;
+    // 2026-08-16 新增：餘額是負的（消費超過儲值）原本跟正常餘額用同一個綠色卡片，完全沒有警示感，
+    // 客人很容易沒注意到自己已經欠款——改成負餘額時換成警示色，並在說明文字提醒補儲值
+    card.style.background = bal < 0 ? 'linear-gradient(135deg,#A32D2D,#C94040)' : 'linear-gradient(135deg,#0F6E56,#1B8A6B)';
     var wnotes = [];
+    if(bal < 0) wnotes.push('⚠️ 餘額已為負數，消費已超過儲值金額，請儘速補足儲值');
     if(d.pendingStored > 0) wnotes.push('$' + d.pendingStored.toLocaleString() + ' 儲值確認中，入帳後餘額會增加');
     if(d.pendingCnt > 0) wnotes.push('含 ' + d.pendingCnt + ' 筆消費確認中');
     document.getElementById('wallet-note').textContent = wnotes.join('・');
@@ -3639,6 +3650,9 @@ function personalizeNames(){
   var nodes = [];
   while(walker.nextNode()){ if(walker.currentNode.nodeValue.indexOf('陳小美') >= 0) nodes.push(walker.currentNode); }
   nodes.forEach(function(n){ n.nodeValue = n.nodeValue.split('陳小美').join(CLIENT_NAME); });
+  // 上方頭像圓框只顯示示範名「陳小美」的姓氏「美」，上面的整名替換抓不到只有單字的節點，這裡另外處理
+  var avEl = document.querySelector('.tbar-av');
+  if(avEl){ avEl.textContent = CLIENT_NAME.slice(-1) || CLIENT_NAME.charAt(0) || '會'; }
 }
 document.addEventListener('DOMContentLoaded', personalizeNames);
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadWallet, 800); setTimeout(loadSupplementsFromSheets, 1200); setTimeout(loadMySupplementRecs, 1300); setTimeout(loadMyQuestions, 1400); });
@@ -3711,6 +3725,9 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){
 // 首頁頂部「連續打卡」徽章(streak-day-1)實際上是由loadGardenHealth()更新的（跟loadMyStats是兩條獨立資料來源），
 // 原本loadGardenHealth只在進入「代謝花園」頁時才會呼叫，首頁一開啟同樣看不到真的天數，一併補上。
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof loadGardenHealth==='function') loadGardenHealth(); }, 1100); });
+// 2026-08-16：loadTodayGarden()原本只定義、從沒被呼叫過，導致首頁「今日花園任務 X/7」卡片永遠停在
+// 寫死的展示假資料（2/5），跟客人實際完成的任務對不上，也不會還原今天已經打勾過的任務狀態，一併補上。
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof loadTodayGarden==='function') loadTodayGarden(); }, 1100); });
 
 // ── 通用API呼叫函數 ──
 function callAPI(params, callback) {
@@ -6800,7 +6817,54 @@ function loadGardenHealth(){
     if(s1) s1.textContent = d.streak;
     if(s2) s2.textContent = d.streak;
     applyGardenVitality(d.vitality, d.daysSinceLast);
+    applyGardenDayCount(d.totalDays||0);
   });
+}
+// 2026-08-16 新增：花園「第 X 天・OO成長中」跟階段徽章原本是寫死的假天數（第32天・小樹），
+// 跟同一頁其他地方顯示的真實天數對不上；改用 getGardenHealth 已經算好的 totalDays（有記錄的天數）真實計算。
+var GARDEN_STAGES = [
+  {name:'種子', min:1, max:3},
+  {name:'幼苗', min:4, max:7},
+  {name:'小樹', min:8, max:21},
+  {name:'花圃', min:22, max:30},
+  {name:'花園', min:31, max:60},
+  {name:'森林小徑', min:61, max:Infinity}
+];
+function applyGardenDayCount(totalDays){
+  var stageEl = document.getElementById('garden-stage');
+  var badgeEl = document.getElementById('gs-days-badge');
+  var subEl = document.getElementById('gs-hd-sub');
+  var fillEl = document.getElementById('garden-stage-fill');
+  var nextEl = document.getElementById('garden-next-stage');
+  if(subEl) subEl.textContent = CLIENT_NAME ? (CLIENT_NAME+'的') : '我的';
+  if(totalDays<=0){
+    if(stageEl) stageEl.textContent = '今天開始記錄，種下你的第一顆種子 🌱';
+    if(badgeEl) badgeEl.innerHTML = '<i class="ti ti-calendar" style="font-size:13px"></i>還沒開始';
+    if(fillEl) fillEl.style.width = '0%';
+    if(nextEl) nextEl.textContent = '';
+    for(var pi=0; pi<GARDEN_STAGES.length; pi++){ var pel=document.getElementById('gs-pill-'+pi); if(pel) pel.className='gs-pill'; }
+    return;
+  }
+  var idx = GARDEN_STAGES.length-1;
+  for(var i=0;i<GARDEN_STAGES.length;i++){ if(totalDays>=GARDEN_STAGES[i].min && totalDays<=GARDEN_STAGES[i].max){ idx=i; break; } }
+  var stage = GARDEN_STAGES[idx];
+  if(stageEl) stageEl.textContent = '第 '+totalDays+' 天・'+stage.name+(idx===5?'':'成長中');
+  if(badgeEl) badgeEl.innerHTML = '<i class="ti ti-calendar" style="font-size:13px"></i>第 '+totalDays+' 天';
+  for(var gi=0; gi<GARDEN_STAGES.length; gi++){
+    var gel=document.getElementById('gs-pill-'+gi);
+    if(!gel) continue;
+    gel.className = 'gs-pill' + (gi<idx?' gdone':gi===idx?' active':'');
+  }
+  if(idx<GARDEN_STAGES.length-1){
+    var next = GARDEN_STAGES[idx+1];
+    var daysLeft = next.min - totalDays;
+    var pct = Math.max(0, Math.min(100, Math.round((totalDays-stage.min)/(stage.max-stage.min+1)*100)));
+    if(fillEl) fillEl.style.width = pct+'%';
+    if(nextEl) nextEl.textContent = '距離'+next.name+'還差 '+daysLeft+' 天 · 第 '+next.min+' 天解鎖';
+  } else {
+    if(fillEl) fillEl.style.width = '100%';
+    if(nextEl) nextEl.textContent = '已經走進森林小徑，持續累積中 🌳';
+  }
 }
 function applyGardenVitality(vitality, daysSince){
   var scene=document.getElementById('gs-scene');
@@ -6864,6 +6928,31 @@ function drawSimpleTrendChart(containerId, dates, values, color){
     + '</svg>';
   el.innerHTML = svg;
 }
+// 2026-08-16 新增：「完整檢測數據對照表」原本是一長串37+個項目攤平列出，客人很難掃視；
+// 創始人要求不用再標紅色（不做逐值的「正常/需留意」顏色判斷），改成依血糖/血脂/胰島素/體態/特殊因子
+// 分成有顏色區隔的色塊，比較容易看懂、也比較好看。顏色沿用系統既有的5個語意色，跟其他頁面一致。
+var IRCT_CATEGORY_DEFS = [
+  { name:'血糖', icon:'🩸', keys:['glucoseAC','glucose1h','glucose2h','glucose3h','hba1c'], bg:'var(--a2)', text:'var(--a3)' },
+  { name:'胰島素', icon:'💧', keys:['insulinAC','insulin1h','insulin2h','insulin3h','homaIR'], bg:'var(--p2)', text:'var(--p3)' },
+  { name:'血脂', icon:'🫀', keys:['tg','cholesterol','hdl','ldl','esi','sdldl','lipoproteinA','apob'], bg:'var(--b2)', text:'var(--b3)' },
+  { name:'體態', icon:'🧍', keys:['height','weight','bodyFatPct','bodyFat','visceralFat','waist','hip','waistHipRatio','bmi','ketone'], bg:'var(--g2)', text:'var(--g3)' },
+  { name:'特殊因子', icon:'🔬', keys:['creatinine','ua','got','gpt','egfr','homocysteine','freeT4','tsh','na','k','cl'], bg:'var(--r2)', text:'var(--r3)' }
+];
+function irctRowHasData_(r){
+  return r && r.values.some(function(v){ return v.value !== '' && v.value !== null && v.value !== undefined; });
+}
+function irctRenderDataRows_(rows, numCols){
+  return rows.map(function(r, i){
+    var bg = i % 2 === 0 ? 'var(--card)' : 'var(--bg)';
+    var cells = '<td style="position:sticky;left:0;background:'+bg+';z-index:1;padding:6px 10px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border)">'+escHtml(r.label)+'</td>';
+    r.values.forEach(function(v){
+      cells += '<td style="padding:6px 10px;text-align:center;color:var(--text);border-bottom:1px solid var(--border);background:'+bg+'">'+(v.value!==''?escHtml(String(v.value)):'—')+'</td>';
+    });
+    cells += '<td style="padding:6px 10px;text-align:center;font-size:12px;color:var(--g3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.therapeutic||'')+'</td>'
+      + '<td style="padding:6px 10px;text-align:center;font-size:12px;color:var(--b3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.normal||'')+'</td>';
+    return '<tr>'+cells+'</tr>';
+  }).join('');
+}
 function loadIrctTable(){
   var loadingEl = document.getElementById('irct-table-loading');
   var emptyEl = document.getElementById('irct-table-empty');
@@ -6905,18 +6994,26 @@ function loadIrctTable(){
     }
     var tbEl = document.getElementById('irct-table-body');
     if(tbEl){
-      tbEl.innerHTML = d.rows.map(function(r, i){
-        var bg = i % 2 === 0 ? 'var(--card)' : 'var(--bg)';
-        var cells = '<td style="position:sticky;left:0;background:'+bg+';z-index:1;padding:6px 10px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border)">'+escHtml(r.label)+'</td>';
-        r.values.forEach(function(v){
-          var color = v.watch ? 'var(--r)' : 'var(--text)';
-          var fw = v.watch ? '700' : '400';
-          cells += '<td style="padding:6px 10px;text-align:center;color:'+color+';font-weight:'+fw+';border-bottom:1px solid var(--border);background:'+bg+'">'+(v.value!==''?escHtml(String(v.value)):'—')+'</td>';
-        });
-        cells += '<td style="padding:6px 10px;text-align:center;font-size:12px;color:var(--g3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.therapeutic||'')+'</td>'
-          + '<td style="padding:6px 10px;text-align:center;font-size:12px;color:var(--b3);border-bottom:1px solid var(--border);background:'+bg+'">'+escHtml(r.normal||'')+'</td>';
-        return '<tr>'+cells+'</tr>';
-      }).join('');
+      var numCols = 1 + d.tests.length + 2; // 項目 + 每次檢測 + 理想區間 + 正常區間
+      var rowsByKey = {};
+      d.rows.forEach(function(r){ if(r.key) rowsByKey[r.key] = r; });
+      var usedKeys = {};
+      var html = '';
+      IRCT_CATEGORY_DEFS.forEach(function(cat){
+        var catRows = cat.keys.map(function(k){ return rowsByKey[k]; }).filter(irctRowHasData_);
+        if(catRows.length === 0) return;
+        catRows.forEach(function(r){ usedKeys[r.key] = true; });
+        html += '<tr><td colspan="'+numCols+'" style="background:'+cat.bg+';color:'+cat.text+';font-weight:700;font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border)">'+cat.icon+' '+cat.name+'</td></tr>';
+        html += irctRenderDataRows_(catRows, numCols);
+      });
+      // 保險：萬一有項目沒被分類進上面5個色塊（例如未來新增了欄位但忘了加進分類表），
+      // 不要讓資料默默消失不見，統一收在「其他項目」區塊裡
+      var leftover = d.rows.filter(function(r){ return r.key && !usedKeys[r.key] && irctRowHasData_(r); });
+      if(leftover.length){
+        html += '<tr><td colspan="'+numCols+'" style="background:var(--bg);color:var(--text3);font-weight:700;font-size:12px;padding:9px 10px;border-bottom:1px solid var(--border)">📋 其他項目</td></tr>';
+        html += irctRenderDataRows_(leftover, numCols);
+      }
+      tbEl.innerHTML = html;
     }
   });
 }
