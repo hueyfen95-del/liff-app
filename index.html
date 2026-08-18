@@ -842,6 +842,10 @@ window.openHealthForm = function() {
         </div>
         <div id="mw-inbody-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px"></div>
       </div>
+      <!-- 2026-08-17 新增：回補期碳水目標提示，讓客人自己也能對照「今天該吃多少」跟「歷史記錄實際吃了多少」 -->
+      <div id="mw-carbplan-card" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--text2)">
+        🍚 目前飲食階段：<b id="mw-carbplan-text" style="color:var(--text)"></b>
+      </div>
       <div id="mw-log-list"></div>
     </div>
   </div>
@@ -3519,6 +3523,9 @@ var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
 })();
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
+// 2026-08-17 新增：clientAuth登入成功時後端會核發一組clientToken，之後每次呼叫查/改個人資料的
+// API都要帶著它，後端才知道「這真的是這位客人本人在操作」，不是有人猜到/知道客人編號就能查別人的資料
+var CLIENT_TOKEN = (function(){ try { return localStorage.getItem('mx_client_token') || ""; } catch(e){ return ""; } })();
 var _LINE_UID = "";
 
 // ══ 測試客人一鍵帶入問卷（創始人2026-08-10）══
@@ -3561,13 +3568,14 @@ function mxHideLogin(){
   var ov = document.getElementById('mx-login-overlay');
   if (ov) ov.style.display = 'none';
 }
-function mxSetIdentity(cid, cname){
+function mxSetIdentity(cid, cname, ctoken){
   try {
     localStorage.setItem('mx_client_id', cid);
     localStorage.setItem('mx_client_name', cname || '');
+    if (ctoken) localStorage.setItem('mx_client_token', ctoken);
   } catch(e){}
-  if (!CLIENT_ID) { CLIENT_ID = cid; CLIENT_NAME = cname || ''; location.reload(); }
-  else { CLIENT_ID = cid; CLIENT_NAME = cname || ''; mxHideLogin(); }
+  if (!CLIENT_ID) { CLIENT_ID = cid; CLIENT_NAME = cname || ''; if(ctoken) CLIENT_TOKEN = ctoken; location.reload(); }
+  else { CLIENT_ID = cid; CLIENT_NAME = cname || ''; if(ctoken) CLIENT_TOKEN = ctoken; mxHideLogin(); }
 }
 function mxDoBind(){
   var cid = (document.getElementById('mx-bind-id').value || '').trim();
@@ -3576,7 +3584,7 @@ function mxDoBind(){
   if (!cid || !cname) { if(er) er.textContent = '請輸入客人編號和姓名'; return; }
   if (er) er.textContent = '驗證中…';
   callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname }, function(d){
-    if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name); }
+    if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken); }
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
 }
@@ -3590,7 +3598,7 @@ function mxStartAuth(){
         _LINE_UID = p.userId || '';
         var nm = p.displayName || '';
         callAPI({ action:'clientAuth', lineId:_LINE_UID }, function(d){
-          if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name); }
+          if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken); }
           else {
             var nmInp = document.getElementById('mx-bind-name');
             if (nmInp && !nmInp.value) nmInp.value = nm;
@@ -3731,6 +3739,12 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){
 
 // ── 通用API呼叫函數 ──
 function callAPI(params, callback) {
+  // 2026-08-17 新增：只要這個裝置已經登入過（CLIENT_TOKEN存在），每次呼叫都自動帶上clientToken，
+  // 不用每個呼叫的地方自己加，後端才能驗證「這真的是本人在操作」。clientAuth本身不需要token
+  // （本來就是拿來換token的），已經帶了clientToken的呼叫也不覆蓋。
+  if (typeof CLIENT_TOKEN !== 'undefined' && CLIENT_TOKEN && !params.clientToken && params.action !== 'clientAuth') {
+    params.clientToken = CLIENT_TOKEN;
+  }
   var query = Object.keys(params).map(function(k) {
     return k + '=' + encodeURIComponent(params[k]);
   }).join('&');
@@ -3742,7 +3756,17 @@ function callAPI(params, callback) {
   }, 2000);
   fetch(API_URL + '?' + query)
     .then(function(r) { return r.json(); })
-    .then(function(d) { clearTimeout(slowHintTimer); if (callback) callback(d); })
+    .then(function(d) {
+      clearTimeout(slowHintTimer);
+      // 2026-08-17新增：萬一這台裝置是在補上clientToken機制「之前」就綁定過的（token是空的），
+      // 後端會擋下來——這種情況不要讓畫面靜默停在「載入中」，直接請客人重新完成一次綁定即可拿到新token
+      if (d && d.code === 'clientauth') {
+        try { localStorage.removeItem('mx_client_token'); } catch(e){}
+        CLIENT_TOKEN = '';
+        if (typeof mxShowLogin === 'function') mxShowLogin('請重新輸入客人編號與姓名完成登入（系統已升級安全驗證機制）');
+      }
+      if (callback) callback(d);
+    })
     .catch(function() { clearTimeout(slowHintTimer); });
 }
 
@@ -6931,12 +6955,14 @@ function drawSimpleTrendChart(containerId, dates, values, color){
 // 2026-08-16 新增：「完整檢測數據對照表」原本是一長串37+個項目攤平列出，客人很難掃視；
 // 創始人要求不用再標紅色（不做逐值的「正常/需留意」顏色判斷），改成依血糖/血脂/胰島素/體態/特殊因子
 // 分成有顏色區隔的色塊，比較容易看懂、也比較好看。顏色沿用系統既有的5個語意色，跟其他頁面一致。
+// 2026-08-16 依創始人指示修正分類：胰島素/血脂維持完整保留所有項目；肝功能(GOT/GPT)、腎功能
+// (肌肝酸/UA/eGFR)歸進血脂那一欄；特殊因子改為 homocysteine、sdLDL 和甲狀腺/電解質等加測項目。
 var IRCT_CATEGORY_DEFS = [
   { name:'血糖', icon:'🩸', keys:['glucoseAC','glucose1h','glucose2h','glucose3h','hba1c'], bg:'var(--a2)', text:'var(--a3)' },
   { name:'胰島素', icon:'💧', keys:['insulinAC','insulin1h','insulin2h','insulin3h','homaIR'], bg:'var(--p2)', text:'var(--p3)' },
-  { name:'血脂', icon:'🫀', keys:['tg','cholesterol','hdl','ldl','esi','sdldl','lipoproteinA','apob'], bg:'var(--b2)', text:'var(--b3)' },
+  { name:'血脂', icon:'🫀', keys:['tg','cholesterol','hdl','ldl','esi','lipoproteinA','apob','got','gpt','creatinine','ua','egfr'], bg:'var(--b2)', text:'var(--b3)' },
   { name:'體態', icon:'🧍', keys:['height','weight','bodyFatPct','bodyFat','visceralFat','waist','hip','waistHipRatio','bmi','ketone'], bg:'var(--g2)', text:'var(--g3)' },
-  { name:'特殊因子', icon:'🔬', keys:['creatinine','ua','got','gpt','egfr','homocysteine','freeT4','tsh','na','k','cl'], bg:'var(--r2)', text:'var(--r3)' }
+  { name:'特殊因子', icon:'🔬', keys:['sdldl','homocysteine','freeT4','tsh','na','k','cl'], bg:'var(--r2)', text:'var(--r3)' }
 ];
 function irctRowHasData_(r){
   return r && r.values.some(function(v){ return v.value !== '' && v.value !== null && v.value !== undefined; });
@@ -7033,14 +7059,31 @@ function loadMonthlyLog(){
       box.innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:14px">這個月還沒有記錄</div>';
     } else {
       box.innerHTML = d.records.slice().reverse().map(function(r){
-        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--border)">'
+        // 2026-08-17 新增：把碳水/運動/排便也顯示出來，讓客人自己能對照回補期的吃法跟身體反應
+        // （例如哪天多吃了碳水，剛好搭配哪天不舒服/沒運動），不只是秘書後台看得到
+        var extras = [];
+        if(r.carbs) extras.push('<span>🍚 <b style="color:var(--text)">'+escHtml(r.carbs)+'</b><span style="font-size:12px;color:var(--text3)">g 碳水</span></span>');
+        if(r.exercise) extras.push('<span>🏃 '+escHtml(r.exercise)+'</span>');
+        if(r.bowelMovement) extras.push('<span>💩 '+escHtml(r.bowelMovement)+'</span>');
+        var extraRow = extras.length ? '<div style="display:flex;gap:12px;font-size:12px;color:var(--text2);margin-top:4px;flex-wrap:wrap">'+extras.join('')+'</div>' : '';
+        return '<div style="padding:10px 4px;border-bottom:1px solid var(--border)">'
+          + '<div style="display:flex;align-items:center;gap:10px">'
           + '<div style="font-size:11px;color:var(--text3);width:44px;flex-shrink:0">'+escHtml(r.date)+'</div>'
           + '<div style="flex:1;display:flex;gap:14px;font-size:13px">'
           + (r.weight!=='' ? '<span><b style="color:var(--text)">'+r.weight+'</b><span style="font-size:12px;color:var(--text3)"> kg</span></span>' : '')
           + (r.ketone!=='' ? '<span><b style="color:var(--g)">'+r.ketone+'</b><span style="font-size:12px;color:var(--text3)"> 血酮</span></span>' : '')
           + (r.waist!=='' ? '<span><b style="color:var(--b3)">'+r.waist+'</b><span style="font-size:12px;color:var(--text3)"> cm</span></span>' : '')
-          + '</div></div>';
+          + '</div></div>'
+          + extraRow
+          + '</div>';
       }).join('');
+    }
+    var carbplanCard = document.getElementById('mw-carbplan-card'), carbplanText = document.getElementById('mw-carbplan-text');
+    if(carbplanCard && carbplanText){
+      if(d && d.dietPhase && d.dietPhase !== '尚未設定'){
+        carbplanCard.style.display = '';
+        carbplanText.textContent = d.dietPhase;
+      } else { carbplanCard.style.display = 'none'; }
     }
     var awardCard = document.getElementById('mw-award-card');
     if(awardCard){

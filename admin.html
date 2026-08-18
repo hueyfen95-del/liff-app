@@ -4924,6 +4924,11 @@ function openClientDetail(id, name){
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💊 用藥記錄（寫入 💊 用藥記錄）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">客人回報的用藥登記在這裡；劑量調整由客人的醫師決定，我們負責記下時間軸。</div>'
     + '<div style="display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:7px">'
+    // 2026-08-17 新增：這個表單原本沒有「開藥醫師」欄位，但 recMedication() 一直都在讀
+    // cd-med-doctor 這個id、loadDoctorsToSelects() 也一直有把它加進要載入醫師名單的清單裡，
+    // 只是HTML忘了真的放這個下拉選單，導致每次記錄用藥的doctorOrder都被靜默存成空字串。
+    // 補上這個欄位，樣式比照補充品區塊的cd-supp-doctor（整排寬度）。
+    + '<select id="cd-med-doctor" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">開藥醫師・誰開的？（選填）…</option></select>'
     + '<input id="cd-med-name" list="chronic-med-list" class="form-input" style="font-size:12px" placeholder="藥物名稱（例：Metformin，可直接選常見慢性病用藥）">'
     + '<datalist id="chronic-med-list"></datalist>'
     + '<input id="cd-med-dose" class="form-input" style="font-size:12px" placeholder="劑量／頻率（例：500mg 早晚）">'
@@ -8397,7 +8402,11 @@ function loadTodayDuty(){
     // 統計列 —— 後端 getTodayDuty 依角色只回傳該角色相關的欄位（行政/會計沒有 recorded/noRecord/alerts），
     // 改成依實際收到的欄位動態組出統計項目，避免對角色沒有的欄位顯示 undefined/NaN（2026-08-16 修正）
     var statSegs=[];
-    statSegs.push('<div style="font-size:11px;opacity:.85">服務中 <b style="font-size:15px">'+dt.totalClients+'</b> 位</div>');
+    // 2026-08-17 修正：這行當初漏加跟下面幾行一樣的 typeof 檢查，如果某個角色拿到的 duty
+    // 剛好沒有 totalClients 這個欄位，畫面就會顯示「服務中 undefined 位」給秘書看
+    if(typeof dt.totalClients==='number'){
+      statSegs.push('<div style="font-size:11px;opacity:.85">服務中 <b style="font-size:15px">'+dt.totalClients+'</b> 位</div>');
+    }
     if(typeof dt.recorded==='number'){
       statSegs.push('<div style="font-size:11px;opacity:.85">今日已記錄 <b style="font-size:15px">'+dt.recorded+'</b> 位</div>');
     }
