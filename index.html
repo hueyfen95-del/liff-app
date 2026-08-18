@@ -2894,6 +2894,13 @@ function sendMsg(){
     return (sym && msgLower.includes(sym)) || (q && msgLower.includes(q));
   });
   var escalated = false;
+  // 2026-08-18修正（創始人發現：QA自動帶部落格/Podcast文章，客人自己打字問的情況幾乎搜不到東西）——
+  // 原因：searchContentByKeyword是「文章標題/摘要有沒有包含這個關鍵字」的比對，客人打的是完整句子
+  // （例如「我最近血糖持續偏高怎麼辦，會不會很嚴重」），沒有文章標題會完整包含這一整句話，所以幾乎
+  // 不會比對到；點快速問題清單的那條路徑（showSearchResult）本來就是用症狀短標籤去比對，命中率才會高。
+  // 這裡讓客人自己打字問、但有比對到QA資料庫的情況，一樣改用比對到的症狀短標籤去搜文章，兩條路徑命中率一致；
+  // 完全沒有QA比對到（走預設罐頭回覆或轉真人）的情況，沒有短標籤可用，才退回用原始輸入文字。
+  var contentSearchKeyword = msg;
   if (qaMatch) {
     var matchKey = qaMatch.symptom || qaMatch.q || qaMatch.question;
     if (_answeredSymptoms[matchKey]) {
@@ -2905,6 +2912,7 @@ function sendMsg(){
       reply = qaMatch.a || qaMatch.answer || reply;
       _answeredSymptoms[matchKey] = true;
       if (typeof logQA === 'function') logQA(matchKey);
+      contentSearchKeyword = matchKey; // 用症狀短標籤取代客人打的整句話，比對命中率才會高
     }
   } else {
     var hitDefault = false;
@@ -2915,7 +2923,7 @@ function sendMsg(){
     area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+reply+'</div></div><div class="cf"></div>';
     area.scrollTop=area.scrollHeight;
     // 轉真人的情況不用再搜相關內容了（已經不是在找資料，是要秘書介入），其他情況照常搜
-    if (!escalated && typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(msg);
+    if (!escalated && typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(contentSearchKeyword);
   },700);
   area.scrollTop=area.scrollHeight;
 }
