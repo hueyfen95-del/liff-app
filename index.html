@@ -6442,12 +6442,27 @@ function showIRCTScene(status) {
       // 查詢回來之前，先用手上已有的資料（或「載入中」）墊著，畫面才不會空白
       listBox.innerHTML = bkBookedCardHtml(LOCAL_BOOKED_TIME, LOCAL_BOOKED_LOCATION, null);
     }
+    // 2026-08-22修正：以前查詢失敗或查無資料時直接return，畫面會永遠卡在「載入中」不會變——
+    // 現在不管查詢結果如何，一定要更新畫面（成功就顯示真實資料，失敗/逾時就顯示提示，不留白轉圈）
+    var bkCtxDone = false;
+    var bkCtxFailHtml = '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:14px;color:#92400E;font-size:13px;line-height:1.7">⚠️ 目前讀取預約時間有點久或失敗了，請下拉重新整理一次，或直接跟秘書確認預約狀況。</div>';
+    var bkCtxTimeout = setTimeout(function(){
+      if (bkCtxDone) return;
+      bkCtxDone = true;
+      if (listBox && (!LOCAL_BOOKED_TIME || !LOCAL_BOOKED_LOCATION)) listBox.innerHTML = bkCtxFailHtml;
+    }, 12000);
     callAPI({action:'getLatestBookingContext', clientId:CLIENT_ID}, function(d){
-      if (!d || d.status!=='ok' || !d.found) return;
-      if (d.bookedTime) LOCAL_BOOKED_TIME = d.bookedTime;
-      if (d.clinic) LOCAL_BOOKED_LOCATION = d.clinic;
-      if (d.diet) LAST_DIET_RECORD = d.diet;
-      bkRenderBookedCards(d.pending || []);
+      if (bkCtxDone) return; // 逾時提示已經顯示過了，避免慢回應又蓋回去造成閃爍
+      bkCtxDone = true;
+      clearTimeout(bkCtxTimeout);
+      if (d && d.status==='ok' && d.found) {
+        if (d.bookedTime) LOCAL_BOOKED_TIME = d.bookedTime;
+        if (d.clinic) LOCAL_BOOKED_LOCATION = d.clinic;
+        if (d.diet) LAST_DIET_RECORD = d.diet;
+        bkRenderBookedCards(d.pending || []);
+      } else if (listBox && (!LOCAL_BOOKED_TIME || !LOCAL_BOOKED_LOCATION)) {
+        listBox.innerHTML = bkCtxFailHtml;
+      }
     });
   }
 
