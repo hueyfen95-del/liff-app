@@ -28,6 +28,8 @@ body[data-role="會計"] .sidebar{background:#4A3208}
 body[data-role="會計"] .si.on{border-left-color:#F5C560}
 body[data-role="財務主管"] .sidebar{background:#0F4A2C}
 body[data-role="財務主管"] .si.on{border-left-color:#5FD68F}
+body[data-role="醫師"] .sidebar{background:#5B1642}
+body[data-role="醫師"] .si.on{border-left-color:#F472B6}
 #role-chip{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;flex-shrink:0}
 .si i{font-size:16px;flex-shrink:0}
 .si-badge{border-radius:20px;padding:2px 7px;font-size:10px;font-weight:700;margin-left:auto}
@@ -211,6 +213,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     <div class="sb-sec">主要</div>
     <div class="si nav-item on" onclick="goPg('dashboard',this)"><i class="ti ti-layout-dashboard"></i>儀表板</div>
     <div class="si nav-item" onclick="goPg('clients',this)"><i class="ti ti-users"></i>客戶管理</div>
+    <div class="si nav-item" onclick="goPg('doctor-review',this)"><i class="ti ti-stethoscope"></i>醫師複核台 <span class="si-badge g" id="dr-badge" style="display:none">–</span></div>
     <div class="si nav-item" onclick="goPg('alerts',this)"><i class="ti ti-bell"></i>警示看板 <span class="si-badge r" id="sb-badge-alerts" style="display:none">–</span></div>
     <div class="sb-sec">管理</div>
     <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接</div>
@@ -824,6 +827,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
             <option value="會計">🧾 會計</option>
             <option value="行政">📋 行政</option>
             <option value="財務主管">💰 財務主管</option>
+            <option value="醫師">👨‍⚕️ 醫師</option>
             <option value="創始人">👑 創始人（看得到全部）</option>
           </select>
         </div>
@@ -1563,7 +1567,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
         <div id="ocr-rows"></div>
         <button class="tb-btn" style="margin:8px 0" onclick="addOcrRow('','','')"><i class="ti ti-plus" style="font-size:13px"></i>手動加一項</button>
         <div style="display:flex;gap:9px;align-items:center;margin-top:6px">
-          <button class="btn-g" onclick="saveOcrResults()"><i class="ti ti-database" style="font-size:14px"></i>確認寫入功能醫學記錄</button>
+          <button id="ocr-save-btn" class="btn-g" onclick="saveOcrResults()"><i class="ti ti-database" style="font-size:14px"></i>確認寫入功能醫學記錄</button>
           <span id="ocr-filelink" style="font-size:11px;color:var(--text3)"></span>
         </div>
       </div>
@@ -1783,14 +1787,14 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
           <div style="font-weight:700;font-size:12px;margin-bottom:7px">💳 儲值</div>
           <input id="sv-amount" class="form-input" type="number" placeholder="儲值金額" style="font-size:12px;margin-bottom:6px">
           <input id="sv-method" class="form-input" placeholder="付款方式（刷卡/現金）" style="font-size:12px;margin-bottom:6px">
-          <button class="btn-primary" onclick="svAddValue()" style="width:100%;font-size:12px"><i class="ti ti-plus"></i> 儲值</button>
+          <button id="sv-addvalue-btn" class="btn-primary" onclick="svAddValue()" style="width:100%;font-size:12px"><i class="ti ti-plus"></i> 儲值</button>
         </div>
         <div style="border:1px solid var(--border);border-radius:10px;padding:11px">
           <div style="font-weight:700;font-size:12px;margin-bottom:7px">🧾 消費扣款</div>
           <select id="sv-point" class="form-select" style="font-size:12px;margin-bottom:6px"><option value="">選服務點</option></select>
           <input id="sv-item" class="form-input" placeholder="消費項目" style="font-size:12px;margin-bottom:6px">
           <input id="sv-cons-amount" class="form-input" type="number" placeholder="金額" style="font-size:12px;margin-bottom:6px">
-          <button class="btn-primary" onclick="svAddConsumption()" style="width:100%;font-size:12px"><i class="ti ti-minus"></i> 扣款</button>
+          <button id="sv-addcons-btn" class="btn-primary" onclick="svAddConsumption()" style="width:100%;font-size:12px"><i class="ti ti-minus"></i> 扣款</button>
         </div>
       </div>
       <div id="sv-records" style="margin-top:12px"></div>
@@ -1826,6 +1830,25 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px">把「健康秘書分潤」和「服務點分潤」兩套合起來，看每個人這個月總共該分多少。</div>
       <div id="sv-merged"><div style="color:var(--text3);font-size:13px">選月份看每個人的總分潤</div></div>
     </div>
+  </div>
+</div>
+<!-- ══ 醫師複核台（2026-08-19創始人總體檢時新增，第5/6/7項裁示）══
+     創始人明確指示：「應該匯總數據和你的分析後，讓後台講解醫師來最終下判斷，更安全」——
+     矩陣「阻抗程度」不再由前端自己用簡單門檻現算，改成後端統合分析後，交給醫師在這裡看過完整資料
+     （先天體質ABC胰島素體質+受體體質、整體分析結論與判定細節、入會健康問卷、系統草稿建議）後手動確認，
+     確認結果才會顯示給客人。系統草稿建議只是參考，不是最終答案——請醫師依專業判斷決定，可以採用建議、
+     也可以選擇不同的分類。-->
+<div class="pg" id="pg-doctor-review">
+  <div class="hint-box">🩺 <b>醫師複核台</b>：矩陣「阻抗程度」（阻抗低/需注意/阻抗中/阻抗高）由這裡最終確認後才會顯示給客人。左側是待複核的陪跑中客人清單（還沒確認的排前面），點一位客人可以看到完整分析、先天體質、入會問卷、以及系統依現有公式算出的草稿建議——這只是參考，最終判斷請以你的專業評估為準。只有醫師本人（或創始人）能送出確認。</div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-list-check"></i>待複核清單</div>
+      <button class="btn-ghost" onclick="drLoad()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button>
+    </div>
+    <div class="card-body"><div id="dr-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
+  </div>
+  <div class="card" id="dr-detail-card" style="display:none">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-clipboard-heart"></i>複核詳情：<span id="dr-detail-name"></span></div></div>
+    <div class="card-body"><div id="dr-detail"></div></div>
   </div>
 </div>
 <div class="pg" id="pg-review">
@@ -1872,6 +1895,7 @@ function goPg(id,el){
     }
   }
   if(id==='review'){ setTimeout(rvLoad, 150); setTimeout(loadVendorReceivables, 150); }
+  if(id==='doctor-review'){ setTimeout(drLoad, 150); }
   if(id==='stored-value'){ setTimeout(function(){ svLoadClients(); svLoadPointsToSelect(); svLoadRoleNames(); svLoadPointRules(function(){ svLoadPoints(); }); loadBalanceDeficitList(); svpLoad(); }, 150); }
   if(id==='lab-integrate'){ setTimeout(function(){ liInitRows(); liLoadClients(); liLoadFamClients(); liLoadFamilyList(); }, 150); }
   if(id==='alerts' && typeof loadReportClients==='function') setTimeout(loadReportClients,150);
@@ -1884,7 +1908,7 @@ function goPg(id,el){
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
   if(el)el.classList.add('on');
-  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查'};
+  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查','doctor-review':'醫師複核台'};
   document.getElementById('page-title').textContent=titles[id]||id;
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
   if (typeof runPageLoader === 'function') runPageLoader(id);
@@ -3254,7 +3278,8 @@ var PAGE_CATALOG = [
   {id:'lab-integrate', label:'檢測整合'}, {id:'tracking', label:'自訂追蹤模組'}, {id:'remind', label:'複檢提醒警示'},
   {id:'keto-rest-mgmt', label:'粒腺體友善餐廳'}, {id:'garden-mgmt', label:'代謝花園管理'},
   {id:'qa-list', label:'QA症狀編輯'}, {id:'upload', label:'上傳外部報告'}, {id:'diet-compare', label:'飲食模式對照'},
-  {id:'extra-test', label:'功能醫學加測建議'}, {id:'irct-mgmt', label:'IRCT區間管理'}
+  {id:'extra-test', label:'功能醫學加測建議'}, {id:'irct-mgmt', label:'IRCT區間管理'},
+  {id:'doctor-review', label:'醫師複核台'}
 ];
 var _acctCache = [];
 function loadAdminAccounts(){
@@ -3267,7 +3292,7 @@ function loadAdminAccounts(){
     if(!d || d.status !== 'ok'){ listEl.innerHTML = '<div style="font-size:11px;color:var(--r);text-align:center;padding:14px">'+((d&&d.message)||'讀取失敗，可能沒有創始人權限')+'</div>'; return; }
     if(!d.accounts || d.accounts.length === 0){ listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有帳號</div>'; return; }
     _acctCache = d.accounts;
-    var roleIcon = {'創始人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋','財務主管':'💰'};
+    var roleIcon = {'創始人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋','財務主管':'💰','醫師':'👨‍⚕️'};
     listEl.innerHTML = d.accounts.map(function(a, i){
       var isMe = CURRENT_USER && CURRENT_USER.username === a.username;
       var isActive = a.status !== '停用';
@@ -3288,7 +3313,7 @@ function loadAdminAccounts(){
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
         '<input id="edit-name-'+i+'" value="'+escH(a.name||'')+'" placeholder="姓名" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
         '<select id="edit-role-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
-        ['秘書','會計','行政','財務主管','創始人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
+        ['秘書','會計','行政','財務主管','醫師','創始人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
         '</select></div>'+
         '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，其餘純顯示參考用）</div>'+
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
@@ -4791,6 +4816,49 @@ function setClientStageUI(id){
     else toast('⚠️ 更新失敗');
   });
 }
+// 2026-08-19創始人指示：受體體質(纖細/中間/囤積，代謝體質矩陣橫向分類)合併3層判斷——
+// 秘書/醫師手動標記(這裡) > 客人問卷自填(客人端index.html) > 系統依第一次檢測數據推估，
+// 優先序在後端resolveBodyType_統一處理；這裡的下拉選單選「未標記」代表清空秘書標記，改看下一層的結果
+function loadClientBodyTypeUI(id){
+  var sel = document.getElementById('cd-bodytype-sel');
+  if(!sel) return;
+  adminAPI({action:'getClientBodyType', clientId:id}, function(d){
+    sel = document.getElementById('cd-bodytype-sel');
+    if(!sel) return;
+    var bt = (d && d.status==='ok') ? d.bodyType : null;
+    var sourceLabel = { override:'秘書標記', selfReport:'客人自填', auto:'系統推估', 'default':'尚無資料' };
+    var curLabel = bt ? bt.label : '';
+    var curSource = bt ? bt.source : '';
+    var opts = ['','纖細型','中間型','囤積型'];
+    var html = opts.map(function(o){
+      var isCurrentOverride = (curSource==='override' && o===curLabel);
+      var text = o ? o : '未標記（改看客人自填或系統推估）';
+      if(!o && curSource!=='override') text = '未標記（目前顯示：'+ (curLabel||'—') +'・'+(sourceLabel[curSource]||'')+'）';
+      return '<option value="'+o+'" '+(isCurrentOverride?'selected':(!o&&curSource!=='override'?'selected':''))+'>受體體質：'+text+'</option>';
+    }).join('');
+    sel.innerHTML = html;
+    // 2026-08-19創始人更正：客人問卷自填改成問「小時候體型」+「幾歲開始發胖/變瘦」，後者只給秘書參考用
+    // （創始人已確認不影響分類），這裡把changeNote顯示出來給秘書判斷要不要手動覆蓋
+    var noteEl = document.getElementById('cd-bodytype-note');
+    if(noteEl){
+      if(bt && bt.source==='selfReport' && bt.changeNote){
+        noteEl.textContent = bt.changeNote;
+        noteEl.style.display = '';
+      } else {
+        noteEl.textContent = '';
+        noteEl.style.display = 'none';
+      }
+    }
+  });
+}
+function setClientBodyTypeUI(id){
+  var sel = document.getElementById('cd-bodytype-sel');
+  if(!sel) return;
+  adminAPIPost({action:'setClientBodyType', clientId:id, bodyType:sel.value}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 已更新受體體質標記'); loadClientBodyTypeUI(id); }
+    else toast('⚠️ 更新失敗');
+  });
+}
 function unlockClientQuick(id){
   if(!confirm('確定要幫這位客人開通陪跑嗎？')) return;
   adminAPI({ action: 'setClientAccess', clientId: id, active: true }, function(d){
@@ -4854,13 +4922,16 @@ function openClientDetail(id, name){
     + '<select id="cd-special-sel" onchange="setClientSpecialCaseUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
     + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'特殊情境：無（一般客人）')+'</option>'; }).join('')
     + '</select>'
+    + '<select id="cd-bodytype-sel" onchange="setClientBodyTypeUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)"><option value="">受體體質：載入中…</option></select>'
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '<span id="cd-abc-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;font-weight:700"></span>'
     + '</div>'
+    + '<div id="cd-bodytype-note" style="display:none;font-size:11px;color:var(--text3);margin-top:-6px;margin-bottom:12px;line-height:1.5"></div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
-    + '<select id="cd-supp-doctor" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">建議醫師／藥師・誰建議的？…</option></select>' + '<select id="cd-supp-sel" class="form-select" style="font-size:12px"><option value="">載入補充品…</option></select>'
+    + '<select id="cd-supp-doctor" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">建議醫師／藥師・誰建議的？…</option></select>' + '<select id="cd-supp-sel" class="form-select" style="font-size:12px" onchange="onSuppSelChange(\''+escH(id)+'\')"><option value="">載入補充品…</option></select>'
+    + '<div id="cd-supp-caution" style="display:none;grid-column:1/-1;font-size:11px;line-height:1.7;background:var(--a2);border:1px solid var(--a3);border-radius:8px;padding:8px 10px;margin-bottom:6px"></div>'
     + '<select id="cd-supp-reason-sel" class="form-select" style="font-size:12px" onchange="onSuppReasonChange()">'
     + '<option value="">推薦原因（點選）…</option>'
     + '<option>亂流期電解質補充</option><option>夜間抽筋・肌肉緊繃</option><option>睡眠品質調整</option>'
@@ -5176,6 +5247,7 @@ function openClientDetail(id, name){
     }
   });
   applyClientPanelReadonlyMode(m);
+  loadClientBodyTypeUI(id);
   loadSupplementOptions();
   loadSuppHistory(id);
   loadLabOptions();
@@ -7221,6 +7293,41 @@ function loadSupplementOptions(){
     fill(_suppCache);
   });
 }
+// 2026-08-19創始人更正：補充品資料庫裡每一項本來就有「注意事項」欄位(caution)，也已經抓進_suppCache了，
+// 但秘書選了補充品之後，這個注意事項完全沒有顯示在畫面上，也沒有跟這位客人目前正在吃的藥放在一起比對過——
+// 這裡不做「自動判斷會不會交互作用」（那需要真正的藥物交互作用資料庫，不是這個系統現有的注意事項欄位能做到的判斷，
+// 不能自己發明），而是把「這個補充品的注意事項」跟「這位客人目前的用藥」並排顯示出來，讓秘書自己核對、
+// 有疑慮就照事項下方的@其他既有動線標記等醫師/藥師建議欄位、或另外跟醫師確認，機器只負責把兩份既有資料放在一起看得到。
+var _cdMedsCache = {}; // clientId -> meds陣列，同一位客人詳細面板停留期間不用重複抓
+function onSuppSelChange(clientId){
+  var sel=document.getElementById('cd-supp-sel');
+  var box=document.getElementById('cd-supp-caution');
+  if(!sel || !box) return;
+  if(!sel.value){ box.style.display='none'; box.innerHTML=''; return; }
+  var parts=sel.value.split('|');
+  var suppName=parts[1]||'';
+  var supp = (_suppCache||[]).filter(function(s){ return String(s.id)===parts[0]; })[0];
+  function render(meds){
+    var html = '';
+    if(supp && supp.caution){
+      html += '<div><b>⚠️ 「'+escH(suppName)+'」注意事項：</b>'+escH(supp.caution)+'</div>';
+    }
+    var activeMeds = (meds||[]).filter(function(m){ return m.status && m.status.indexOf('停藥')<0; });
+    if(activeMeds.length){
+      html += '<div style="margin-top:4px"><b>💊 這位客人目前用藥：</b>'+activeMeds.map(function(m){ return escH(m.medName)+(m.dose?'('+escH(m.dose)+')':''); }).join('、')+'</div>';
+      if(supp && supp.caution) html += '<div style="margin-top:4px;color:var(--text3)">請自行核對上述用藥與注意事項是否有疑慮，不確定時建議跟醫師/藥師確認</div>';
+    } else if(supp && supp.caution){
+      html += '<div style="margin-top:4px;color:var(--text3)">這位客人目前沒有用藥記錄</div>';
+    }
+    if(!html){ box.style.display='none'; box.innerHTML=''; return; }
+    box.style.display='block'; box.innerHTML=html;
+  }
+  if(_cdMedsCache[clientId]){ render(_cdMedsCache[clientId]); return; }
+  adminAPI({action:'getCurrentMeds', clientId:clientId}, function(d){
+    _cdMedsCache[clientId] = (d && d.meds) || [];
+    render(_cdMedsCache[clientId]);
+  });
+}
 function recSupplement(clientId){
   var sel=document.getElementById('cd-supp-sel');
   if(!sel || !sel.value){toast('請先選擇補充品');return;}
@@ -7656,12 +7763,15 @@ function saveOcrResults(){
     rows.push({name:name, value:val, ref:document.getElementById('ocr-ref-'+i).value.trim()});
   });
   if(rows.length===0){ toast('沒有可寫入的項目（勾選且項目/結果都要有值）'); return; }
-  adminAPIPost({action:'saveLabResults', clientId:cid, items:JSON.stringify(rows)}, function(d){
-    if(d.status==='ok'){
-      toast('✅ 已寫入 '+rows.length+' 筆到 💉 功能醫學記錄');
-      _ocrItems=[]; renderOcrRows();
-      document.getElementById('ocr-result').style.display='none';
-    } else toast('⚠️ '+(d.message||'寫入失敗，請重試'));
+  _guardDoubleSubmit('ocr-save-btn', function(release){
+    adminAPIPost({action:'saveLabResults', clientId:cid, items:JSON.stringify(rows)}, function(d){
+      release();
+      if(d.status==='ok'){
+        toast('✅ 已寫入 '+rows.length+' 筆到 💉 功能醫學記錄');
+        _ocrItems=[]; renderOcrRows();
+        document.getElementById('ocr-result').style.display='none';
+      } else toast('⚠️ '+(d.message||'寫入失敗，請重試'));
+    });
   });
 }
 
@@ -8850,15 +8960,34 @@ function svLoadCard(){
     } else { rec.innerHTML = '<div style="color:var(--text3);font-size:12px">尚無消費記錄</div>'; }
   });
 }
+// 2026-08-19創始人更正：儲值／扣款／檢驗結果登打這幾個表單的送出按鈕原本沒有雙重送出防護，
+// 秘書手滑連點兩下（或網路延遲時心急重複按）就會真的送出兩次請求，儲值/扣款金額或檢驗記錄因此重複寫入。
+// 這個小工具：按下當下立刻鎖住按鈕，等這次請求真正結束（無論成功或失敗）才解鎖；
+// 另外設8秒保底解鎖，避免萬一網路逾時導致callback完全沒被呼叫到、按鈕卡死點不動。
+function _guardDoubleSubmit(btnId, runFn) {
+  var btn = document.getElementById(btnId);
+  if (btn && btn.disabled) return; // 已經在送出中，這次點擊直接忽略
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; btn.style.cursor = 'not-allowed'; }
+  var released = false;
+  function release() {
+    if (released) return; released = true;
+    if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+  }
+  setTimeout(release, 8000);
+  runFn(release);
+}
 function svAddValue(){
   var cid = (document.getElementById('sv-client')||{}).value;
   var amt = (document.getElementById('sv-amount')||{}).value;
   var method = (document.getElementById('sv-method')||{}).value;
   if(!cid){ toast('請先選客人'); return; }
   if(!amt || Number(amt)<=0){ toast('請填儲值金額'); return; }
-  adminAPI({action:'addStoredValue', clientId:cid, amount:amt, method:method, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
-    if(d && d.status==='ok'){ toast('✅ 已儲值 $'+Number(amt).toLocaleString()); document.getElementById('sv-amount').value=''; document.getElementById('sv-method').value=''; svLoadCard(); }
-    else { toast('⚠️ 儲值失敗'); }
+  _guardDoubleSubmit('sv-addvalue-btn', function(release){
+    adminAPI({action:'addStoredValue', clientId:cid, amount:amt, method:method, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+      release();
+      if(d && d.status==='ok'){ toast('✅ 已儲值 $'+Number(amt).toLocaleString()); document.getElementById('sv-amount').value=''; document.getElementById('sv-method').value=''; svLoadCard(); }
+      else { toast('⚠️ 儲值失敗'); }
+    });
   });
 }
 function svAddConsumption(){
@@ -8868,9 +8997,12 @@ function svAddConsumption(){
   var amt = (document.getElementById('sv-cons-amount')||{}).value;
   if(!cid){ toast('請先選客人'); return; }
   if(!pt || !amt || Number(amt)<=0){ toast('請選服務點並填金額'); return; }
-  adminAPI({action:'addConsumption', clientId:cid, servicePoint:pt, item:item, amount:amt, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
-    if(d && d.status==='ok'){ toast('✅ 已扣款 $'+Number(amt).toLocaleString()); document.getElementById('sv-item').value=''; document.getElementById('sv-cons-amount').value=''; svLoadCard(); }
-    else { toast('⚠️ 扣款失敗'); }
+  _guardDoubleSubmit('sv-addcons-btn', function(release){
+    adminAPI({action:'addConsumption', clientId:cid, servicePoint:pt, item:item, amount:amt, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+      release();
+      if(d && d.status==='ok'){ toast('✅ 已扣款 $'+Number(amt).toLocaleString()); document.getElementById('sv-item').value=''; document.getElementById('sv-cons-amount').value=''; svLoadCard(); }
+      else { toast('⚠️ 扣款失敗'); }
+    });
   });
 }
 function svLoadPoints(){
@@ -9132,6 +9264,133 @@ function svLoadMerged(){
 }
 
 
+// ══════ 醫師複核台（2026-08-19創始人總體檢時新增，第5/6/7項裁示）══════
+var _drCurClientId = null;
+function drLoad(){
+  var box = document.getElementById('dr-list');
+  if(!box) return;
+  box.innerHTML = '<div style="color:var(--text3);font-size:13px">載入中…</div>';
+  adminAPI({action:'getDoctorReviewQueue'}, function(d){
+    box = document.getElementById('dr-list');
+    if(!box) return;
+    if(!d || d.status!=='ok'){ box.innerHTML='<div style="color:var(--r);font-size:13px">'+escH((d&&d.message)||'讀取失敗')+'</div>'; return; }
+    var items = d.items || [];
+    var pendingCount = items.filter(function(x){ return !x.confirmed; }).length;
+    var badge = document.getElementById('dr-badge');
+    if(badge){ if(pendingCount>0){ badge.style.display='inline-block'; badge.textContent=pendingCount; } else { badge.style.display='none'; } }
+    if(items.length===0){ box.innerHTML='<div style="color:var(--text3);font-size:13px;padding:10px">目前沒有陪跑中的客人</div>'; return; }
+    box.innerHTML = items.map(function(it){
+      var statusChip = it.confirmed
+        ? '<span style="background:var(--g2);color:var(--g3);font-size:10.5px;padding:2px 8px;border-radius:6px">✅ 已確認：'+escH(it.confirmedLabel)+'</span>'
+        : '<span style="background:#FCE7F3;color:#9D174D;font-size:10.5px;padding:2px 8px;border-radius:6px">🩺 待複核</span>';
+      var suggestHint = (!it.confirmed && it.suggestionLabel) ? '<span style="font-size:10.5px;color:var(--text3);margin-left:6px">系統草稿建議：'+escH(it.suggestionLabel)+'</span>' : '';
+      return '<div onclick="drShowDetail(\''+escH(it.clientId)+'\')" style="border:0.5px solid var(--border);border-radius:9px;padding:9px 12px;margin-bottom:8px;cursor:pointer;background:'+(_drCurClientId===it.clientId?'var(--bg2)':'transparent')+'" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\''+(_drCurClientId===it.clientId?'var(--bg2)':'transparent')+'\'">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between">'
+        + '<div style="font-size:12.5px;font-weight:700;color:var(--text)">'+escH(it.name)+' <span style="font-size:10.5px;font-weight:400;color:var(--text3)">'+escH(it.clientId)+'</span></div>'
+        + statusChip + '</div>'
+        + '<div style="font-size:10.5px;color:var(--text3);margin-top:3px">最新檢測：'+escH(it.testDate||'—')+suggestHint+'</div>'
+        + '</div>';
+    }).join('');
+  });
+}
+function drShowDetail(clientId){
+  _drCurClientId = clientId;
+  drLoad(); // 重畫清單讓目前選中的那筆有高亮
+  var card = document.getElementById('dr-detail-card');
+  var nameEl = document.getElementById('dr-detail-name');
+  var box = document.getElementById('dr-detail');
+  if(!card || !box) return;
+  card.style.display = '';
+  if(nameEl) nameEl.textContent = clientId;
+  box.innerHTML = '<div style="color:var(--text3);font-size:13px">載入中…</div>';
+  card.scrollIntoView({behavior:'smooth', block:'start'});
+  adminAPI({action:'getClientDoctorReview', clientId:clientId}, function(d){
+    box = document.getElementById('dr-detail');
+    if(!box) return;
+    if(!d || d.status!=='ok' || !d.found){ box.innerHTML='<div style="color:var(--r);font-size:13px">找不到這位客人的IRCT資料</div>'; return; }
+    var a = d.analysis || {};
+    var ins = a.insulin || {};
+    var overall = ins.overall || {};
+    var detail = ins.overallDetail || {};
+    var mrr = a.matrixRowReview || {};
+    var suggestion = mrr.suggestion || {};
+    var bodyType = a.bodyType || {};
+    var constitution = ins.constitution || {};
+
+    function sec(title, innerHtml){
+      return '<div style="margin-bottom:14px"><div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.03em">'+title+'</div>'+innerHtml+'</div>';
+    }
+    function row(label, val){
+      return '<div style="font-size:12px;color:var(--text2);margin-bottom:4px"><span style="color:var(--text3)">'+label+'：</span>'+(val?escH(String(val)):'—')+'</div>';
+    }
+
+    var html = '';
+    // ── 先天體質 ──
+    html += sec('🧬 先天體質', ''
+      + row('ABC胰島素體質', constitution.type ? (constitution.type+(constitution.nickname?'（'+constitution.nickname+'）':'')) : '—')
+      + (constitution.note ? row('說明', constitution.note) : '')
+      + row('受體體質（矩陣橫向）', bodyType.label ? (bodyType.label+'　來源：'+({override:'秘書/醫師標記',selfReport:'客人自填',auto:'系統依第一次檢測推估',default:'中性預設'}[bodyType.source]||bodyType.source)) : '—'));
+
+    // ── 現況分析 ──
+    var auxHtml = (detail.auxSignals && detail.auxSignals.length) ? '<ul style="margin:4px 0 0 18px;padding:0;font-size:11.5px;color:var(--text3)">'+detail.auxSignals.map(function(s){ return '<li style="margin-bottom:2px">'+escH(s)+'</li>'; }).join('')+'</ul>' : '';
+    html += sec('📊 現況分析（整體判定）', ''
+      + row('整體分類', overall.classification)
+      + row('結論說明', overall.note)
+      + row('加權嚴重度', detail.severityRatio!==undefined && detail.severityRatio!==null ? detail.severityRatio : '—')
+      + row('機能型態', detail.functionType)
+      + row('β細胞衰竭傾向', detail.betaFailureLevel)
+      + (auxHtml ? ('<div style="font-size:12px;color:var(--text2);margin-top:4px">輔助訊號：</div>'+auxHtml) : '')
+      + (detail.dataGaps && detail.dataGaps.length ? row('資料缺口', detail.dataGaps.join('、')) : ''));
+
+    if(a.metabolicType && a.metabolicType.type) html += sec('🔟 十型分類', row('分型', a.metabolicType.type) + row('說明', a.metabolicType.note));
+    if(a.specialCase) html += sec('⚠️ 特殊情境', row('', a.specialCase));
+    if(a.kidneyConcern && a.kidneyConcern.flagged) html += sec('🫘 腎功能提醒', row('', a.kidneyConcern.note));
+    if(a.sleepGlucoseNote) html += sec('😴 睡眠×血糖', row('', a.sleepGlucoseNote));
+    if(a.medContext && a.medContext.note) html += sec('💊 用藥情境', row('用藥快照', a.medContext.snapshot) + row('說明', a.medContext.note));
+    if(a.acquiredModeSuggests && a.acquiredModeSuggests.length) html += sec('🧭 後天狀態建議', a.acquiredModeSuggests.map(function(s){ return row('', s); }).join(''));
+
+    // ── 入會健康問卷 ──
+    var qEntries = d.questionnaire || [];
+    html += sec('📋 入會健康問卷（' + qEntries.length + ' 筆記錄）', qEntries.length
+      ? qEntries.map(function(q){ return '<div style="font-size:11.5px;color:var(--text2);background:var(--bg);border-radius:8px;padding:7px 9px;margin-bottom:5px"><div style="color:var(--text3);margin-bottom:2px">'+escH(q.date)+(q.by?'・'+escH(q.by):'')+'</div>'+escH(q.content)+'</div>'; }).join('')
+      : '<div style="font-size:12px;color:var(--text3)">還沒有問卷記錄</div>');
+
+    // ── 系統草稿建議 + 醫師確認表單 ──
+    html += sec('🤖 系統草稿建議（僅供參考，不是最終判定）', ''
+      + row('草稿建議', suggestion.label || '無法產生建議')
+      + row('依據', suggestion.basis));
+
+    var isDoctorRole = CURRENT_USER && (CURRENT_USER.role==='醫師' || CURRENT_USER.role==='創始人' || CURRENT_USER.role==='老闆' || (CURRENT_USER.otherRoles||[]).indexOf('醫師')>=0);
+    var currentConfirmed = mrr.source==='doctorConfirmed'
+      ? ('<div style="font-size:12px;color:var(--g3);background:var(--g2);border-radius:8px;padding:8px 10px;margin-bottom:8px">目前已確認為「'+escH(mrr.label)+'」・確認醫師：'+escH(mrr.confirmedBy||'—')+'・時間：'+escH(mrr.confirmedAt||'—')+(mrr.note?'<br>備註：'+escH(mrr.note):'')+'</div>')
+      : '<div style="font-size:12px;color:var(--text3);margin-bottom:8px">目前還沒有醫師確認過，客人端會顯示「等候醫師確認」。</div>';
+
+    var formHtml = isDoctorRole
+      ? ('<select id="dr-row-select" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;margin-bottom:8px">'
+        + '<option value="">請選擇最終阻抗程度</option>'
+        + ['阻抗低','需注意','阻抗中','阻抗高'].map(function(l){ return '<option value="'+l+'" '+(mrr.label===l?'selected':'')+'>'+l+'</option>'; }).join('')
+        + '</select>'
+        + '<textarea id="dr-row-note" placeholder="醫師備註（選填，給團隊參考，不會顯示給客人）" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:12px;min-height:60px;margin-bottom:8px">'+escH(mrr.note||'')+'</textarea>'
+        + '<button onclick="drSubmitConfirm(\''+escH(clientId)+'\')" style="background:var(--g);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer">確認送出</button>')
+      : '<div style="font-size:12px;color:var(--text3)">只有醫師（或創始人）能送出最終確認，其他角色僅供查看準備資料。</div>';
+
+    html += sec('🩺 醫師最終確認', currentConfirmed + formHtml);
+
+    box.innerHTML = html;
+  });
+}
+function drSubmitConfirm(clientId){
+  var sel = document.getElementById('dr-row-select');
+  var noteEl = document.getElementById('dr-row-note');
+  var rowLabel = sel ? sel.value : '';
+  if(!rowLabel){ toast('請先選擇阻抗程度'); return; }
+  if(!confirm('確認要把「'+clientId+'」的矩陣阻抗程度最終判定為「'+rowLabel+'」嗎？確認後客人端就會顯示這個結果。')) return;
+  adminAPIPost({action:'confirmMatrixRow', clientId:clientId, row:rowLabel, note:(noteEl?noteEl.value:'')}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已確認'); drShowDetail(clientId); }
+    else { toast('⚠️ '+((d&&d.message)||'送出失敗')); }
+  });
+}
+
 // ══════ 會計核查 ══════
 function rvLoad(){
   var box = document.getElementById('rv-list');
@@ -9271,7 +9530,14 @@ var ROLE_PAGES = {
   '行政': ['dashboard','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','supplement-mgmt','inventory'],
   // 2026-08-16 新增：財務主管——側重合作單位收費模式、分帳比例、應收帳款、月結算，跟會計看的頁面一致，
   // 差別在於財務主管額外有 setPartnerFeatures／addRule 這兩個動作層級的權限（後端已限定創始人/財務主管才能呼叫）
-  '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles']
+  '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
+  // 2026-08-19創始人總體檢時新增（第7項裁示：「之前說不要開給醫師，現在想想，還是要開給醫師」）——
+  // 醫師是獨立的登入角色（不透過「身兼職務」授予，確保矩陣阻抗程度最終確認的臨床歸屬清楚是哪位醫師本人）。
+  // 頁面範圍聚焦在臨床相關內容：dashboard(總覽)、clients(客人詳細資料，含IRCT/InBody/用藥/問卷等完整記錄)、
+  // doctor-review(醫師複核台，見下方新頁面)、all-tests(全部客人檢測總表，方便橫向比較)。
+  // 不含帳務/庫存/行銷等營運頁面，也不含irct-mgmt（那是異動全系統參考區間的設定頁，屬於創始人層級的
+  // 系統設定，不是個案臨床判斷，先不開放；創始人日後如需要可用「額外權限」個別授予）。
+  '醫師': ['dashboard','clients','doctor-review','all-tests']
 };
 // 舊帳號顯示「老闆」時，畫面一律改顯示「創始人」（權限判斷不受影響）
 function roleDisplayName(r){ return r === '老闆' ? '創始人' : r; }
@@ -9319,7 +9585,7 @@ function applyPermissions(){
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');
   if(tbT && !document.getElementById('role-chip')){
-    var chipColors = {'創始人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C']};
+    var chipColors = {'創始人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C'],'醫師':['#FCE7F3','#9D174D']};
     var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['創始人'];
     var rc = document.createElement('span');
     rc.id = 'role-chip';

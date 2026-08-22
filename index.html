@@ -1195,90 +1195,10 @@ window.openHealthForm = function() {
     <div style="font-size:11px;color:var(--text3);line-height:1.6">秘書整理好你的報告後<br>這裡會顯示你的代謝體質矩陣位置</div>
   </div>
   <div id="matrix-container">
-    <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5">
-      根據你的IRCT數值自動定位・綠點為你目前的位置・點格子看說明
-    </div>
-
-    <div style="display:flex;gap:3px;margin-bottom:3px">
-      <div style="flex:1">
-        <div style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
-          <div></div>
-          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#EAF3DE;color:#27500A;font-size:11px;font-weight:600;line-height:1.3">纖細型<br><span style="font-weight:400">受體少</span></div>
-          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#E6F1FB;color:#0C447C;font-size:11px;font-weight:600;line-height:1.3">中間型<br><span style="font-weight:400">受體中</span></div>
-          <div style="text-align:center;padding:5px 2px;border-radius:8px;background:#FAEEDA;color:#633806;font-size:11px;font-weight:600;line-height:1.3">囤積型<br><span style="font-weight:400">受體多</span></div>
-        </div>
-
-        <div id="m-row-0" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#E1F5EE;font-size:11px;font-weight:600;color:#085041;line-height:1.3">阻抗低<span style="font-weight:400;color:#0F6E56">健康</span></div>
-          <div class="m-cell" data-r="0" data-c="0" onclick="selCell(0,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:2px solid #1D9E75;background:#EAF3DE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#27500A;line-height:1.3">自然燃脂型</div><div style="font-size:11px;color:#3B6D11;opacity:.85">天生優勢</div><div style="position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#1D9E75"></div></div>
-          <div class="m-cell" data-r="0" data-c="1" onclick="selCell(0,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #9FE1CB;background:#E1F5EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#085041;line-height:1.3">活躍均衡型</div><div style="font-size:11px;color:#0F6E56;opacity:.85">最理想</div></div>
-          <div class="m-cell" data-r="0" data-c="2" onclick="selCell(0,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #C0DD97;background:#EAF3DE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#27500A;line-height:1.3">肌肉爆發型</div><div style="font-size:11px;color:#3B6D11;opacity:.85">需控脂</div></div>
-        </div>
-
-        <div id="m-row-1" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FAEEDA;font-size:11px;font-weight:600;color:#633806;line-height:1.3">需注意<span style="font-weight:400;color:#854F0B">警戒</span></div>
-          <div class="m-cell" data-r="1" data-c="0" onclick="selCell(1,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#633806;line-height:1.3">隱性警戒型</div><div style="font-size:11px;color:#854F0B;opacity:.85">外表正常</div></div>
-          <div class="m-cell" data-r="1" data-c="1" onclick="selCell(1,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#633806;line-height:1.3">代謝轉折型</div><div style="font-size:11px;color:#854F0B;opacity:.85">黃金時機</div></div>
-          <div class="m-cell" data-r="1" data-c="2" onclick="selCell(1,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #FAC775;background:#FFF8F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#633806;line-height:1.3">囤積前期型</div><div style="font-size:11px;color:#854F0B;opacity:.85">及早介入</div></div>
-        </div>
-
-        <div id="m-row-2" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px;margin-bottom:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FAECE7;font-size:11px;font-weight:600;color:#712B13;line-height:1.3">阻抗中<span style="font-weight:400;color:#993C1D">警戒</span></div>
-          <div class="m-cell" data-r="2" data-c="0" onclick="selCell(2,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#712B13;line-height:1.3">疲勞纖細型</div><div style="font-size:11px;color:#993C1D;opacity:.85">勿再節食</div></div>
-          <div class="m-cell" data-r="2" data-c="1" onclick="selCell(2,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#712B13;line-height:1.3">標準阻抗型</div><div style="font-size:11px;color:#993C1D;opacity:.85">最常見</div></div>
-          <div class="m-cell" data-r="2" data-c="2" onclick="selCell(2,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F5C4B3;background:#FEF2EE;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#712B13;line-height:1.3">脂肌並存型</div><div style="font-size:11px;color:#993C1D;opacity:.85">先減脂</div></div>
-        </div>
-
-        <div id="m-row-3" style="display:grid;grid-template-columns:55px repeat(3,1fr);gap:3px">
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px 2px;border-radius:8px;background:#FCEBEB;font-size:11px;font-weight:600;color:#791F1F;line-height:1.3">阻抗高<span style="font-weight:400;color:#A32D2D">建議就醫評估</span></div>
-          <div class="m-cell" data-r="3" data-c="0" onclick="selCell(3,0)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#791F1F;line-height:1.3">虛寒阻抗型</div><div style="font-size:11px;color:#A32D2D;opacity:.85">泡芙人</div></div>
-          <div class="m-cell" data-r="3" data-c="1" onclick="selCell(3,1)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#791F1F;line-height:1.3">代謝症候群型</div><div style="font-size:11px;color:#A32D2D;opacity:.85">積極介入</div></div>
-          <div class="m-cell" data-r="3" data-c="2" onclick="selCell(3,2)" style="border-radius:10px;padding:7px 4px;cursor:pointer;border:1.5px solid #F7C1C1;background:#FFF0F0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;position:relative"><div style="font-size:12px;font-weight:600;color:#791F1F;line-height:1.3">重度囤積型</div><div style="font-size:11px;color:#A32D2D;opacity:.85">最緊急</div></div>
-        </div>
-      </div>
-
-      <div style="width:50px;flex-shrink:0;margin-left:3px;display:flex;flex-direction:column;gap:3px">
-        <div style="height:30px"></div>
-        <div style="background:#E1F5EE;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
-          <div style="font-size:14px">✅</div>
-          <div style="font-size:11px;font-weight:600;color:#085041">已達標</div>
-          <div style="font-size:8px;color:#085041;opacity:.75;line-height:1.3">維持即可</div>
-        </div>
-        <div style="background:#FFF8F0;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
-          <div style="font-size:14px">⚡</div>
-          <div style="font-size:11px;font-weight:600;color:#633806">1-3月</div>
-          <div style="font-size:8px;color:#633806;opacity:.75;line-height:1.3">開始陪跑</div>
-        </div>
-        <div style="background:#FEF2EE;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
-          <div style="font-size:14px">🕐</div>
-          <div style="font-size:11px;font-weight:600;color:#712B13">3-6月</div>
-          <div style="font-size:8px;color:#712B13;opacity:.75;line-height:1.3">建議陪跑</div>
-        </div>
-        <div style="background:#FFF0F0;border-radius:8px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:64px;gap:2px">
-          <div style="font-size:14px">🐌</div>
-          <div style="font-size:11px;font-weight:600;color:#791F1F">6-12月</div>
-          <div style="font-size:8px;color:#791F1F;opacity:.75;line-height:1.3">盡快陪跑</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
-      <div style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0"></div>
-      <div style="font-size:12px;color:var(--text3)">綠點 = 你目前的位置</div>
-    </div>
-
-    <div id="m-detail" style="margin-top:10px;background:var(--card);border-radius:14px;padding:12px 13px;border:0.5px solid var(--border)">
-      <div id="m-tag" style="display:inline-block;font-size:12px;padding:3px 9px;border-radius:20px;margin-bottom:5px;font-weight:500;background:#E1F5EE;color:#085041">阻抗低・纖細型</div>
-      <div id="m-name" style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">自然燃脂型</div>
-      <div id="m-desc" style="font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:9px">天生胰島素受體少，不易囤脂也不易長肌肉。目前代謝健康，這是天生的優勢。維持粒腺體健康之旅即可，若想增肌需要有耐心。</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div style="font-size:12px;color:var(--text2)">天生體質<br><span id="m-type" style="color:var(--text);font-weight:600">纖細型</span></div>
-        <div style="font-size:12px;color:var(--text2)">阻抗程度<br><span id="m-level" style="color:var(--text);font-weight:600">低（健康）</span></div>
-        <div style="font-size:12px;color:var(--text2)">常見原因<br><span id="m-cause" style="color:var(--text);font-weight:600">天生體質優勢</span></div>
-        <div style="font-size:12px;color:var(--text2)">陪跑重點<br><span id="m-focus" style="color:var(--text);font-weight:600">維持粒腺體、可討論增肌</span></div>
-      </div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.4">改善所需時間為積極執行的參考預估，實際因人而異</div>
+    <!-- 2026-08-19創始人更正：這裡原本是寫死的假資料(IRCT_MATRIX_VALUES固定值)且每個格子可以自由點擊改變「目前位置」，
+         等於客人可以自己決定自己是哪一型，形同虛設。移除這段靜態markup，改由showMatrixTab()抓真實IRCT數值後
+         由renderMatrix()動態產生（見下方script），且格子點擊只會顯示說明、不會再改變「目前位置」的判定 -->
+    <div style="font-size:11px;color:var(--text3);text-align:center;padding:30px 10px">載入中...</div>
   </div>
 </div>
 
@@ -1440,7 +1360,9 @@ window.openHealthForm = function() {
             <div style="font-size:13px;font-weight:700;color:var(--g3)">IRCT-t2・已有慢性病用藥</div>
             <div style="font-size:13px;font-weight:700;color:var(--g3)" id="bk-price-t2">NT$6,800</div>
           </div>
-          <div style="font-size:11px;color:var(--g3);line-height:1.6">適合：已患有慢性病且正在用藥者（心臟病、高血壓、糖尿病、腎臟病等各種代謝疾病）<br>比 t1 多驗 sdLDL（緻密低密度脂蛋白膽固醇）與同半胱胺酸兩項心血管風險指標</div>
+          <div style="font-size:11px;color:var(--g3);line-height:1.6">適合：已患有慢性病且正在用藥者（心臟病、高血壓、糖尿病、腎臟病等各種代謝疾病）<br>
+          <!-- 2026-08-19創始人指示新增：想瞭解自己心血管發炎因子的人群，也歡迎測t2，用鼓勵、邀請的語氣 -->
+          也適合：對自己的心血管發炎因子有興趣、想多瞭解身體狀況的朋友，歡迎透過 t2 一起認識自己！<br>比 t1 多驗 sdLDL（緻密低密度脂蛋白膽固醇）與同半胱胺酸兩項心血管風險指標</div>
           <div onclick="event.stopPropagation();toggleTip('irct-full-t2')" style="font-size:12px;color:var(--g3);text-decoration:underline;cursor:pointer;margin-top:6px">查看完整檢測項目 ▾</div>
           <div id="irct-full-t2" style="display:none;background:#fff;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:9.5px;color:var(--g3);line-height:1.7">
             <b>抽血：</b>空腹醣化血色素、三酸甘油脂、膽固醇、高密度膽固醇、低密度膽固醇、<u>sdLDL</u>、肌酸酐、尿酸、GOT、GPT、腎絲球過濾率eGFR、<u>同半胱胺酸</u>、空腹及飯後1/2/3小時血糖、空腹及飯後1/2/3小時胰島素、空腹血酮<br>
@@ -1675,66 +1597,10 @@ window.openHealthForm = function() {
       <div id="jn-timeline"><div style="font-size:11px;color:var(--text3);padding:8px 0">載入中…</div></div>
     </div>
 
-    <!-- 分享按鈕 -->
-    <button onclick="openShareCard()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px">
-      <i class="ti ti-share" style="font-size:16px"></i>
-      分享我的粒腺體健康旅程
-    </button>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;line-height:1.6">分享你的旅程，讓更多人看見粒腺體健康之旅的力量</div>
+    <!-- 2026-08-19創始人指示移除：客人不應該有分享圖卡（分享我的粒腺體健康旅程按鈕+整個分享卡片頁 p-sharecard）
+         這個功能——創始人明確指示：「我覺得不要讓客人分享，因為這屬於隱私」。
+         下方原本的分享按鈕、以及緊接著的「分享卡片頁」整個頁面區塊已經移除，客人端不再有任何分享圖卡的入口。 -->
 
-  </div>
-</div>
-
-<!-- ══ 分享卡片頁 ══ -->
-<div class="page" id="p-sharecard">
-  <div style="padding:14px 16px 24px">
-    <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
-      <button onclick="goPage('journey','粒腺體健康旅程')" style="background:none;border:1px solid var(--border2);border-radius:9px;padding:7px 11px;font-size:12px;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-left" style="font-size:14px"></i>返回</button>
-      <div style="font-size:14px;font-weight:700;color:var(--text)">分享圖卡</div>
-    </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:5px"><i class="ti ti-eye" style="font-size:13px"></i>對方收到後看到的樣子</div>
-
-    <!-- 分享卡片 -->
-    <div id="the-share-card" style="border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#085041,#1D9E75);padding:2px;margin-bottom:14px">
-      <div style="border-radius:18px;overflow:hidden;background:#fff">
-        <!-- 卡片頂部 -->
-        <div style="background:linear-gradient(160deg,#085041,#1D9E75);padding:20px 18px 16px;color:#fff;position:relative">
-          <div style="position:absolute;right:-10px;top:-10px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06)"></div>
-          <div style="position:absolute;right:10px;bottom:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.04)"></div>
-          <div style="font-size:11px;opacity:.7;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:6px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center"><i class="ti ti-leaf" style="font-size:11px"></i></div>元代謝健康管理</div>
-          <div style="font-size:13px;opacity:.75;margin-bottom:3px" id="sc-name-line">你的</div>
-          <div style="font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.2">粒腺體健康旅程</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap" id="sc-day-tags">
-            <div style="background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-calendar" style="font-size:12px"></i>第 <span id="sc-daycount">–</span> 天</div>
-            <div style="background:rgba(239,159,39,.35);border:1px solid rgba(239,159,39,.5);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-flame" style="font-size:12px"></i>連續打卡 <span id="sc-streak">–</span> 天</div>
-          </div>
-        </div>
-        <!-- 三個主要數字 -->
-        <div id="sc-main-numbers" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)"></div>
-        <!-- 改善數字 -->
-        <div style="padding:14px 16px">
-          <div style="font-size:12px;font-weight:600;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">代謝指標改善</div>
-          <div id="sc-metric-list"></div>
-        </div>
-        <!-- 旅程階段：只在秘書已經人工確認過階段時才顯示，沒設定就完全不顯示這個區塊(不猜測) -->
-        <div id="sc-stage-row" style="display:none;background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px">
-          <div style="font-size:12px;color:#6B7280;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px">目前階段</div>
-          <div id="sc-stage-text" style="font-size:12px;font-weight:700;color:#1D9E75"></div>
-        </div>
-        <!-- 卡片底部 -->
-        <div style="background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:12px;color:#6B7280">#粒腺體健康 #粒腺體飲食</div>
-          <div style="font-size:11px;color:#1D9E75;font-weight:600">isometabolix.com</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 操作按鈕 -->
-    <div style="display:flex;gap:9px;margin-bottom:9px">
-      <button onclick="doSaveImg()" style="flex:1;background:var(--g);color:#fff;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-download" style="font-size:15px"></i>儲存圖片</button>
-      <button onclick="doCopyText()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-copy" style="font-size:15px"></i>複製文字</button>
-    </div>
-    <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.6">儲存圖片後，可以直接傳到 LINE、IG、FB 或任何社群</div>
   </div>
 </div>
 
@@ -2279,7 +2145,7 @@ function goPage(id,title){
   if(id === 'journey' && typeof loadGardenHealth === 'function') loadGardenHealth();
   if(id === 'journey' && typeof loadClientStage === 'function') loadClientStage();
   if(id === 'journey' && typeof loadMyRewards === 'function') loadMyRewards();
-  if(id === 'sharecard' && typeof loadShareCard === 'function') loadShareCard();
+  // 2026-08-19創始人指示移除：sharecard頁已移除（隱私考量），不再需要loadShareCard()派發
   if(id === 'home' && typeof loadReportStatus==='function') loadReportStatus();
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
   if(id === 'trend' && typeof loadMySweetSpot==='function') loadMySweetSpot();
@@ -3278,7 +3144,12 @@ function loadIRCTOverview(){
         + '<div style="font-size:14.5px;line-height:2;color:'+abcT.text+'">'+escHtml(d.insulinConstitution.note)+'</div>'
         + '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed '+abcT.border+';font-size:12.5px;line-height:1.9;color:'+abcT.sub+'">'
         + '💡 體質是比較穩定的天生傾向，跟上面「這次檢測結果」是兩件不同的事——體質提醒你長期要留意的方向，現在狀態則是這次檢測當下的具體數字，兩者一起參考，更能完整了解自己的健康全貌。'
-        + '</div></div>';
+        + '</div>'
+        // 2026-08-19創始人總體檢時更正並移除：這裡原本會顯示「跟第一次檢測比，阻抗改善/上升了多少%」，
+        // 但這個數字只看「空腹胰島素」單一數值的變化，不是真正統整ESI/腰圍/空腹胰島素/空腹血糖等多項指標
+        // 判斷出來的阻抗改善——這個框架本身是錯的，不是措辭問題，創始人明確指示這個計算只留在後台，
+        // 不要再顯示給客人看，所以這裡不再讀取d.insulinConstitutionTrend（後端也已經不會回傳這個欄位了）
+        + '</div>';
     }
     if(d.metabolicType){
       html += '<div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:13px;padding:14px;margin-bottom:14px">'
@@ -3355,70 +3226,8 @@ function loadIRCTOverview(){
     box.innerHTML = html;
   });
 }
-// 分享圖卡：這個內容會被客人分享給第三方看，絕對不能是假資料——
-// 之前這裡整組數字(體重-2.4kg/腰圍-4cm/TG142→68等)全部寫死demo值，等於讓客人把假的健康成效分享出去
-var SHARE_CARD_METRICS = [
-  {label:'糖化血色素', icon:'ti-droplet', color:'#1D9E75', bg:'#E1F5EE'},
-  {label:'三酸甘油脂 TG', icon:'ti-droplet', color:'#1D9E75', bg:'#E1F5EE'},
-  {label:'高密度膽固醇 HDL', icon:'ti-heart', color:'#378ADD', bg:'#E6F1FB'},
-  {label:'空腹血糖', icon:'ti-activity', color:'#EF9F27', bg:'#FAEEDA'},
-  {label:'麩丙酮酸轉胺脢 GPT', icon:'ti-pill', color:'#534AB7', bg:'#EEEDFE'}
-];
-function loadShareCard(){
-  var nameEl = document.getElementById('sc-name-line');
-  if(nameEl) nameEl.textContent = (CLIENT_NAME||'你') + '的';
-  callAPI({action:'getClientStage', clientId:CLIENT_ID}, function(d){
-    var row = document.getElementById('sc-stage-row'), txt = document.getElementById('sc-stage-text');
-    if(!row || !txt) return;
-    if(d && d.status === 'ok' && d.stage){ row.style.display = ''; txt.textContent = d.stage; }
-  });
-  callAPI({action:'getMyStats', clientId:CLIENT_ID}, function(d){
-    if(d && d.status === 'ok'){
-      var dc = document.getElementById('sc-daycount'); if(dc) dc.textContent = d.dayCount || '–';
-      var sk = document.getElementById('sc-streak'); if(sk) sk.textContent = (d.streak !== undefined && d.streak !== null) ? d.streak : '–';
-    }
-  });
-  callAPI({action:'getIRCTFullTable', clientId:CLIENT_ID}, function(d){
-    var mainBox = document.getElementById('sc-main-numbers');
-    var metricBox = document.getElementById('sc-metric-list');
-    if(!mainBox || !metricBox) return;
-    if(!d || d.status !== 'ok' || !d.found){
-      mainBox.innerHTML = '<div style="grid-column:1/-1;background:#fff;padding:16px;text-align:center;font-size:12px;color:#6B7280">還沒有 IRCT 檢測資料，先去做第一次檢測，之後這裡就能秀出你的進步 🌱</div>';
-      metricBox.innerHTML = '';
-      return;
-    }
-    function findRow(label){ return d.rows.find(function(r){ return r.label === label; }); }
-    function firstLast(row){
-      if(!row) return null;
-      var vals = row.values.filter(function(v){ return v.value !== '' && v.value !== undefined; });
-      if(vals.length === 0) return null;
-      return { first: vals[0].value, last: vals[vals.length-1].value, hasChange: vals.length > 1 };
-    }
-    // 三個主要數字：體重/腰圍變化 + 最新HOMA-IR
-    var wRow = firstLast(findRow('體重')), waRow = firstLast(findRow('腰圍')), hRow = findRow('HOMA-IR');
-    var hLast = hRow ? hRow.values.filter(function(v){return v.value!=='';}).slice(-1)[0] : null;
-    var mainHtml = '';
-    mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (wRow && wRow.hasChange ?
-      '<div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+(wRow.last-wRow.first>0?'+':'')+Math.round((wRow.last-wRow.first)*10)/10+'<span style="font-size:13px">kg</span></div>' :
-      '<div style="font-size:13px;color:#6B7280;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:12px;color:#4B5563;line-height:1.3">體重<br>變化</div></div>';
-    mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (waRow && waRow.hasChange ?
-      '<div style="font-size:19px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+(waRow.last-waRow.first>0?'+':'')+Math.round((waRow.last-waRow.first)*10)/10+'<span style="font-size:13px">cm</span></div>' :
-      '<div style="font-size:13px;color:#6B7280;padding:8px 0">尚無比較資料</div>') + '<div style="font-size:12px;color:#4B5563;line-height:1.3">腰圍<br>變化</div></div>';
-    mainHtml += '<div style="background:#fff;padding:13px 9px;text-align:center">' + (hLast ?
-      '<div style="font-size:16px;font-weight:700;color:#085041;line-height:1;margin-bottom:4px">'+escHtml(hLast.value)+'</div>' :
-      '<div style="font-size:13px;color:#6B7280;padding:8px 0">尚無資料</div>') + '<div style="font-size:12px;color:#4B5563;line-height:1.3">HOMA-IR<br>胰島素阻抗</div></div>';
-    mainBox.innerHTML = mainHtml;
-    // 代謝指標改善清單：只顯示真的有兩次以上資料可以比較的項目
-    var metricHtml = '';
-    SHARE_CARD_METRICS.forEach(function(m){
-      var fl = firstLast(findRow(m.label));
-      if(!fl || !fl.hasChange) return;
-      var arrow = fl.last < fl.first ? '↓' : (fl.last > fl.first ? '↑' : '');
-      metricHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><div style="width:26px;height:26px;border-radius:7px;background:'+m.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti '+m.icon+'" style="font-size:13px;color:'+m.color+'"></i></div><div style="font-size:12px;color:#374151;flex:1">'+escHtml(m.label)+'</div><div style="font-size:12px;font-weight:600;color:'+m.color+'">'+escHtml(fl.first)+' → '+escHtml(fl.last)+' '+arrow+'</div></div>';
-    });
-    metricBox.innerHTML = metricHtml || '<div style="font-size:12px;color:#6B7280;text-align:center;padding:8px 0">還需要至少兩次檢測才能看到變化趨勢</div>';
-  });
-}
+// 2026-08-19創始人指示移除：SHARE_CARD_METRICS/loadShareCard()原本用來組出分享圖卡的內容，
+// 創始人已明確指示客人端不應該有分享功能（隱私考量），連同分享頁一起移除，這裡不再需要這組函式。
 // 旅程階段：改用秘書手動確認的真實階段(getClientStage)，不是原本寫死、也不是自動猜測的假階段——
 // 6個階段的轉換點大多沒有明確數字門檻，貿然自動判斷風險比不判斷還高，所以完全交給秘書人工確認
 var KETO_STAGE_DESC = {
@@ -3458,17 +3267,8 @@ function itcTab(tab,id){
   });
   var el=document.getElementById(id);if(el)el.style.display='block';
 }
-function openShareCard(){
-  goPage('sharecard','分享圖卡');
-}
-function doSaveImg(){
-  toast('✅ 截圖已儲存！可以直接傳到 LINE 或 IG 😊');
-}
-function doCopyText(){
-  var text = _shareText || '🌱 我正在元代謝找回身體的原廠設定！\n\n#元代謝 #粒腺體健康 #代謝覺醒\nwww.isometabolix.com';
-  if(navigator.clipboard){navigator.clipboard.writeText(text);}
-  toast('✅ 文字已複製！可以貼到 LINE 或 IG 分享 😊');
-}
+// 2026-08-19創始人指示移除：openShareCard()/doSaveImg()/doCopyText()原本是分享圖卡功能的操作函式，
+// 隨分享頁一起移除（隱私考量，客人端不應該有分享功能）。
 function toast(msg){
   var t=document.createElement('div');
   // 2026-08-12修正：底部導覽列改成真的position:fixed後會固定佔住畫面最下方，
@@ -3948,8 +3748,10 @@ function logUnknownFood(foodName) {
 
 // ── 食材推薦 ──
 function submitFoodRecommend(name, category, desc, reason) {
+  // 2026-08-19創始人總體檢時發現：這個動作後端原本沒有驗證身分，現在後端把它納入CLIENT_ONLY清單、
+  // 要用clientId+clientToken驗證，這裡補上clientId(submitterId沿用不動，是給食材推薦記錄用的欄位)
   callAPI({
-    action: 'addFoodRecommend', submitterId: CLIENT_ID,
+    action: 'addFoodRecommend', clientId: CLIENT_ID, submitterId: CLIENT_ID,
     submitterType: '客人', name: name, category: category,
     desc: desc, reason: reason
   }, function(d) {
@@ -4227,38 +4029,48 @@ var MATRIX_DATA = [
   ],
   [
     {name:'隱性警戒型',tag:'需注意・纖細',tagBg:'#FAEEDA',tagColor:'#633806',
-     desc:'外表正常纖細，但ESI和血糖數值已開始偏移，最容易被忽略。第一步先開始粒腺體健康之旅，常見原因是長期壓力或睡眠不足，及早介入效果最好，輕度運動即可。',
+     desc:'外表看起來正常纖細，但幾項代謝指標已經悄悄開始偏移，很容易被自己和身邊的人忽略，其實這正是最值得溫柔留意自己的時候。第一步先開始粒腺體健康之旅，常見原因是長期壓力或睡眠不足，現在及早開始效果最好，輕度運動即可，不用給自己太大壓力。',
      type:'纖細型',level:'需注意',cause:'長期壓力或睡眠不足',focus:'開始粒腺體健康之旅、壓力管理和睡眠優先、輕度運動即可'},
     {name:'代謝轉折型',tag:'需注意・中間',tagBg:'#FAEEDA',tagColor:'#633806',
-     desc:'正站在健康和胰島素阻抗的轉折點，這是最佳介入時機。1-3個月內積極執行粒腺體健康之旅，搭配中低強度抗阻力運動，可以快速回到健康區。不要拖！',
-     type:'中間型',level:'需注意',cause:'飲食不規律或壓力累積',focus:'立即開始粒腺體健康之旅、減少精緻碳水、中低強度抗阻力運動'},
+     desc:'正站在健康和胰島素阻抗的轉折點，這其實是最好的介入時機。把握接下來1-3個月積極執行粒腺體健康之旅，搭配中低強度抗阻力運動，很有機會快速回到健康區，越早開始效果越好。',
+     type:'中間型',level:'需注意',cause:'飲食不規律或壓力累積',focus:'盡快開始粒腺體健康之旅、減少精緻碳水、中低強度抗阻力運動'},
     {name:'囤積前期型',tag:'需注意・囤積',tagBg:'#FAEEDA',tagColor:'#633806',
-     desc:'受體多加上敏感度開始下降，囤脂趨勢已經明顯。控碳水飲食是首要任務，及早介入防止惡化，有運動習慣者降低強度即可。',
+     desc:'天生受體較多，加上敏感度開始下降，囤脂的趨勢已經比較明顯了。控碳水飲食是現階段的首要任務，及早開始調整效果最好，有運動習慣者降低強度即可。',
      type:'囤積型',level:'需注意',cause:'長期高碳飲食影響',focus:'控碳水飲食為主、無運動者從輕走路開始、有運動者降低強度'},
   ],
   [
     {name:'疲勞纖細型',tag:'阻抗中・纖細',tagBg:'#FAECE7',tagColor:'#712B13',
-     desc:'外表瘦但有明顯胰島素阻抗，俗稱「隱性肥胖」。常感疲勞無力，容易被醫師忽略。絕對不要再節食！多次減肥或長期壓力造成，粒腺體健康之旅要循序漸進，搭配輕度抗阻力恢復肌肉量。',
-     type:'纖細型',level:'中（警戒）',cause:'多次減肥史或長期慢性壓力',focus:'絕勿再節食、壓力和睡眠管理優先、輕度抗阻力恢復肌肉量'},
+     desc:'外表看起來瘦，但其實有明顯的胰島素阻抗，也就是「委屈的瘦胖」——辛苦維持著纖細的外表，代謝其實承受了不少壓力。常常感到疲勞無力，這種狀態也很容易被忽略，其實很需要被好好理解。請不要再節食了，這樣反而會讓身體更辛苦；通常是多次減肥史或長期壓力累積造成的，粒腺體健康之旅要循序漸進，搭配輕度抗阻力運動慢慢恢復肌肉量。',
+     type:'纖細型',level:'中（提醒關注）',cause:'多次減肥史或長期慢性壓力',focus:'不再節食、壓力和睡眠管理優先、輕度抗阻力慢慢恢復肌肉量'},
     {name:'標準阻抗型',tag:'阻抗中・中間',tagBg:'#FAECE7',tagColor:'#712B13',
-     desc:'最常見的體質，有明顯胰島素阻抗。第一步先啟動粒腺體健康之旅，斷碳燃脂為核心。有運動習慣者：搭配中低強度抗阻力即可。無運動習慣者：從彈力帶、深蹲開始。',
-     type:'中間型',level:'中（警戒）',cause:'長期高碳飲食影響',focus:'嚴格執行粒腺體健康之旅、3-6個月積極陪跑、搭配中低強度抗阻力運動'},
+     desc:'是很常見的體質，有明顯的胰島素阻抗。第一步先啟動粒腺體健康之旅，斷碳燃脂為核心。有運動習慣者：搭配中低強度抗阻力即可。無運動習慣者：從彈力帶、深蹲開始就好。',
+     type:'中間型',level:'中（提醒關注）',cause:'長期高碳飲食影響',focus:'認真執行粒腺體健康之旅、3-6個月積極陪跑、搭配中低強度抗阻力運動'},
     {name:'脂肌並存型',tag:'阻抗中・囤積',tagBg:'#FAECE7',tagColor:'#712B13',
-     desc:'受體多，增肌和囤脂同時發生。控碳水飲食才是主軸，粒腺體健康之旅優先啟動。有運動習慣者：外表結實但體脂率偏高，訓練強度降低即可，不需要停止運動。無運動習慣者：先控脂，從輕度運動開始。',
-     type:'囤積型',level:'中（警戒）',cause:'受體多+阻抗中期',focus:'控碳水飲食為主軸、先減脂再談增肌、有運動者降低強度勿停'},
+     desc:'受體較多，增肌和囤脂同時發生。控碳水飲食才是主軸，粒腺體健康之旅優先啟動。有運動習慣者：外表結實但體脂率偏高，訓練強度降低即可，不需要停止運動。無運動習慣者：先控脂，從輕度運動開始。',
+     type:'囤積型',level:'中（提醒關注）',cause:'受體多+阻抗中期',focus:'控碳水飲食為主軸、先減脂再談增肌、有運動者降低強度勿停'},
   ],
   [
     {name:'虛寒阻抗型',tag:'阻抗高・纖細',tagBg:'#FCEBEB',tagColor:'#791F1F',
-     desc:'外表瘦但內臟脂肪高，俗稱「泡芙人」。最難調整也最容易被忽略。絕對不要再節食！粒腺體健康之旅循序漸進，壓力管理是第一優先，從非常輕度運動開始（散步、瑜珈）。',
-     type:'纖細型',level:'高（建議就醫評估）',cause:'多次減肥+長期慢性壓力',focus:'粒腺體健康之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
-    {name:'代謝症候群型',tag:'阻抗高・中間',tagBg:'#FCEBEB',tagColor:'#791F1F',
-     desc:'明顯疲勞、水腫，血糖血脂異常。嚴格粒腺體健康之旅搭配電解質補充非常重要。有運動習慣者：先大幅降低強度，等血糖穩定再慢慢恢復。無運動習慣者：散步就好，不急著健身。',
+     desc:'外表看起來瘦，但內臟脂肪偏高，也就是俗稱的「泡芙人」體質。這個類型需要多一點耐心慢慢調整，也常常被忽略，其實特別需要溫柔對待自己。請不要再節食了，粒腺體健康之旅要循序漸進，壓力管理是第一優先，從非常輕度的運動開始（散步、瑜珈）就好。',
+     type:'纖細型',level:'高（建議就醫評估）',cause:'多次減肥+長期慢性壓力',focus:'粒腺體健康之旅循序漸進、不再節食、壓力管理第一優先、超輕度運動開始'},
+    // 2026-08-19創始人總體檢時發現：這兩格原本的name/desc分別寫出「代謝症候群」（西醫診斷病名，2026-08-19
+    // 已更名為中性的「代謝失衡型」）與「糖尿病高風險」（直接對客人下診斷語氣，改成中性描述），違反客人
+    // 前台不能出現具體診斷病名/病因推測的規則
+    {name:'代謝失衡型',tag:'阻抗高・中間',tagBg:'#FCEBEB',tagColor:'#791F1F',
+     desc:'比較明顯的疲勞、水腫，血糖血脂數值也需要留意。嚴格執行粒腺體健康之旅搭配電解質補充非常重要，好好調整是可以回穩的。有運動習慣者：先大幅降低強度，等血糖穩定再慢慢恢復。無運動習慣者：散步就好，不急著健身。',
      type:'中間型',level:'高（建議就醫評估）',cause:'長期代謝失調累積',focus:'嚴格粒腺體健康之旅+電解質補充、密切追蹤每月回診、大幅降低運動強度'},
     {name:'重度囤積型',tag:'阻抗高・囤積',tagBg:'#FCEBEB',tagColor:'#791F1F',
-     desc:'糖尿病高風險，心血管疾病風險高，最需要緊急介入。嚴格粒腺體健康之旅為唯一主軸，需和醫師密切配合。有運動習慣者：大幅降低強度，高強度運動讓血糖更不穩定。無運動習慣者：飲食穩定後再加入輕度運動。',
+     desc:'代謝失衡與心血管方面的風險都比較高，這個階段特別需要積極、優先地開始調整，越快開始越好。嚴格執行粒腺體健康之旅是這個階段的核心，也需要和醫師密切配合、一起把關，不用擔心，穩扎穩打調整回來。有運動習慣者：先大幅降低強度，高強度運動容易讓血糖更不穩定。無運動習慣者：先讓飲食穩定下來，再慢慢加入輕度運動。',
      type:'囤積型',level:'高（建議就醫評估）',cause:'受體多+嚴重胰島素阻抗',focus:'嚴格粒腺體健康之旅為唯一主軸、最密集陪跑頻率、大幅降低或暫緩運動'},
   ]
 ];
+// 2026-08-19創始人指示：矩陣格子文字全面做語氣溫馨化調整——
+// 1)「俗稱「隱性肥胖」」改為「委屈的瘦胖」（創始人明確指定的新名稱）
+// 2) 移除疲勞纖細型desc中原本出現的「ESI」檢驗項目名稱（隱性警戒型），前台不該出現具體檢驗項目名稱
+// 3) 全面收掉命令/警告式語氣：「絕對不要再節食！」「不要拖！」「最容易被忽略」「最難調整」「最需要緊急介入」
+//    「防止惡化」等，改用鼓勵、體諒、溫柔留意的說法，但保留原本的醫療建議實質內容不變
+// 4) level欄位「中（警戒）」改為「中（提醒關注）」，因為level會直接顯示在客人看到的矩陣詳情彈窗（阻抗程度：xxx），
+//    「警戒」語氣偏向命令/警告，不符合創始人「要體恤客人、不要得罪客人」的指示
 
 var MATRIX_SPEED=[
   {icon:'✅',time:'已達標',label:'維持即可',bg:'#E1F5EE',color:'#085041'},
@@ -4266,11 +4078,15 @@ var MATRIX_SPEED=[
   {icon:'🕐',time:'3-6 個月',label:'建議陪跑計畫',bg:'#FEF2EE',color:'#712B13'},
   {icon:'🐌',time:'6-12 個月',label:'需盡快開始陪跑',bg:'#FFF0F0',color:'#791F1F'},
 ];
+// 2026-08-19創始人總體檢時發現：這裡原本的range文字直接寫出「ESI<1.3」「HbA1c>6.4%」（等於糖尿病診斷線）
+// 這種具體檢驗項目名稱＋精確數值門檻給客人看，客人一點開矩陣分頁就會看到，違反客人前台不能出現具體
+// 檢驗項目/門檻的規則，改成中性描述。（矩陣列本身該落在哪一列，目前仍是前端用寫死門檻計算，這個較大的
+// 架構問題留待創始人確認方向後再處理，這裡先只修文字部分）
 var MATRIX_ROW_LABELS=[
-  {name:'阻抗低',range:'ESI<1.3 / HbA1c<5.7% / 血糖<90',bg:'#E1F5EE',color:'#085041'},
-  {name:'需注意',range:'ESI 1.3-1.5 / HbA1c 5.7-6.0% / 血糖 90-100',bg:'#FAEEDA',color:'#633806'},
-  {name:'阻抗中',range:'ESI 1.5-2.0 / HbA1c 6.0-6.4% / 血糖 100-110',bg:'#FAECE7',color:'#712B13'},
-  {name:'阻抗高',range:'ESI>2.0 / HbA1c>6.4% / 血糖>110',bg:'#FCEBEB',color:'#791F1F'},
+  {name:'阻抗低',range:'多項指標都在理想範圍',bg:'#E1F5EE',color:'#085041'},
+  {name:'需注意',range:'部分指標開始偏離理想，適合提前留意',bg:'#FAEEDA',color:'#633806'},
+  {name:'阻抗中',range:'多項指標已偏離理想範圍',bg:'#FAECE7',color:'#712B13'},
+  {name:'阻抗高',range:'多項指標明顯偏離理想範圍，建議積極介入',bg:'#FCEBEB',color:'#791F1F'},
 ];
 var MATRIX_COL_BG=['#EAF3DE','#E1F5EE','#FFF8F0'];
 var MATRIX_ROW_CELL_BG=['#EAF3DE','#FFF8F0','#FEF2EE','#FFF0F0'];
@@ -4280,17 +4096,18 @@ var MATRIX_COL_SUB=['受體較少','受體中等','受體較多'];
 var MATRIX_COL_COLORS=['#27500A','#0C447C','#633806'];
 </script>
 <script>
-// 目前客戶的IRCT數值（由報告頁自動帶入）
-var IRCT_MATRIX_VALUES = {esi:1.0, hba1c:5.4, glucose:84, bodyType:1}
+// bodyType（受體體質・橫向分類）合併秘書標記/客人自填/系統依第一次檢測數據推估三層判斷（見後端resolveBodyType_）。
+// 2026-08-19創始人總體檢時更正（重大架構調整）：直向「阻抗程度」原本由calcMatrixRow()在前端自己用
+// ESI/HbA1c/血糖三個門檻現算，這套門檻是我方臨時寫的草稿，跟後端真正的判定公式(calcInsulinResistanceScore_/
+// IRR_SCORE_ITEMS，統合ESI/腰圍/空腹胰島素/空腹血糖/三酸甘油脂/HDL等多項指標)完全對不起來，兩邊可能給出
+//不一樣的結論。創始人明確指示：「應該匯總數據和你的分析後，讓後台講解醫師來最終下判斷，更安全」——
+// 前端不再自己算這個分類，改成完全依賴後端回傳的matrixRow（見getIRCTAnalysis）：
+//   - 醫師已確認過 → matrixRow.row/label是醫師確認的最終結果
+//   - 醫師還沒確認過 → matrixRow.row=null，前台顯示「等候醫師確認」的中性狀態，不會自己亂猜一個分類給客人看
+// calcMatrixRow()這個舊的前端計算函式已經整個移除，esi/hba1c/glucose這幾個原始數值不再需要抓來自己算，
+// showMatrixTab()也拿掉了對應的getIRCTFullTable呼叫（見下方）。
+var IRCT_MATRIX_VALUES = {bodyType:1, row:null, rowPending:true}
 var IRCT_LAB_VALUES = {homocysteine:null, sdldl:null}; // 由後台秘書填入IRCT數值時同步更新;
-
-function calcMatrixRow(esi,hba1c,glucose){
-  var s=[0,0,0,0];
-  if(!isNaN(esi)){if(esi<1.3)s[0]++;else if(esi<1.5)s[1]++;else if(esi<2.0)s[2]++;else s[3]++;}
-  if(!isNaN(hba1c)){if(hba1c<5.7)s[0]++;else if(hba1c<6.0)s[1]++;else if(hba1c<6.4)s[2]++;else s[3]++;}
-  if(!isNaN(glucose)){if(glucose<90)s[0]++;else if(glucose<100)s[1]++;else if(glucose<110)s[2]++;else s[3]++;}
-  return s.indexOf(Math.max.apply(null,s));
-}
 
 function renderMatrixDetail(r,c){
   var d=MATRIX_DATA[r][c];
@@ -4309,11 +4126,17 @@ function renderMatrixDetail(r,c){
 }
 
 function renderMatrix(){
-  var row=calcMatrixRow(IRCT_MATRIX_VALUES.esi,IRCT_MATRIX_VALUES.hba1c,IRCT_MATRIX_VALUES.glucose);
+  var row=IRCT_MATRIX_VALUES.rowPending?null:IRCT_MATRIX_VALUES.row;
   var col=IRCT_MATRIX_VALUES.bodyType;
   var container=document.getElementById('matrix-container');
   if(!container)return;
-  var html='<div style="display:grid;grid-template-columns:70px repeat(3,1fr) 98px;gap:3px;font-size:12px">';
+  // 2026-08-19創始人更正：直向「阻抗程度」改成完全由後端醫師確認的分類決定（見上方IRCT_MATRIX_VALUES的說明）；
+  // 橫向「受體體質」合併秘書標記/客人自填/系統依第一次檢測數據推估三層判斷（見後端resolveBodyType_）。
+  // 格子改成只能點開看說明，不能再點擊改變「目前位置」的判定
+  var html = row===null
+    ? '<div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5">你的檢測數據已經收集完成，正由醫師統整判讀中，確認後就會在這裡顯示你的阻抗程度位置・目前可以先點格子看看各分型的說明</div>'
+    : '<div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5">阻抗程度已由醫師依你最新一次IRCT數值確認定位・點格子可查看各分型說明</div>';
+  html+='<div style="display:grid;grid-template-columns:70px repeat(3,1fr) 98px;gap:3px;font-size:12px">';
   html+='<div></div>';
   for(var c=0;c<3;c++){
     html+='<div style="text-align:center;padding:5px 3px;border-radius:8px;background:'+MATRIX_COL_BG[c]+';color:'+MATRIX_COL_COLORS[c]+';font-weight:500;line-height:1.3">'+MATRIX_COL_NAMES[c]+'<br><span style="font-size:11px;font-weight:400">'+MATRIX_COL_SUB[c]+'</span></div>';
@@ -4326,7 +4149,7 @@ function renderMatrix(){
     for(var c=0;c<3;c++){
       var d=MATRIX_DATA[r][c];
       var isActive=(r===row&&c===col);
-      html+='<div style="padding:6px 5px;border-radius:8px;cursor:pointer;transition:all .15s;border:'+(isActive?'2px':'0.5px')+' solid '+MATRIX_ROW_CELL_BORDER[r]+';background:'+MATRIX_ROW_CELL_BG[r]+';position:relative;min-height:68px;display:flex;flex-direction:column;gap:2px" onclick="selectMatrixCell('+r+','+c+')">';
+      html+='<div style="padding:6px 5px;border-radius:8px;cursor:pointer;transition:all .15s;border:'+(isActive?'2px':'0.5px')+' solid '+MATRIX_ROW_CELL_BORDER[r]+';background:'+MATRIX_ROW_CELL_BG[r]+';position:relative;min-height:68px;display:flex;flex-direction:column;gap:2px" onclick="showMatrixDetail('+r+','+c+')">';
       html+='<div style="font-size:12px;font-weight:500;color:'+rl.color+';line-height:1.3">'+d.name+'</div>';
       if(isActive)html+='<div style="position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:#1D9E75"></div>';
       html+='</div>';
@@ -4334,13 +4157,116 @@ function renderMatrix(){
     html+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 4px;border-radius:8px;background:'+sp.bg+';gap:3px;min-height:68px"><div style="font-size:14px">'+sp.icon+'</div><div style="font-size:12px;font-weight:500;color:'+sp.color+'">'+sp.time+'</div><div style="font-size:11px;opacity:.75;color:'+sp.color+'">'+sp.label+'</div></div>';
   }
   html+='</div>';
-  html+=renderMatrixDetail(row,col);
+  if(row!==null){
+    html+='<div style="display:flex;gap:8px;margin-top:6px;align-items:center"><div style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0"></div><div style="font-size:12px;color:var(--text3)">綠點 = 你目前的位置（阻抗程度）</div></div>';
+  }
+  html+=renderBodyTypePrompt(col);
+  // row為null代表醫師還沒確認阻抗程度分類，這裡顯示中性等待狀態，不呼叫renderMatrixDetail(避免用null當索引)；
+  // 客人仍然可以點格子用showMatrixDetail(r,c)看各分型說明，只是不會有「這是你的位置」的預設展開內容
+  html += row!==null ? renderMatrixDetail(row,col) :
+    '<div id="matrix-detail" style="margin-top:10px;background:var(--card);border:0.5px dashed var(--border2);border-radius:12px;padding:12px 14px;text-align:center;color:var(--text3);font-size:12px;line-height:1.6">🩺 你的阻抗程度分類正由醫師確認中，完成後會顯示在這裡<br>可以先點上面的格子看看各分型的說明</div>';
   container.innerHTML=html;
 }
 
-function selectMatrixCell(r,c){
-  IRCT_MATRIX_VALUES.bodyType=c;
+// 2026-08-19創始人指示：受體體質(橫向分類)合併秘書標記>客人自填>系統推估三層判斷——
+// 如果目前顯示的結果是「秘書/醫師標記」（source==='override'），優先度最高，客人自己填也不會改變結果，
+// 這裡就不顯示自填入口，避免讓客人以為填了會改變什麼；其餘情況（系統推估或還沒有人填過，或已經自填過想改）
+// 都給客人自己填的機會。
+// 2026-08-19當天稍晚創始人更正：不要讓客人直接選「纖細/中間/囤積」這種術語，改成問「小時候體型」+「幾歲開始
+// 發胖/變瘦」比較準；分類只依小時候的答案決定，發胖/變瘦年齡只存起來給秘書參考(創始人已確認不影響分類)。
+// _btq是這個問卷目前正在填的暫存狀態，_btqSeedFromDetail()會在資料載入完成時，如果客人之前填過，
+// 把舊答案帶回來讓客人可以直接看到/修改，而不是每次都要重填。
+var _btq = { childhoodType: null, changeDirection: null, changeAge: null };
+var BTQ_AGE_OPTIONS = ['國小前','國小-國中','高中','大學','20多歲','30多歲','40歲以上','生產後','更年期後','不確定'];
+function _btqSeedFromDetail(){
+  if(_matrixBodyTypeSource === 'selfReport' && _matrixBodyTypeDetail && _matrixBodyTypeDetail.childhoodType){
+    _btq.childhoodType = _matrixBodyTypeDetail.childhoodType;
+    _btq.changeDirection = _matrixBodyTypeDetail.changeDirection || 'none';
+    _btq.changeAge = _matrixBodyTypeDetail.changeAge || null;
+  } else {
+    _btq.childhoodType = null; _btq.changeDirection = null; _btq.changeAge = null;
+  }
+}
+function _btqChip(label, isSel, onclickExpr, extraStyle){
+  return '<div onclick="'+onclickExpr+'" style="'+(extraStyle||'flex:1;')+'text-align:center;padding:7px 4px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:500;border:'+(isSel?'2px solid #1D9E75':'0.5px solid var(--border2)')+';background:'+(isSel?'var(--g2)':'var(--bg)')+';color:'+(isSel?'#085041':'var(--text2)')+'">'+label+(isSel?' ✓':'')+'</div>';
+}
+function renderBodyTypePrompt(currentCol){
+  if(_matrixBodyTypeSource === 'override') return '';
+  var introText = _matrixBodyTypeSource === 'selfReport'
+    ? '這是你之前填寫的成長體型資料，可以隨時修改：'
+    : (_matrixBodyTypeSource === 'auto'
+        ? '目前橫向「'+MATRIX_COL_NAMES[currentCol]+'」是系統依你第一次檢測的體組成數據推估的，填一下小時候的體型可以讓判斷更準：'
+        : '橫向的「受體體質」還沒有資料可以判斷，填一下小時候的體型讓系統判斷更準：');
+  var html = '<div style="margin-top:10px;background:var(--card);border:0.5px dashed var(--border2);border-radius:12px;padding:10px 12px">';
+  html += '<div style="font-size:11.5px;color:var(--text2);line-height:1.6;margin-bottom:8px">'+introText+'</div>';
+
+  html += '<div style="font-size:11.5px;color:var(--text2);margin-bottom:5px">小時候（大概國小、國中以前）的體型比較偏向？</div>';
+  html += '<div style="display:flex;gap:6px;margin-bottom:8px">';
+  ['偏瘦','中等','偏胖','不確定'].forEach(function(v){
+    html += _btqChip(v, _btq.childhoodType===v, "btqSetChildhood('"+v+"')");
+  });
+  html += '</div>';
+
+  if(_btq.childhoodType && _btq.childhoodType!=='不確定'){
+    html += '<div style="font-size:11.5px;color:var(--text2);margin-bottom:5px">跟小時候比，現在的體型有改變嗎？（只做參考，不影響分類）</div>';
+    html += '<div style="display:flex;gap:6px;margin-bottom:8px">';
+    [['none','沒改變'],['gained','變胖了'],['lost','變瘦了'],['unsure','不確定']].forEach(function(p){
+      html += _btqChip(p[1], _btq.changeDirection===p[0], "btqSetChange('"+p[0]+"')");
+    });
+    html += '</div>';
+  }
+
+  if(_btq.changeDirection==='gained' || _btq.changeDirection==='lost'){
+    html += '<div style="font-size:11.5px;color:var(--text2);margin-bottom:5px">大概從什麼時候開始？</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">';
+    BTQ_AGE_OPTIONS.forEach(function(v){
+      html += _btqChip(v, _btq.changeAge===v, "btqSetAge('"+v+"')", 'flex:0 0 auto;padding:6px 9px;');
+    });
+    html += '</div>';
+  }
+
+  if(_btq.childhoodType){
+    html += '<div onclick="btqSubmit()" style="text-align:center;padding:8px;border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600;background:#1D9E75;color:#fff">送出</div>';
+  }
+  html += '</div>';
+  return html;
+}
+function btqSetChildhood(v){
+  _btq.childhoodType = v;
+  if(v==='不確定'){ _btq.changeDirection = null; _btq.changeAge = null; }
   renderMatrix();
+}
+function btqSetChange(v){
+  _btq.changeDirection = v;
+  if(v!=='gained' && v!=='lost'){ _btq.changeAge = null; }
+  renderMatrix();
+}
+function btqSetAge(v){ _btq.changeAge = v; renderMatrix(); }
+function btqSubmit(){
+  if(!_btq.childhoodType){ if(typeof toast==='function') toast('請先選小時候的體型'); return; }
+  callAPI({action:'setMyBodyType', clientId:CLIENT_ID, childhoodType:_btq.childhoodType, changeDirection:(_btq.changeDirection||'none'), changeAge:(_btq.changeAge||'')}, function(d){
+    if(d && d.status==='ok'){
+      if(_btq.childhoodType!=='不確定'){
+        var map = {'偏瘦':0,'中等':1,'偏胖':2};
+        var labelMap = {'偏瘦':'纖細型','中等':'中間型','偏胖':'囤積型'};
+        IRCT_MATRIX_VALUES.bodyType = map[_btq.childhoodType];
+        _matrixBodyTypeSource = 'selfReport';
+        _matrixBodyTypeDetail = { code: map[_btq.childhoodType], source:'selfReport', label: labelMap[_btq.childhoodType],
+          childhoodType:_btq.childhoodType, changeDirection:(_btq.changeDirection||'none'), changeAge:(_btq.changeAge||'') };
+      }
+      renderMatrix();
+      if(typeof toast==='function') toast('✅ 已記錄你的填答');
+    } else {
+      if(typeof toast==='function') toast('⚠️ 送出失敗，請稍後再試');
+    }
+  });
+}
+
+// 2026-08-19創始人更正：這個函式原本會直接改寫IRCT_MATRIX_VALUES.bodyType（等於讓客人自己決定自己的體質分型），
+// 現在改成只顯示說明、不再更動任何判定值，也不重畫整個矩陣（「目前位置」的綠點維持在真實計算出來的格子上）
+function showMatrixDetail(r,c){
+  var detail=document.getElementById('matrix-detail');
+  if(detail) detail.outerHTML=renderMatrixDetail(r,c);
 }
 
 var _bodCompLoaded = false;
@@ -4379,8 +4305,33 @@ function loadBodCompositionTab(){
     renderCell('itc-bod-bmi-v', first.bmi, latest.bmi, '', true);
   });
 }
+var _matrixLoaded = false;
+// 2026-08-19創始人指示：受體體質(纖細/中間/囤積，矩陣橫向)合併3種來源判斷——秘書標記>客人自填>系統依
+// 第一次檢測數據自動推估，後端resolveBodyType_已經處理優先序，這裡只要把結果(d.bodyType)顯示出來，
+// 並在「還不是秘書標記」的情況下，讓客人自己也能填一次(source: 'auto'/'default'/'selfReport'才顯示這個入口，
+// 'override'代表秘書/醫師已經標記過，優先度最高，客人再填也不會改變顯示結果，所以不顯示這個入口，避免誤會)
+var _matrixBodyTypeSource = 'default';
+var _matrixBodyTypeDetail = null;
 function showMatrixTab(){
-  renderMatrix();
+  if(_matrixLoaded){ renderMatrix(); return; } // 這次進報告頁只需要抓一次真實數值
+  renderMatrix(); // 先用預設值畫一次避免空白，等真實資料回來再重畫
+  // 2026-08-19創始人總體檢時更正：矩陣的橫向(受體體質)+直向(阻抗程度)現在都從getIRCTAnalysis一次拿到，
+  // 不再需要另外呼叫getIRCTFullTable自己算阻抗程度（原本的calcMatrixRow()已移除，見上方IRCT_MATRIX_VALUES說明）
+  callAPI({action:'getIRCTAnalysis', clientId:CLIENT_ID}, function(d){
+    if(d && d.status==='ok' && d.bodyType){
+      IRCT_MATRIX_VALUES.bodyType = d.bodyType.code;
+      _matrixBodyTypeSource = d.bodyType.source;
+      _matrixBodyTypeDetail = d.bodyType;
+    }
+    if(d && d.status==='ok' && d.matrixRow && d.matrixRow.row!==null && d.matrixRow.row!==undefined){
+      IRCT_MATRIX_VALUES.row = d.matrixRow.row;
+      IRCT_MATRIX_VALUES.rowPending = false;
+    } else {
+      IRCT_MATRIX_VALUES.row = null;
+      IRCT_MATRIX_VALUES.rowPending = true;
+    }
+    _matrixLoaded = true; _btqSeedFromDetail(); renderMatrix();
+  });
 }
 </script>
 <script>
@@ -5009,29 +4960,10 @@ function updateGardenCount() {
 }
 </script>
 <script>
-// ── 代謝體質矩陣格子點擊 ──
+// ── 代謝體質矩陣格子點擊（舊版markup已移除，這裡保留function名稱做向下相容，
+//    2026-08-19起改成呼叫showMatrixDetail：只顯示說明，不再讓客人自己改變「目前位置」判定）──
 function selCell(r, c) {
-  // 移除所有active
-  document.querySelectorAll('.m-cell').forEach(function(el) {
-    el.classList.remove('active');
-    var dot = el.querySelector('.cp');
-    if (dot) dot.remove();
-  });
-  // 加上active和綠點
-  var target = document.querySelector('[data-r="'+r+'"][data-c="'+c+'"]');
-  if (target) {
-    target.classList.add('active');
-    var dot = document.createElement('div');
-    dot.className = 'cp';
-    target.appendChild(dot);
-  }
-  // 更新詳細說明
-  var detail = document.getElementById('matrix-detail');
-  if (detail) detail.outerHTML = renderMatrixDetail(r, c);
-  // 更新IRCT_MATRIX_VALUES
-  if (typeof IRCT_MATRIX_VALUES !== 'undefined') {
-    IRCT_MATRIX_VALUES.bodyType = c;
-  }
+  if (typeof showMatrixDetail === 'function') showMatrixDetail(r, c);
 }
 </script>
 <script>
@@ -5746,7 +5678,6 @@ function toggleHQ(btn, key) {
   btn.style.color = '#fff';
   btn.style.borderColor = 'var(--g3)';
   hqData[key] = btn.textContent.trim();
-  updateComplexity();
 }
 
 function toggleHQMulti(btn) {
@@ -5760,84 +5691,13 @@ function toggleHQMulti(btn) {
     btn.style.color = '#fff';
     btn.style.borderColor = 'var(--g3)';
   }
-  updateComplexity();
 }
 
-function updateComplexity() {
-  var score = 1.0;
-  var factors = [];
-  var matrixR = -1, matrixC = -1;
-
-  // 從矩陣位置取得基礎係數
-  var MATRIX_BASE = [[1.0,1.0,1.1],[1.1,1.1,1.2],[1.2,1.3,1.4],[1.4,1.5,1.6]];
-  var MATRIX_TIME = [['1-2個月','1-2個月','1-3個月'],['2-3個月','2-4個月','3-5個月'],['3-6個月','4-7個月','5-8個月'],['6-9個月','8-12個月','10-12個月以上']];
-  var MATRIX_NAMES = [['自然燃脂型','活躍均衡型','肌肉爆發型'],['隱性警戒型','代謝轉折型','囤積前期型'],['疲勞纖細型','標準阻抗型','脂肌並存型'],['虛寒阻抗型','代謝症候群型','重度囤積型']];
-
-  // 讀取目前選中的矩陣格子
-  var activeCell = document.querySelector('.m-cell.active');
-  if (!activeCell) activeCell = document.querySelector('.m-cell[style*="background:#D1FAE5"]');
-  if (activeCell) {
-    matrixR = parseInt(activeCell.getAttribute('data-r'));
-    matrixC = parseInt(activeCell.getAttribute('data-c'));
-  } else if (typeof IRCT_MATRIX_VALUES !== 'undefined') {
-    var esi = IRCT_MATRIX_VALUES.esi || 1.0;
-    matrixC = IRCT_MATRIX_VALUES.bodyType || 1;
-    if (esi < 1.0) matrixR = 0;
-    else if (esi < 2.0) matrixR = 1;
-    else if (esi < 3.0) matrixR = 2;
-    else matrixR = 3;
-  }
-
-  if (matrixR >= 0 && matrixC >= 0 && matrixR < 4 && matrixC < 3) {
-    score = MATRIX_BASE[matrixR][matrixC];
-    factors.push('矩陣位置（' + MATRIX_NAMES[matrixR][matrixC] + '）基礎 ' + score.toFixed(1));
-  }
-
-  // 問卷影響因子
-  document.querySelectorAll('#p-journey button').forEach(function(b) {
-    var bg = b.style.background || b.style.backgroundColor || '';
-    var isOn = bg.includes('29, 158, 117') || bg === 'var(--g)';
-    if (!isOn) return;
-    var txt = b.textContent.trim();
-    if (txt.includes('反覆減重')) { score += 0.2; factors.push('反覆減重史 +0.2'); }
-    if (txt.includes('飢餓/極低熱量')) { score += 0.2; factors.push('飢餓減重 +0.2'); }
-    if (txt.includes('減重針/藥')) { score += 0.2; factors.push('減重針/藥 +0.2'); }
-    if (txt.includes('不足') && txt.includes('小時')) { score += 0.1; factors.push('睡眠不足 +0.1'); }
-    if (txt.includes('失眠')) { score += 0.1; factors.push('失眠 +0.1'); }
-    if (txt.includes('高度壓力') || txt.includes('重大生活')) { score += 0.1; factors.push('高壓力 +0.1'); }
-    if (txt.includes('50歲')) { score += 0.1; factors.push('年齡50+ +0.1'); }
-    if (txt.includes('腦袋常不清楚') || txt.includes('記性越來越差')) { score += 0.2; factors.push('腦霧/記憶 +0.2'); }
-    if (txt.includes('睡再多還是很累')) { score += 0.1; factors.push('慢性疲勞 +0.1'); }
-    if (txt.includes('便秘') || txt.includes('脹氣') || txt.includes('抗生素')) { score += 0.2; factors.push('腸道問題 +0.2'); }
-    if (txt.includes('塑膠') || txt.includes('農藥') || txt.includes('大型魚') || txt.includes('工廠')) { score += 0.15; factors.push('環境毒素 +0.15'); }
-    if (txt.includes('月經不規律') || txt.includes('子宮肌瘤')) { score += 0.1; factors.push('荷爾蒙失調 +0.1'); }
-    if (txt.includes('容易生病') || txt.includes('皮膚老化')) { score += 0.1; factors.push('氧化壓力 +0.1'); }
-    if (txt.includes('糖尿病') || txt.includes('心血管') || txt.includes('肥胖')) { score += 0.1; factors.push('家族病史 +0.1'); }
-  });
-
-  factors = factors.filter(function(v, i, a) { return a.indexOf(v) === i; });
-  score = Math.round(score * 10) / 10;
-
-  var resultEl = document.getElementById('complexity-result');
-  var scoreEl = document.getElementById('complexity-score');
-  var labelEl = document.getElementById('complexity-label');
-  var factorsEl = document.getElementById('complexity-factors');
-  if (!resultEl) return;
-  resultEl.style.display = 'block';
-
-  scoreEl.textContent = '複雜度係數：' + score.toFixed(1);
-
-  var expectTime = (matrixR >= 0 && matrixC >= 0 && matrixR < 4 && matrixC < 3)
-    ? MATRIX_TIME[matrixR][matrixC]
-    : (score <= 1.1 ? '1-3個月' : score <= 1.3 ? '3-6個月' : score <= 1.5 ? '6-9個月' : '9-12個月以上');
-
-  var level = score <= 1.1 ? '✅ 標準難度' : score <= 1.3 ? '⚠️ 中等難度' : score <= 1.5 ? '⚠️ 較高難度' : '🔴 高複雜度';
-  labelEl.innerHTML = level + '・預期效果時間 <strong>' + expectTime + '</strong>';
-
-  factorsEl.innerHTML = factors.length > 0
-    ? '<strong>影響因子：</strong><br>' + factors.join('<br>')
-    : '目前無明顯影響因子';
-}
+// 2026-08-19創始人總體檢時發現：這裡原本有一個updateComplexity()函式，會在瀏覽器端自己算「複雜度係數」
+// 和「預估修復時間」，且對應的HTML容器(#complexity-result等)其實不存在，從來沒有真正顯示在畫面上過，
+// 是完全的死碼——但因為原始碼還是會完整下載到每個客人的瀏覽器，用「檢視原始碼」就能讀到裡面「代謝症候群型」
+// 這種診斷病名，以及原本要保密的複雜度加權公式，屬於機密外洩風險，所以直接整段刪除（呼叫點也一併移除，
+// 不影響問卷本身的選取功能——問卷結果本來就是走submitHealthForm()記錄，不依賴這個函式）。
 
 function submitHealthForm() {
   // 收集所有選中的選項
@@ -5875,7 +5735,7 @@ function applyLockStatus() {
   // 灰階預覽頁：底層內容變灰、禁止互動，但看得到畫面長相，引導購買
   var previewPages = ['p-record','p-trend','p-irct','p-journey'];
   // 簡單鎖定頁：這些是秘書才會用到的個人化互動內容(還沒陪跑的人本來就沒有資料可看)，完全隱藏、不做預覽
-  var simpleLockPages = ['p-sec-hub','p-irct-table','p-sharecard','p-qa'];
+  var simpleLockPages = ['p-sec-hub','p-irct-table','p-qa']; // 2026-08-19：p-sharecard已移除（分享圖卡下架，隱私考量）
 
   function lockPage(pid, mode) {
     var page = document.getElementById(pid);
@@ -6610,10 +6470,13 @@ function updateExtraTestsSuggestion() {
   }
 
   // 規則④：發炎指標異常（IRCT數值） → 功能醫學發炎套組
+  // 2026-08-19創始人總體檢時發現：這裡原本會直接寫出「Homocysteine」「sdLDL」兩個具體檢驗項目名稱給客人看，
+  // 違反規則，改成中性描述（IRCT_LAB_VALUES目前尚未真正串接資料來源，這個規則實際上還不會被觸發，
+  // 屬於較大範圍的架構問題，留待創始人確認方向後再處理，這裡先只修文字部分）
   if (homocysteineHigh || sdldlHigh) {
     suggestions.push({
       icon: '🔥', title: '功能醫學發炎套組',
-      reason: '上次檢測發現發炎指標偏高（' + (homocysteineHigh ? 'Homocysteine' : '') + (homocysteineHigh && sdldlHigh ? '、' : '') + (sdldlHigh ? 'sdLDL' : '') + '），建議進一步檢測氧化壓力與發炎根源'
+      reason: '上次檢測發現發炎指標偏高，建議進一步檢測氧化壓力與發炎根源'
     });
   }
 
@@ -6928,7 +6791,7 @@ function applyGardenVitality(vitality, daysSince){
 
 
 // ══════ 首頁真實統計 ══════
-var _shareText = null;
+// 2026-08-19創始人指示移除：_shareText原本只給分享圖卡功能用，分享功能已下架（隱私考量），這裡不再需要。
 // 簡單的SVG折線圖，不依賴外部圖表函式庫，保持跟系統其他地方一致的輕量風格
 function drawSimpleTrendChart(containerId, dates, values, color){
   var el = document.getElementById(containerId);
@@ -7196,13 +7059,7 @@ function loadMyStats(){
     if(hdlEl) hdlEl.innerHTML = (labs.hdl!==null&&labs.hdl!==undefined) ? labs.hdl+'<span style="font-size:13px">mg/dL</span>' : '待檢測';
     var hdlD=document.getElementById('jn-hdl-detail');
     if(hdlD) hdlD.textContent = (labs.hdl!==null&&labs.hdl!==undefined) ? '最新 '+labs.hdl+' mg/dL' : '完成檢驗後顯示';
-    // ── 分享文字（真實）──
-    var parts = ['🌱 我正在元代謝找回身體的原廠設定'];
-    if(d.dayCount) parts[0] += '，第 '+d.dayCount+' 天！';
-    if(d.weightChange!==null && d.weightChange<0) parts.push('✅ 體重 '+d.weightChange+'kg');
-    if(d.waistChange!==null && d.waistChange<0) parts.push('✅ 腰圍 '+d.waistChange+'cm');
-    if(d.streak>=7) parts.push('✅ 連續打卡 '+d.streak+' 天');
-    _shareText = parts.join('\n') + '\n\n#元代謝 #粒腺體健康 #代謝覺醒\nwww.isometabolix.com';
+    // 2026-08-19創始人指示移除：這裡原本會組出分享文字(_shareText)給分享圖卡功能用，分享功能已下架（隱私考量）
     var kEl=document.getElementById('ms-ketone'), kSub=document.getElementById('ms-ketone-sub');
     if(kEl) kEl.textContent = (d.avgKetone!==null && d.avgKetone!==undefined) ? d.avgKetone : '–';
     if(kSub){
