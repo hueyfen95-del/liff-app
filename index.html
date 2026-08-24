@@ -1490,14 +1490,14 @@ window.openHealthForm = function() {
     <!-- Step 4：選時間 -->
     <div id="bk-step4" style="display:none;padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測時間</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 4 小時</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 8-10 小時</div>
       <div id="bk-time-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/18（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div onclick="bkSelTime(this)" style="border:1.5px solid var(--g);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--g2)"><div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:2px">06/21（六）</div><div style="font-size:11px;color:var(--g3)">08:30–10:30</div></div>
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/25（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div style="border:1px solid var(--border);border-radius:10px;padding:10px 11px;text-align:center;background:var(--bg);opacity:.5"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px">06/28（六）</div><div style="font-size:11px;color:var(--r3)">已滿</div></div>
       </div>
-      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 4 小時，白開水可以喝。</div>
+      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 8-10 小時，白開水可以喝。</div>
       <div style="display:flex;gap:8px">
         <button onclick="bkGoStep3()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
         <button onclick="bkGoStep5()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">確認預約</button>
@@ -2341,7 +2341,7 @@ function bkGoStep4(){
       locText4 = locEl4.textContent.trim().replace(/上次去過/,'').replace(/[›〉>]/g,'').trim();
     }
     var planText4 = _bkType==='t2' ? 'IRCT-t2' : 'IRCT-t1';
-    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 4 小時';
+    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 8-10 小時';
   }
   if(typeof bkRenderTimes==='function') bkRenderTimes();
 }
@@ -7503,22 +7503,33 @@ function selectKetoRegion(region){
 var QUIZ_URL = "https://hueyfen95-del.github.io/liff-app/quiz.html";
 function shareQuiz(){
   var shareText = "我最近在關心代謝健康，發現這個「60 秒代謝健康小提醒」滿有意思的，分享給你也測測看 🌱\n" + QUIZ_URL;
-  // LINE 分享優先
-  if(typeof liff !== 'undefined' && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker')){
-    liff.shareTargetPicker([{ type:'text', text: shareText }]).then(function(){
-      toast('✅ 已開啟分享，選擇要分享的朋友吧！');
-    }).catch(function(){ fallbackShareQuiz(shareText); });
-  } else {
+  // 2026-08-24修正：原本沒判斷LIFF_ID有沒有設定、也沒用try/catch包住，
+  // 在LIFF_ID是空字串（還沒設定LIFF、liff.init()根本沒跑過）的情況下呼叫liff.isApiAvailable()
+  // 會直接丟出例外，整個function中斷、按鈕按下去完全沒反應（連fallback都不會跑到）。
+  // 現在先確認LIFF_ID有設定才會走LINE分享，並且用try/catch保護，任何狀況都至少會落到fallbackShareQuiz()
+  var usedLiffShare = false;
+  try {
+    if (LIFF_ID && typeof liff !== 'undefined' && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker')) {
+      usedLiffShare = true;
+      liff.shareTargetPicker([{ type:'text', text: shareText }]).then(function(){
+        toast('✅ 已開啟分享，選擇要分享的朋友吧！');
+      }).catch(function(){ fallbackShareQuiz(shareText); });
+    }
+  } catch (e) { usedLiffShare = false; }
+  if (!usedLiffShare) {
     fallbackShareQuiz(shareText);
   }
 }
 function fallbackShareQuiz(text){
-  // 複製連結
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(QUIZ_URL).then(function(){
-      toast('✅ 自測連結已複製！貼到 LINE 傳給朋友就好 😊');
-    }).catch(function(){ promptCopy(); });
-  } else { promptCopy(); }
+  // 複製連結——部分瀏覽器/webview環境下navigator.clipboard.writeText()會直接丟出例外
+  // （不是走.catch()的promise拒絕），所以外面也要包try/catch，不然一樣會整個沒反應
+  try {
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(QUIZ_URL).then(function(){
+        toast('✅ 自測連結已複製！貼到 LINE 傳給朋友就好 😊');
+      }).catch(function(){ promptCopy(); });
+    } else { promptCopy(); }
+  } catch(e) { promptCopy(); }
   function promptCopy(){
     // 老瀏覽器：用 LINE 分享網址
     var lineShare = 'https://line.me/R/msg/text/?' + encodeURIComponent(text);
