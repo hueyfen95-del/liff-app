@@ -390,7 +390,7 @@ window.openHealthForm = function() {
         <div style="display:flex;flex-direction:column;gap:6px" id="garden-tasks">
           <div class="g-task" id="home-gt0" onclick="goTaskPage(0)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
             <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt0-check">○</div>
-            <div style="flex:1;font-size:11px;color:#374151">🩸 血酮記錄</div>
+            <div style="flex:1;font-size:11px;color:#374151">🩸 血糖血酮</div>
             <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt1" onclick="goTaskPage(1)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
@@ -1836,7 +1836,7 @@ window.openHealthForm = function() {
   </div>
 
   <div class="gs-task-row">
-    <button class="gs-task pending" id="gt0" onclick="goTaskPage(0)"><span class="gt-em">🩸</span>血酮記錄</button>
+    <button class="gs-task pending" id="gt0" onclick="goTaskPage(0)"><span class="gt-em">🩸</span>血糖血酮</button>
     <button class="gs-task pending" id="gt1" onclick="goTaskPage(1)"><span class="gt-em">📏</span>體重腰圍</button>
     <button class="gs-task pending" id="gt2" onclick="goTaskPage(2)"><span class="gt-em">📷</span>飲食記錄</button>
     <button class="gs-task pending" id="gt3" onclick="goTaskPage(3)"><span class="gt-em">💦</span>補電解質</button>
@@ -4856,7 +4856,7 @@ function goTaskPage(i) {
   }
   
   if (i === 0) {
-    // 血酮記錄 → 跳到每日記錄頁，滑到血酮輸入欄
+    // 血糖血酮 → 跳到每日記錄頁，滑到血酮輸入欄
     goPage('record', '每日記錄');
     setTimeout(function() {
       var inp = document.getElementById('k-inp');
@@ -5029,7 +5029,7 @@ function updateGardenHint() {
     if (!gsTasks[i]) { nextTask = i; break; }
   }
   
-  var taskNames = ['血酮記錄', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日感謝'];
+  var taskNames = ['血糖血酮', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日感謝'];
   
   if (done === 0) {
     hint.textContent = '今天還沒開始，點下方任務開始記錄 😊';
@@ -5038,7 +5038,7 @@ function updateGardenHint() {
     hint.textContent = '今天全部完成了！花園為你盛開 🌸';
     if (arrow) arrow.style.display = 'none';
   } else if (nextTask >= 0) {
-    var names = ['血酮記錄', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日感謝'];
+    var names = ['血糖血酮', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日感謝'];
     hint.textContent = '很棒！繼續點「' + names[nextTask] + '」完成今日任務 👇';
     if (arrow) arrow.style.display = 'block';
   }
@@ -5237,7 +5237,7 @@ function celebrateTask(taskName, doneCnt) {
   var i = taskName; // taskName其實是任務索引(0-6)
 
   if (i === 0) {
-    // 🩸 血酮記錄：血滴從中心點「向四周噴濺」後快速墜落消失
+    // 🩸 血糖血酮：血滴從中心點「向四周噴濺」後快速墜落消失
     for (var b = 0; b < 10; b++) {
       (function(b) {
         setTimeout(function() {
@@ -5401,7 +5401,7 @@ function celebrateTask(taskName, doneCnt) {
   // 更新花園進度文字
   var done = (typeof doneCnt !== 'undefined') ? doneCnt : gsTasks.filter(Boolean).length;
   var msgs = [
-    '血酮記錄完成！繼續下一個任務 🌱',
+    '血糖血酮記錄完成！繼續下一個任務 🌱',
     '體重腰圍記錄完成！繼續加油 📏',
     '飲食記錄完成！今天吃得很健康 📷',
     '電解質補充完成！身體說謝謝你 💦',
