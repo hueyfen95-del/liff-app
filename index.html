@@ -6386,11 +6386,16 @@ function loadIrctContext(){
   });
 }
 // 產生「已預約」畫面上單張時間地點卡片的HTML（label有值時會加上「第N次預約請求」的標籤）
-function bkBookedCardHtml(time, clinic, label){
+// 2026-08-24修正：「載入中」這個字只該用在「畫面還在等後端回應」的當下——
+// 但同一句話之前也被拿來墊「後端已經回應了、只是這欄位本身就是空的」（例如舊測試資料沒點時間卡片就送出），
+// 客人會誤以為系統一直卡住在讀取。用isPlaceholder區分：true=真的還在等資料，false=資料已經到了、單純內容是空的。
+function bkBookedCardHtml(time, clinic, label, isPlaceholder){
+  var emptyTime = isPlaceholder ? '載入中…' : '待確認時間';
+  var emptyClinic = isPlaceholder ? '載入中…' : '待確認地點';
   return '<div style="background:var(--g2);border-radius:14px;padding:16px;margin-bottom:10px">'
     + (label ? '<div style="font-size:11px;font-weight:700;color:var(--g3);margin-bottom:8px">'+escHtml(label)+'</div>' : '')
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><i class="ti ti-clock" style="color:var(--g3);font-size:16px"></i><span style="font-size:13px;color:var(--g3);font-weight:600">'+escHtml(time||'載入中…')+'</span></div>'
-    + '<div style="display:flex;align-items:center;gap:8px"><i class="ti ti-map-pin" style="color:var(--g3);font-size:16px"></i><span style="font-size:13px;color:var(--g3);font-weight:600">'+escHtml(clinic||'載入中…')+'</span></div>'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><i class="ti ti-clock" style="color:var(--g3);font-size:16px"></i><span style="font-size:13px;color:var(--g3);font-weight:600">'+escHtml(time||emptyTime)+'</span></div>'
+    + '<div style="display:flex;align-items:center;gap:8px"><i class="ti ti-map-pin" style="color:var(--g3);font-size:16px"></i><span style="font-size:13px;color:var(--g3);font-weight:600">'+escHtml(clinic||emptyClinic)+'</span></div>'
     + '</div>'
     + '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px">'
     + '<i class="ti ti-hourglass-high" style="color:#92400E;font-size:16px;margin-top:1px"></i>'
@@ -6463,8 +6468,8 @@ function showIRCTScene(status) {
   if (targetScene === 'booked') {
     var listBox = document.getElementById('irct-booked-list');
     if (listBox) {
-      // 查詢回來之前，先用手上已有的資料（或「載入中」）墊著，畫面才不會空白
-      listBox.innerHTML = bkBookedCardHtml(LOCAL_BOOKED_TIME, LOCAL_BOOKED_LOCATION, null);
+      // 查詢回來之前，先用手上已有的資料（或「載入中」）墊著，畫面才不會空白——這裡是真的還在等後端回應，isPlaceholder要傳true
+      listBox.innerHTML = bkBookedCardHtml(LOCAL_BOOKED_TIME, LOCAL_BOOKED_LOCATION, null, true);
     }
     // 2026-08-22修正：以前查詢失敗或查無資料時直接return，畫面會永遠卡在「載入中」不會變——
     // 現在不管查詢結果如何，一定要更新畫面（成功就顯示真實資料，失敗/逾時就顯示提示，不留白轉圈）
