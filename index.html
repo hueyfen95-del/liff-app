@@ -572,6 +572,20 @@ window.openHealthForm = function() {
       <div class="chip on" onclick="selChip(this,'t')">傍晚晚餐前</div>
       <div class="chip" onclick="selChip(this,'t')">晚餐後 3–4h</div>
     </div>
+
+    <!-- 2026-08-24新增：早晚監測——只有醫師在後台指定的客人才會看到（CLIENT_TWICE_DAILY），
+         平常隱藏，不影響一般客人畫面。血糖跟血酮共用同一個記錄區塊，用「早上/晚上」切換鈕標記量測時段 -->
+    <div id="glucose-monitor-section" style="display:none;margin-top:10px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:4px">🩸 血糖 mg/dL（醫師指定監測）</div>
+      <div class="inp-row" style="display:flex;gap:6px;align-items:center">
+        <input class="inp" type="number" step="1" placeholder="血糖 mg/dL" id="glucose-inp" style="flex:1">
+        <button onclick="quickSave('glucose')" style="background:#DC2626;color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px" id="glucose-period-chips">
+        <div class="carb-chip on" data-val="早上" onclick="selGlucosePeriod(this)" style="flex:1">☀️ 早上</div>
+        <div class="carb-chip" data-val="晚上" onclick="selGlucosePeriod(this)" style="flex:1">🌙 晚上</div>
+      </div>
+    </div>
     <!-- 2026-08-12修正：體重/腰圍原本只靠placeholder標示欄位名稱，但欄位一開始就帶著預設數字，
          placeholder會被蓋掉，客人完全看不出「50」「65」代表體重還是腰圍，補上明確文字標籤
          2026-08-16再修正：光補文字標籤還不夠——欄位帶著預設數字「50」「65」這件事本身就有風險，
@@ -3508,6 +3522,10 @@ var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name
 // 2026-08-17 新增：clientAuth登入成功時後端會核發一組clientToken，之後每次呼叫查/改個人資料的
 // API都要帶著它，後端才知道「這真的是這位客人本人在操作」，不是有人猜到/知道客人編號就能查別人的資料
 var CLIENT_TOKEN = (function(){ try { return localStorage.getItem('mx_client_token') || ""; } catch(e){ return ""; } })();
+// 2026-08-24新增：早晚監測（醫師指定客人要早上/晚上各測一次血糖血酮）——這個flag要跟CLIENT_ID一樣存localStorage，
+// 因為已經登入過的人下次開App不會再打一次clientAuth（見下面mxStartAuth的 if(CLIENT_ID) return;），
+// 如果不存起來，回頭客的畫面就會看不到這個功能
+var CLIENT_TWICE_DAILY = (function(){ try { return localStorage.getItem('mx_client_monitor') === '1'; } catch(e){ return false; } })();
 var _LINE_UID = "";
 
 // ══ 測試客人一鍵帶入問卷（創始人2026-08-10）══
@@ -3550,14 +3568,15 @@ function mxHideLogin(){
   var ov = document.getElementById('mx-login-overlay');
   if (ov) ov.style.display = 'none';
 }
-function mxSetIdentity(cid, cname, ctoken){
+function mxSetIdentity(cid, cname, ctoken, twiceDaily){
   try {
     localStorage.setItem('mx_client_id', cid);
     localStorage.setItem('mx_client_name', cname || '');
     if (ctoken) localStorage.setItem('mx_client_token', ctoken);
+    localStorage.setItem('mx_client_monitor', twiceDaily ? '1' : '');
   } catch(e){}
-  if (!CLIENT_ID) { CLIENT_ID = cid; CLIENT_NAME = cname || ''; if(ctoken) CLIENT_TOKEN = ctoken; location.reload(); }
-  else { CLIENT_ID = cid; CLIENT_NAME = cname || ''; if(ctoken) CLIENT_TOKEN = ctoken; mxHideLogin(); }
+  if (!CLIENT_ID) { CLIENT_ID = cid; CLIENT_NAME = cname || ''; if(ctoken) CLIENT_TOKEN = ctoken; CLIENT_TWICE_DAILY = !!twiceDaily; location.reload(); }
+  else { CLIENT_ID = cid; CLIENT_NAME = cname || ''; if(ctoken) CLIENT_TOKEN = ctoken; CLIENT_TWICE_DAILY = !!twiceDaily; mxHideLogin(); applyTwiceDailyMonitorUI(); }
 }
 function mxDoBind(){
   var cid = (document.getElementById('mx-bind-id').value || '').trim();
@@ -3566,7 +3585,7 @@ function mxDoBind(){
   if (!cid || !cname) { if(er) er.textContent = '請輸入客人編號和姓名'; return; }
   if (er) er.textContent = '驗證中…';
   callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname }, function(d){
-    if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken); }
+    if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken, d.twiceDailyMonitor); }
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
 }
@@ -3580,7 +3599,7 @@ function mxStartAuth(){
         _LINE_UID = p.userId || '';
         var nm = p.displayName || '';
         callAPI({ action:'clientAuth', lineId:_LINE_UID }, function(d){
-          if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken); }
+          if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken, d.twiceDailyMonitor); }
           else {
             var nmInp = document.getElementById('mx-bind-name');
             if (nmInp && !nmInp.value) nmInp.value = nm;
@@ -3758,6 +3777,18 @@ function selCarbExercise(el){
   document.querySelectorAll('#carb-exercise-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
   el.classList.add('on');
 }
+// 2026-08-24新增：早晚監測——血糖量測時段（早上/晚上）單選切換鈕，跟一般.chip分開一個class，
+// 避免被submitDailyRecord()/quickSave()裡通用的 document.querySelectorAll('.chip.on') 掃到、
+// 誤把「☀️ 早上」這種文字混進感受/電解質欄位
+function selGlucosePeriod(el){
+  document.querySelectorAll('#glucose-period-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+}
+function applyTwiceDailyMonitorUI(){
+  var sec = document.getElementById('glucose-monitor-section');
+  if (sec) sec.style.display = CLIENT_TWICE_DAILY ? 'block' : 'none';
+}
+document.addEventListener('DOMContentLoaded', applyTwiceDailyMonitorUI);
 function toggleCarbBowel(el){
   var on = el.classList.toggle('on');
   el.textContent = on ? '已排便' : '尚未';
@@ -3766,7 +3797,8 @@ var _carbRefeedActive = false;
 function submitDailyRecord() {
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
-  if(!k && !w){ toast('至少填血酮或體重其中一項，才能記錄喔'); return; }
+  var glucoseCheck = (CLIENT_TWICE_DAILY && document.getElementById('glucose-inp')) ? document.getElementById('glucose-inp').value : '';
+  if(!k && !w && !glucoseCheck){ toast('至少填血酮、體重或血糖其中一項，才能記錄喔'); return; }
   if(k && (Number(k) < 0 || Number(k) > 10)){ toast('血酮數值看起來不太合理，麻煩再確認一下'); return; }
   if(w && (Number(w) <= 0 || Number(w) > 300)){ toast('體重數值看起來不太合理，麻煩再確認一下'); return; }
   var waistCheck = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
@@ -3786,10 +3818,19 @@ function submitDailyRecord() {
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
     if(carbsVal && (Number(carbsVal) < 0 || Number(carbsVal) > 500)){ toast('碳水克數看起來不太合理，麻煩再確認一下'); return; }
   }
+  // 2026-08-24新增：早晚監測——只有CLIENT_TWICE_DAILY的客人畫面上才有這個區塊，一般客人這兩個值永遠是空字串
+  var glucoseVal = '', periodVal = '';
+  if (CLIENT_TWICE_DAILY) {
+    glucoseVal = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
+    if(glucoseVal && (Number(glucoseVal) <= 0 || Number(glucoseVal) > 600)){ toast('血糖數值看起來不太合理，麻煩再確認一下'); return; }
+    var periodChip = document.querySelector('#glucose-period-chips .carb-chip.on');
+    periodVal = periodChip ? (periodChip.getAttribute('data-val') || '') : '';
+  }
   callAPI({
     action: 'addDailyRecord', clientId: CLIENT_ID,
     ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(','),
-    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal
+    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal,
+    glucose: glucoseVal, period: periodVal
   }, function(d) {
     if (d.status === 'ok') {
       toast('✅ 已同步到秘書後台！');
@@ -5057,6 +5098,21 @@ function quickSave(type) {
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone: k, weight: '', waist: '', feeling: '', electrolyte: ''
+    }, function(){});
+
+  } else if (type === 'glucose') {
+    // 2026-08-24新增：早晚監測——血糖快記，只有CLIENT_TWICE_DAILY的客人畫面上才有這顆按鈕
+    var glucoseQS = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
+    if (!glucoseQS || parseFloat(glucoseQS) <= 0) { toast('請先輸入血糖數值'); return; }
+    var periodChipQS = document.querySelector('#glucose-period-chips .carb-chip.on');
+    var periodQS = periodChipQS ? (periodChipQS.getAttribute('data-val') || '') : '';
+    toast('🩸 血糖 ' + glucoseQS + ' mg/dL（' + (periodQS||'') + '）已儲存！');
+    setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
+    // 背景儲存到Sheets
+    callAPI({
+      action: 'addDailyRecord', clientId: CLIENT_ID,
+      ketone: '', weight: '', waist: '', feeling: '', electrolyte: '',
+      glucose: glucoseQS, period: periodQS
     }, function(){});
 
   } else if (type === 'weight') {

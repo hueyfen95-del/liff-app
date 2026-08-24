@@ -2717,7 +2717,7 @@ var ADMIN_MATRIX_DATA = [
     {name:'脂肌並存型',focus:'控碳水飲食為主軸、先減脂再談增肌、有運動者降低強度勿停'},
   ],
   [
-    {name:'發炎阻抗型',focus:'最佳健康粒腺體之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
+    {name:'虛寒阻抗型',focus:'最佳健康粒腺體之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
     {name:'代謝症候群型',focus:'嚴格最佳健康粒腺體之旅+電解質補充、密切追蹤每月回診、大幅降低運動強度'},
     {name:'重度囤積型',focus:'嚴格最佳健康粒腺體之旅為唯一主軸、最密集陪跑頻率、大幅降低或暫緩運動'},
   ]
@@ -4783,6 +4783,15 @@ function setClientSpecialCaseUI(id){
     else toast('⚠️ 更新失敗');
   });
 }
+// 2026-08-24新增：早晚監測開關——勾選後客人前台的每日記錄畫面會多出血糖欄位＋早上/晚上切換鈕
+function setClientMonitorModeUI(id){
+  var chk = document.getElementById('cd-monitor-chk');
+  if(!chk) return;
+  adminAPIPost({action:'setClientMonitorMode', clientId:id, enabled:chk.checked}, function(d){
+    if(d && d.status === 'ok'){ toast(chk.checked?'✅ 已開啟早晚監測':'✅ 已關閉早晚監測'); if(_clientsCache) loadClientsList(function(){}, true); }
+    else { toast('⚠️ 更新失敗'); chk.checked = !chk.checked; }
+  });
+}
 function setClientStageUI(id){
   var sel = document.getElementById('cd-stage-sel');
   if(!sel) return;
@@ -4854,6 +4863,9 @@ function openClientDetail(id, name){
     + '<select id="cd-special-sel" onchange="setClientSpecialCaseUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
     + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'特殊情境：無（一般客人）')+'</option>'; }).join('')
     + '</select>'
+    // 2026-08-24新增：早晚監測——醫師指定客人才需要早上/晚上各測一次血糖血酮，勾選後前台會出現血糖欄位＋早晚切換鈕
+    + '<label style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px">'
+    + '<input type="checkbox" id="cd-monitor-chk" onchange="setClientMonitorModeUI(\''+escH(id)+'\')" '+(cdClient&&cdClient.twiceDailyMonitor?'checked':'')+' style="margin:0">🩸 早晚監測</label>'
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '<span id="cd-abc-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;font-weight:700"></span>'
     + '</div>'
@@ -5198,10 +5210,17 @@ function openClientDetail(id, name){
     var body = document.getElementById('client-detail-body');
     if(!body) return;
     if(d.records && d.records.length > 0){
-      var html='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:7px;border-bottom:1px solid var(--border)">血酮</th><th style="padding:7px;border-bottom:1px solid var(--border)">體重</th><th style="padding:7px;border-bottom:1px solid var(--border)">腰圍</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">感受</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">餐盤快記</th></tr>';
+      // 2026-08-24新增：早晚監測——只有這位客人有被醫師勾選監測、或近期記錄裡真的有血糖數值時，才多顯示這欄，
+      // 避免所有一般客人的記錄表都平白多出一欄空的「血糖」
+      var cdClientForRecords = (_clientsCache || []).find(function(c){ return c.id === id; });
+      var showGlucoseCol = (cdClientForRecords && cdClientForRecords.twiceDailyMonitor) || d.records.some(function(r){ return r.glucose; });
+      var html='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:7px;border-bottom:1px solid var(--border)">血酮</th>'
+        + (showGlucoseCol ? '<th style="padding:7px;border-bottom:1px solid var(--border)">血糖</th>' : '')
+        + '<th style="padding:7px;border-bottom:1px solid var(--border)">體重</th><th style="padding:7px;border-bottom:1px solid var(--border)">腰圍</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">感受</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">餐盤快記</th></tr>';
       d.records.slice(-14).reverse().forEach(function(r){
         html += '<tr><td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(String(r.date||r.time||'').slice(0,10))+'</td>'
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border);font-weight:700;color:var(--g3)">'+escH(r.ketone||'–')+'</td>'
+          + (showGlucoseCol ? '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border);font-weight:700;color:#DC2626">'+escH(r.glucose||'–')+(r.glucose&&r.period?'<div style="font-size:9.5px;font-weight:400;color:var(--text3)">'+escH(r.period)+'</div>':'')+'</td>' : '')
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border)">'+escH(r.weight||'–')+'</td>'
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border)">'+escH(r.waist||'–')+'</td>'
           + '<td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(r.feeling||'')+'</td>'
@@ -8486,12 +8505,21 @@ function loadClinicSlots(){
     if(!d || d.status!=='ok' || !d.slots || d.slots.length===0){
       box.innerHTML = '<div style="color:var(--text3);font-size:13px">還沒有時段，請在上面新增</div>'; return;
     }
+    // 2026-08-24新增：之前這裡完全沒有刪除按鈕，打錯或重複的時段沒辦法清掉，只能整份表重寫——補上刪除按鈕
     box.innerHTML = d.slots.map(function(s, idx){
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px">'
         + '<div style="flex:1"><div style="font-weight:700;font-size:13px">'+escH(s.clinic)+'　<span style="color:var(--text3);font-weight:400">'+escH(s.region)+'</span></div>'
         + '<div style="font-size:12px;color:var(--text2);margin-top:2px">🕐 '+escH(s.datetime)+'</div></div>'
+        + '<button onclick="deleteClinicSlotRow('+s.row+',\''+escH(s.clinic).replace(/'/g,"\\'")+'\')" style="background:none;border:1px solid var(--r);color:var(--r);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap"><i class="ti ti-trash"></i> 刪除</button>'
         + '</div>';
     }).join('');
+  });
+}
+function deleteClinicSlotRow(row, clinicName){
+  if (!confirm('確定要刪除「'+clinicName+'」這一筆時段嗎？刪除後客人預約畫面就不會再看到這筆了。')) return;
+  adminAPI({action:'deleteClinicSlot', row: row}, function(d){
+    if (d && d.status === 'ok') { loadClinicSlots(); }
+    else { alert('刪除失敗：' + (d && d.message ? d.message : '請稍後再試')); }
   });
 }
 function loadCsClinicOptions(){
