@@ -2345,11 +2345,18 @@ function bkGoStep5(){
     toast('⚠️ 請先填寫出生年月日，抽血檢測需要核對');
     return;
   }
-  document.getElementById('bk-step4').style.display='none';
-  document.getElementById('bk-step5').style.display='block';
-  bkSetStep(5);
+  // 2026-08-22新增：時間卡片沒有點選也能送出，之前發生過送出後「時間」欄位是空的，
+  // 結果畫面（跟秘書看到的紀錄）把地點文字重複顯示在時間欄位，客人完全看不出來哪裡有選、哪裡沒選。
+  // 跟出生年月日一樣，這裡也要卡住，逼客人一定要先點一張時間／預約方式卡片才能繼續。
+  var timeElCheck = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
+  if (!timeElCheck) {
+    toast('⚠️ 請先點選一個時間／預約方式卡片，再繼續');
+    var timeListEl = document.getElementById('bk-time-list');
+    if (timeListEl) timeListEl.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
 
-  // 整理已選擇的資料
+  // 整理已選擇的資料（先算好，等後端真的確認成功才顯示，不要先斬後奏）
   var planNames = {t1:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t1.toLocaleString(), t2:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t2.toLocaleString()};
   var planSummary = planNames[_bkType] || planNames['t2'];
 
@@ -2365,29 +2372,26 @@ function bkGoStep5(){
     locText = '瑞絲得診所・新竹';
   }
 
-  var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
-  var timeText = timeEl ? timeEl.textContent.trim() : '';
+  var timeText = timeElCheck.textContent.trim();
 
   var dietNames = {1:'🍞 混合飲食（碳水 50%）',2:'🥑 粒腺體飲食（碳水 5%，脂肪 70%）',3:'🥩 低碳飲食',4:'🌾 一般均衡飲食',5:'🥗 其他飲食模式'};
   var dietSummary = dietNames[bkDiet] || dietNames[2];
 
-  // 更新確認畫面文字
-  var greetEl = document.getElementById('bk-confirm-greet');
-  var bannerEl = document.getElementById('bk-confirm-banner');
-  var summaryEl = document.getElementById('bk-confirm-summary');
-  var locationEl = document.getElementById('bk-confirm-location');
-  var dietEl = document.getElementById('bk-confirm-diet');
-  if (greetEl) greetEl.textContent = (CLIENT_NAME ? CLIENT_NAME + '，您已經成功預約囉！' : '預約成功！');
-  if (bannerEl) bannerEl.textContent = timeText + (timeText ? '・' : '') + locText;
-  if (summaryEl) summaryEl.textContent = planSummary;
-  if (locationEl) locationEl.textContent = locText + (timeText ? '・' + timeText : '');
-  if (dietEl) dietEl.textContent = dietSummary;
-
-  // 本地端立即記住狀態（避免API時間差問題）
-  LOCAL_REPORT_STATUS = 'booked';
-  LAST_DIET_RECORD = dietSummary;
-  LOCAL_BOOKED_TIME = (locText + (timeText ? '・' + timeText : ''));
-  LOCAL_BOOKED_LOCATION = locText;
+  // 2026-08-22修正：以前「確認預約」一按下去，畫面立刻顯示「預約成功」，
+  // 實際送到後端的請求還沒回來——如果後端因為某個欄位問題打回票，客人已經看到「成功」畫面了，
+  // 只靠一個容易被錯過的toast提醒，客人完全不會發現其實沒約到（東泰那次疑似就是這樣）。
+  // 現在改成：先顯示「送出中」，等後端真的回覆成功了，才切換到「預約成功」畫面；失敗的話留在原地讓客人重試。
+  var submitBtn = document.querySelector('#bk-step4 button[onclick="bkGoStep5()"]');
+  var submitBtnOrigText = submitBtn ? submitBtn.textContent : '';
+  if (submitBtn) { submitBtn.textContent = '送出中…'; submitBtn.disabled = true; submitBtn.style.opacity = '0.6'; submitBtn.style.cursor = 'default'; }
+  // 保險：萬一網路問題導致連線根本沒有回應（連callback都不會被呼叫到），按鈕也不能永遠卡在「送出中」
+  var bkSubmitDone = false;
+  var bkSubmitTimeout = setTimeout(function(){
+    if (bkSubmitDone) return;
+    bkSubmitDone = true;
+    if (submitBtn) { submitBtn.textContent = submitBtnOrigText || '確認預約'; submitBtn.disabled = false; submitBtn.style.opacity = ''; submitBtn.style.cursor = 'pointer'; }
+    toast('⚠️ 網路連線有問題，預約可能沒有送出，請重新試一次');
+  }, 20000);
 
   // 背景送出到Sheets
   var medInputEl = document.getElementById('bk-med-input');
@@ -2403,20 +2407,40 @@ function bkGoStep5(){
     dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || '',
     birthDate: _bkBirthDate || ''
   }, function(d) {
+    if (bkSubmitDone) return; // 逾時提示已經顯示過了，避免慢回應又蓋回去造成畫面閃爍/矛盾
+    bkSubmitDone = true;
+    clearTimeout(bkSubmitTimeout);
     if (d && d.status === 'ok') {
+      // 後端確認成功了，這時候才真正切到「預約成功」畫面
+      document.getElementById('bk-step4').style.display='none';
+      document.getElementById('bk-step5').style.display='block';
+      bkSetStep(5);
+
+      var greetEl = document.getElementById('bk-confirm-greet');
+      var bannerEl = document.getElementById('bk-confirm-banner');
+      var summaryEl = document.getElementById('bk-confirm-summary');
+      var locationEl = document.getElementById('bk-confirm-location');
+      var dietEl = document.getElementById('bk-confirm-diet');
+      if (greetEl) greetEl.textContent = (CLIENT_NAME ? CLIENT_NAME + '，您已經成功預約囉！' : '預約成功！');
+      if (bannerEl) bannerEl.textContent = timeText + (timeText ? '・' : '') + locText;
+      if (summaryEl) summaryEl.textContent = planSummary;
+      if (locationEl) locationEl.textContent = locText + (timeText ? '・' + timeText : '');
+      if (dietEl) dietEl.textContent = dietSummary;
+
+      LOCAL_REPORT_STATUS = 'booked';
+      LAST_DIET_RECORD = dietSummary;
+      LOCAL_BOOKED_TIME = (locText + (timeText ? '・' + timeText : ''));
+      LOCAL_BOOKED_LOCATION = locText;
+
       callAPI({
         action: 'addNote', clientId: CLIENT_ID,
         content: 'reportStatus:booked',
         type: '報告狀態', secretary: CLIENT_ID
       }, function(){});
     } else {
-      // 送出失敗（例如後端擋掉了缺欄位的預約）——畫面上「預約成功」已經顯示出去了，
-      // 一定要另外提醒客人，不然客人會以為約好了，其實系統裡完全沒有這筆預約
-      LOCAL_REPORT_STATUS = null;
-      LAST_DIET_RECORD = null;
-      LOCAL_BOOKED_TIME = null;
-      LOCAL_BOOKED_LOCATION = null;
-      toast('⚠️ 預約沒有送出成功' + (d && d.message ? '：'+d.message : '') + '，請重新預約一次，或直接跟秘書聯絡');
+      // 送出失敗——因為還沒切換畫面，客人還停留在第4步，恢復按鈕讓他可以直接重試，不會誤以為約成功了
+      if (submitBtn) { submitBtn.textContent = submitBtnOrigText || '確認預約'; submitBtn.disabled = false; submitBtn.style.opacity = ''; submitBtn.style.cursor = 'pointer'; }
+      toast('⚠️ 預約沒有送出成功' + (d && d.message ? '：'+d.message : '') + '，請重新確認後再送出一次，或直接跟秘書聯絡');
     }
   });
 }
