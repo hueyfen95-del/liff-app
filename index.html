@@ -390,7 +390,7 @@ window.openHealthForm = function() {
         <div style="display:flex;flex-direction:column;gap:6px" id="garden-tasks">
           <div class="g-task" id="home-gt0" onclick="goTaskPage(0)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
             <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt0-check">○</div>
-            <div style="flex:1;font-size:11px;color:#374151">🩸 血酮記錄</div>
+            <div style="flex:1;font-size:11px;color:#374151">🩸 血糖血酮</div>
             <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt1" onclick="goTaskPage(1)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
@@ -561,13 +561,27 @@ window.openHealthForm = function() {
       </div>
     </div>
 
-    <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血酮 &amp; 體重</div>
+    <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血糖 &amp; 血酮 &amp; 體重</div>
+    <div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:8px">
+      ☀️ 早上：起床後空腹，8:30am前皆可　　🌙 晚上：進餐後3–3.5小時（午餐或晚餐皆可）
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px" id="km-period-chips">
+      <div class="carb-chip on" data-val="早上" onclick="selKmPeriod(this)" style="flex:1">☀️ 早上</div>
+      <div class="carb-chip" data-val="晚上" onclick="selKmPeriod(this)" style="flex:1">🌙 晚上</div>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:4px">🩸 血糖 mg/dL</div>
+    <div class="inp-row" style="display:flex;gap:6px;align-items:center">
+      <input class="inp" type="number" step="1" placeholder="血糖 mg/dL" id="glucose-inp" style="flex:1">
+      <button onclick="quickSave('glucose')" style="background:#DC2626;color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
+    </div>
+    <div style="font-size:11px;color:var(--text2);margin:10px 0 4px">💧 血酮 mmol/L</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
       <input class="inp" type="number" step="0.1" placeholder="血酮 mmol/L" id="k-inp" oninput="onKetone(this.value)" style="flex:1">
       <div class="k-badge" id="k-badge">—</div>
       <button onclick="quickSave('ketone')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <div class="chips">
+      <div class="chip" onclick="selChip(this,'t')">早餐前</div>
       <div class="chip" onclick="selChip(this,'t')">午餐前</div>
       <div class="chip on" onclick="selChip(this,'t')">傍晚晚餐前</div>
       <div class="chip" onclick="selChip(this,'t')">晚餐後 3–4h</div>
@@ -715,8 +729,9 @@ window.openHealthForm = function() {
         </div>
         <div class="pz" id="lz" onclick="uploadMeal('l')">
           <div style="font-size:26px;color:var(--text3);margin-bottom:5px"><i class="ti ti-photo-plus"></i></div>
-          <div style="font-size:13px;font-weight:600;color:var(--text2)">點擊上傳午餐照片</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:3px">秘書會看到，給你更準的建議</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:3px">拍照 / 從相簿選取</div>
+          <div style="font-size:11px;color:var(--text3)">上傳後 秘書會看到，給你更準的建議</div>
+          <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('l')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('l')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
         </div>
       </div>
     </div>
@@ -1482,14 +1497,14 @@ window.openHealthForm = function() {
     <!-- Step 4：選時間 -->
     <div id="bk-step4" style="display:none;padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測時間</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 4 小時</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 8-10 小時</div>
       <div id="bk-time-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/18（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div onclick="bkSelTime(this)" style="border:1.5px solid var(--g);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--g2)"><div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:2px">06/21（六）</div><div style="font-size:11px;color:var(--g3)">08:30–10:30</div></div>
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/25（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div style="border:1px solid var(--border);border-radius:10px;padding:10px 11px;text-align:center;background:var(--bg);opacity:.5"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px">06/28（六）</div><div style="font-size:11px;color:var(--r3)">已滿</div></div>
       </div>
-      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 4 小時，白開水可以喝。</div>
+      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 8-10 小時，白開水可以喝。</div>
       <div style="display:flex;gap:8px">
         <button onclick="bkGoStep3()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
         <button onclick="bkGoStep5()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">確認預約</button>
@@ -1828,7 +1843,7 @@ window.openHealthForm = function() {
   </div>
 
   <div class="gs-task-row">
-    <button class="gs-task pending" id="gt0" onclick="goTaskPage(0)"><span class="gt-em">🩸</span>血酮記錄</button>
+    <button class="gs-task pending" id="gt0" onclick="goTaskPage(0)"><span class="gt-em">🩸</span>血糖血酮</button>
     <button class="gs-task pending" id="gt1" onclick="goTaskPage(1)"><span class="gt-em">📏</span>體重腰圍</button>
     <button class="gs-task pending" id="gt2" onclick="goTaskPage(2)"><span class="gt-em">📷</span>飲食記錄</button>
     <button class="gs-task pending" id="gt3" onclick="goTaskPage(3)"><span class="gt-em">💦</span>補電解質</button>
@@ -2324,7 +2339,7 @@ function bkGoStep4(){
       locText4 = locEl4.textContent.trim().replace(/上次去過/,'').replace(/[›〉>]/g,'').trim();
     }
     var planText4 = _bkType==='t2' ? 'IRCT-t2' : 'IRCT-t1';
-    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 4 小時';
+    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 8-10 小時';
   }
   if(typeof bkRenderTimes==='function') bkRenderTimes();
 }
@@ -3437,7 +3452,7 @@ function saveToSheets(ketone, weight, feeling, electrolyte) {
 var API_URL = "https://script.google.com/macros/s/AKfycbwq-qqCxSJtzBJAreLCSKuF1UXn8wM90L6E7nIhMlziZTQTxeJzJPEGWxN5t_W59VOl/exec";
 // ══════════════ 客戶身分：LINE 登入 ══════════════
 // ⚠️ 只需要填這一個值：到 LINE Developers 建立 LIFF 後，把 LIFF ID 貼進引號內
-var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
+var LIFF_ID = "2011237326-O66B14ms"; // 元代謝健康APP
 
 // 測試切換身分（創始人2026-08-10：LINE還沒部署前，秘書手動輸入客人編號測試多位客人，
 // 需要能換身分，不然登入一次就卡在同一個客人身上）：網址加 ?switchtest=1 就會清掉目前綁定，
@@ -3556,6 +3571,21 @@ function mxStartAuth(){
   }
 }
 document.addEventListener('DOMContentLoaded', mxStartAuth);
+
+// ══════════════ 血糖/血酮 早晚時段選擇（2026-08-24新增）══════════════
+function selKmPeriod(el){
+  document.querySelectorAll('#km-period-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+}
+function autoSelKmPeriod(){
+  var box = document.getElementById('km-period-chips');
+  if (!box) return;
+  var now = new Date();
+  var isMorning = (now.getHours() < 8) || (now.getHours() === 8 && now.getMinutes() <= 30);
+  var wantVal = isMorning ? '早上' : '晚上';
+  box.querySelectorAll('.carb-chip').forEach(function(c){ c.classList.toggle('on', c.getAttribute('data-val') === wantVal); });
+}
+document.addEventListener('DOMContentLoaded', autoSelKmPeriod);
 
 // ══════════════ 儲值會員卡 ══════════════
 function loadWallet(){
@@ -3725,9 +3755,11 @@ var _carbRefeedActive = false;
 function submitDailyRecord() {
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
-  if(!k && !w){ toast('至少填血酮或體重其中一項，才能記錄喔'); return; }
+  var glucoseCheck = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
+  if(!k && !w && !glucoseCheck){ toast('至少填血酮、體重或血糖其中一項，才能記錄喔'); return; }
   if(k && (Number(k) < 0 || Number(k) > 10)){ toast('血酮數值看起來不太合理，麻煩再確認一下'); return; }
   if(w && (Number(w) <= 0 || Number(w) > 300)){ toast('體重數值看起來不太合理，麻煩再確認一下'); return; }
+  if(glucoseCheck && (Number(glucoseCheck) <= 0 || Number(glucoseCheck) > 600)){ toast('血糖數值看起來不太合理，麻煩再確認一下'); return; }
   var waistCheck = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
   if(waistCheck && (Number(waistCheck) <= 0 || Number(waistCheck) > 200)){ toast('腰圍數值看起來不太合理，麻煩再確認一下'); return; }
   var f = []; document.querySelectorAll('.chip.on').forEach(function(c) { f.push(c.textContent); });
@@ -3745,10 +3777,13 @@ function submitDailyRecord() {
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
     if(carbsVal && (Number(carbsVal) < 0 || Number(carbsVal) > 500)){ toast('碳水克數看起來不太合理，麻煩再確認一下'); return; }
   }
+  var glucoseVal = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
+  var periodChip = document.querySelector('#km-period-chips .carb-chip.on');
+  var periodVal = periodChip ? (periodChip.getAttribute('data-val') || '') : '';
   callAPI({
     action: 'addDailyRecord', clientId: CLIENT_ID,
     ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(','),
-    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal
+    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal, glucose: glucoseVal, period: periodVal
   }, function(d) {
     if (d.status === 'ok') {
       toast('✅ 已同步到秘書後台！');
@@ -4772,7 +4807,7 @@ function goTaskPage(i) {
   }
   
   if (i === 0) {
-    // 血酮記錄 → 跳到每日記錄頁，滑到血酮輸入欄
+    // 血糖血酮 → 跳到每日記錄頁，滑到血酮輸入欄
     goPage('record', '每日記錄');
     setTimeout(function() {
       var inp = document.getElementById('k-inp');
@@ -4945,7 +4980,7 @@ function updateGardenHint() {
     if (!gsTasks[i]) { nextTask = i; break; }
   }
   
-  var taskNames = ['血酮記錄', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日感謝'];
+  var taskNames = ['血糖血酮', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日感謝'];
   
   if (done === 0) {
     hint.textContent = '今天還沒開始，點下方任務開始記錄 😊';
@@ -4954,7 +4989,7 @@ function updateGardenHint() {
     hint.textContent = '今天全部完成了！花園為你盛開 🌸';
     if (arrow) arrow.style.display = 'none';
   } else if (nextTask >= 0) {
-    var names = ['血酮記錄', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日感謝'];
+    var names = ['血糖血酮', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日感謝'];
     hint.textContent = '很棒！繼續點「' + names[nextTask] + '」完成今日任務 👇';
     if (arrow) arrow.style.display = 'block';
   }
@@ -4988,6 +5023,9 @@ function quickSave(type) {
   var waist = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
   var e = [];
   document.querySelectorAll('.chip.on').forEach(function(c) { e.push(c.textContent); });
+  var glucose = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
+  var kmPeriodChip = document.querySelector('#km-period-chips .carb-chip.on');
+  var kmPeriod = kmPeriodChip ? (kmPeriodChip.getAttribute('data-val') || '') : '';
 
   if (type === 'meal') {
     if (!_mealSel.meal) { toast('先選一下這是哪一餐喔 🕐'); return; }
@@ -5015,7 +5053,18 @@ function quickSave(type) {
     // 背景儲存到Sheets
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: k, weight: '', waist: '', feeling: '', electrolyte: ''
+      ketone: k, weight: '', waist: '', feeling: '', electrolyte: '', period: kmPeriod
+    }, function(){});
+
+  } else if (type === 'glucose') {
+    if (!glucose || Number(glucose) <= 0) { toast('請先輸入血糖數值'); return; }
+    if (Number(glucose) > 600) { toast('血糖數值看起來不太合理，麻煩再確認一下'); return; }
+    toast('🩸 血糖 ' + glucose + ' mg/dL 已儲存！');
+    setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
+    // 背景儲存到Sheets
+    callAPI({
+      action: 'addDailyRecord', clientId: CLIENT_ID,
+      ketone: '', weight: '', waist: '', feeling: '', electrolyte: '', glucose: glucose, period: kmPeriod
     }, function(){});
 
   } else if (type === 'weight') {
@@ -5135,7 +5184,7 @@ function celebrateTask(taskName, doneCnt) {
   var i = taskName; // taskName其實是任務索引(0-6)
 
   if (i === 0) {
-    // 🩸 血酮記錄：血滴從中心點「向四周噴濺」後快速墜落消失
+    // 🩸 血糖血酮：血滴從中心點「向四周噴濺」後快速墜落消失
     for (var b = 0; b < 10; b++) {
       (function(b) {
         setTimeout(function() {
@@ -5299,7 +5348,7 @@ function celebrateTask(taskName, doneCnt) {
   // 更新花園進度文字
   var done = (typeof doneCnt !== 'undefined') ? doneCnt : gsTasks.filter(Boolean).length;
   var msgs = [
-    '血酮記錄完成！繼續下一個任務 🌱',
+    '血糖血酮記錄完成！繼續下一個任務 🌱',
     '體重腰圍記錄完成！繼續加油 📏',
     '飲食記錄完成！今天吃得很健康 📷',
     '電解質補充完成！身體說謝謝你 💦',
@@ -7312,12 +7361,20 @@ function selectKetoRegion(region){
 var QUIZ_URL = "https://hueyfen95-del.github.io/liff-app/quiz.html";
 function shareQuiz(){
   var shareText = "我最近在關心代謝健康，發現這個「60 秒代謝健康小提醒」滿有意思的，分享給你也測測看 🌱\n" + QUIZ_URL;
-  // LINE 分享優先
-  if(typeof liff !== 'undefined' && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker')){
-    liff.shareTargetPicker([{ type:'text', text: shareText }]).then(function(){
-      toast('✅ 已開啟分享，選擇要分享的朋友吧！');
-    }).catch(function(){ fallbackShareQuiz(shareText); });
-  } else {
+  // 2026-08-24修正：原本沒判斷LIFF_ID有沒有設定、也沒用try/catch包住，
+  // 在LIFF_ID是空字串（還沒設定LIFF、liff.init()根本沒跑過）的情況下呼叫liff.isApiAvailable()
+  // 會直接丟出例外，整個function中斷、按鈕按下去完全沒反應（連fallback都不會跑到）。
+  // 現在先確認LIFF_ID有設定才會走LINE分享，並且用try/catch保護，任何狀況都至少會落到fallbackShareQuiz()
+  var usedLiffShare = false;
+  try {
+    if (LIFF_ID && typeof liff !== 'undefined' && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker')) {
+      usedLiffShare = true;
+      liff.shareTargetPicker([{ type:'text', text: shareText }]).then(function(){
+        toast('✅ 已開啟分享，選擇要分享的朋友吧！');
+      }).catch(function(){ fallbackShareQuiz(shareText); });
+    }
+  } catch (e) { usedLiffShare = false; }
+  if (!usedLiffShare) {
     fallbackShareQuiz(shareText);
   }
 }

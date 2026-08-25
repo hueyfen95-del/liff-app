@@ -733,7 +733,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 
 <!-- ══ 分帳角色名單 ══ -->
 <div class="pg" id="pg-roles">
-  <div class="hint-box">先建立所有會參與分帳的角色（人或單位），之後在「分帳規則設定」決定每種服務怎麼分給誰。</div>
+  <div class="hint-box">先建立所有會參與分帳的角色（人或單位），之後在「分帳規則設定」決定每種服務怎麼分給誰。<br>💡 這裡的醫師／診所／實驗室／講師等「外部夥伴」，如果要讓對方自己登入查詢，是另一個網站「店家工作台」（跟秘書用的這個後台是分開的兩個系統）——新增角色之後，記得在下面名單按「設定登入密碼」，才能把登入資訊給對方。</div>
   <div id="roles-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——可以核對名單，但新增/編輯/刪除角色要請財務主管或創始人來處理。</div>
 
   <div class="card" id="role-add-card" style="margin-bottom:14px">
@@ -795,7 +795,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 
 <!-- ══ 帳號管理（只有創始人看得到）══ -->
 <div class="pg" id="pg-accounts">
-  <div class="hint-box">秘書、會計、行政要用後台，先在這裡幫他們建一組帳號。密碼建議請本人自己改一次；這一頁只有創始人看得到，別人在後台看不到「帳號管理」這個選項。</div>
+  <div class="hint-box">秘書、會計、行政要用「這個後台」，先在這裡幫他們建一組帳號。密碼建議請本人自己改一次；這一頁只有創始人看得到，別人在後台看不到「帳號管理」這個選項。<br>💡 如果是醫師、診所、實驗室這類「外部夥伴」，他們用的不是這裡、是另一個「店家工作台」網站，帳號要去左邊選單的「分帳角色」那頁開，不是這裡。</div>
 
   <div class="card" style="margin-bottom:14px">
     <div class="card-hd">
@@ -2099,6 +2099,10 @@ function toast(msg){
 <script>
 // ══ 元代謝後台 API 連動 ══
 var ADMIN_API = "https://script.google.com/macros/s/AKfycbwq-qqCxSJtzBJAreLCSKuF1UXn8wM90L6E7nIhMlziZTQTxeJzJPEGWxN5t_W59VOl/exec";
+// 醫師/診所/實驗室/講師等外部夥伴登入用的「店家工作台」網址——設定登入密碼後，要把這個網址一起給對方
+var VENDOR_PORTAL_URL = "https://hueyfen95-del.github.io/liff-app/vendor.html";
+// 秘書/會計/行政等內部同事登入「這個後台」本身的網址——開帳號後要把這個網址一起給對方
+var ADMIN_PORTAL_URL = "https://hueyfen95-del.github.io/liff-app/admin.html";
 
 // ── 通用API呼叫 ──
 var _apiErrToastAt = 0;
@@ -3375,7 +3379,16 @@ function saveAdminAccount(){
   if(payRate && Number(payRate) < 0){ toast('⚠️ 薪資金額不能是負數'); return; }
   adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
     if(d && d.status === 'ok'){
-      toast('✅ 已新增帳號：'+name+'（'+username+'），把帳號密碼給對方，之後可以自己改');
+      // 2026-08-25 新增：跟店家工作台密碼設定一樣，開好帳號直接組一段可以整段複製給對方的登入資訊，
+      // 不用自己再湊「網址是哪個、帳號密碼是什麼」，也提醒對方這是「後台」不是LINE APP
+      var credText = '📋 「'+name+'」的後台登入資訊\n\n'
+        + '登入網址：'+ADMIN_PORTAL_URL+'\n'
+        + '帳號：'+username+'\n'
+        + '密碼：'+password+'\n\n'
+        + '請用一般瀏覽器打開（不是LINE），登入後可以自己改密碼。請直接把這段傳給對方。';
+      try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(credText).then(function(){}, function(){}); } catch(e){}
+      toast('✅ 已新增帳號：'+name+'（'+username+'）');
+      alert(credText);
       document.getElementById('acc-username').value='';
       document.getElementById('acc-password').value='';
       document.getElementById('acc-name').value='';
@@ -3459,11 +3472,20 @@ function loadRoles() {
             '<button onclick="editRole(this)" data-id="' + r.roleId + '" data-type="' + r.roleType + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" data-cp="' + (r.contactPerson||'').replace(/"/g,'&quot;') + '" data-ci="' + (r.contactInfo||'').replace(/"/g,'&quot;') + '" data-dd="' + (r.defaultDays||'') + '" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>' +
             '<button onclick="deleteRole(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:var(--r2);color:var(--r);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">刪除</button>'
           : '<span style="font-size:10px;color:var(--text3)">僅查看</span>';
-        return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px">' +
+        // 2026-08-25 新增：店家工作台登入密碼——badge一眼看出這個人能不能登入，按鈕直接設定/重設，
+        // 設定完會跳出一段可以直接複製給對方的登入資訊（廠商代碼＋密碼＋網址），創始人在手機上操作也方便
+        var vendorPwBadge = r.hasVendorPw
+          ? '<span style="font-size:10px;color:#0F6E56;background:#E6F3EE;border-radius:6px;padding:1px 6px">✅ 已設定登入密碼</span>'
+          : '<span style="font-size:10px;color:#8A6A1F;background:#FFF6E0;border-radius:6px;padding:1px 6px">⚠️ 尚未設定登入密碼</span>';
+        var vendorPwBtn = isFinanceTier()
+          ? '<button onclick="setVendorPwUI(\'' + r.roleId + '\',\'' + r.roleName.replace(/'/g,"\\'").replace(/"/g,'&quot;') + '\')" style="background:var(--g2);color:var(--g3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">' + (r.hasVendorPw ? '重設登入密碼' : '設定登入密碼') + '</button>'
+          : '';
+        return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px;flex-wrap:wrap">' +
           '<span style="font-size:16px">' + (typeIcons[r.roleType] || '•') + '</span>' +
-          '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">' + r.roleName + '</div>' +
-          '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + partnerInfo + '</div>' +
-          roleActionBtns +
+          '<div style="flex:1;min-width:140px"><div style="font-size:12px;font-weight:700;color:var(--text)">' + r.roleName + '</div>' +
+          '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + partnerInfo +
+          '<div style="margin-top:4px">' + vendorPwBadge + '</div></div>' +
+          roleActionBtns + vendorPwBtn +
           '</div>';
       }).join('');
       // 同時把角色快取起來，給規則設定的下拉選單用
@@ -3519,6 +3541,38 @@ function deleteRole(btn) {
       loadRoles();
     } else {
       toast('⚠️ 刪除失敗，請重試');
+    }
+  });
+}
+
+// 2026-08-25 新增：設定/重設「店家工作台」登入密碼（醫師/診所/實驗室/講師等外部夥伴用）。
+// 廠商代碼固定就是角色名稱本身，不用另外設定；密碼設定成功後，直接組一段「登入資訊」文字，
+// 嘗試複製到剪貼簿，同時用alert()完整顯示（手機上長按文字也能自己選取複製），避免創始人還要
+// 自己去湊「代碼是什麼、密碼是什麼、網址是什麼」三件事、容易漏掉或給錯。
+function setVendorPwUI(roleId, roleName) {
+  var pw = prompt('幫「' + roleName + '」設定店家工作台的登入密碼：\n\n（至少4碼，之後隨時可以回來這裡重設）', '');
+  if (pw === null) return;
+  pw = pw.trim();
+  if (pw.length < 4) { toast('⚠️ 密碼至少要4碼'); return; }
+  adminAPI({action: 'setVendorPassword', roleId: roleId, password: pw}, function(d) {
+    if (d && d.status === 'ok') {
+      var credText = '📋 「' + roleName + '」的店家工作台登入資訊\n\n'
+        + '登入網址：' + VENDOR_PORTAL_URL + '\n'
+        + '廠商代碼：' + roleName + '\n'
+        + '查詢密碼：' + pw + '\n\n'
+        + '請直接把這段傳給對方（LINE/簡訊皆可）。';
+      var copied = false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(credText).then(function(){}, function(){});
+          copied = true;
+        }
+      } catch (e) {}
+      toast('✅ 密碼已設定' + (copied ? '，登入資訊已嘗試複製到剪貼簿' : ''));
+      alert(credText);
+      loadRoles();
+    } else {
+      toast('⚠️ ' + ((d && d.message) || '設定失敗，請重試'));
     }
   });
 }
@@ -5198,10 +5252,7 @@ function openClientDetail(id, name){
     var body = document.getElementById('client-detail-body');
     if(!body) return;
     if(d.records && d.records.length > 0){
-      // 2026-08-24新增：早晚監測——現在每個人都能選擇要不要記錄早晚血糖/血酮，「近期記錄」固定多顯示血糖這一欄
-      var html='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:7px;border-bottom:1px solid var(--border)">血酮</th>'
-        + '<th style="padding:7px;border-bottom:1px solid var(--border)">血糖</th>'
-        + '<th style="padding:7px;border-bottom:1px solid var(--border)">體重</th><th style="padding:7px;border-bottom:1px solid var(--border)">腰圍</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">感受</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">餐盤快記</th></tr>';
+      var html='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:7px;border-bottom:1px solid var(--border)">血酮</th><th style="padding:7px;border-bottom:1px solid var(--border)">血糖</th><th style="padding:7px;border-bottom:1px solid var(--border)">體重</th><th style="padding:7px;border-bottom:1px solid var(--border)">腰圍</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">感受</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">餐盤快記</th></tr>';
       d.records.slice(-14).reverse().forEach(function(r){
         html += '<tr><td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(String(r.date||r.time||'').slice(0,10))+'</td>'
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border);font-weight:700;color:var(--g3)">'+escH(r.ketone||'–')+'</td>'
@@ -8490,21 +8541,12 @@ function loadClinicSlots(){
     if(!d || d.status!=='ok' || !d.slots || d.slots.length===0){
       box.innerHTML = '<div style="color:var(--text3);font-size:13px">還沒有時段，請在上面新增</div>'; return;
     }
-    // 2026-08-24新增：之前這裡完全沒有刪除按鈕，打錯或重複的時段沒辦法清掉，只能整份表重寫——補上刪除按鈕
     box.innerHTML = d.slots.map(function(s, idx){
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px">'
         + '<div style="flex:1"><div style="font-weight:700;font-size:13px">'+escH(s.clinic)+'　<span style="color:var(--text3);font-weight:400">'+escH(s.region)+'</span></div>'
         + '<div style="font-size:12px;color:var(--text2);margin-top:2px">🕐 '+escH(s.datetime)+'</div></div>'
-        + '<button onclick="deleteClinicSlotRow('+s.row+',\''+escH(s.clinic).replace(/'/g,"\\'")+'\')" style="background:none;border:1px solid var(--r);color:var(--r);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap"><i class="ti ti-trash"></i> 刪除</button>'
         + '</div>';
     }).join('');
-  });
-}
-function deleteClinicSlotRow(row, clinicName){
-  if (!confirm('確定要刪除「'+clinicName+'」這一筆時段嗎？刪除後客人預約畫面就不會再看到這筆了。')) return;
-  adminAPI({action:'deleteClinicSlot', row: row}, function(d){
-    if (d && d.status === 'ok') { loadClinicSlots(); }
-    else { alert('刪除失敗：' + (d && d.message ? d.message : '請稍後再試')); }
   });
 }
 function loadCsClinicOptions(){
