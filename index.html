@@ -390,7 +390,7 @@ window.openHealthForm = function() {
         <div style="display:flex;flex-direction:column;gap:6px" id="garden-tasks">
           <div class="g-task" id="home-gt0" onclick="goTaskPage(0)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
             <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt0-check">○</div>
-            <div style="flex:1;font-size:11px;color:#374151">🩸 血糖血酮</div>
+            <div style="flex:1;font-size:11px;color:#374151">🩸 血酮記錄</div>
             <div style="font-size:12px;color:#6B7280">點擊記錄 →</div>
           </div>
           <div class="g-task" id="home-gt1" onclick="goTaskPage(1)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
@@ -561,29 +561,13 @@ window.openHealthForm = function() {
       </div>
     </div>
 
-    <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血糖 &amp; 血酮 &amp; 體重</div>
-    <!-- 2026-08-24新增：早晚監測——原本是醫師指定才看得到，改成每個人都能自己選擇要不要早晚各記錄一次。
-         早上/晚上是同一個時段標記，血糖跟血酮共用（同一次測量通常兩個一起驗），依照固定的量測時間規則 -->
-    <div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:8px">
-      ☀️ 早上：起床後空腹，8:30am前皆可　　🌙 晚上：進餐後3–3.5小時（午餐或晚餐皆可）
-    </div>
-    <div style="display:flex;gap:6px;margin-bottom:10px" id="km-period-chips">
-      <div class="carb-chip on" data-val="早上" onclick="selKmPeriod(this)" style="flex:1">☀️ 早上</div>
-      <div class="carb-chip" data-val="晚上" onclick="selKmPeriod(this)" style="flex:1">🌙 晚上</div>
-    </div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:4px">🩸 血糖 mg/dL</div>
-    <div class="inp-row" style="display:flex;gap:6px;align-items:center">
-      <input class="inp" type="number" step="1" placeholder="血糖 mg/dL" id="glucose-inp" style="flex:1">
-      <button onclick="quickSave('glucose')" style="background:#DC2626;color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
-    </div>
-    <div style="font-size:11px;color:var(--text2);margin:10px 0 4px">💧 血酮 mmol/L</div>
+    <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血酮 &amp; 體重</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
       <input class="inp" type="number" step="0.1" placeholder="血酮 mmol/L" id="k-inp" oninput="onKetone(this.value)" style="flex:1">
       <div class="k-badge" id="k-badge">—</div>
       <button onclick="quickSave('ketone')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <div class="chips">
-      <div class="chip" onclick="selChip(this,'t')">早餐前</div>
       <div class="chip" onclick="selChip(this,'t')">午餐前</div>
       <div class="chip on" onclick="selChip(this,'t')">傍晚晚餐前</div>
       <div class="chip" onclick="selChip(this,'t')">晚餐後 3–4h</div>
@@ -731,9 +715,8 @@ window.openHealthForm = function() {
         </div>
         <div class="pz" id="lz" onclick="uploadMeal('l')">
           <div style="font-size:26px;color:var(--text3);margin-bottom:5px"><i class="ti ti-photo-plus"></i></div>
-          <div style="font-size:13px;font-weight:600;color:var(--text2)">拍照 / 從相簿選取</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text2)">點擊上傳午餐照片</div>
           <div style="font-size:11px;color:var(--text3);margin-top:3px">秘書會看到，給你更準的建議</div>
-          <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('l')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('l')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
         </div>
       </div>
     </div>
@@ -979,7 +962,7 @@ window.openHealthForm = function() {
     <div style="font-size:48px;margin-bottom:14px">🔬</div>
     <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">你還沒有 IRCT 檢測記錄</div>
     <div style="font-size:12px;color:var(--text3);line-height:1.7;margin-bottom:24px">IRCT 動態胰島素阻抗檢測<br>能幫你找出代謝問題的根源<br>是了解自己身體的第一步</div>
-    <button onclick="goPage('booking','預約 IRCT 複檢');bkResetFlow()" style="background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px 28px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+    <button onclick="goPage('booking','預約 IRCT 複檢')" style="background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px 28px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
       <i class="ti ti-calendar-plus" style="font-size:15px"></i>立即預約 IRCT
     </button>
   </div>
@@ -991,11 +974,20 @@ window.openHealthForm = function() {
     <div style="text-align:center;margin-bottom:14px">
       <div style="font-size:48px;margin-bottom:10px">📅</div>
       <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px">你已預約 IRCT 檢測</div>
-      <button onclick="goPage('booking','預約 IRCT 檢測');bkResetFlow()" style="background:var(--b);color:#fff;border:none;border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px"><span style="font-size:15px">🔬</span>想預約另一次檢測</button>
+      <button onclick="goPage('booking','預約 IRCT 檢測')" style="background:var(--b);color:#fff;border:none;border-radius:12px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px"><span style="font-size:15px">🔬</span>想預約另一次檢測</button>
     </div>
 
-    <!-- 預約時間地點卡片——可能不只一筆（客人在秘書回覆前又送出新請求），由bkRenderBookedCards()動態產生 -->
-    <div id="irct-booked-list"></div>
+    <!-- 預約時間地點卡片 -->
+    <div style="background:var(--g2);border-radius:14px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <i class="ti ti-clock" style="color:var(--g3);font-size:16px"></i>
+        <span id="irct-booked-time" style="font-size:13px;color:var(--g3);font-weight:600">2026/06/25 09:00</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <i class="ti ti-map-pin" style="color:var(--g3);font-size:16px"></i>
+        <span id="irct-booked-location" style="font-size:13px;color:var(--g3);font-weight:600">台北診所</span>
+      </div>
+    </div>
 
     <!-- 檢測前注意事項 -->
     <div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:14px;padding:15px 16px;margin-bottom:18px">
@@ -1065,7 +1057,7 @@ window.openHealthForm = function() {
 
     <!-- 快速預約（永遠顯示，不管子狀態是什麼，一步直達預約頁）-->
     <div style="margin:10px 14px 0">
-      <div onclick="goPage('booking','預約 IRCT 複檢');bkResetFlow()" style="background:var(--card);border:1.5px solid var(--g);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer">
+      <div onclick="goPage('booking','預約 IRCT 複檢')" style="background:var(--card);border:1.5px solid var(--g);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer">
         <div style="font-size:20px">🔬</div>
         <div style="flex:1">
           <div style="font-size:12.5px;font-weight:700;color:var(--g3)">想再檢測一次？</div>
@@ -1116,7 +1108,7 @@ window.openHealthForm = function() {
             <div style="font-size:12px;opacity:.85">陪跑這段時間，你的身體一定有了改變</div>
           </div>
         </div>
-        <button onclick="goPage('booking','預約 IRCT 複檢');bkResetFlow()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:11px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        <button onclick="goPage('booking','預約 IRCT 複檢')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:11px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
           <i class="ti ti-calendar-plus" style="font-size:14px"></i>預約複檢，看看你的改變
         </button>
       </div>
@@ -1490,14 +1482,14 @@ window.openHealthForm = function() {
     <!-- Step 4：選時間 -->
     <div id="bk-step4" style="display:none;padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測時間</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 8-10 小時</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 4 小時</div>
       <div id="bk-time-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/18（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div onclick="bkSelTime(this)" style="border:1.5px solid var(--g);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--g2)"><div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:2px">06/21（六）</div><div style="font-size:11px;color:var(--g3)">08:30–10:30</div></div>
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/25（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div style="border:1px solid var(--border);border-radius:10px;padding:10px 11px;text-align:center;background:var(--bg);opacity:.5"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px">06/28（六）</div><div style="font-size:11px;color:var(--r3)">已滿</div></div>
       </div>
-      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 8-10 小時，白開水可以喝。</div>
+      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 4 小時，白開水可以喝。</div>
       <div style="display:flex;gap:8px">
         <button onclick="bkGoStep3()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
         <button onclick="bkGoStep5()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">確認預約</button>
@@ -1836,7 +1828,7 @@ window.openHealthForm = function() {
   </div>
 
   <div class="gs-task-row">
-    <button class="gs-task pending" id="gt0" onclick="goTaskPage(0)"><span class="gt-em">🩸</span>血糖血酮</button>
+    <button class="gs-task pending" id="gt0" onclick="goTaskPage(0)"><span class="gt-em">🩸</span>血酮記錄</button>
     <button class="gs-task pending" id="gt1" onclick="goTaskPage(1)"><span class="gt-em">📏</span>體重腰圍</button>
     <button class="gs-task pending" id="gt2" onclick="goTaskPage(2)"><span class="gt-em">📷</span>飲食記錄</button>
     <button class="gs-task pending" id="gt3" onclick="goTaskPage(3)"><span class="gt-em">💦</span>補電解質</button>
@@ -2245,18 +2237,9 @@ function goPage(id,title){
 }
 
 // ── IRCT 預約流程 ──
-// 每次「開始一段新的預約」都要從第1步顯示，不能只更新進度指示條——
-// bkSetStep()單純是視覺上的步驟指示，不會實際切換哪個step區塊是顯示的，
-// 之前「想預約另一次檢測」就是漏了這段，導致點下去還是停在上一次預約的「完成」畫面
-function bkResetFlow(){
-  for (var i=2;i<=5;i++){ var el=document.getElementById('bk-step'+i); if(el) el.style.display='none'; }
-  var s1=document.getElementById('bk-step1'); if(s1) s1.style.display='block';
-  var bdWarn=document.getElementById('bk-birthdate-warn'); if(bdWarn) bdWarn.style.display='none';
-  bkSetStep(1);
-}
 function openBooking(){
   goPage('booking','預約 IRCT 複檢');
-  bkResetFlow();
+  bkSetStep(1);
 }
 var bkDiet=3; // 預設粒腺體飲食已選
 function bkSelectDiet(n){
@@ -2341,39 +2324,16 @@ function bkGoStep4(){
       locText4 = locEl4.textContent.trim().replace(/上次去過/,'').replace(/[›〉>]/g,'').trim();
     }
     var planText4 = _bkType==='t2' ? 'IRCT-t2' : 'IRCT-t1';
-    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 8-10 小時';
+    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 4 小時';
   }
   if(typeof bkRenderTimes==='function') bkRenderTimes();
 }
 function bkGoStep5(){
-  // 出生年月日是抽血檢測必填、後端也會擋——但這一步之前有兩條路都可能繞過 bkGoStep3 那個檢查
-  // （改期直接跳到第4步、「想預約另一次檢測」沒有重置回第1步），繞過的話後端會整筆預約直接打回票，
-  // 客人卻已經看到「預約成功」畫面，完全不知道其實沒約到。這裡補一道最後防線，不管從哪條路進來都會擋到。
-  if (!_bkBirthDate) {
-    document.getElementById('bk-step1').style.display='none';
-    document.getElementById('bk-step2').style.display='block';
-    document.getElementById('bk-step3').style.display='none';
-    document.getElementById('bk-step4').style.display='none';
-    bkSetStep(2);
-    var bdInput0 = document.getElementById('bk-birthdate');
-    var bdWarn0 = document.getElementById('bk-birthdate-warn');
-    if (bdWarn0) bdWarn0.style.display = 'block';
-    if (bdInput0) { bdInput0.focus(); bdInput0.scrollIntoView({behavior:'smooth', block:'center'}); }
-    toast('⚠️ 請先填寫出生年月日，抽血檢測需要核對');
-    return;
-  }
-  // 2026-08-22新增：時間卡片沒有點選也能送出，之前發生過送出後「時間」欄位是空的，
-  // 結果畫面（跟秘書看到的紀錄）把地點文字重複顯示在時間欄位，客人完全看不出來哪裡有選、哪裡沒選。
-  // 跟出生年月日一樣，這裡也要卡住，逼客人一定要先點一張時間／預約方式卡片才能繼續。
-  var timeElCheck = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
-  if (!timeElCheck) {
-    toast('⚠️ 請先點選一個時間／預約方式卡片，再繼續');
-    var timeListEl = document.getElementById('bk-time-list');
-    if (timeListEl) timeListEl.scrollIntoView({behavior:'smooth', block:'center'});
-    return;
-  }
+  document.getElementById('bk-step4').style.display='none';
+  document.getElementById('bk-step5').style.display='block';
+  bkSetStep(5);
 
-  // 整理已選擇的資料（先算好，等後端真的確認成功才顯示，不要先斬後奏）
+  // 整理已選擇的資料
   var planNames = {t1:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t1.toLocaleString(), t2:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t2.toLocaleString()};
   var planSummary = planNames[_bkType] || planNames['t2'];
 
@@ -2389,26 +2349,29 @@ function bkGoStep5(){
     locText = '瑞絲得診所・新竹';
   }
 
-  var timeText = timeElCheck.textContent.trim();
+  var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
+  var timeText = timeEl ? timeEl.textContent.trim() : '';
 
   var dietNames = {1:'🍞 混合飲食（碳水 50%）',2:'🥑 粒腺體飲食（碳水 5%，脂肪 70%）',3:'🥩 低碳飲食',4:'🌾 一般均衡飲食',5:'🥗 其他飲食模式'};
   var dietSummary = dietNames[bkDiet] || dietNames[2];
 
-  // 2026-08-22修正：以前「確認預約」一按下去，畫面立刻顯示「預約成功」，
-  // 實際送到後端的請求還沒回來——如果後端因為某個欄位問題打回票，客人已經看到「成功」畫面了，
-  // 只靠一個容易被錯過的toast提醒，客人完全不會發現其實沒約到（東泰那次疑似就是這樣）。
-  // 現在改成：先顯示「送出中」，等後端真的回覆成功了，才切換到「預約成功」畫面；失敗的話留在原地讓客人重試。
-  var submitBtn = document.querySelector('#bk-step4 button[onclick="bkGoStep5()"]');
-  var submitBtnOrigText = submitBtn ? submitBtn.textContent : '';
-  if (submitBtn) { submitBtn.textContent = '送出中…'; submitBtn.disabled = true; submitBtn.style.opacity = '0.6'; submitBtn.style.cursor = 'default'; }
-  // 保險：萬一網路問題導致連線根本沒有回應（連callback都不會被呼叫到），按鈕也不能永遠卡在「送出中」
-  var bkSubmitDone = false;
-  var bkSubmitTimeout = setTimeout(function(){
-    if (bkSubmitDone) return;
-    bkSubmitDone = true;
-    if (submitBtn) { submitBtn.textContent = submitBtnOrigText || '確認預約'; submitBtn.disabled = false; submitBtn.style.opacity = ''; submitBtn.style.cursor = 'pointer'; }
-    toast('⚠️ 網路連線有問題，預約可能沒有送出，請重新試一次');
-  }, 20000);
+  // 更新確認畫面文字
+  var greetEl = document.getElementById('bk-confirm-greet');
+  var bannerEl = document.getElementById('bk-confirm-banner');
+  var summaryEl = document.getElementById('bk-confirm-summary');
+  var locationEl = document.getElementById('bk-confirm-location');
+  var dietEl = document.getElementById('bk-confirm-diet');
+  if (greetEl) greetEl.textContent = (CLIENT_NAME ? CLIENT_NAME + '，您已經成功預約囉！' : '預約成功！');
+  if (bannerEl) bannerEl.textContent = timeText + (timeText ? '・' : '') + locText;
+  if (summaryEl) summaryEl.textContent = planSummary;
+  if (locationEl) locationEl.textContent = locText + (timeText ? '・' + timeText : '');
+  if (dietEl) dietEl.textContent = dietSummary;
+
+  // 本地端立即記住狀態（避免API時間差問題）
+  LOCAL_REPORT_STATUS = 'booked';
+  LAST_DIET_RECORD = dietSummary;
+  LOCAL_BOOKED_TIME = (locText + (timeText ? '・' + timeText : ''));
+  LOCAL_BOOKED_LOCATION = locText;
 
   // 背景送出到Sheets
   var medInputEl = document.getElementById('bk-med-input');
@@ -2424,40 +2387,12 @@ function bkGoStep5(){
     dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || '',
     birthDate: _bkBirthDate || ''
   }, function(d) {
-    if (bkSubmitDone) return; // 逾時提示已經顯示過了，避免慢回應又蓋回去造成畫面閃爍/矛盾
-    bkSubmitDone = true;
-    clearTimeout(bkSubmitTimeout);
-    if (d && d.status === 'ok') {
-      // 後端確認成功了，這時候才真正切到「預約成功」畫面
-      document.getElementById('bk-step4').style.display='none';
-      document.getElementById('bk-step5').style.display='block';
-      bkSetStep(5);
-
-      var greetEl = document.getElementById('bk-confirm-greet');
-      var bannerEl = document.getElementById('bk-confirm-banner');
-      var summaryEl = document.getElementById('bk-confirm-summary');
-      var locationEl = document.getElementById('bk-confirm-location');
-      var dietEl = document.getElementById('bk-confirm-diet');
-      if (greetEl) greetEl.textContent = (CLIENT_NAME ? CLIENT_NAME + '，您已經成功預約囉！' : '預約成功！');
-      if (bannerEl) bannerEl.textContent = timeText + (timeText ? '・' : '') + locText;
-      if (summaryEl) summaryEl.textContent = planSummary;
-      if (locationEl) locationEl.textContent = locText + (timeText ? '・' + timeText : '');
-      if (dietEl) dietEl.textContent = dietSummary;
-
-      LOCAL_REPORT_STATUS = 'booked';
-      LAST_DIET_RECORD = dietSummary;
-      LOCAL_BOOKED_TIME = (locText + (timeText ? '・' + timeText : ''));
-      LOCAL_BOOKED_LOCATION = locText;
-
+    if (d.status === 'ok') {
       callAPI({
         action: 'addNote', clientId: CLIENT_ID,
         content: 'reportStatus:booked',
         type: '報告狀態', secretary: CLIENT_ID
       }, function(){});
-    } else {
-      // 送出失敗——因為還沒切換畫面，客人還停留在第4步，恢復按鈕讓他可以直接重試，不會誤以為約成功了
-      if (submitBtn) { submitBtn.textContent = submitBtnOrigText || '確認預約'; submitBtn.disabled = false; submitBtn.style.opacity = ''; submitBtn.style.cursor = 'pointer'; }
-      toast('⚠️ 預約沒有送出成功' + (d && d.message ? '：'+d.message : '') + '，請重新確認後再送出一次，或直接跟秘書聯絡');
     }
   });
 }
@@ -3502,7 +3437,7 @@ function saveToSheets(ketone, weight, feeling, electrolyte) {
 var API_URL = "https://script.google.com/macros/s/AKfycbwq-qqCxSJtzBJAreLCSKuF1UXn8wM90L6E7nIhMlziZTQTxeJzJPEGWxN5t_W59VOl/exec";
 // ══════════════ 客戶身分：LINE 登入 ══════════════
 // ⚠️ 只需要填這一個值：到 LINE Developers 建立 LIFF 後，把 LIFF ID 貼進引號內
-var LIFF_ID = "2011237326-O66B14ms"; // 元代謝健康APP
+var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
 
 // 測試切換身分（創始人2026-08-10：LINE還沒部署前，秘書手動輸入客人編號測試多位客人，
 // 需要能換身分，不然登入一次就卡在同一個客人身上）：網址加 ?switchtest=1 就會清掉目前綁定，
@@ -3510,11 +3445,17 @@ var LIFF_ID = "2011237326-O66B14ms"; // 元代謝健康APP
 // 2026-08-10 修正：清掉身分後要馬上把網址上的 switchtest=1 拿掉（history.replaceState），
 // 不然等一下登入成功、mxSetIdentity 觸發 location.reload() 重整頁面時，網址還帶著
 // switchtest=1，會被這段程式碼再清一次、卡在登入畫面出不去（實測到的問題，已修正）。
+// 2026-08-25 修正：LIFF_ID設定好之後，switchtest=1 原本只清掉綁定、
+// 沒有同時跳過LINE自動登入，導致清完馬上又被liff.login()導去LINE的登入畫面，
+// 秘書/測試人員不是「加入LIFF頻道的測試者」時會卡在LINE的400錯誤頁面出不去。
+// 現在 switchtest=1 會多記一個「這次要用手動客人編號登入」的旗標，讓 mxStartAuth() 跳過LINE登入。
+var _mxForceManualLogin = false;
 (function(){
   try {
     if (location.search.indexOf('switchtest=1') >= 0) {
       localStorage.removeItem('mx_client_id');
       localStorage.removeItem('mx_client_name');
+      _mxForceManualLogin = true;
       var _cleanUrl = location.pathname + location.search.replace(/[?&]switchtest=1/, '').replace(/^&/, '?') + location.hash;
       history.replaceState(null, '', _cleanUrl);
     }
@@ -3589,6 +3530,7 @@ function mxDoBind(){
 }
 function mxStartAuth(){
   if (CLIENT_ID) return; // 已登入過（記在這支手機裡）
+  if (_mxForceManualLogin) { mxShowLogin(''); return; } // 用 ?switchtest=1 進來：跳過LINE登入，直接手動輸入客人編號
   // 有設定 LIFF：走 LINE 登入
   if (LIFF_ID && typeof liff !== 'undefined') {
     liff.init({ liffId: LIFF_ID }).then(function(){
@@ -3775,25 +3717,6 @@ function selCarbExercise(el){
   document.querySelectorAll('#carb-exercise-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
   el.classList.add('on');
 }
-// 2026-08-24新增：早晚監測——每個人都能用，不用醫師指定。血糖/血酮共用同一個「早上/晚上」量測時段標記，
-// 跟一般.chip分開一個class(carb-chip)，避免被submitDailyRecord()/quickSave()裡通用的
-// document.querySelectorAll('.chip.on') 掃到，誤把「☀️ 早上」這種文字混進感受/電解質欄位
-function selKmPeriod(el){
-  document.querySelectorAll('#km-period-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
-  el.classList.add('on');
-}
-// 依目前時間自動預選早上/晚上：8:30am前預設早上，之後預設晚上，客人仍可自己改選
-function autoSelKmPeriod(){
-  var box = document.getElementById('km-period-chips');
-  if (!box) return;
-  var now = new Date();
-  var isMorning = (now.getHours() < 8) || (now.getHours() === 8 && now.getMinutes() <= 30);
-  var wantVal = isMorning ? '早上' : '晚上';
-  box.querySelectorAll('.carb-chip').forEach(function(c){
-    c.classList.toggle('on', c.getAttribute('data-val') === wantVal);
-  });
-}
-document.addEventListener('DOMContentLoaded', autoSelKmPeriod);
 function toggleCarbBowel(el){
   var on = el.classList.toggle('on');
   el.textContent = on ? '已排便' : '尚未';
@@ -3802,8 +3725,7 @@ var _carbRefeedActive = false;
 function submitDailyRecord() {
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
-  var glucoseCheck = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
-  if(!k && !w && !glucoseCheck){ toast('至少填血酮、體重或血糖其中一項，才能記錄喔'); return; }
+  if(!k && !w){ toast('至少填血酮或體重其中一項，才能記錄喔'); return; }
   if(k && (Number(k) < 0 || Number(k) > 10)){ toast('血酮數值看起來不太合理，麻煩再確認一下'); return; }
   if(w && (Number(w) <= 0 || Number(w) > 300)){ toast('體重數值看起來不太合理，麻煩再確認一下'); return; }
   var waistCheck = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
@@ -3823,16 +3745,10 @@ function submitDailyRecord() {
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
     if(carbsVal && (Number(carbsVal) < 0 || Number(carbsVal) > 500)){ toast('碳水克數看起來不太合理，麻煩再確認一下'); return; }
   }
-  // 2026-08-24新增：早晚監測——現在每個人都能填，血糖跟血酮共用同一個「早上/晚上」時段標記
-  var glucoseVal = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
-  if(glucoseVal && (Number(glucoseVal) <= 0 || Number(glucoseVal) > 600)){ toast('血糖數值看起來不太合理，麻煩再確認一下'); return; }
-  var periodChip = document.querySelector('#km-period-chips .carb-chip.on');
-  var periodVal = periodChip ? (periodChip.getAttribute('data-val') || '') : '';
   callAPI({
     action: 'addDailyRecord', clientId: CLIENT_ID,
     ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(','),
-    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal,
-    glucose: glucoseVal, period: periodVal
+    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal
   }, function(d) {
     if (d.status === 'ok') {
       toast('✅ 已同步到秘書後台！');
@@ -4265,7 +4181,7 @@ var MATRIX_DATA = [
      type:'囤積型',level:'中（警戒）',cause:'受體多+阻抗中期',focus:'控碳水飲食為主軸、先減脂再談增肌、有運動者降低強度勿停'},
   ],
   [
-    {name:'發炎阻抗型',tag:'阻抗高・纖細',tagBg:'#FCEBEB',tagColor:'#791F1F',
+    {name:'虛寒阻抗型',tag:'阻抗高・纖細',tagBg:'#FCEBEB',tagColor:'#791F1F',
      desc:'外表瘦但內臟脂肪高，俗稱「泡芙人」。最難調整也最容易被忽略。絕對不要再節食！粒腺體健康之旅循序漸進，壓力管理是第一優先，從非常輕度運動開始（散步、瑜珈）。',
      type:'纖細型',level:'高（建議就醫評估）',cause:'多次減肥+長期慢性壓力',focus:'粒腺體健康之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
     {name:'代謝症候群型',tag:'阻抗高・中間',tagBg:'#FCEBEB',tagColor:'#791F1F',
@@ -4856,7 +4772,7 @@ function goTaskPage(i) {
   }
   
   if (i === 0) {
-    // 血糖血酮 → 跳到每日記錄頁，滑到血酮輸入欄
+    // 血酮記錄 → 跳到每日記錄頁，滑到血酮輸入欄
     goPage('record', '每日記錄');
     setTimeout(function() {
       var inp = document.getElementById('k-inp');
@@ -5029,7 +4945,7 @@ function updateGardenHint() {
     if (!gsTasks[i]) { nextTask = i; break; }
   }
   
-  var taskNames = ['血糖血酮', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日感謝'];
+  var taskNames = ['血酮記錄', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日感謝'];
   
   if (done === 0) {
     hint.textContent = '今天還沒開始，點下方任務開始記錄 😊';
@@ -5038,7 +4954,7 @@ function updateGardenHint() {
     hint.textContent = '今天全部完成了！花園為你盛開 🌸';
     if (arrow) arrow.style.display = 'none';
   } else if (nextTask >= 0) {
-    var names = ['血糖血酮', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日感謝'];
+    var names = ['血酮記錄', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日感謝'];
     hint.textContent = '很棒！繼續點「' + names[nextTask] + '」完成今日任務 👇';
     if (arrow) arrow.style.display = 'block';
   }
@@ -5088,9 +5004,6 @@ function quickSave(type) {
   }
   if (type === 'ketone') {
     if (!k || parseFloat(k) <= 0) { toast('請先輸入血酮數值'); return; }
-    // 2026-08-24新增：早晚監測——現在每個人都能填，血酮跟血糖共用同一個「早上/晚上」時段標記
-    var periodChipK = document.querySelector('#km-period-chips .carb-chip.on');
-    var periodValK = periodChipK ? (periodChipK.getAttribute('data-val') || '') : '';
     // 立刻更新UI（不等API）
     gsTasks[0] = true;
     var gt0 = document.getElementById('gt0');
@@ -5102,22 +5015,7 @@ function quickSave(type) {
     // 背景儲存到Sheets
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: k, weight: '', waist: '', feeling: '', electrolyte: '', period: periodValK
-    }, function(){});
-
-  } else if (type === 'glucose') {
-    // 2026-08-24新增：早晚監測——血糖快記，現在每個人都能填
-    var glucoseQS = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
-    if (!glucoseQS || parseFloat(glucoseQS) <= 0) { toast('請先輸入血糖數值'); return; }
-    var periodChipQS = document.querySelector('#km-period-chips .carb-chip.on');
-    var periodQS = periodChipQS ? (periodChipQS.getAttribute('data-val') || '') : '';
-    toast('🩸 血糖 ' + glucoseQS + ' mg/dL（' + (periodQS||'') + '）已儲存！');
-    setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
-    // 背景儲存到Sheets
-    callAPI({
-      action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: '', weight: '', waist: '', feeling: '', electrolyte: '',
-      glucose: glucoseQS, period: periodQS
+      ketone: k, weight: '', waist: '', feeling: '', electrolyte: ''
     }, function(){});
 
   } else if (type === 'weight') {
@@ -5237,7 +5135,7 @@ function celebrateTask(taskName, doneCnt) {
   var i = taskName; // taskName其實是任務索引(0-6)
 
   if (i === 0) {
-    // 🩸 血糖血酮：血滴從中心點「向四周噴濺」後快速墜落消失
+    // 🩸 血酮記錄：血滴從中心點「向四周噴濺」後快速墜落消失
     for (var b = 0; b < 10; b++) {
       (function(b) {
         setTimeout(function() {
@@ -5401,7 +5299,7 @@ function celebrateTask(taskName, doneCnt) {
   // 更新花園進度文字
   var done = (typeof doneCnt !== 'undefined') ? doneCnt : gsTasks.filter(Boolean).length;
   var msgs = [
-    '血糖血酮記錄完成！繼續下一個任務 🌱',
+    '血酮記錄完成！繼續下一個任務 🌱',
     '體重腰圍記錄完成！繼續加油 📏',
     '飲食記錄完成！今天吃得很健康 📷',
     '電解質補充完成！身體說謝謝你 💦',
@@ -5819,7 +5717,7 @@ function updateComplexity() {
   // 從矩陣位置取得基礎係數
   var MATRIX_BASE = [[1.0,1.0,1.1],[1.1,1.1,1.2],[1.2,1.3,1.4],[1.4,1.5,1.6]];
   var MATRIX_TIME = [['1-2個月','1-2個月','1-3個月'],['2-3個月','2-4個月','3-5個月'],['3-6個月','4-7個月','5-8個月'],['6-9個月','8-12個月','10-12個月以上']];
-  var MATRIX_NAMES = [['自然燃脂型','活躍均衡型','肌肉爆發型'],['隱性警戒型','代謝轉折型','囤積前期型'],['疲勞纖細型','標準阻抗型','脂肌並存型'],['發炎阻抗型','代謝症候群型','重度囤積型']];
+  var MATRIX_NAMES = [['自然燃脂型','活躍均衡型','肌肉爆發型'],['隱性警戒型','代謝轉折型','囤積前期型'],['疲勞纖細型','標準阻抗型','脂肌並存型'],['虛寒阻抗型','代謝症候群型','重度囤積型']];
 
   // 讀取目前選中的矩陣格子
   var activeCell = document.querySelector('.m-cell.active');
@@ -6365,7 +6263,6 @@ function submitAndClose() {
   // 跳到預約頁
   setTimeout(function() {
     goPage('booking', '預約 IRCT');
-    bkResetFlow();
   }, 500);
 }
 
@@ -6446,39 +6343,6 @@ function loadIrctContext(){
     if(body) body.innerHTML = lines.join('<br>');
   });
 }
-// 產生「已預約」畫面上單張時間地點卡片的HTML（label有值時會加上「第N次預約請求」的標籤）
-// 2026-08-24修正：「載入中」這個字只該用在「畫面還在等後端回應」的當下——
-// 但同一句話之前也被拿來墊「後端已經回應了、只是這欄位本身就是空的」（例如舊測試資料沒點時間卡片就送出），
-// 客人會誤以為系統一直卡住在讀取。用isPlaceholder區分：true=真的還在等資料，false=資料已經到了、單純內容是空的。
-function bkBookedCardHtml(time, clinic, label, isPlaceholder){
-  var emptyTime = isPlaceholder ? '載入中…' : '待確認時間';
-  var emptyClinic = isPlaceholder ? '載入中…' : '待確認地點';
-  return '<div style="background:var(--g2);border-radius:14px;padding:16px;margin-bottom:10px">'
-    + (label ? '<div style="font-size:11px;font-weight:700;color:var(--g3);margin-bottom:8px">'+escHtml(label)+'</div>' : '')
-    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><i class="ti ti-clock" style="color:var(--g3);font-size:16px"></i><span style="font-size:13px;color:var(--g3);font-weight:600">'+escHtml(time||emptyTime)+'</span></div>'
-    + '<div style="display:flex;align-items:center;gap:8px"><i class="ti ti-map-pin" style="color:var(--g3);font-size:16px"></i><span style="font-size:13px;color:var(--g3);font-weight:600">'+escHtml(clinic||emptyClinic)+'</span></div>'
-    + '</div>'
-    + '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:flex-start;gap:8px">'
-    + '<i class="ti ti-hourglass-high" style="color:#92400E;font-size:16px;margin-top:1px"></i>'
-    + '<div style="font-size:12px;color:#92400E;line-height:1.7">上面的時間是你送出的預約請求，<b>還在等健康秘書確認</b>——秘書會在 LINE 跟你回覆實際的檢測日期時間，請以秘書回覆的為準。</div>'
-    + '</div>';
-}
-// pending是「秘書還沒處理過（狀態還是新預約）」的預約請求列表，由舊到新排序。
-// 客人可能在秘書回覆前又送出新的一次，這種情況兩筆都要顯示、標上第幾次，不能讓舊的悄悄消失；
-// 秘書一旦在後台把某筆標記處理過，那筆就不會再出現在這裡（pending清單只列還沒處理的）
-function bkRenderBookedCards(pending){
-  var box = document.getElementById('irct-booked-list');
-  if (!box) return;
-  if (!pending || pending.length === 0) {
-    // 沒有還在等處理的了——通常是秘書已經確認或取消過，顯示目前記住的最新狀態即可，不用標第幾次
-    box.innerHTML = bkBookedCardHtml(LOCAL_BOOKED_TIME, LOCAL_BOOKED_LOCATION, null);
-    return;
-  }
-  box.innerHTML = pending.map(function(p, idx){
-    var label = pending.length > 1 ? ('第 '+(idx+1)+' 次預約請求') : null;
-    return bkBookedCardHtml(p.bookedTime, p.clinic, label);
-  }).join('');
-}
 function showIRCTScene(status) {
   // 首頁卡片文字跟著實際狀態動態顯示，沒預約過的客人才不會誤以為這只是「看報告」而找不到預約入口
   var homeLabel = document.getElementById('home-irct-label');
@@ -6524,44 +6388,12 @@ function showIRCTScene(status) {
   if (targetScene === 'ready' && typeof loadIrctContext === 'function') loadIrctContext();
   if (targetScene === 'ready' && typeof loadIrctSummary === 'function') loadIrctSummary();
 
-  // 已預約畫面：客人可能在秘書回覆之前就又送出一次新請求，所以不能只顯示最新一筆——
-  // 要去後端問清楚「還有幾筆秘書沒處理過」，全部列出來，秘書處理完（狀態不再是新預約）才會消失
+  // 已預約畫面：填入真實的時間地點
   if (targetScene === 'booked') {
-    var listBox = document.getElementById('irct-booked-list');
-    if (listBox) {
-      // 查詢回來之前，先用手上已有的資料（或「載入中」）墊著，畫面才不會空白——這裡是真的還在等後端回應，isPlaceholder要傳true
-      listBox.innerHTML = bkBookedCardHtml(LOCAL_BOOKED_TIME, LOCAL_BOOKED_LOCATION, null, true);
-    }
-    // 2026-08-22修正：以前查詢失敗或查無資料時直接return，畫面會永遠卡在「載入中」不會變——
-    // 現在不管查詢結果如何，一定要更新畫面（成功就顯示真實資料，失敗/逾時就顯示提示，不留白轉圈）
-    // 2026-08-24再修正：光顯示「讀取失敗」客人/秘書都不知道實際卡在哪——直接把後端回傳的內容印在畫面上，
-    // 不用另外去 Apps Script 執行記錄裡找，用APP本身就能看到真正的錯誤內容，方便排查。
-    var bkCtxDone = false;
-    function bkCtxFailHtml(reason){
-      return '<div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:14px;color:#92400E;font-size:13px;line-height:1.7">⚠️ 目前讀取預約時間有點久或失敗了，請下拉重新整理一次，或直接跟秘書確認預約狀況。'
-        + '<div style="margin-top:8px;font-size:11px;color:#B45309;word-break:break-all">診斷資訊：'+escHtml(reason||'')+'</div></div>';
-    }
-    var bkCtxTimeout = setTimeout(function(){
-      if (bkCtxDone) return;
-      bkCtxDone = true;
-      if (listBox && (!LOCAL_BOOKED_TIME || !LOCAL_BOOKED_LOCATION)) listBox.innerHTML = bkCtxFailHtml('等了12秒後端沒有回應（逾時或網路連線失敗）');
-    }, 12000);
-    callAPI({action:'getLatestBookingContext', clientId:CLIENT_ID}, function(d){
-      if (bkCtxDone) return; // 逾時提示已經顯示過了，避免慢回應又蓋回去造成閃爍
-      bkCtxDone = true;
-      clearTimeout(bkCtxTimeout);
-      if (d && d.status==='ok' && d.found) {
-        if (d.bookedTime) LOCAL_BOOKED_TIME = d.bookedTime;
-        if (d.clinic) LOCAL_BOOKED_LOCATION = d.clinic;
-        if (d.diet) LAST_DIET_RECORD = d.diet;
-        bkRenderBookedCards(d.pending || []);
-      } else if (listBox && (!LOCAL_BOOKED_TIME || !LOCAL_BOOKED_LOCATION)) {
-        var bkCtxReason;
-        try { bkCtxReason = d ? JSON.stringify(d) : '後端沒有回傳任何內容（收到空回應）'; }
-        catch(eCtx) { bkCtxReason = '無法解析後端回應內容'; }
-        listBox.innerHTML = bkCtxFailHtml(bkCtxReason);
-      }
-    });
+    var bookedTimeEl = document.getElementById('irct-booked-time');
+    var bookedLocEl = document.getElementById('irct-booked-location');
+    if (bookedTimeEl && LOCAL_BOOKED_TIME) bookedTimeEl.textContent = LOCAL_BOOKED_TIME;
+    if (bookedLocEl && LOCAL_BOOKED_LOCATION) bookedLocEl.textContent = LOCAL_BOOKED_LOCATION;
   }
 
   // 如果是ready情境，還要處理子狀態（已出/陪跑/可複檢）
@@ -6635,40 +6467,17 @@ function updateBookingTitle() {
 function showBookingDetail() {
   var modal = document.getElementById('booking-detail-modal');
   if (!modal) return;
-
+  
   var planEl = document.getElementById('detail-plan');
   var locEl = document.getElementById('detail-location');
   var timeEl = document.getElementById('detail-time');
   var dietEl = document.getElementById('detail-diet');
-
+  
   if (planEl) planEl.textContent = 'IRCT 動態胰島素檢測・NT$' + ((_bkType === 't1') ? _irctPricingClient.t1 : _irctPricingClient.t2).toLocaleString();
-
-  function fillDetail(){
-    if (locEl) locEl.textContent = LOCAL_BOOKED_LOCATION || '尚未選擇地點';
-    if (timeEl) timeEl.textContent = LOCAL_BOOKED_TIME || '尚未選擇時間';
-    if (dietEl) dietEl.textContent = LAST_DIET_RECORD || '尚未選擇飲食模式';
-  }
-
-  // LOCAL_BOOKED_*在showIRCTScene那邊也會背景去後端補撈，但Apps Script常常要好幾秒才回應，
-  // 客人手速快、一進報告頁就馬上點「查看詳情」的話，那個背景查詢很可能還沒回來——
-  // 這時不能直接顯示「尚未選擇」（客人明明選了，只是還在查），要先顯示「載入中」，同時自己也補撈一次
-  if (!LOCAL_BOOKED_LOCATION || !LOCAL_BOOKED_TIME) {
-    if (locEl && !LOCAL_BOOKED_LOCATION) locEl.textContent = '載入中…';
-    if (timeEl && !LOCAL_BOOKED_TIME) timeEl.textContent = '載入中…';
-    if (dietEl && !LAST_DIET_RECORD) dietEl.textContent = '載入中…';
-    callAPI({action:'getLatestBookingContext', clientId:CLIENT_ID}, function(d){
-      if (d && d.status==='ok' && d.found) {
-        if (d.bookedTime) LOCAL_BOOKED_TIME = d.bookedTime;
-        if (d.clinic) LOCAL_BOOKED_LOCATION = d.clinic;
-        if (d.diet) LAST_DIET_RECORD = d.diet;
-        if (typeof bkRenderBookedCards === 'function') bkRenderBookedCards(d.pending || []);
-      }
-      fillDetail();
-    });
-  } else {
-    fillDetail();
-  }
-
+  if (locEl) locEl.textContent = LOCAL_BOOKED_LOCATION || '尚未選擇地點';
+  if (timeEl) timeEl.textContent = LOCAL_BOOKED_TIME || '尚未選擇時間';
+  if (dietEl) dietEl.textContent = LAST_DIET_RECORD || '尚未選擇飲食模式';
+  
   modal.style.display = 'flex';
 }
 
@@ -7503,33 +7312,22 @@ function selectKetoRegion(region){
 var QUIZ_URL = "https://hueyfen95-del.github.io/liff-app/quiz.html";
 function shareQuiz(){
   var shareText = "我最近在關心代謝健康，發現這個「60 秒代謝健康小提醒」滿有意思的，分享給你也測測看 🌱\n" + QUIZ_URL;
-  // 2026-08-24修正：原本沒判斷LIFF_ID有沒有設定、也沒用try/catch包住，
-  // 在LIFF_ID是空字串（還沒設定LIFF、liff.init()根本沒跑過）的情況下呼叫liff.isApiAvailable()
-  // 會直接丟出例外，整個function中斷、按鈕按下去完全沒反應（連fallback都不會跑到）。
-  // 現在先確認LIFF_ID有設定才會走LINE分享，並且用try/catch保護，任何狀況都至少會落到fallbackShareQuiz()
-  var usedLiffShare = false;
-  try {
-    if (LIFF_ID && typeof liff !== 'undefined' && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker')) {
-      usedLiffShare = true;
-      liff.shareTargetPicker([{ type:'text', text: shareText }]).then(function(){
-        toast('✅ 已開啟分享，選擇要分享的朋友吧！');
-      }).catch(function(){ fallbackShareQuiz(shareText); });
-    }
-  } catch (e) { usedLiffShare = false; }
-  if (!usedLiffShare) {
+  // LINE 分享優先
+  if(typeof liff !== 'undefined' && liff.isApiAvailable && liff.isApiAvailable('shareTargetPicker')){
+    liff.shareTargetPicker([{ type:'text', text: shareText }]).then(function(){
+      toast('✅ 已開啟分享，選擇要分享的朋友吧！');
+    }).catch(function(){ fallbackShareQuiz(shareText); });
+  } else {
     fallbackShareQuiz(shareText);
   }
 }
 function fallbackShareQuiz(text){
-  // 複製連結——部分瀏覽器/webview環境下navigator.clipboard.writeText()會直接丟出例外
-  // （不是走.catch()的promise拒絕），所以外面也要包try/catch，不然一樣會整個沒反應
-  try {
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(QUIZ_URL).then(function(){
-        toast('✅ 自測連結已複製！貼到 LINE 傳給朋友就好 😊');
-      }).catch(function(){ promptCopy(); });
-    } else { promptCopy(); }
-  } catch(e) { promptCopy(); }
+  // 複製連結
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(QUIZ_URL).then(function(){
+      toast('✅ 自測連結已複製！貼到 LINE 傳給朋友就好 😊');
+    }).catch(function(){ promptCopy(); });
+  } else { promptCopy(); }
   function promptCopy(){
     // 老瀏覽器：用 LINE 分享網址
     var lineShare = 'https://line.me/R/msg/text/?' + encodeURIComponent(text);
@@ -7618,11 +7416,6 @@ function bkGenerateDates(pattern, count){
   }
   return results;
 }
-// 一格診所的時段文字可能包在同一欄位裡合併好幾條不同規則
-// （例：平日固定時間 + 週末預約制），用；分隔各自解析，避免週末的「預約制」被平日的固定時間污染
-function bkSplitSegments(text){
-  return String(text||'').split(/[;；]/).map(function(s){ return s.trim(); }).filter(Boolean);
-}
 function bkRenderTimes(){
   var box = document.getElementById('bk-time-list');
   if(!box || !_bkSlots || _bkSlots.length===0) return;
@@ -7634,30 +7427,24 @@ function bkRenderTimes(){
   var weekdayNames=['日','一','二','三','四','五','六'];
   var cards = [];
   times.forEach(function(s){
-    var segments = bkSplitSegments(s.datetime||'');
-    if(segments.length===0) segments = [''];
-    segments.forEach(function(seg){
-      // 「預約制」代表沒有固定鐘點（滿額才開診、或純粹約診），不管有沒有解析出星期規律，都不該生出假時間
-      var isReservationOnly = seg.indexOf('預約制') >= 0;
-      var pattern = isReservationOnly ? {days:[]} : bkParseSlotPattern(seg);
-      var dates = isReservationOnly ? [] : bkGenerateDates(pattern, 4);
-      if(dates.length > 0){
-        dates.forEach(function(dt){
-          var mm = String(dt.getMonth()+1).padStart(2,'0'), dd = String(dt.getDate()).padStart(2,'0');
-          var hh = String(pattern.hour).padStart(2,'0'), mi = String(pattern.min).padStart(2,'0');
-          var label = mm+'/'+dd+'（'+weekdayNames[dt.getDay()]+'）';
-          var dtValue = mm+'/'+dd+'（'+weekdayNames[dt.getDay()]+'）'+' '+hh+':'+mi;
-          cards.push('<div onclick="bkSelTime(this)" data-dt="'+escAttr(dtValue)+'" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
-            + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">'+label+'</div>'
-            + '<div style="font-size:11px;color:var(--text2)">'+hh+':'+mi+'起</div></div>');
-        });
-      } else {
-        // 解析不出星期規律的，或本來就是預約制沒有固定鐘點的，就照原樣顯示文字，不生出假時間
-        cards.push('<div onclick="bkSelTime(this)" data-dt="'+escAttr(seg||s.datetime||'')+'" style="grid-column:1/-1;border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
-          + '<div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(seg||s.datetime||'')+'</div>'
-          + '<div style="font-size:12px;color:var(--text3);margin-top:2px">請選定後再跟秘書確認實際日期</div></div>');
-      }
-    });
+    var pattern = bkParseSlotPattern(s.datetime||'');
+    var dates = bkGenerateDates(pattern, 4);
+    if(dates.length > 0){
+      dates.forEach(function(dt){
+        var mm = String(dt.getMonth()+1).padStart(2,'0'), dd = String(dt.getDate()).padStart(2,'0');
+        var hh = String(pattern.hour).padStart(2,'0'), mi = String(pattern.min).padStart(2,'0');
+        var label = mm+'/'+dd+'（'+weekdayNames[dt.getDay()]+'）';
+        var dtValue = mm+'/'+dd+'（'+weekdayNames[dt.getDay()]+'）'+' '+hh+':'+mi;
+        cards.push('<div onclick="bkSelTime(this)" data-dt="'+escAttr(dtValue)+'" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
+          + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">'+label+'</div>'
+          + '<div style="font-size:11px;color:var(--text2)">'+hh+':'+mi+'起</div></div>');
+      });
+    } else {
+      // 解析不出星期規律的，就照原樣顯示文字，至少不會誤導成假日期
+      cards.push('<div onclick="bkSelTime(this)" data-dt="'+escAttr(s.datetime||'')+'" style="grid-column:1/-1;border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--card)">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(s.datetime||'')+'</div>'
+        + '<div style="font-size:12px;color:var(--text3);margin-top:2px">請選定後再跟秘書確認實際日期</div></div>');
+    }
   });
   box.innerHTML = cards.join('');
 }
