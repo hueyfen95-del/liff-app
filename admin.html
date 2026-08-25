@@ -4861,10 +4861,14 @@ function setClientStageUI(id){
     else toast('⚠️ 更新失敗');
   });
 }
-function unlockClientQuick(id){
+function unlockClientQuick(id, name, skipReopen){
   if(!confirm('確定要幫這位客人開通陪跑嗎？')) return;
   adminAPI({ action: 'setClientAccess', clientId: id, active: true }, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 已開通陪跑'); if(_clientsCache) loadClientsList(function(){}, true); openClientDetail(id, _cdCurrentName); }
+    if(d && d.status === 'ok'){
+      toast('✅ 已開通陪跑');
+      if(_clientsCache) loadClientsList(function(){}, true);
+      if(!skipReopen) openClientDetail(id, name || _cdCurrentName);
+    }
     else toast('⚠️ 操作失敗');
   });
 }
@@ -6287,7 +6291,9 @@ function loadClientsPage(){
       if(c.internSecretaries) subInfo.push('實習：'+escH(c.internSecretaries));
       var subHtml = subInfo.length ? '<div style="font-size:9.5px;color:var(--text3);margin-top:2px">'+subInfo.join('・')+'</div>' : '';
       html += '<tr style="cursor:pointer" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">'
-        + '<td>'+escH(c.id)+'</td><td style="font-weight:600">'+escH(c.name)+'</td>'
+        + '<td>'+escH(c.id)+'</td><td style="font-weight:600">'+escH(c.name)
+        + (rs === '一般客人' ? '<button class="ai-btn g" onclick="event.stopPropagation();unlockClientQuick(\''+escH(c.id)+'\',\''+escH(c.name)+'\',true)" style="margin-left:6px;font-size:10px;padding:2px 7px;vertical-align:middle;white-space:nowrap">🔓 開通</button>' : '')
+        + '</td>'
         + '<td>'+escH(c.stage||'–')+'</td><td>'+escH(c.irt||'未確認')+'</td>'
         + '<td>'+escH(c.secretary||'–')+subHtml+'</td><td>'+rsBadge+'</td>'
         + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">查看記錄</button></td></tr>';
