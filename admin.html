@@ -3284,6 +3284,7 @@ function loadAdminAccounts(){
         '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(a.name||a.username)+(isMe?' <span style="font-size:10px;color:var(--g)">（就是你）</span>':'')+'</div>'+
         '<div style="font-size:10px;color:var(--text3)">帳號：'+escH(a.username)+'・'+escH(roleDisplayName(a.role))+'・'+(isActive?'啟用中':'已停用')+(extraCount>0?'・<span style="color:var(--g)">額外開通 '+extraCount+' 項</span>':'')+((a.otherRoles||[]).length>0?'・身兼：'+escH(a.otherRoles.join('、')):'')+(isClientRestrictedRole?('・客人資料：'+(a.canEditClients?'<span style="color:var(--g)">可編輯</span>':'<span style="color:var(--text3)">僅查看</span>')):'')+'</div></div>'+
         '<button onclick="toggleEditAcctPanel('+i+')" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border2);border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>'+
+        '<button onclick="resetAdminPasswordUI('+a.row+',\''+escH(a.name||a.username)+'\')" style="background:var(--g2);color:var(--g3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">重設密碼</button>'+
         (isFounder ? '' : '<button onclick="toggleExtraPermPanel('+i+')" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">額外權限</button>')+
         (isClientRestrictedRole ? ('<button onclick="toggleClientEditPerm('+a.row+','+(!a.canEditClients)+')" style="background:'+(a.canEditClients?'var(--r2)':'var(--g2)')+';color:'+(a.canEditClients?'var(--r)':'var(--g3)')+';border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">'+(a.canEditClients?'收回客人編輯權':'開放編輯客人資料')+'</button>') : '')+
         (isMe ? '' : '<button onclick="toggleAdminAcctStatus('+a.row+',\''+escH(a.username)+'\')" style="background:'+(isActive?'var(--r2)':'var(--b2)')+';color:'+(isActive?'var(--r)':'var(--b3)')+';border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">'+(isActive?'停用':'啟用')+'</button>')+
@@ -3345,6 +3346,26 @@ function saveEditAccount(i, row){
     else { toast('⚠️ 更新失敗'); }
   });
 }
+function resetAdminPasswordUI(row, name) {
+  var pw = prompt('幫「' + name + '」重設後台登入密碼：\n\n（至少6碼，之後對方登入後可以自己改）', '');
+  if (pw === null) return;
+  pw = pw.trim();
+  if (pw.length < 6) { toast('⚠️ 密碼至少要6碼'); return; }
+  adminAPIPost({action: 'resetAdminPassword', row: row, password: pw}, function(d) {
+    if (d && d.status === 'ok') {
+      var credText = '📋 「' + name + '」的後台登入資訊\n\n'
+        + '登入網址：' + ADMIN_PORTAL_URL + '\n'
+        + '帳號：' + (d.username || '') + '\n'
+        + '新密碼：' + pw + '\n\n'
+        + '請直接把這段傳給對方。';
+      try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(credText).then(function(){}, function(){}); } catch(e){}
+      toast('✅ 密碼已重設');
+      alert(credText);
+    } else {
+      toast('⚠️ ' + ((d && d.message) || '重設失敗，請重試'));
+    }
+  });
+}
 function toggleClientEditPerm(row, newVal){
   var msg = newVal ? '確定要開放這個帳號編輯客人資料嗎？' : '確定要收回這個帳號編輯客人資料的權限嗎？（改回僅查看）';
   if(!confirm(msg)) return;
@@ -3379,8 +3400,6 @@ function saveAdminAccount(){
   if(payRate && Number(payRate) < 0){ toast('⚠️ 薪資金額不能是負數'); return; }
   adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
     if(d && d.status === 'ok'){
-      // 2026-08-25 新增：跟店家工作台密碼設定一樣，開好帳號直接組一段可以整段複製給對方的登入資訊，
-      // 不用自己再湊「網址是哪個、帳號密碼是什麼」，也提醒對方這是「後台」不是LINE APP
       var credText = '📋 「'+name+'」的後台登入資訊\n\n'
         + '登入網址：'+ADMIN_PORTAL_URL+'\n'
         + '帳號：'+username+'\n'
@@ -3546,9 +3565,6 @@ function deleteRole(btn) {
 }
 
 // 2026-08-25 新增：設定/重設「店家工作台」登入密碼（醫師/診所/實驗室/講師等外部夥伴用）。
-// 廠商代碼固定就是角色名稱本身，不用另外設定；密碼設定成功後，直接組一段「登入資訊」文字，
-// 嘗試複製到剪貼簿，同時用alert()完整顯示（手機上長按文字也能自己選取複製），避免創始人還要
-// 自己去湊「代碼是什麼、密碼是什麼、網址是什麼」三件事、容易漏掉或給錯。
 function setVendorPwUI(roleId, roleName) {
   var pw = prompt('幫「' + roleName + '」設定店家工作台的登入密碼：\n\n（至少4碼，之後隨時可以回來這裡重設）', '');
   if (pw === null) return;
