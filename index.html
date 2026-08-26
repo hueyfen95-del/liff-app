@@ -293,7 +293,8 @@ window.openHealthForm = function() {
 
 <!-- ══ 首頁 ══ -->
 <div class="page on" id="p-home">
-  <div class="home-hd">
+  <div class="home-hd" style="position:relative">
+    <button onclick="startHomeTour(true)" style="position:absolute;top:14px;right:14px;z-index:5;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);border-radius:20px;padding:7px 13px;font-size:12.5px;color:#fff;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:4px"><i class="ti ti-help-circle" style="font-size:14px"></i>新手導覽</button>
     <div style="font-size:12px;opacity:.75;margin-bottom:3px">嗨，陳小美</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:3px" id="home-stage-day">你的健康旅程</div>
     <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">–</span> 天 🔥</div>
@@ -325,7 +326,7 @@ window.openHealthForm = function() {
       <div id="wallet-detail" style="display:none;border-top:1px dashed rgba(255,255,255,.3);margin-top:10px;padding-top:8px;font-size:11.5px;line-height:1.7" ></div>
       <div style="font-size:12px;opacity:.6;text-align:center;margin-top:6px">點一下展開消費明細</div>
     </div>
-    <div style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:14px;padding:13px 15px;margin-bottom:12px">
+    <div id="mx-tour-video-card" style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:14px;padding:13px 15px;margin-bottom:12px">
       <!-- 影片說明 -->
       <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:6px">📽 了解這趟旅程的目標</div>
       <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;line-height:1.4">代謝調整・粒線體活化</div>
@@ -490,7 +491,7 @@ window.openHealthForm = function() {
       </div>
     </div>
     
-    <div class="week-card">
+    <div class="week-card" id="mx-tour-week-card">
       <div style="font-size:12px;font-weight:600;color:var(--b3);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-calendar-stats"></i>本週小結</div>
       <div class="wc-grid">
         <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-ketone">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">平均血酮<br>mmol/L</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-ketone-sub">近 7 天</div></div>
@@ -499,11 +500,11 @@ window.openHealthForm = function() {
       </div>
     </div>
     <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">常用功能</div>
-    <div class="quick-grid">
+    <div class="quick-grid" id="mx-tour-quickgrid">
       <div class="qg" onclick="goPage('record','每日記錄')"><i class="ti ti-camera"></i><div class="qg-l">每日記錄</div></div>
       <div class="qg" onclick="goPage('trend','健康趨勢')"><i class="ti ti-trending-up"></i><div class="qg-l">健康趨勢</div></div>
       <div class="qg" onclick="goPage('food','外食指南')"><i class="ti ti-tools-kitchen-2"></i><div class="qg-l">外食指南</div><div class="qg-n">NEW</div></div>
-      <div class="qg" onclick="goPage('irct','IRCT 報告')"><i class="ti ti-microscope"></i><div class="qg-l" id="home-irct-label">IRCT 報告</div><div class="qg-n" id="home-irct-badge" style="color:var(--g)">最新</div></div>
+      <div class="qg" id="mx-tour-irct-qg" onclick="goPage('irct','IRCT 報告')"><i class="ti ti-microscope"></i><div class="qg-l" id="home-irct-label">IRCT 報告</div><div class="qg-n" id="home-irct-badge" style="color:var(--g)">最新</div></div>
       <div class="qg" onclick="goPage('garden','代謝花園')"><i class="ti ti-plant-2"></i><div class="qg-l">代謝花園</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
       <!-- 2026-08-16 新增：「健康旅程」頁面(#p-journey)原本做得很完整（旅程階段/下一個目標/成就數字牆/獲得的獎勵），
            但整個系統找不到任何入口能進去，只有一個從別的子頁「返回」用的連結——等於孤兒頁面，客人永遠看不到，補上常用功能入口 -->
@@ -513,7 +514,7 @@ window.openHealthForm = function() {
     </div>
 
     <!-- 分享自測給親友（老客帶新客）-->
-    <div style="background:linear-gradient(135deg,#0F6E56,#158066);border-radius:16px;padding:18px 18px 16px;margin-top:14px;color:#fff">
+    <div id="mx-tour-share-card" style="background:linear-gradient(135deg,#0F6E56,#158066);border-radius:16px;padding:18px 18px 16px;margin-top:14px;color:#fff">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <span style="font-size:20px">💚</span>
         <div style="font-size:15px;font-weight:800">關心身邊的人</div>
@@ -679,9 +680,9 @@ window.openHealthForm = function() {
         <div style="font-size:12px;font-weight:600;color:var(--text2);flex:1">今天搭配好油脂實行</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;padding-left:28px">
-        <button id="fast-168" onclick="selectFasting('168')" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s">⏰ 16:8</button>
-        <button id="fast-186" onclick="selectFasting('186')" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s">⏰ 18:6</button>
-        <button id="fast-204" onclick="selectFasting('204')" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s">⏰ 20:4</button>
+        <button id="fast-168" onclick="selectFasting('168')" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s">⏰ 16:8 間歇性斷食</button>
+        <button id="fast-186" onclick="selectFasting('186')" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s">⏰ 18:6 間歇性斷食</button>
+        <button id="fast-204" onclick="selectFasting('204')" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s">⏰ 20:4 間歇性斷食</button>
         <button id="fast-none" onclick="selectFasting('none')" style="padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);transition:all .15s">今日無間歇性斷食</button>
       </div>
     </div>
@@ -1017,6 +1018,7 @@ window.openHealthForm = function() {
         <div style="display:flex;gap:6px;margin-bottom:7px"><span>•</span><span>慢性病用藥者，請將藥袋拍照傳給服務秘書</span></div>
         <div style="display:flex;gap:6px;margin-bottom:7px"><span>•</span><span>若感冒、發燒或正處發炎期間，請痊癒後再安排檢測</span></div>
         <div style="display:flex;gap:6px;margin-bottom:7px"><span>•</span><span>施打胰島素、腎臟病、中風或合併多項慢性病者，請先諮詢秘書再預約</span></div>
+        <div style="display:flex;gap:6px;margin-bottom:7px"><span>•</span><span>曾有低血糖現象者，可帶食物來，檢測完即可食用</span></div>
         <div style="display:flex;gap:6px"><span>•</span><span>檢測前後約需 3.5 小時、共抽血四次，請預留上午時間，建議穿著舒適衣物並自備水杯</span></div>
       </div>
     </div>
@@ -2219,7 +2221,7 @@ function goPage(id,title){
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
   if(id === 'trend' && typeof loadMySweetSpot==='function') loadMySweetSpot();
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
-  if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
+  if(id === 'qa' && typeof loadQASearch==='function') loadQASearch(true);
   if(id === 'qa' && typeof loadMyQuestions==='function') loadMyQuestions();
   if(id === 'qa' && typeof loadMyAnsweredSymptoms==='function') loadMyAnsweredSymptoms();
   if(id === 'sec-hub'){ if(typeof loadMyQuestions==='function') loadMyQuestions(); if(typeof loadMySupplementRecs==='function') loadMySupplementRecs(); }
@@ -4076,6 +4078,15 @@ function askGoodsBuy(i){
 }
 
 // ── 補充品讀取 ──
+// 依「服用頻率」算出今天要不要吃：每天＝一律要吃；單號日/雙號日＝依今天日期的奇偶決定
+function suppFreqTodayInfo(freq){
+  if(!freq || freq === '每天') return {label:'', appliesToday:true};
+  var dateNum = new Date().getDate();
+  var isOdd = (dateNum % 2) === 1;
+  if(freq === '單號日') return {label:'單號日', appliesToday: isOdd};
+  if(freq === '雙號日') return {label:'雙號日', appliesToday: !isOdd};
+  return {label:freq, appliesToday:true};
+}
 function loadMySupplementRecs(){
   callAPI({action:'getMySupplementRecs', clientId:CLIENT_ID}, function(d){
     var list = document.getElementById('sechub-supp-list');
@@ -4085,12 +4096,15 @@ function loadMySupplementRecs(){
     if(!list) return;
     if(items.length === 0){ list.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">目前還沒有秘書推薦的保健品</div>'; return; }
     list.innerHTML = items.map(function(it){
+      var freqInfo = suppFreqTodayInfo(it.frequency);
       return '<div style="background:var(--g2);border:1px solid var(--g);border-radius:11px;padding:10px 12px;margin-bottom:7px">'
         + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">'
         + '<span style="font-size:12.5px;font-weight:700;color:var(--g3)">'+escHtml(it.supplementName)+'</span>'
         + (it.level ? '<span style="font-size:9.5px;font-weight:700;color:#fff;background:var(--g);border-radius:5px;padding:1px 6px">'+escHtml(it.level)+'</span>' : '')
+        + (freqInfo.label ? '<span style="font-size:9.5px;font-weight:700;color:#92400E;background:#FEF3C7;border-radius:5px;padding:1px 6px">'+escHtml(freqInfo.label)+'</span>' : '')
         + '</div>'
         + (it.reason ? '<div style="font-size:11px;color:var(--g3)">推薦原因：'+escHtml(it.reason)+'</div>' : '')
+        + (freqInfo.label ? '<div style="font-size:11.5px;font-weight:700;margin-top:4px;color:'+(freqInfo.appliesToday?'var(--g3)':'var(--text3)')+'">'+(freqInfo.appliesToday?'✅ 今天要吃':'⏸ 今天不用吃，明天再吃')+'</div>' : '')
         + '<div style="font-size:9.5px;color:var(--text3);margin-top:3px">'+escHtml(it.date)+'</div></div>';
     }).join('');
   });
@@ -4422,8 +4436,9 @@ function loadMyAnsweredSymptoms(){
     (d.symptoms||[]).forEach(function(s){ if(s) _answeredSymptoms[s] = true; });
   });
 }
-function loadQASearch() {
-  if (_qaSearchData || _qaSearchLoading) return; // 已經載入過或正在載入中，避免重複呼叫疊加出重複資料
+function loadQASearch(forceRefresh) {
+  if (_qaSearchLoading) return; // 正在載入中，避免重複呼叫疊加出重複資料
+  if (_qaSearchData && !forceRefresh) return; // 已經載入過，且不是強制刷新
   _qaSearchLoading = true;
   // 同時加入預設六條
   var defaults = [
@@ -4451,6 +4466,7 @@ function loadQASearch() {
       _qaSearchData = realQuestions.concat(_qaSearchData);
       if(typeof renderFrontFAQ==='function') renderFrontFAQ();
     }
+    _qaSearchLoading = false;
   });
 }
 
@@ -4646,7 +4662,12 @@ function loadAllRSS(onDone) {
     }
   }
   // 抓方格子
-  callAPI({action:'getRSS', url:'https://rsshub.app/vocus/salon/metabolica'}, function(d) {
+  // 2026-08-25修正：方格子沙龍搜到「sdLDL」找不到部落格文章時發現——RSSHub的
+  // /vocus/salon/:slug 路由已經停用（NotFoundError: The route does not exist or
+  // has been deleted），導致這個來源整個silently抓不到任何文章。改用RSSHub仍在維護的
+  // /vocus/user/:id 路由（元代謝健康這個作者帳號專門發代謝篇章沙龍的文章，內容一樣），
+  // 已用瀏覽器實測這個網址能正常抓到包含sdLDL在內的所有文章。
+  callAPI({action:'getRSS', url:'https://rsshub.app/vocus/user/6951dce4fd89780001adc75f'}, function(d) {
     if (d.status === 'ok' && d.items) _vocusArticles = d.items;
     checkAllDone();
   });
@@ -5180,7 +5201,47 @@ function spawnFloatingEmoji(emojiList, count, fromTop) {
   }
 }
 
+// ── 任務完成音效（WebAudio合成，不用外部音檔） ──
+var _mxAudioCtx = null;
+function _mxUnlockAudio() {
+  try {
+    if (!_mxAudioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) _mxAudioCtx = new AC();
+    }
+    if (_mxAudioCtx && _mxAudioCtx.state === 'suspended') _mxAudioCtx.resume();
+  } catch (e) {}
+}
+document.addEventListener('touchstart', _mxUnlockAudio, {once: true, passive: true});
+document.addEventListener('click', _mxUnlockAudio, {once: true});
+function playTaskDoneSound() {
+  try {
+    if (!_mxAudioCtx) {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      _mxAudioCtx = new AC();
+    }
+    if (_mxAudioCtx.state === 'suspended') _mxAudioCtx.resume();
+    var ctx = _mxAudioCtx;
+    var now = ctx.currentTime;
+    [[880, now, 0.12], [1318.5, now + 0.1, 0.16]].forEach(function(n) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = n[0];
+      gain.gain.setValueAtTime(0.0001, n[1]);
+      gain.gain.exponentialRampToValueAtTime(0.25, n[1] + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, n[1] + n[2]);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(n[1]);
+      osc.stop(n[1] + n[2] + 0.05);
+    });
+  } catch (e) {}
+}
+
 function celebrateTask(taskName, doneCnt) {
+  playTaskDoneSound();
   var i = taskName; // taskName其實是任務索引(0-6)
 
   if (i === 0) {
@@ -5385,9 +5446,10 @@ function selectFasting(mode) {
       btn.style.borderColor = 'var(--border)';
     }
   });
-  var label = mode === 'none' ? '今日無間歇性斷食' : mode.replace('1','16:').replace('186','18:6').replace('204','20:4');
+  var FASTING_LABELS = {'168':'16:8','186':'18:6','204':'20:4'};
+  var label = mode === 'none' ? '今日無間歇性斷食' : (FASTING_LABELS[mode] || mode);
   if (mode !== 'none') {
-    toast('⏰ ' + label + ' 斷食模式已選擇！');
+    toast('⏰ ' + label + ' 間歇性斷食已選擇！');
   }
   // 儲存到記錄
   callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'斷食模式:'+mode, electrolyte:''}, function(){});
@@ -7523,6 +7585,152 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
     </div>
   </div>
 </div>
+<script>
+// ══════ 首頁新手導覽（聚光燈框框＋小箭頭指引）══════
+// 2026-08-25 新增（創始人要求）：第一次進來的客人，用框框把首頁重點區塊一個一個圈出來，
+// 旁邊有小說明，引導大家怎麼用；不想看的人可以直接跳過。第二次之後不再自動彈出，
+// 首頁右上角留一個「新手導覽」按鈕，隨時可以自己點出來重看。
+var MX_TOUR_STEPS = [
+  {id:'mx-tour-video-card', title:'① 先看這裡：認識這趟旅程', desc:'花 5 分鐘看介紹影片，了解為什麼身體需要這趟代謝調整旅程，也可以點「血酮機怎麼用」看教學 🎬'},
+  {id:'garden-card', title:'② 每天先來這裡打卡', desc:'代謝花園是你每天的核心任務：血糖血酮、體重腰圍、飲食記錄…完成越多，花園就長得越漂亮 🌱'},
+  {id:'mx-tour-week-card', title:'③ 這裡看你的數據變化', desc:'近 7 天的平均血酮、記錄填寫率、體重變化，一眼就能看到自己的進步 📊'},
+  {id:'mx-tour-quickgrid', title:'④ 這裡是全部功能的捷徑', desc:'每日記錄、健康趨勢、外食指南、IRCT報告、問答、秘書互動…想找什麼功能都從這裡點過去 🧭'},
+  {id:'mx-tour-share-card', title:'⑤ 覺得有幫助嗎？', desc:'可以把「60 秒代謝健康小提醒」分享給在乎的家人朋友，讓他們也認識自己的代謝健康 💚'}
+];
+var _mxTourIdx = 0;
+var _mxTourEls = null;
+
+function _mxTourInjectStyle(){
+  if (document.getElementById('mx-tour-style')) return;
+  var css = ''
+    + '#mx-tour-catcher{position:fixed;inset:0;z-index:99997;background:transparent}'
+    + '#mx-tour-spotlight{position:fixed;z-index:99998;border-radius:16px;box-shadow:0 0 0 9999px rgba(8,18,14,.74);pointer-events:none;transition:top .35s cubic-bezier(.4,0,.2,1),left .35s cubic-bezier(.4,0,.2,1),width .35s cubic-bezier(.4,0,.2,1),height .35s cubic-bezier(.4,0,.2,1)}'
+    + '#mx-tour-spotlight::after{content:"";position:absolute;inset:-4px;border-radius:20px;border:3px solid #FFD23F;box-shadow:0 0 0 3px rgba(255,210,63,.35),0 0 24px rgba(255,210,63,.9);animation:mxTourPulse 1.3s ease-in-out infinite}'
+    + '@keyframes mxTourPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.015)}}'
+    + '#mx-tour-tip{position:fixed;z-index:100000;background:#fff;border-radius:20px;padding:22px 22px 20px;width:min(340px,90vw);box-shadow:0 12px 38px rgba(0,0,0,.32);transition:top .35s cubic-bezier(.4,0,.2,1),left .35s cubic-bezier(.4,0,.2,1);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Helvetica Neue",Arial,sans-serif}'
+    + '#mx-tour-tip .mx-tt{font-size:19px;font-weight:800;color:#085041;margin-bottom:9px;line-height:1.45;letter-spacing:.2px}'
+    + '#mx-tour-tip .mx-td{font-size:15.5px;color:#374151;line-height:1.8;margin-bottom:18px;letter-spacing:.1px}'
+    + '#mx-tour-dots{display:flex;gap:6px;align-items:center}'
+    + '#mx-tour-dots span{width:7px;height:7px;border-radius:50%;background:#D1D5DB;display:inline-block}'
+    + '#mx-tour-dots span.on{background:#1D9E75;width:20px;border-radius:4px}'
+    + '.mx-tour-btn{border:none;border-radius:11px;padding:11px 17px;font-size:14.5px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}';
+  var st = document.createElement('style');
+  st.id = 'mx-tour-style';
+  st.textContent = css;
+  document.head.appendChild(st);
+}
+
+function _mxTourBuildEls(){
+  if (_mxTourEls) return _mxTourEls;
+  var catcher = document.createElement('div'); catcher.id='mx-tour-catcher';
+  var spotlight = document.createElement('div'); spotlight.id='mx-tour-spotlight';
+  var tip = document.createElement('div'); tip.id='mx-tour-tip';
+  tip.innerHTML = '<div class="mx-tt" id="mx-tour-title"></div>'
+    + '<div class="mx-td" id="mx-tour-desc"></div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+    + '<div id="mx-tour-dots"></div>'
+    + '<div style="display:flex;gap:7px">'
+    + '<button type="button" class="mx-tour-btn" id="mx-tour-skip-btn" style="background:#F3F4F6;color:#6B7280">略過</button>'
+    + '<button type="button" class="mx-tour-btn" id="mx-tour-next-btn" style="background:#1D9E75;color:#fff">下一步</button>'
+    + '</div></div>';
+  catcher.addEventListener('click', function(){ closeHomeTour(); });
+  tip.addEventListener('click', function(e){ e.stopPropagation(); });
+  document.body.appendChild(catcher);
+  document.body.appendChild(spotlight);
+  document.body.appendChild(tip);
+  document.getElementById('mx-tour-skip-btn').addEventListener('click', function(){ closeHomeTour(); });
+  document.getElementById('mx-tour-next-btn').addEventListener('click', function(){ _mxTourNext(); });
+  _mxTourEls = {catcher:catcher, spotlight:spotlight, tip:tip};
+  return _mxTourEls;
+}
+
+function startHomeTour(forceReplay){
+  try{
+    if (!forceReplay){
+      var seen = null;
+      try{ seen = localStorage.getItem('mx_home_tour_seen_v1'); }catch(e){}
+      if (seen) return;
+    }
+    if (typeof goPage === 'function') goPage('home','首頁');
+    _mxTourInjectStyle();
+    _mxTourBuildEls();
+    _mxTourIdx = 0;
+    setTimeout(function(){ _mxTourShowStep(0); }, 250);
+  }catch(e){}
+}
+
+function _mxTourShowStep(idx){
+  var step = MX_TOUR_STEPS[idx];
+  if (!step) { closeHomeTour(); return; }
+  var target = document.getElementById(step.id);
+  if (!target || target.offsetParent === null) { _mxTourIdx = idx + 1; _mxTourShowStep(_mxTourIdx); return; }
+  try{ target.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){}
+  setTimeout(function(){
+    var els = _mxTourEls;
+    if (!els) return;
+    var r = target.getBoundingClientRect();
+    var pad = 8;
+    els.spotlight.style.top = (r.top - pad) + 'px';
+    els.spotlight.style.left = (r.left - pad) + 'px';
+    els.spotlight.style.width = (r.width + pad*2) + 'px';
+    els.spotlight.style.height = (r.height + pad*2) + 'px';
+
+    document.getElementById('mx-tour-title').textContent = step.title;
+    document.getElementById('mx-tour-desc').textContent = step.desc;
+    var dotsHtml = '';
+    for (var i=0;i<MX_TOUR_STEPS.length;i++){ dotsHtml += '<span class="'+(i===idx?'on':'')+'"></span>'; }
+    document.getElementById('mx-tour-dots').innerHTML = dotsHtml;
+    document.getElementById('mx-tour-next-btn').textContent = (idx === MX_TOUR_STEPS.length-1) ? '知道了' : '下一步';
+
+    // 提示框位置：優先放在框框下方，空間不夠就放上方
+    var tipEl = els.tip;
+    var vh = window.innerHeight, vw = window.innerWidth;
+    var tipW = Math.min(330, vw*0.88);
+    var estTipH = 230;
+    var top;
+    var spaceBelow = vh - (r.top - pad + r.height + pad*2);
+    if (spaceBelow > estTipH + 20) {
+      top = r.top - pad + r.height + pad*2 + 12;
+    } else {
+      top = Math.max(14, r.top - pad - 12 - estTipH);
+    }
+    top = Math.min(top, vh - estTipH - 14);
+    var left = Math.min(Math.max(14, r.left), vw - tipW - 14);
+    tipEl.style.top = top + 'px';
+    tipEl.style.left = left + 'px';
+  }, 320);
+}
+
+function _mxTourNext(){
+  _mxTourIdx++;
+  if (_mxTourIdx >= MX_TOUR_STEPS.length) { closeHomeTour(); return; }
+  _mxTourShowStep(_mxTourIdx);
+}
+
+function closeHomeTour(){
+  try{ localStorage.setItem('mx_home_tour_seen_v1','1'); }catch(e){}
+  if (_mxTourEls){
+    _mxTourEls.catcher.remove();
+    _mxTourEls.spotlight.remove();
+    _mxTourEls.tip.remove();
+    _mxTourEls = null;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  // 「新手指引」(ob-wrap，介紹血酮機/電解質等衛教內容) 是另一個獨立的第一次彈窗，
+  // 這裡要等它關掉之後才開始介面導覽，不然兩層彈窗會疊在一起，客人會看不懂
+  function _mxTourMaybeStart(){
+    var ob = document.getElementById('ob-wrap');
+    if (ob && ob.style.display !== 'none' && ob.offsetParent !== null) {
+      setTimeout(_mxTourMaybeStart, 500);
+      return;
+    }
+    startHomeTour(false);
+  }
+  setTimeout(_mxTourMaybeStart, 2200);
+});
+</script>
 <div id="mx-login-overlay" style="display:none;position:fixed;inset:0;background:#F4F8F6;z-index:99999;align-items:center;justify-content:center;padding:24px">
   <div style="background:#fff;border-radius:18px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 8px 30px rgba(0,0,0,.08)">
     <div style="font-size:22px;text-align:center;margin-bottom:6px">🌱</div>
