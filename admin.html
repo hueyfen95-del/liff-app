@@ -186,6 +186,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 </style>
 </head>
 <body>
+<!-- 回到最上面（創始人2026-08-26：點了導覽捷徑跳到頁面某處後，要有按鈕可以回頂端） -->
+<button id="mx-back-top" onclick="scrollToPageTop()" style="display:none;position:fixed;right:20px;bottom:24px;z-index:500;width:44px;height:44px;border-radius:50%;background:var(--g,#1D9E75);color:#fff;border:none;box-shadow:0 4px 14px rgba(0,0,0,.25);font-size:20px;cursor:pointer;align-items:center;justify-content:center">↑</button>
 <div id="login-overlay" style="position:fixed;inset:0;background:linear-gradient(135deg,#0F6E56,#158066);z-index:9999;display:flex;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:18px;padding:36px 32px;width:320px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
     <div style="text-align:center;margin-bottom:24px">
@@ -452,7 +454,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
         </div>
       </div>
 
-  <div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+  <div id="client-search-filter-row" data-nav-label="搜尋／篩選／新增客人" data-nav-icon="ti ti-filter" style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
     <input placeholder="搜尋客人姓名…" style="flex:1;max-width:200px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
     <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部階段</option><option>亂流期</option><option>粒腺體期</option><option>穩酮期</option><option>固酮期</option></select>
     <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部秘書</option><option>婷婷</option><option>Vivien</option></select>
@@ -498,7 +500,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     </div>
     <div class="btn-row"><button class="btn-g" onclick="saveClientForm()"><i class="ti ti-device-floppy" style="font-size:14px"></i>新增</button><button class="btn-ghost" onclick="toggleClientForm()">取消</button></div>
   </div>
-  <div class="card"><div class="card-body" style="padding:0">
+  <div class="card" data-nav-label="客人清單" data-nav-icon="ti ti-list"><div class="card-body" style="padding:0">
     <table class="dt">
       <thead><tr><th>客人ID</th><th>姓名</th><th>階段</th><th>IRT模型</th><th>負責秘書</th><th>陪跑狀態</th><th>操作</th></tr></thead>
       <tbody id="clients-tbody"><tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">載入中…</td></tr>
@@ -994,7 +996,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 <div class="pg" id="pg-settlement">
   <div class="hint-box">依「服務發生當時生效的分帳規則」自動計算，不受後續規則調整影響。</div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card" data-nav-label="設定結算條件" data-nav-icon="ti ti-calculator" style="margin-bottom:14px">
     <div class="card-body" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <input id="st-month" type="month" style="flex:1;min-width:140px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
       <select id="st-view-mode" style="border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
@@ -1012,7 +1014,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
     </div>
   </div>
 
-  <div id="settlement-results" style="display:flex;flex-direction:column;gap:12px">
+  <div id="settlement-results" data-nav-label="結算結果" data-nav-icon="ti ti-report-money" style="display:flex;flex-direction:column;gap:12px">
     <div style="font-size:11px;color:var(--text3);text-align:center;padding:20px">選擇月份後點「產生結算」</div>
   </div>
 </div>
@@ -1895,6 +1897,8 @@ function goPg(id,el){
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
   if(el)el.classList.add('on');
+  // 每一頁的快速導覽列：切頁當下先掃一次，晚一點資料載入把該頁的卡片動態補齊後再掃一次
+  if(typeof _mxPageNavRender==='function'){ _mxPageNavRender(id); setTimeout(function(){_mxPageNavRender(id);}, 400); }
   var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查'};
   document.getElementById('page-title').textContent=titles[id]||id;
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
@@ -8591,6 +8595,53 @@ function scrollToCard(id){
   var el=document.getElementById(id);
   if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.transition='box-shadow .3s'; el.style.boxShadow='0 0 0 3px rgba(15,110,86,.4)'; setTimeout(function(){el.style.boxShadow='';},1600); }
 }
+// 回到最上面按鈕：捲動超過一定距離才出現，避免一開始就佔畫面
+function scrollToPageTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+// ══════ 每一頁最上面的快速導覽列（創始人2026-08-26：不只儀表板，每一頁都要有對應的捷徑列）══════
+// 自動掃描該頁裡「直接屬於這一頁」的區塊，產生一排按鈕，點了直接跳到那個區塊。標籤來源優先順序：
+// 區塊自己標的 data-nav-label（給沒有卡片標題、或想自訂顯示文字的區塊用，不影響原本外觀）
+// →沒有的話就抓 .card-title 的文字。兩個都沒有的區塊（純表格容器等）就跳過，避免出現看不懂的空白按鈕。
+// 儀表板已經有自己專屬、會依提醒數量顯示/隱藏的導覽列（mx-dash-nav），這裡略過不重複。
+function _mxPageNavRender(id){
+  if(id === 'dashboard') return;
+  var pg = document.getElementById('pg-' + id);
+  if(!pg) return;
+  var nav = pg.querySelector(':scope > .mx-page-nav');
+  if(!nav){
+    nav = document.createElement('div');
+    nav.className = 'mx-page-nav';
+    nav.style.cssText = 'display:flex;gap:7px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px';
+    pg.insertBefore(nav, pg.firstChild);
+  }
+  var blocks = pg.children;
+  var pills = [];
+  for(var i=0; i<blocks.length; i++){
+    var block = blocks[i];
+    if(block === nav) continue;
+    if(block.style.display === 'none') continue; // 目前沒顯示的區塊（例如依權限才出現的卡片）不放進導覽
+    var titleEl = block.querySelector ? block.querySelector('.card-title') : null;
+    var label = (block.dataset && block.dataset.navLabel) ? block.dataset.navLabel : (titleEl ? titleEl.textContent.trim() : '');
+    if(!label) continue;
+    if(!block.id) block.id = 'mx-auto-' + id + '-' + i;
+    var iconClass = (block.dataset && block.dataset.navIcon) ? block.dataset.navIcon : null;
+    var iconEl = !iconClass && titleEl ? titleEl.querySelector('i') : null;
+    var iconHtml = iconClass ? '<i class="' + iconClass + '" style="font-size:14px"></i>'
+      : (iconEl ? '<i class="' + iconEl.className + '" style="font-size:14px"></i>' : '<i class="ti ti-point" style="font-size:14px"></i>');
+    pills.push('<button onclick="scrollToCard(\'' + block.id + '\')" style="flex:0 0 auto;display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:7px 13px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">'
+      + iconHtml + '<span>' + label + '</span></button>');
+  }
+  if(pills.length <= 1){ nav.style.display = 'none'; nav.innerHTML=''; return; } // 只有一個區塊的頁面不需要導覽列
+  nav.style.display = 'flex';
+  nav.innerHTML = pills.join('');
+}
+(function(){
+  var btn;
+  window.addEventListener('scroll', function(){
+    if(!btn) btn = document.getElementById('mx-back-top');
+    if(!btn) return;
+    btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
+  }, {passive:true});
+})();
 // ══════ 儀表板快速導覽按鈕列（創始人2026-08-26：最上面一排橫排按鈕，對應下面每一個提醒卡片，
 // 免得要一直滑下去才能看到全部；按哪一個就可以先看/處理哪一個） ══════
 var MX_DASH_NAV_ITEMS = [
