@@ -3693,16 +3693,17 @@ function callAPI(params, callback) {
   if (typeof CLIENT_TOKEN !== 'undefined' && CLIENT_TOKEN && !params.clientToken && params.action !== 'clientAuth') {
     params.clientToken = CLIENT_TOKEN;
   }
-  var query = Object.keys(params).map(function(k) {
-    return k + '=' + encodeURIComponent(params[k]);
-  }).join('&');
+  // 2026-08-26修正：這裡本來是GET、把所有參數（含健康記錄內容、剛好也含clientToken這個等同密碼的
+  // 東西）直接串在網址上——網址容易被瀏覽器歷史紀錄、伺服器/代理的存取日誌、分享網址等方式外流。
+  // 後端doPost本來就已經支援JSON body（admin.html那邊一直都是這樣呼叫），改成POST不影響任何
+  // 現有邏輯，純粹是把這些內容從網址移進請求內容裡，比較安全。
   // 2026-08-12修正：後台剛醒來（冷啟動）時，第一次API呼叫常常要等20~30秒，
   // 畫面只顯示「載入中…」完全沒有其他提示，客人很容易以為當機了就直接關掉APP。
   // 2026-08-12再調整：等待門檻從6秒縮短為2秒，客人更快看到安心提示（創始人要求）。
   var slowHintTimer = setTimeout(function(){
     toast('🌱 資料準備中，第一次連線可能要等一下下，不會太久喔');
   }, 2000);
-  fetch(API_URL + '?' + query)
+  fetch(API_URL, { method: 'POST', body: JSON.stringify(params) })
     .then(function(r) { return r.json(); })
     .then(function(d) {
       clearTimeout(slowHintTimer);
@@ -3889,7 +3890,7 @@ function logUnknownFood(foodName) {
 // ── 食材推薦 ──
 function submitFoodRecommend(name, category, desc, reason) {
   callAPI({
-    action: 'addFoodRecommend', submitterId: CLIENT_ID,
+    action: 'addFoodRecommend', clientId: CLIENT_ID, submitterId: CLIENT_ID,
     submitterType: '客人', name: name, category: category,
     desc: desc, reason: reason
   }, function(d) {
@@ -5540,18 +5541,24 @@ function quickSaveMeal(mealCode) {
   </div>
 </div>
 <script>
+// 2026-08-26修正：ob-wrap（4步驟新手導覽小卡）跟 intro-overlay（介紹影片）以前是各自獨立倒數
+// 顯示，只要是第一次登入，兩個幾乎會在同一時間彈出，ob-wrap的z-index比較高會蓋住影片，
+// 客人關掉ob-wrap後，底下還開著的影片突然冒出來，像是「東西憑空跳出來」——這就是她反映
+// 「不見了？」背後的一部分原因。改成串接：先看完/關掉影片，才輪到顯示這個新手導覽小卡，
+// 不會再兩層疊在一起搶畫面。
+var _obWizardShown = false;
+function maybeShowOnboardingWizard(){
+  if (_obWizardShown) return;
+  _obWizardShown = true;
+  try {
+    if (localStorage.getItem('ob_done')) return;
+    var wrap = document.getElementById('ob-wrap');
+    if (wrap) wrap.style.display = 'flex';
+  } catch(e) {}
+}
 (function(){
   var wrap = document.getElementById('ob-wrap');
   if(wrap) wrap.style.display='none';
-  try {
-    if(!localStorage.getItem('ob_done')){
-      // 新手指引完成後才顯示首頁
-      // 延遲1秒確保首頁按鈕先載入
-      setTimeout(function(){
-        if(wrap) wrap.style.display='flex';
-      }, 800);
-    }
-  } catch(e) {}
 })();
 </script>
 <script>
@@ -5643,14 +5650,12 @@ function checkGifts() {
       var shown = false;
       d.gifts.forEach(function(g) {
         var key = giftMap[g.giftType];
-        if (key && typeof gsGift === 'function') {
-          gsGift(key);
-          shown = true;
-        }
-        if (!shown && typeof showGift === 'function' && key) {
-          showGift(key, g.message);
-          shown = true;
-        }
+        // 2026-08-26修正：這裡本來是「有gsGift就只跑gsGift，不跑showGift」——但gsGift找的是
+        // #gs-gift-msg（畫面上根本沒有這個元素），秘書寫的真正留言訊息從來沒有顯示出來，
+        // 客人只看到背景特效（陽光/花朵），完全看不到內容。showGift才是接到正確id（gift-msg等）
+        // 的實作，所以兩個都要跑：gsGift負責畫面特效，showGift負責把留言真的顯示出來。
+        if (key && typeof gsGift === 'function') { gsGift(key); }
+        if (key && typeof showGift === 'function') { showGift(key, g.message); shown = true; }
         if (g.giftType === 'message' && g.message) {
           toast('💌 ' + g.message);
           shown = true;
@@ -5892,21 +5897,27 @@ function openIntroVideo(){
 function closeIntroVideo(){
   var ov=document.getElementById('intro-overlay');
   if(ov) ov.remove();
+  // 影片關掉後，才輪到新手導覽小卡（如果這位客人還沒看過的話）——避免跟影片疊在一起
+  setTimeout(maybeShowOnboardingWizard, 300);
 }
 // 介紹頁按「跳過」時，iframe 會送出 intro-skip 訊息 → 關閉介紹層回到首頁
 window.addEventListener('message', function(e){
   if(e && e.data==='intro-skip') closeIntroVideo();
 });
-// 2026-08-26：客人第一次登入成功（mxSetIdentity 裡設的一次性旗標），畫面穩定後自動彈出新手導覽，
-// 不用等客人自己注意到、點那顆小按鈕；還是可以按右上角✕或內頁「跳過」關掉，只是不會漏看
+// 2026-08-26：客人第一次登入成功（mxSetIdentity 裡設的一次性旗標），畫面穩定後自動彈出介紹影片，
+// 不用等客人自己注意到、點那顆小按鈕；還是可以按右上角✕或內頁「跳過」關掉，只是不會漏看。
+// 只有這一次會自動彈出（旗標用掉就消失），之後登入只剩下手動的「點擊播放介紹影片」按鈕還在。
 document.addEventListener('DOMContentLoaded', function(){
   setTimeout(function(){
     try {
       if (localStorage.getItem('mx_intro_pending')) {
         localStorage.removeItem('mx_intro_pending');
         openIntroVideo();
+        return; // 新手導覽小卡改成等影片關閉後才顯示，見 closeIntroVideo()
       }
     } catch(e){}
+    // 這次沒有影片要自動播放（不是第一次登入，或旗標已經用掉）→ 新手導覽小卡照原本時間顯示
+    maybeShowOnboardingWizard();
   }, 700);
 });
 
