@@ -8559,50 +8559,23 @@ function loadTodayDuty(){
     if(dt.noRecord>0) items.push({icon:'📝',text:'<b>'+dt.noRecord+' 位</b>客人今天還沒記錄，溫柔提醒一下',act:"scrollToCard('today-records-body')"});
     if(dt.planExpiring>0) items.push({icon:'📆',text:'<b>'+dt.planExpiring+' 位</b>客人方案 14 天內到期，提前續約',act:"goPg('remind')"});
     if(dt.balanceDeficit>0) items.push({icon:'💳',text:'<b>'+dt.balanceDeficit+' 位</b>客人儲值餘額是負的，記得提醒補款',act:"goPg('stored-value')"});
-    if(dt.purchasesNewPending>0) items.push({icon:'🛒',text:'<b>'+dt.purchasesNewPending+' 筆</b>新的代購需求還沒確認，記得跟客人回覆',act:"goPg('dashboard')"});
-    if(dt.purchasesShipping>0) items.push({icon:'📦',text:'<b>'+dt.purchasesShipping+' 筆</b>代購已確認訂購，出貨/收貨還沒完成',act:"goPg('dashboard')"});
+    if(dt.purchasesNewPending>0) items.push({icon:'🛒',text:'<b>'+dt.purchasesNewPending+' 筆</b>新的代購需求還沒確認，記得跟客人回覆',act:"scrollToCard('proxy-card')"});
+    if(dt.purchasesShipping>0) items.push({icon:'📦',text:'<b>'+dt.purchasesShipping+' 筆</b>代購已確認訂購，出貨/收貨還沒完成',act:"scrollToCard('proxy-card')"});
     if(dt.pendingReviews>0) items.push({icon:'🧾',text:'<b>'+dt.pendingReviews+' 筆</b>儲值/消費記錄還沒核查',act:"goPg('review')"});
     if(dt.unknownFoodPending>0) items.push({icon:'🍱',text:'<b>'+dt.unknownFoodPending+' 筆</b>客人查不到的外食還沒補充',act:"goPg('food-mgmt')"});
     if(dt.foodRecommendPending>0) items.push({icon:'🥗',text:'<b>'+dt.foodRecommendPending+' 筆</b>客人推薦的食材還沒審核',act:"goPg('food-mgmt')"});
     if(dt.testimonialPending>0) items.push({icon:'💬',text:'<b>'+dt.testimonialPending+' 則</b>客人心得分享還沒審核',act:"goPg('clients')"});
 
-    // 統計列 —— 後端 getTodayDuty 依角色只回傳該角色相關的欄位（行政/會計沒有 recorded/noRecord/alerts），
-    // 改成依實際收到的欄位動態組出統計項目，避免對角色沒有的欄位顯示 undefined/NaN（2026-08-16 修正）
-    var statSegs=[];
-    // 2026-08-17 修正：這行當初漏加跟下面幾行一樣的 typeof 檢查，如果某個角色拿到的 duty
-    // 剛好沒有 totalClients 這個欄位，畫面就會顯示「服務中 undefined 位」給秘書看
-    if(typeof dt.totalClients==='number'){
-      statSegs.push('<div style="font-size:13px;opacity:.85">服務中 <b style="font-size:19px">'+dt.totalClients+'</b> 位</div>');
-    }
-    if(typeof dt.recorded==='number'){
-      statSegs.push('<div style="font-size:13px;opacity:.85">今日已記錄 <b style="font-size:19px">'+dt.recorded+'</b> 位</div>');
-    }
-    if(typeof dt.noRecord==='number' || typeof dt.alerts==='number'){
-      var careCount=(dt.noRecord||0)+(dt.alerts||0);
-      var comp=[]; if(dt.noRecord>0)comp.push('沒記錄'+dt.noRecord); if(dt.alerts>0)comp.push('不適'+dt.alerts);
-      statSegs.push('<div style="font-size:13px;opacity:.85">待關心 <b style="font-size:19px;color:'+(careCount>0?'#FFE0A0':'#B8F0D0')+'">'+careCount+'</b> 位'
-        +(comp.length?'<span style="font-size:11.5px;opacity:.75">（'+comp.join('＋')+'）</span>':'')+'</div>');
-    }
-    if(typeof dt.purchasesShipping==='number'){
-      statSegs.push('<div style="font-size:13px;opacity:.85">待處理出貨 <b style="font-size:19px;color:'+(dt.purchasesShipping>0?'#FFE0A0':'#B8F0D0')+'">'+dt.purchasesShipping+'</b> 筆</div>');
-    }
-    if(typeof dt.pendingReviews==='number'){
-      statSegs.push('<div style="font-size:13px;opacity:.85">待核查 <b style="font-size:19px;color:'+(dt.pendingReviews>0?'#FFE0A0':'#B8F0D0')+'">'+dt.pendingReviews+'</b> 筆</div>');
-    }
-    if(typeof dt.balanceDeficit==='number'){
-      statSegs.push('<div style="font-size:13px;opacity:.85">餘額異常 <b style="font-size:19px;color:'+(dt.balanceDeficit>0?'#FFE0A0':'#B8F0D0')+'">'+dt.balanceDeficit+'</b> 位</div>');
-    }
-    // 2026-08-26修正（創始人反映：這排統計數字看不清楚、跟下面的待辦項目卡片顏色太像分不出來）：
-    // 字放大一點，底色改成比較深的半透明黑，跟下面淺色的待辦卡片形成對比，一眼就知道這是「總覽數字」而不是任務項目
-    var stat='<div style="display:flex;gap:16px;flex-wrap:wrap;background:rgba(0,0,0,.18);border-radius:10px;padding:11px 14px;margin-bottom:12px;color:#fff">'
-      +statSegs.join('')
-      +'</div>';
+    // 2026-08-26修正：原本這裡的統計列（服務中/今日已記錄/待關心/待處理出貨/待核查/餘額異常）
+    // 跟上面的快速導覽捷徑分成兩排、創始人反映很亂——現在整合進最上面那排 mx-dash-nav，
+    // 每個數字都變成可以點擊跳轉，這裡不再重複顯示，只交給 _mxDashNavSetStats 處理
+    _mxDashNavSetStats(dt);
 
     if(items.length===0){
-      body.innerHTML=stat+'<div style="text-align:center;padding:14px;color:#fff;font-size:13px"><span style="font-size:22px">✨</span><br>今天沒有緊急待辦，客人們狀態都不錯！<br><span style="opacity:.8;font-size:11px">記得照常關心大家的記錄與 LINE 訊息 🌱</span></div>';
+      body.innerHTML='<div style="text-align:center;padding:14px;color:#fff;font-size:13px"><span style="font-size:22px">✨</span><br>今天沒有緊急待辦，客人們狀態都不錯！<br><span style="opacity:.8;font-size:11px">記得照常關心大家的記錄與 LINE 訊息 🌱</span></div>';
       return;
     }
-    var html=stat+items.map(function(it){
+    var html=items.map(function(it){
       return '<div onclick="'+it.act+'" style="display:flex;align-items:center;gap:10px;background:'+(it.urgent?'rgba(255,80,80,.25)':'rgba(255,255,255,.12)')+';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:#fff'+(it.urgent?';border:1px solid rgba(255,150,150,.5)':'')+'">'
         +'<span style="font-size:18px">'+it.icon+'</span>'
         +'<span style="flex:1;font-size:13px">'+it.text+'</span>'
@@ -8632,24 +8605,49 @@ var MX_DASH_NAV_ITEMS = [
   {id:'birthday-card', icon:'🎂', label:'生日提醒'}
 ];
 var _mxDashNavCounts = {};
+var _mxDashStats = null; // 今日待辦統計數字（服務中/今日已記錄/待關心/待處理出貨/待核查/餘額異常），跟提醒卡片捷徑合併成同一排
 function _mxDashNavSet(cardId, count){
   _mxDashNavCounts[cardId] = count || 0;
   _mxDashNavRender();
 }
+function _mxDashNavSetStats(dt){
+  _mxDashStats = dt;
+  _mxDashNavRender();
+}
+// 單一按鈕樣式（統計數字跟提醒捷徑共用同一套外觀，2026-08-26 創始人反映兩排分開看太亂，整合成一排）
+function _mxNavBtn(act, icon, label, count, warn){
+  return '<button onclick="' + act + '" style="flex:0 0 auto;display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:7px 13px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">'
+    + '<span style="font-size:14px">' + icon + '</span>'
+    + '<span>' + label + '</span>'
+    + '<span style="background:' + (warn ? 'var(--r)' : '#9CA3AF') + ';color:#fff;border-radius:10px;padding:0 6px;font-size:10.5px;font-weight:700;min-width:16px;text-align:center">' + count + '</span>'
+    + '</button>';
+}
 function _mxDashNavRender(){
   var nav = document.getElementById('mx-dash-nav');
   if(!nav) return;
-  var visible = MX_DASH_NAV_ITEMS.filter(function(it){ return (_mxDashNavCounts[it.id] || 0) > 0; });
-  if(visible.length === 0){ nav.style.display = 'none'; nav.innerHTML=''; return; }
+  var pills = [];
+  // ① 今日總覽數字（隨時顯示，是現況，不是「有事要處理才出現」——2026-08-26 應創始人要求跟下面的提醒捷徑整合成一排，點了都能跳到相關頁面/區塊）
+  var dt = _mxDashStats;
+  if(dt){
+    if(typeof dt.totalClients==='number') pills.push(_mxNavBtn("goPg('clients')", '👥', '服務中', dt.totalClients, false));
+    if(typeof dt.recorded==='number') pills.push(_mxNavBtn("scrollToCard('today-records-body')", '📝', '今日已記錄', dt.recorded, false));
+    if(typeof dt.noRecord==='number' || typeof dt.alerts==='number'){
+      var careCount=(dt.noRecord||0)+(dt.alerts||0);
+      var careAct = dt.alerts>0 ? "scrollToCard('alert-card')" : "scrollToCard('today-records-body')";
+      pills.push(_mxNavBtn(careAct, '💗', '待關心', careCount, careCount>0));
+    }
+    if(typeof dt.purchasesShipping==='number') pills.push(_mxNavBtn("scrollToCard('proxy-card')", '📦', '待處理出貨', dt.purchasesShipping, dt.purchasesShipping>0));
+    if(typeof dt.pendingReviews==='number') pills.push(_mxNavBtn("goPg('review')", '🧾', '待核查', dt.pendingReviews, dt.pendingReviews>0));
+    if(typeof dt.balanceDeficit==='number') pills.push(_mxNavBtn("goPg('stored-value')", '💳', '餘額異常', dt.balanceDeficit, dt.balanceDeficit>0));
+  }
+  // ② 提醒卡片捷徑（只有真的有東西要處理才出現）
+  MX_DASH_NAV_ITEMS.forEach(function(it){
+    var n = _mxDashNavCounts[it.id] || 0;
+    if(n > 0) pills.push(_mxNavBtn("scrollToCard('" + it.id + "')", it.icon, it.label, n, true));
+  });
+  if(pills.length === 0){ nav.style.display = 'none'; nav.innerHTML=''; return; }
   nav.style.display = 'flex';
-  nav.innerHTML = visible.map(function(it){
-    var n = _mxDashNavCounts[it.id];
-    return '<button onclick="scrollToCard(\'' + it.id + '\')" style="flex:0 0 auto;display:flex;align-items:center;gap:5px;background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:7px 13px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">'
-      + '<span style="font-size:14px">' + it.icon + '</span>'
-      + '<span>' + it.label + '</span>'
-      + '<span style="background:var(--r);color:#fff;border-radius:10px;padding:0 6px;font-size:10.5px;font-weight:700;min-width:16px;text-align:center">' + n + '</span>'
-      + '</button>';
-  }).join('');
+  nav.innerHTML = pills.join('');
 }
 function showFullDuty(){
   alert('完整工作表（每週檢視、每月結算、觸發式處理、服務原則）在教學手冊與獨立網頁版中。\n\n每天登入只要看這張「今日待辦」，系統會自動幫你盯生日、沒記錄、症狀警示、方案到期。');
