@@ -6378,10 +6378,20 @@ function loadClientsPage(){
         + '</td>'
         + '<td>'+escH(c.stage||'–')+'</td><td>'+escH(c.irt||'未確認')+'</td>'
         + '<td>'+escH(c.secretary||'–')+subHtml+'</td><td>'+rsBadge+'</td>'
-        + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">查看記錄</button></td></tr>';
+        + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">查看記錄</button>'
+        + '<button class="ai-btn" style="background:#FDEDEC;color:#C0392B;margin-left:6px" onclick="deleteClientUI('+c.row+',\''+escH(c.id)+'\',\''+escH(c.name)+'\')">🗑 刪除</button></td></tr>';
     });
     tb.innerHTML = html;
   }, true);
+}
+// 刪除客人（創始人2026-08-26：清掉測試/重複建立的帳號用）——只會把這位客人從「客人名單」隱藏掉，
+// 不會動到他過去在其他工作表（每日記錄、IRCT檢測記錄等）留下的歷史資料，避免誤刪後徹底找不回來。
+function deleteClientUI(row, id, name){
+  if(!confirm('確定要刪除客人「'+name+'」（'+id+'）嗎？\n\n這會把這位客人從客戶管理名單移除，但不會刪除他過去的每日記錄、IRCT檢測記錄等歷史資料（那些還留在各自的工作表裡）。\n\n此動作無法在畫面上復原，請確認清楚。')) return;
+  adminAPIPost({action:'deleteClient', row:row, clientId:id, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已刪除「'+name+'」'); loadClientsPage(); }
+    else toast('⚠️ 刪除失敗：'+((d&&d.message)||'請重試'));
+  });
 }
 function toggleClientForm(){
   document.getElementById('add-client-form').classList.toggle('on');
