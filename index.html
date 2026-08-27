@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-27e';
+var MX_BUILD = '2026-08-27f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -726,6 +726,7 @@ window.openHealthForm = function() {
           <button onclick="enableMealBtn('b');quickBreakfast('防彈咖啡')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #92400E;background:#FFFBEB;font-size:11px;font-weight:600;cursor:pointer;color:#92400E;display:flex;align-items:center;gap:4px">☕ 防彈咖啡</button>
           <button onclick="enableMealBtn('b');quickBreakfast('防彈雞湯')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #065F46;background:#ECFDF5;font-size:11px;font-weight:600;cursor:pointer;color:#065F46;display:flex;align-items:center;gap:4px">🍵 防彈雞湯</button>
           <button onclick="enableMealBtn('b');quickBreakfast('防彈咖啡+雞湯')" style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--g);background:var(--g2);font-size:11px;font-weight:600;cursor:pointer;color:var(--g3);display:flex;align-items:center;gap:4px">✨ 兩者都有</button>
+          <button onclick="mealFasting('b')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #6B7280;background:#F3F4F6;font-size:11px;font-weight:600;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px">🚫 沒有吃（斷食）</button>
         </div>
         <div class="meal-body">
           <div class="pz" id="bz" onclick="uploadMeal('b')">
@@ -748,6 +749,9 @@ window.openHealthForm = function() {
         <button onclick="quickSaveMeal('l')" style="background:#D1D5DB;color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:11px;cursor:not-allowed;font-weight:700;flex-shrink:0" id="meal-btn-l" disabled>儲存後完成</button>
       </div>
       <div style="padding-left:28px">
+        <div style="display:flex;gap:6px;padding-bottom:8px;flex-wrap:wrap">
+          <button onclick="mealFasting('l')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #6B7280;background:#F3F4F6;font-size:11px;font-weight:600;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px">🚫 沒有吃（斷食）</button>
+        </div>
         <div class="meal-body" style="display:none" id="l-content">
           <div class="pt-grid" id="l-grid"></div>
           <input class="inp" placeholder="備註食物名稱（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px" oninput="onMealTextInput('l',this.value)">
@@ -771,6 +775,9 @@ window.openHealthForm = function() {
         <button onclick="quickSaveMeal('d')" style="background:#D1D5DB;color:#fff;border:none;border-radius:10px;padding:6px 13px;font-size:11px;cursor:not-allowed;font-weight:700;flex-shrink:0" id="meal-btn-d" disabled>儲存後完成</button>
       </div>
       <div style="padding-left:28px">
+        <div style="display:flex;gap:6px;padding-bottom:8px;flex-wrap:wrap">
+          <button onclick="mealFasting('d')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #6B7280;background:#F3F4F6;font-size:11px;font-weight:600;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px">🚫 沒有吃（斷食）</button>
+        </div>
         <div class="meal-body">
           <div class="pz" id="dz" onclick="uploadMeal('d')">
             <div style="font-size:26px;color:var(--text3);margin-bottom:5px"><i class="ti ti-photo-plus"></i></div>
@@ -5432,6 +5439,21 @@ function quickBreakfast(type) {
 // ── 每餐記錄完成按鈕 ──
 // 記錄每餐完成狀態
 var mealDone = {b: false, l: false, d: false};
+
+// ── 這一餐斷食沒有吃（2026-08-27新增，她的指示：讓斷食的人也能把4個任務全部完成，
+// 不會因為某一餐本來就不吃而永遠卡在3/4，「對部分強迫症人群會很受傷」）──
+// 會記一筆到每日記錄的「餐別」欄（例如「午餐：斷食沒有吃」），秘書後台看得到這餐是刻意斷食，
+// 不是忘了記錄；然後走 quickSaveMeal 原本的完成流程（打勾、進度條、按鈕變綠、全完成慶祝）
+function mealFasting(mealCode) {
+  if (mealDone[mealCode]) return;
+  var mealNames = {b:'早餐', l:'午餐', d:'晚餐'};
+  var name = mealNames[mealCode] || '餐食';
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：斷食沒有吃'}, function(){});
+  quickSaveMeal(mealCode);
+  var statusEl = document.getElementById(mealCode + 's');
+  if (statusEl) { statusEl.textContent = '斷食 ✅'; statusEl.className = 'meal-st ok'; }
+  toast('🚫 ' + name + '斷食沒有吃，已記錄！');
+}
 
 function quickSaveMeal(mealCode) {
   var mealNames = {b:'早餐', l:'午餐', d:'晚餐'};
