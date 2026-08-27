@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-27b';
+var MX_BUILD = '2026-08-27e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -330,10 +330,11 @@ window.openHealthForm = function() {
 <!-- ══ 首頁 ══ -->
 <div class="page on" id="p-home">
   <div class="home-hd" style="position:relative">
-    <!-- 2026-08-27補回：右上角的簡介導覽小按鈕。早前把新手導覽改成「第一次登入自動播放」時
-         這顆被拿掉了，但她明確說過之後還是要留著讓客人隨時能重看（「只是第一次要先引導他的
-         眼光，之後還是要留著阿」），所以放回來，點了直接重播介紹影片 -->
-    <button onclick="openIntroVideo()" style="position:absolute;top:16px;right:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent"><i class="ti ti-player-play" style="font-size:11px"></i>簡介導覽</button>
+    <!-- 2026-08-27補回：右上角的新手導覽小按鈕。早前把導覽改成「第一次登入自動顯示」時這顆被
+         拿掉了，但她明確說過之後還是要留著讓客人隨時能重看（「只是第一次要先引導他的眼光，之後
+         還是要留著阿」）。注意：這顆開的是「功能導覽框」（ob-wrap，一步步介紹下面每個功能怎麼用
+         的那組卡片），不是介紹影片——影片有下面深色卡片裡自己的「點擊播放介紹影片」大按鈕 -->
+    <button onclick="openObGuide()" style="position:absolute;top:16px;right:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent"><i class="ti ti-map-2" style="font-size:11px"></i>新手導覽</button>
     <div style="font-size:12px;opacity:.75;margin-bottom:3px">嗨，陳小美</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:3px" id="home-stage-day">你的健康旅程</div>
     <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">–</span> 天 🔥</div>
@@ -5587,11 +5588,28 @@ function quickSaveMeal(mealCode) {
 // 「不見了？」背後的一部分原因。改成串接：先看完/關掉影片，才輪到顯示這個新手導覽小卡，
 // 不會再兩層疊在一起搶畫面。
 var _obWizardShown = false;
+// 右上角「新手導覽」按鈕：隨時手動重看功能導覽框（從第一步開始），不受 ob_done 影響
+function openObGuide(){
+  try {
+    var s0=document.getElementById('ob-s0'), s1=document.getElementById('ob-s1'),
+        s2=document.getElementById('ob-s2'), s3=document.getElementById('ob-s3');
+    if(s0) s0.style.display='block';
+    if(s1) s1.style.display='none';
+    if(s2) s2.style.display='none';
+    if(s3) s3.style.display='none';
+  } catch(e){}
+  var w=document.getElementById('ob-wrap');
+  if(w) w.style.display='flex';
+}
 function maybeShowOnboardingWizard(){
   if (_obWizardShown) return;
   _obWizardShown = true;
   try {
     if (localStorage.getItem('ob_done')) return;
+    // 2026-08-27補強：一定要「已經登入成功」才自動跳導覽框。沒登入的人看到的是登入畫面，
+    // 導覽框不該蓋在登入表單上面；等他第一次登入成功（mx_intro_pending 那條流程）
+    // 自然會走到這裡強迫顯示。手動的右上角「新手導覽」按鈕（openObGuide）不受這個限制。
+    if (!localStorage.getItem('mx_client_id')) return;
     var wrap = document.getElementById('ob-wrap');
     if (wrap) wrap.style.display = 'flex';
   } catch(e) {}
@@ -5937,26 +5955,18 @@ function openIntroVideo(){
 function closeIntroVideo(){
   var ov=document.getElementById('intro-overlay');
   if(ov) ov.remove();
-  // 影片關掉後，才輪到新手導覽小卡（如果這位客人還沒看過的話）——避免跟影片疊在一起
-  setTimeout(maybeShowOnboardingWizard, 300);
 }
 // 介紹頁按「跳過」時，iframe 會送出 intro-skip 訊息 → 關閉介紹層回到首頁
 window.addEventListener('message', function(e){
   if(e && e.data==='intro-skip') closeIntroVideo();
 });
-// 2026-08-26：客人第一次登入成功（mxSetIdentity 裡設的一次性旗標），畫面穩定後自動彈出介紹影片，
-// 不用等客人自己注意到、點那顆小按鈕；還是可以按右上角✕或內頁「跳過」關掉，只是不會漏看。
-// 只有這一次會自動彈出（旗標用掉就消失），之後登入只剩下手動的「點擊播放介紹影片」按鈕還在。
+// 2026-08-27改（她的指示「不要先出現影片，這樣可能引發別人討厭，先出現導覽框。影片給人家想看才看」）：
+// 第一次登入成功後，自動強制出現的是「導覽框」（ob-wrap 功能導覽卡），不再自動播介紹影片。
+// 影片從此只有兩個手動入口：首頁深色卡片的「點擊播放介紹影片」大按鈕，和導覽相關按鈕，想看才看。
+// 導覽框只會強迫出現這一次（關掉時記下 ob_done），之後登入不再自動跳，右上角「新手導覽」隨時可重看。
 document.addEventListener('DOMContentLoaded', function(){
   setTimeout(function(){
-    try {
-      if (localStorage.getItem('mx_intro_pending')) {
-        localStorage.removeItem('mx_intro_pending');
-        openIntroVideo();
-        return; // 新手導覽小卡改成等影片關閉後才顯示，見 closeIntroVideo()
-      }
-    } catch(e){}
-    // 這次沒有影片要自動播放（不是第一次登入，或旗標已經用掉）→ 新手導覽小卡照原本時間顯示
+    try { localStorage.removeItem('mx_intro_pending'); } catch(e){} // 舊旗標順手清掉，避免殘留
     maybeShowOnboardingWizard();
   }, 700);
 });
