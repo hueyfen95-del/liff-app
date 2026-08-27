@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-27a';
+var MX_BUILD = '2026-08-27b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -329,7 +329,11 @@ window.openHealthForm = function() {
 
 <!-- ══ 首頁 ══ -->
 <div class="page on" id="p-home">
-  <div class="home-hd">
+  <div class="home-hd" style="position:relative">
+    <!-- 2026-08-27補回：右上角的簡介導覽小按鈕。早前把新手導覽改成「第一次登入自動播放」時
+         這顆被拿掉了，但她明確說過之後還是要留著讓客人隨時能重看（「只是第一次要先引導他的
+         眼光，之後還是要留著阿」），所以放回來，點了直接重播介紹影片 -->
+    <button onclick="openIntroVideo()" style="position:absolute;top:16px;right:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent"><i class="ti ti-player-play" style="font-size:11px"></i>簡介導覽</button>
     <div style="font-size:12px;opacity:.75;margin-bottom:3px">嗨，陳小美</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:3px" id="home-stage-day">你的健康旅程</div>
     <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">–</span> 天 🔥</div>
