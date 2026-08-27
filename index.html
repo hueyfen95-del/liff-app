@@ -258,6 +258,42 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 </head>
 <body>
 <script>
+// ══ 版本自動更新（2026-08-27 新增）══
+// 「改好的功能看起來不見了」的真正原因是瀏覽器／LINE 內建瀏覽器把舊版頁面快取住了。
+// 頁面剛載入時用 no-store 跟伺服器要這個檔案最新的內容指紋（etag）：跟上次記住的不一樣
+// ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
+// 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
+// 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
+var MX_BUILD = '2026-08-27a';
+(function(){
+  try {
+    var page = location.pathname.split('/').pop() || 'index.html';
+    var key = 'mx_etag_' + page;
+    fetch(location.pathname, {method:'HEAD', cache:'no-store'}).then(function(r){
+      var et = r.headers.get('etag') || r.headers.get('last-modified') || '';
+      if (!et) return;
+      var prev = null, guard = null;
+      try { prev = localStorage.getItem(key); guard = sessionStorage.getItem('mx_verjump_' + page); } catch(e){}
+      if (prev && prev !== et && guard !== et) {
+        try { sessionStorage.setItem('mx_verjump_' + page, et); localStorage.setItem(key, et); } catch(e){}
+        var u = new URL(location.href);
+        u.searchParams.set('_v', (et.replace(/[^A-Za-z0-9]/g,'').slice(0,12)) || String(new Date().getTime()));
+        location.replace(u.toString());
+        return;
+      }
+      try { localStorage.setItem(key, et); } catch(e){}
+    }).catch(function(){});
+  } catch(e){}
+  // 頁面最底部放一行小小的版本編號，回報問題時一眼就能確認是不是最新版
+  document.addEventListener('DOMContentLoaded', function(){
+    var v = document.createElement('div');
+    v.textContent = '版本 ' + MX_BUILD;
+    v.style.cssText = 'text-align:center;font-size:10px;color:#9CA3AF;padding:4px 0 84px';
+    document.body.appendChild(v);
+  });
+})();
+</script>
+<script>
 window.openHealthForm = function() {
   var o = document.getElementById('health-form-overlay');
   if (!o) { alert('找不到: health-form-overlay\n頁面共有' + document.querySelectorAll('[id]').length + '個有id的元素'); return; }
