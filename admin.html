@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-27a';
+var MX_BUILD = '2026-08-27b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -435,6 +435,9 @@ var MX_BUILD = '2026-08-27a';
 
 <!-- ══ 客戶管理 ══ -->
 <div class="pg" id="pg-clients">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="ai-btn" style="font-size:12px;padding:8px 14px;background:var(--g2);color:var(--g3);font-weight:700" onclick="cpsGrantMonthly()">🎫 發放本月陪跑點數（每人+8點）</button>
+      </div>
       <!-- 客人記錄查詢 -->
       <div class="card" style="margin-bottom:14px">
         <div class="card-hd">
@@ -5241,6 +5244,11 @@ function openClientDetail(id, name){
     + '</label>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🎫 陪跑點數（寫入 🎫 陪跑點數帳本）</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">1點=100元。年費陪跑內含100點：開卡禮4點＋每月8點×12。點數可換秘書/醫師諮詢（隨時），每月最後7天可折抵好物商城，沒用完自動累積，合約到期後60天內要用完。</div>'
+    + '<div id="cd-cps-body" style="font-size:12px;color:var(--text3)">載入中…</div>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍯 代謝甜蜜點分析</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">從這位客人自己的每日記錄＋IRCT複測結果，找出真的適合他的碳水回補／運動節奏（不是套公版建議）。算出來的結果不會自動給客人看，你確認/編輯文字後按「顯示給客人」才會真正曝光。</div>'
     + '<button class="ai-btn b" style="font-size:11.5px;padding:7px 12px" onclick="loadSweetSpotAnalysis(\''+escH(id)+'\')">🔍 分析這位客人的甜蜜點</button>'
@@ -5328,6 +5336,7 @@ function openClientDetail(id, name){
   renderIRCTMedCategories();
   loadChronicMedList();
   loadCarbPlanAdmin(id);
+  loadCarePointsAdmin(id);
   loadDiscussions(id);
   loadClientTestimonials(id);
   loadClientReferrals(id);
@@ -5769,6 +5778,91 @@ function submitProxyFinish(i){
   });
 }
 // ── 碳水計畫 ──
+// ══════ 🎫 陪跑點數（2026-08-27 第一階段）══════
+// 兌換選單（點數為負數＝扣點）。之後要調價直接改這裡。
+var CPS_REDEEM_MENU = [
+  {label:'秘書諮詢 30分鐘', pts:-3},
+  {label:'秘書深度諮詢 60分鐘', pts:-5},
+  {label:'醫師諮詢 15分鐘', pts:-8},
+  {label:'醫師諮詢 30分鐘', pts:-15},
+  {label:'好物商城折抵（月底7天）', pts:0}
+];
+var _cdCpsId = '';
+function loadCarePointsAdmin(id){
+  _cdCpsId = id;
+  var box = document.getElementById('cd-cps-body');
+  if(!box) return;
+  box.innerHTML = '載入中…';
+  adminAPI({action:'getCarePoints', clientId:id}, function(d){
+    if(!d || d.status!=='ok'){ box.innerHTML='<span style="color:var(--r3)">讀取失敗（Apps Script 需要部署含陪跑點數的新版）</span>'; return; }
+    if(!d.opened){
+      box.innerHTML = '<div style="color:var(--text3);margin-bottom:8px">這位客人還沒開通陪跑點數</div>'
+        + (canEditClientsNow() ? '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="cpsOpen()">🎫 開通並發開卡禮 4 點</button>' : '');
+      return;
+    }
+    var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+      + '<div style="font-size:22px;font-weight:800;color:var(--g3)">'+d.balance+' 點</div>'
+      + '<div style="font-size:10.5px;color:var(--text3)">'+(d.monthGranted?'本月點數已發放 ✅':'<span style="color:var(--a3);font-weight:700">本月點數還沒發</span>')+'</div>'
+      + '</div>';
+    if(canEditClientsNow()){
+      html += '<div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;margin-bottom:8px">'
+        + '<select id="cd-cps-sel" class="form-select" style="font-size:12px">'
+        + CPS_REDEEM_MENU.map(function(m,i){ return '<option value="'+i+'">'+m.label+(m.pts?'（'+(-m.pts)+'點）':'')+'</option>'; }).join('')
+        + '</select>'
+        + '<input id="cd-cps-pts" class="form-input" style="font-size:12px;width:72px" placeholder="±點數">'
+        + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="cpsTx()">登記</button>'
+        + '</div>'
+        + '<div style="font-size:10px;color:var(--text3);margin-bottom:8px">選兌換項目按登記即可（點數自動扣）；「商城折抵」或手動調整才需要自己填點數（發放填正數、扣點填負數）。</div>';
+    }
+    html += '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:4px">最近明細</div>';
+    if(d.list && d.list.length){
+      html += d.list.slice(0,10).map(function(r){
+        var pos = r.points > 0;
+        return '<div style="display:flex;gap:8px;font-size:11px;padding:3px 0;border-bottom:1px dashed var(--border)">'
+          + '<span style="color:var(--text3);flex-shrink:0">'+escH(r.time)+'</span>'
+          + '<span style="flex:1">'+escH(r.type)+(r.note?'・'+escH(r.note):'')+'</span>'
+          + '<span style="font-weight:700;color:'+(pos?'var(--g3)':'var(--r3)')+'">'+(pos?'+':'')+r.points+'</span>'
+          + '</div>';
+      }).join('');
+    } else { html += '<div style="font-size:11px;color:var(--text3)">還沒有記錄</div>'; }
+    box.innerHTML = html;
+  });
+}
+function cpsOpen(){
+  if(!_cdCpsId) return;
+  adminAPIPost({action:'addCarePointsTx', clientId:_cdCpsId, txType:'開卡禮', points:4,
+    note:'開通陪跑點數', secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d.status==='ok'){ toast('🎫 已開通，開卡禮 4 點已發'); loadCarePointsAdmin(_cdCpsId); }
+    else toast('⚠️ '+(d.message||'開通失敗'));
+  });
+}
+function cpsTx(){
+  if(!_cdCpsId) return;
+  var sel = document.getElementById('cd-cps-sel');
+  var ptsInput = document.getElementById('cd-cps-pts');
+  var item = CPS_REDEEM_MENU[parseInt(sel.value,10)] || CPS_REDEEM_MENU[0];
+  var pts = item.pts;
+  var manual = ptsInput && ptsInput.value.trim() !== '' ? Number(ptsInput.value.trim()) : null;
+  if (pts === 0) {
+    if (manual === null || isNaN(manual) || manual === 0) { toast('⚠️ 這個項目要自己填點數（扣點請填負數，例如 -5）'); return; }
+    pts = manual;
+  } else if (manual !== null && !isNaN(manual) && manual !== 0) {
+    pts = manual;
+  }
+  var txType = pts > 0 ? '調整' : (item.label.indexOf('商城') >= 0 ? '兌換商城' : '兌換諮詢');
+  adminAPIPost({action:'addCarePointsTx', clientId:_cdCpsId, txType:txType, points:pts,
+    note:item.label, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d.status==='ok'){ toast('✅ 已登記，餘額 '+d.balance+' 點'); if(ptsInput) ptsInput.value=''; loadCarePointsAdmin(_cdCpsId); }
+    else toast('⚠️ '+(d.message||'登記失敗'));
+  });
+}
+function cpsGrantMonthly(){
+  if(!confirm('發放本月點數？\n所有「已開通陪跑點數、還在陪跑中、本月還沒發過」的客人，每人 +8 點。')) return;
+  adminAPIPost({action:'grantMonthlyCarePoints', secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d.status==='ok') toast('🎫 本月點數發放完成：發了 '+d.granted+' 位，略過 '+d.skipped+' 位（未開通/已發過/已結束）');
+    else toast('⚠️ '+(d.message||'發放失敗'));
+  });
+}
 function loadCarbPlanAdmin(id){
   adminAPI({action:'getCarbPlan', clientId:id}, function(d){
     var sel = document.getElementById('cd-carb-sel');

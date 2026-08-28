@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-27f';
+var MX_BUILD = '2026-08-28a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -365,6 +365,20 @@ window.openHealthForm = function() {
       </div>
       <div id="wallet-detail" style="display:none;border-top:1px dashed rgba(255,255,255,.3);margin-top:10px;padding-top:8px;font-size:11.5px;line-height:1.7" ></div>
       <div style="font-size:12px;opacity:.6;text-align:center;margin-top:6px">點一下展開消費明細</div>
+    </div>
+    <!-- 🎫 陪跑點數卡（2026-08-27 第一階段：已開通的客人才顯示）-->
+    <div id="cps-card" style="display:none;background:linear-gradient(135deg,#534AB7,#7C6FE0);border-radius:14px;padding:14px 16px;margin-bottom:12px;color:#fff">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div>
+          <div style="font-size:11px;opacity:.85">🎫 我的陪跑點數</div>
+          <div style="font-size:26px;font-weight:800;letter-spacing:.5px"><span id="cps-bal">–</span> 點</div>
+          <div style="font-size:10.5px;opacity:.8" id="cps-note">1點=100元・可換秘書/醫師諮詢</div>
+        </div>
+        <button onclick="cpsAskConsult()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">💬 我要預約諮詢</button>
+      </div>
+      <div id="cps-monthend" style="display:none;border-top:1px dashed rgba(255,255,255,.35);margin-top:9px;padding-top:7px;font-size:11px;opacity:.95">🛍 月底囉！這個月沒用完的點數，現在可以到好物商城折抵（1點=100元），跟秘書說一聲就好</div>
+      <div id="cps-recent" style="display:none;border-top:1px dashed rgba(255,255,255,.35);margin-top:9px;padding-top:7px;font-size:11px;line-height:1.7"></div>
+      <div style="font-size:11px;opacity:.6;text-align:center;margin-top:6px" onclick="cpsToggleRecent()">點一下看點數明細</div>
     </div>
     <div style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:14px;padding:13px 15px;margin-bottom:12px">
       <!-- 影片說明 -->
@@ -790,15 +804,11 @@ window.openHealthForm = function() {
       </div>
     </div>
 
-    <!-- 今日累計大營養素（移到最下面，當作統計結果） -->
+    <!-- 今日比例・我的判斷（2026-08-28：取代AI估算，累計客人自己的判斷） -->
     <div class="day-tot">
-      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:5px"><i class="ti ti-chart-pie" style="font-size:14px"></i>今日累計大營養素（AI 估算）</div>
-      <div class="dt-segs"><div class="dt-seg" style="background:#E24B4A;width:0%" id="dc-bar"></div><div class="dt-seg" style="background:#378ADD;width:0%" id="dp-bar"></div><div class="dt-seg" style="background:#1D9E75;width:0%" id="df-bar"></div></div>
-      <div class="dt-legend">
-        <div class="dl"><div class="dl-dot" style="background:#E24B4A"></div><span id="dc-lbl">碳水 0g</span></div>
-        <div class="dl"><div class="dl-dot" style="background:#378ADD"></div><span id="dp-lbl">蛋白質 0g</span></div>
-        <div class="dl"><div class="dl-dot" style="background:#1D9E75"></div><span id="df-lbl">脂肪 0g</span></div>
-      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:5px"><i class="ti ti-eye" style="font-size:14px"></i>今日比例・我的判斷</div>
+      <div id="judge-day-summary" style="font-size:12px;color:var(--text3)">今天還沒有判斷記錄</div>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:6px">嚴格期目標：脂肪 70%・蛋白質 25%・醬料/碳水 5%・🥬 葉菜、菇類不計</div>
     </div>
 
     
@@ -2655,25 +2665,108 @@ function handleMealFile(input){
     }
     // 暫存待上傳的照片，跳出油量詢問
     window._pendingMeal = { base64: base64, fileName: file.name||'meal.jpg', mimeType: file.type||'image/jpeg', meal: mealNames[m]||'' };
-    var modal = document.getElementById('oil-modal');
-    if(modal) modal.style.display='flex';
+    openJudge(m);
     // 照片已經有了，就算備註文字沒填也該讓「儲存後完成」按鈕可以按——這裡漏掉是造成「上傳照片後存不了檔」的原因
     if(typeof enableMealBtn==='function') enableMealBtn(m);
   };
   reader.readAsDataURL(file);
 }
-function pickOil(el){
-  var oil = el.getAttribute('data-oil');
-  var modal = document.getElementById('oil-modal');
+// ══════ 🍽 換你來判斷（2026-08-28，她的設計：取代AI估算——AI看照片不準，客人也學不會；
+// 改成客人自己判斷油脂/蛋白質/碳水比例，秘書看照片校正，練習幾週就有自己的眼睛。
+// 嚴格期目標比例直接秀給客人：脂肪70%・蛋白質25%・醬料/碳水5%・葉菜菇類不計）══════
+var _mealJudge = {b:null, l:null, d:null};
+var _mealJudgeBypass = {b:false, l:false, d:false};
+var _judgeMeal = '';
+var _judgeSel = {oil:'', prot:'', carb:''};
+var _carbPlanVal = '';
+function openJudge(m){
+  _judgeMeal = m;
+  _judgeSel = {oil:'', prot:'', carb:''};
+  document.querySelectorAll('#judge-modal .j-chip').forEach(function(c){ c.style.background='#fff'; c.style.color='#2B3A35'; c.style.borderColor='#E2EDE7'; });
+  var ok = document.getElementById('judge-ok');
+  if(ok){ ok.disabled = true; ok.style.opacity = .45; }
+  var tgt = document.getElementById('judge-target');
+  if(tgt){
+    if(_carbPlanVal !== '' && _carbPlanVal !== '0'){
+      var g = Number(_carbPlanVal) || 0;
+      if(g >= 1 && g <= 6) g = g * 15;
+      tgt.innerHTML = '你在<b>碳水回補期</b>：每天碳水額度 <b>' + g + 'g</b>・油脂蛋白質照常<br>🥬 葉菜、菇類不計，放心吃';
+    } else {
+      tgt.innerHTML = '<b>嚴格期目標比例</b>：脂肪 <b>70%</b>・蛋白質 <b>25%</b>・醬料/碳水 <b>5%</b><br>🥬 葉菜、菇類不計，放心吃';
+    }
+  }
+  var modal = document.getElementById('judge-modal');
+  if(modal) modal.style.display = 'flex';
+}
+function pickJudge(el, group, val){
+  _judgeSel[group] = val;
+  el.parentElement.querySelectorAll('.j-chip').forEach(function(c){ c.style.background='#fff'; c.style.color='#2B3A35'; c.style.borderColor='#E2EDE7'; });
+  el.style.background = '#0F6E56'; el.style.color = '#fff'; el.style.borderColor = '#0F6E56';
+  if(_judgeSel.oil && _judgeSel.prot && _judgeSel.carb){
+    var ok = document.getElementById('judge-ok');
+    if(ok){ ok.disabled = false; ok.style.opacity = 1; }
+  }
+}
+function judgeConfirm(){
+  var m = _judgeMeal; if(!m) return;
+  var sel = _judgeSel;
+  var jMealNames = {b:'早餐', l:'午餐', d:'晚餐'};
+  var modal = document.getElementById('judge-modal');
+  if(modal) modal.style.display = 'none';
+  _mealJudge[m] = {oil:sel.oil, prot:sel.prot, carb:sel.carb};
+  var pm = window._pendingMeal;
+  if(pm){
+    toast('📤 照片上傳中…');
+    callAPI({action:'saveMealPhoto', clientId:CLIENT_ID, meal:pm.meal, oilAmount:'油脂'+sel.oil, fileData:pm.base64, fileName:pm.fileName, mimeType:pm.mimeType}, function(d){
+      if(d && d.status==='ok') toast('✅ 照片已傳給秘書');
+      else toast('⚠️ 照片上傳失敗，請再試一次');
+    });
+    window._pendingMeal = null;
+  }
+  // 自我判斷寫進每日記錄的油脂/蛋白質/澱粉欄，秘書後台對照照片就能校正
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）', oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(){});
+  renderJudgeSummary();
+  judgeFeedback(sel.carb);
+  _finishMeal(m);
+}
+function judgeSkip(){
+  var m = _judgeMeal; if(!m) return;
+  var modal = document.getElementById('judge-modal');
   if(modal) modal.style.display='none';
   var pm = window._pendingMeal;
-  if(!pm) return;
-  if(typeof toast==='function') toast('📤 照片上傳中…');
-  callAPI({action:'saveMealPhoto', clientId:CLIENT_ID, meal:pm.meal, oilAmount:oil, fileData:pm.base64, fileName:pm.fileName, mimeType:pm.mimeType}, function(d){
-    if(d && d.status==='ok'){ if(typeof toast==='function') toast('✅ 照片和油脂資訊已傳給秘書'); }
-    else { if(typeof toast==='function') toast('⚠️ 上傳失敗，請再試一次'); }
+  if(pm){
+    toast('📤 照片上傳中…');
+    callAPI({action:'saveMealPhoto', clientId:CLIENT_ID, meal:pm.meal, oilAmount:'未判斷', fileData:pm.base64, fileName:pm.fileName, mimeType:pm.mimeType}, function(d){
+      if(d && d.status==='ok') toast('✅ 照片已傳給秘書');
+    });
+    window._pendingMeal = null;
+  }
+  _finishMeal(m);
+}
+function judgeFeedback(carb){
+  var strict = (_carbPlanVal === '' || _carbPlanVal === '0');
+  var msg;
+  if(strict){
+    if(carb === '無') msg = '💪 太棒了！嚴格期就是這樣吃';
+    else if(carb === '一點') msg = '👀 嚴格期連醬料裡的糖都盡量避開，下一餐再調整';
+    else msg = '🥬 現在是嚴格期——下一餐試試把澱粉換成花椰菜米或葉菜';
+  } else {
+    var g = Number(_carbPlanVal)||0; if(g>=1&&g<=6) g=g*15;
+    if(carb === '無' || carb === '一點') msg = '👍 不錯！記得全天碳水加總控制在 ' + g + 'g 內';
+    else msg = '⚠️ 這餐碳水偏多，今天其他餐先避開澱粉（全天目標 ' + g + 'g）';
+  }
+  setTimeout(function(){ toast(msg); }, 900);
+}
+function renderJudgeSummary(){
+  var box = document.getElementById('judge-day-summary');
+  if(!box) return;
+  var names = {b:'早餐', l:'午餐', d:'晚餐'};
+  var rows = [];
+  ['b','l','d'].forEach(function(m){
+    var j = _mealJudge[m];
+    if(j) rows.push('<div style="display:flex;gap:10px;font-size:12px;padding:3px 0"><b style="width:38px">'+names[m]+'</b><span>🫒 油脂'+j.oil+'</span><span>🍗 蛋白質'+j.prot+'</span><span>🍚 碳水'+j.carb+'</span></div>');
   });
-  window._pendingMeal = null;
+  box.innerHTML = rows.length ? rows.join('') : '今天還沒有判斷記錄';
 }
 function showAI(m){
   var d=mealMacros[m];var st=document.getElementById(m+'s');var ai=document.getElementById(m+'-ai');
@@ -2714,6 +2807,7 @@ function removePt(btn,m){
   calcProg();
 }
 function updateDayTot(){
+  if(!document.getElementById('dc-bar')) return; // 2026-08-28 AI估算區已改成「我的判斷」，這函式保留但不再運作
   var tc=mealData.b.c+mealData.l.c+mealData.d.c,tp=mealData.b.p+mealData.l.p+mealData.d.p,tf=mealData.b.f+mealData.l.f+mealData.d.f;
   var tot=tc*4+tp*4+tf*9;if(tot===0)return;
   var pc=Math.round(tc*4/tot*100),pp=Math.round(tp*4/tot*100),pf=100-pc-pp;
@@ -3694,6 +3788,7 @@ function loadCarbPlan(){
   if(!CLIENT_ID) return;
   callAPI({action:'getCarbPlan', clientId:CLIENT_ID}, function(d){
     var plan = (d && d.status === 'ok') ? String(d.plan || '').trim() : '';
+    _carbPlanVal = plan; // 給「換你來判斷」卡顯示對的階段目標
     // 只要碳水計畫有設定值(不管是0=嚴格期、還是N=回補期)，就代表這位客人在代謝靈活性調整計畫裡，
     // 每日記錄頁面的運動/排便/碳水追蹤區塊就該顯示；這個判斷直接沿用秘書既有設定的欄位，
     // 不要另外維護一個獨立開關，不然兩邊狀態容易對不起來
@@ -5428,6 +5523,7 @@ function updateDietProgress() {
 
 // ── 早餐快速選項 ──
 function quickBreakfast(type) {
+  _mealJudgeBypass['b'] = true; // 防彈咖啡/雞湯是標準合規選項，不用再判斷比例
   // 用quickSaveMeal處理早餐
   mealDone['b'] = false; // 重置讓quickSaveMeal可以執行
   quickSaveMeal('b');
@@ -5446,6 +5542,7 @@ var mealDone = {b: false, l: false, d: false};
 // 不是忘了記錄；然後走 quickSaveMeal 原本的完成流程（打勾、進度條、按鈕變綠、全完成慶祝）
 function mealFasting(mealCode) {
   if (mealDone[mealCode]) return;
+  _mealJudgeBypass[mealCode] = true; // 斷食沒吃東西，不用做比例判斷
   var mealNames = {b:'早餐', l:'午餐', d:'晚餐'};
   var name = mealNames[mealCode] || '餐食';
   callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：斷食沒有吃'}, function(){});
@@ -5456,6 +5553,13 @@ function mealFasting(mealCode) {
 }
 
 function quickSaveMeal(mealCode) {
+  if (mealDone[mealCode]) return;
+  // 2026-08-28：一般餐（非斷食、非防彈快速選項）要先做「換你來判斷」才算完成，
+  // 判斷卡按「完成判斷」後會呼叫 _finishMeal 真正結束這一餐
+  if (!_mealJudge[mealCode] && !_mealJudgeBypass[mealCode]) { openJudge(mealCode); return; }
+  _finishMeal(mealCode);
+}
+function _finishMeal(mealCode) {
   var mealNames = {b:'早餐', l:'午餐', d:'晚餐'};
   var name = mealNames[mealCode] || '餐食';
   
@@ -5749,6 +5853,46 @@ function checkGifts() {
 // 進入花園時檢查禮物
 // 頁面載入後3秒檢查禮物
 setTimeout(function(){ if (typeof checkGifts === 'function') checkGifts(); }, 3000);
+
+// ══════ 🎫 陪跑點數（2026-08-27 第一階段）══════
+var _cpsData = null;
+function loadCarePointsHome(){
+  if (!CLIENT_ID) return;
+  callAPI({action:'getMyCarePoints', clientId:CLIENT_ID}, function(d){
+    if (!d || d.status !== 'ok' || !d.opened) return; // 沒開通就整張卡不顯示
+    _cpsData = d;
+    var card = document.getElementById('cps-card');
+    var bal = document.getElementById('cps-bal');
+    if (bal) bal.textContent = d.balance;
+    // 月底最後7天顯示商城折抵提示
+    var now = new Date();
+    var lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    if (lastDay - now.getDate() < 7) {
+      var me = document.getElementById('cps-monthend');
+      if (me) me.style.display = 'block';
+    }
+    if (card) card.style.display = 'block';
+  });
+}
+function cpsToggleRecent(){
+  var box = document.getElementById('cps-recent');
+  if (!box || !_cpsData) return;
+  if (box.style.display === 'none') {
+    var rows = (_cpsData.list || []).slice(0, 8).map(function(r){
+      return '<div style="display:flex;gap:8px"><span style="opacity:.7">'+r.time+'</span><span style="flex:1">'+r.type+'</span><span style="font-weight:700">'+(r.points>0?'+':'')+r.points+'</span></div>';
+    }).join('');
+    box.innerHTML = rows || '還沒有記錄';
+    box.style.display = 'block';
+  } else { box.style.display = 'none'; }
+}
+function cpsAskConsult(){
+  if (!confirm('要用點數預約諮詢嗎？\n送出後秘書會跟你聯繫安排時間。\n\n參考：秘書諮詢30分=3點、60分=5點\n醫師諮詢15分=8點、30分=15點')) return;
+  callAPI({action:'addNote', clientId:CLIENT_ID, content:'客人從前台按「我要預約諮詢」，想用陪跑點數預約，請聯繫安排（目前餘額 ' + (_cpsData ? _cpsData.balance : '?') + ' 點）', type:'點數諮詢預約', secretary:'系統'}, function(d){
+    if (d && d.status === 'ok') toast('💬 已通知秘書，會盡快跟你聯繫安排時間！');
+    else toast('⚠️ 送出失敗，請稍後再試，或直接 LINE 秘書');
+  });
+}
+setTimeout(loadCarePointsHome, 2500);
 </script>
 <script>
 // ── 啟用餐食儲存按鈕 ──
@@ -7555,17 +7699,33 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 </script>
 
 <input type="file" id="meal-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleMealFile(this)">
-<div id="oil-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:flex-end;justify-content:center">
-  <div style="background:#fff;border-radius:18px 18px 0 0;padding:22px 20px 28px;width:100%;max-width:440px">
-    <div style="font-size:16px;font-weight:800;color:#1E2B27;margin-bottom:4px">🫒 這一餐加了多少油脂？</div>
-    <div style="font-size:12px;color:#8A9992;margin-bottom:16px">照片看不出油量，你告訴秘書，建議會更準</div>
-    <div id="oil-options" style="display:flex;flex-direction:column;gap:8px">
-      <div class="oil-opt" data-oil="沒有額外加油" onclick="pickOil(this)" style="padding:13px 15px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;color:#2B3A35">沒有額外加油</div>
-      <div class="oil-opt" data-oil="少許（約 1 茶匙）" onclick="pickOil(this)" style="padding:13px 15px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;color:#2B3A35">少許（約 1 茶匙）</div>
-      <div class="oil-opt" data-oil="適量（約 1 湯匙）" onclick="pickOil(this)" style="padding:13px 15px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;color:#2B3A35">適量（約 1 湯匙）</div>
-      <div class="oil-opt" data-oil="很多（2 湯匙以上）" onclick="pickOil(this)" style="padding:13px 15px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;color:#2B3A35">很多（2 湯匙以上）</div>
-      <div class="oil-opt" data-oil="不確定" onclick="pickOil(this)" style="padding:13px 15px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;color:#8A9992">不確定</div>
+<div id="judge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:18px 18px 0 0;padding:22px 20px 28px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto">
+    <div style="font-size:16px;font-weight:800;color:#1E2B27;margin-bottom:4px">🍽 換你來判斷：這一餐的比例？</div>
+    <div style="font-size:12px;color:#8A9992;margin-bottom:10px">看一眼你的盤子，自己估估看——練習幾次，眼睛就會了</div>
+    <div id="judge-target" style="background:#E1F5EE;border-radius:10px;padding:9px 12px;font-size:12px;color:#085041;line-height:1.7;margin-bottom:14px"></div>
+    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🫒 油脂（好油）</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="j-chip" onclick="pickJudge(this,'oil','少')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">少</button>
+      <button class="j-chip" onclick="pickJudge(this,'oil','中')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">中</button>
+      <button class="j-chip" onclick="pickJudge(this,'oil','多')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">多</button>
     </div>
+    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🍗 蛋白質（肉、蛋、魚）</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="j-chip" onclick="pickJudge(this,'prot','少')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">少</button>
+      <button class="j-chip" onclick="pickJudge(this,'prot','中')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">中</button>
+      <button class="j-chip" onclick="pickJudge(this,'prot','多')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">多</button>
+    </div>
+    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🍚 碳水（澱粉、糖、醬料）</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px">
+      <button class="j-chip" onclick="pickJudge(this,'carb','無')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">無</button>
+      <button class="j-chip" onclick="pickJudge(this,'carb','一點')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">一點</button>
+      <button class="j-chip" onclick="pickJudge(this,'carb','中')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">中</button>
+      <button class="j-chip" onclick="pickJudge(this,'carb','多')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">多</button>
+    </div>
+    <div style="font-size:11.5px;color:#0F6E56;margin-bottom:14px">🥬 葉菜、菇類不用算，放心吃</div>
+    <button id="judge-ok" disabled onclick="judgeConfirm()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;opacity:.45">完成判斷</button>
+    <div style="text-align:center;margin-top:8px"><button onclick="judgeSkip()" style="background:none;border:none;font-size:11px;color:#8A9992;cursor:pointer">這餐先跳過判斷</button></div>
   </div>
 </div>
 <div id="mx-login-overlay" style="display:none;position:fixed;inset:0;background:#F4F8F6;z-index:99999;align-items:center;justify-content:center;padding:24px">
