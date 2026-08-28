@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-28a';
+var MX_BUILD = '2026-08-28b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -481,12 +481,13 @@ window.openHealthForm = function() {
         </div>
 
 
-        <!-- IRT 鼓勵訊息（依模型） -->
-        <div id="irt-msg" style="background:linear-gradient(135deg,#E1F5EE,#D1FAE5);border-radius:11px;padding:11px 13px;margin-top:11px;display:flex;gap:9px;align-items:flex-start">
-          <span style="font-size:22px;flex-shrink:0;line-height:1">🔥</span>
+        <!-- 血酮狀態訊息（2026-08-28修正：改成依真實均酮數據顯示——原本是寫死的「穩定燃脂中」，
+             沒輸入血酮的客人也會看到「你的血酮已進入燃脂區間」，測試H就是這樣發現的。沒有數據時整塊隱藏 -->
+        <div id="irt-msg" style="background:linear-gradient(135deg,#E1F5EE,#D1FAE5);border-radius:11px;padding:11px 13px;margin-top:11px;display:none;gap:9px;align-items:flex-start">
+          <span style="font-size:22px;flex-shrink:0;line-height:1" id="irt-msg-icon">🌱</span>
           <div>
-            <div style="font-size:12px;font-weight:700;color:#085041;margin-bottom:4px">穩定燃脂中・進展很好</div>
-            <div style="font-size:11px;color:#0F6E56;line-height:1.7">你的血酮已進入很不錯的燃脂區間（0.8–2.0）。接下來重點是穩定維持，不需要追求更高。身體正在慢慢學會使用脂肪當能量 😊</div>
+            <div style="font-size:12px;font-weight:700;color:#085041;margin-bottom:4px" id="irt-msg-title"></div>
+            <div style="font-size:11px;color:#0F6E56;line-height:1.7" id="irt-msg-text"></div>
           </div>
         </div>
 
@@ -1896,9 +1897,9 @@ window.openHealthForm = function() {
   </div>
 
   <div class="gs-msg" id="gs-msg">
-    <div class="gs-msg-icon">🔥</div>
-    <div class="gs-msg-title" id="gs-msg-title">穩定燃脂中，進展很好</div>
-    <div class="gs-msg-text" id="gs-msg-text">你的血酮已進入很不錯的燃脂區間。接下來重點是穩定維持，不需要追求更高，身體正在累積真正的改變。</div>
+    <div class="gs-msg-icon" id="gs-msg-icon">🌱</div>
+    <div class="gs-msg-title" id="gs-msg-title">先從第一筆血酮記錄開始</div>
+    <div class="gs-msg-text" id="gs-msg-text">記錄血酮之後，這裡會依你的實際數據告訴你目前的狀態。</div>
   </div>
   <div class="gs-els">
     <div class="gs-el">💧×5</div>
@@ -3172,8 +3173,42 @@ function gsTravel(){
     msg.style.background='#ECFDF5';msg.style.borderColor='#A7F3D0';
     document.getElementById('gs-msg-title').style.color='#065F46';
     document.getElementById('gs-msg-text').style.color='#047857';
-    document.getElementById('gs-msg-title').textContent='穩定燃脂中，進展很好';
-    document.getElementById('gs-msg-text').textContent='你的血酮已進入很不錯的燃脂區間。接下來重點是穩定維持，不需要追求更高，身體正在累積真正的改變。';
+    // 2026-08-28修正：還原成依真實均酮算出來的訊息（updateKetoneMsg 存的），不是寫死的「穩定燃脂中」
+    var kst = window._ketoneMsgState;
+    document.getElementById('gs-msg-title').textContent = kst ? kst.title : '先從第一筆血酮記錄開始';
+    document.getElementById('gs-msg-text').textContent = kst ? kst.msg : '記錄血酮之後，這裡會依你的實際數據告訴你目前的狀態。';
+    var gsIc = document.getElementById('gs-msg-icon');
+    if(gsIc) gsIc.textContent = kst ? kst.icon : '🌱';
+  }
+}
+
+// ══════ 血酮狀態訊息：依真實均酮顯示（2026-08-28，取代寫死文字）══════
+function updateKetoneMsg(avgKetone){
+  var ak = (avgKetone === null || avgKetone === undefined || avgKetone === '') ? null : Number(avgKetone);
+  var im = document.getElementById('irt-msg');
+  if (ak === null || isNaN(ak)) {
+    if (im) im.style.display = 'none';
+    window._ketoneMsgState = null;
+    return; // 沒有血酮數據就不給任何血酮說明
+  }
+  var icon, title, msg;
+  if (ak < 0.5) { icon='🌱'; title='身體正在切換模式'; msg='目前均酮 '+ak+'，還在入酮準備期。照計畫吃、補好油和電解質，血酮慢慢就會上來，不用急 😊'; }
+  else if (ak < 1.0) { icon='🔛'; title='入酮中・方向正確'; msg='目前均酮 '+ak+'，已經開始入酮了！繼續保持記錄，往穩定生酮區間（1.0–3.0）前進。'; }
+  else if (ak <= 3.0) { icon='🔥'; title='穩定燃脂中・進展很好'; msg='你的均酮 '+ak+'，已進入很不錯的燃脂區間。接下來重點是穩定維持，不需要追求更高。身體正在慢慢學會使用脂肪當能量 😊'; }
+  else { icon='💧'; title='血酮偏高・維持就好'; msg='目前均酮 '+ak+'，已超過一般燃脂需要的區間，不用追求更高。記得補水和電解質，有不舒服隨時跟秘書說。'; }
+  window._ketoneMsgState = {icon:icon, title:title, msg:msg};
+  if (im) {
+    document.getElementById('irt-msg-icon').textContent = icon;
+    document.getElementById('irt-msg-title').textContent = title;
+    document.getElementById('irt-msg-text').textContent = msg;
+    im.style.display = 'flex';
+  }
+  // 花園場景那塊同步（旅行模式開啟中就不要蓋掉旅行文字）
+  if (!gsTravelMode) {
+    var gt = document.getElementById('gs-msg-title'), gx = document.getElementById('gs-msg-text'), gi = document.getElementById('gs-msg-icon');
+    if (gt) gt.textContent = title;
+    if (gx) gx.textContent = msg;
+    if (gi) gi.textContent = icon;
   }
 }
 function gsShine(){ gsGift('sun'); }
@@ -7338,6 +7373,8 @@ function loadMyStats(){
     if(jd) jd.textContent = d.dayCount||'–';
     var hsd=document.getElementById('home-stage-day');
     if(hsd && d.dayCount) hsd.textContent = '你的健康旅程・第 '+d.dayCount+' 天';
+    // 2026-08-28：血酮狀態訊息依真實均酮顯示（沒有數據就整塊隱藏）
+    if (typeof updateKetoneMsg === 'function') updateKetoneMsg(d.avgKetone);
     // ── 旅程頁：下一目標進度（以血酮穩定為目標，用連續打卡與均酮估算）──
     var gbar=document.getElementById('jn-goal-bar'), gprog=document.getElementById('jn-goal-progress'), gdesc=document.getElementById('jn-goal-desc');
     if(gbar && d.avgKetone!==null && d.avgKetone!==undefined){
