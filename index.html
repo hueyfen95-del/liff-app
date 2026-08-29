@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-29b';
+var MX_BUILD = '2026-08-29c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5973,9 +5973,11 @@ function checkGifts() {
   });
 }
 
-// 進入花園時檢查禮物
-// 頁面載入後3秒檢查禮物
-setTimeout(function(){ if (typeof checkGifts === 'function') checkGifts(); }, 3000);
+// 2026-08-29 補強（她的要求：紅點要在首頁馬上看到，不是點進去才發現）：
+// (1) 開App後0.8秒就查有沒有秘書訊息（原本要等3秒）
+// (2) App開著期間每60秒再查一次——秘書剛送的訊息，客人掛著App也會亮紅點
+setTimeout(function(){ if (typeof checkGifts === 'function') checkGifts(); }, 800);
+setInterval(function(){ if (typeof checkGifts === 'function' && CLIENT_ID) checkGifts(); }, 60000);
 
 // ══════ 🎫 陪跑點數（2026-08-27 第一階段）══════
 var _cpsData = null;
