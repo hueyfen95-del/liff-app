@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-28e';
+var MX_BUILD = '2026-08-28h';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -721,8 +721,9 @@ window.openHealthForm = function() {
             <div style="font-size:11px;color:var(--text3)">上傳後 秘書會看到，給你更準的建議</div>
             <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('b')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('b')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
           </div>
-          <div id="b-content" style="display:none"><div class="pt-grid" id="b-grid"></div><div style="font-size:11px;color:var(--text3);margin-top:6px;margin-bottom:4px">📝 拍照為主、文字為輔助——想補充什麼寫這裡（選填）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px"><div class="ai-card" id="b-ai"></div></div>
+          <div id="b-content" style="display:none"><div class="pt-grid" id="b-grid"></div><div class="ai-card" id="b-ai"></div></div>
         </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:4px">📝 不方便拍照？用文字記錄也可以（文字為輔助，拍照更好）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('b',this.value)">
       </div>
     </div>
 
@@ -740,7 +741,6 @@ window.openHealthForm = function() {
         </div>
         <div class="meal-body" style="display:none" id="l-content">
           <div class="pt-grid" id="l-grid"></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:6px;margin-bottom:4px">📝 拍照為主、文字為輔助——想補充什麼寫這裡（選填）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('l',this.value)">
           <div class="ai-card" id="l-ai" style="display:none"></div>
         </div>
         <div class="pz" id="lz" onclick="uploadMeal('l')">
@@ -748,6 +748,7 @@ window.openHealthForm = function() {
           <div style="font-size:13px;font-weight:600;color:var(--text2)">點擊上傳午餐照片</div>
           <div style="font-size:11px;color:var(--text3);margin-top:3px">秘書會看到，給你更準的建議</div>
         </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:4px">📝 不方便拍照？用文字記錄也可以（文字為輔助，拍照更好）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('l',this.value)">
       </div>
     </div>
 
@@ -770,8 +771,9 @@ window.openHealthForm = function() {
             <div style="font-size:11px;color:var(--text3)">上傳後 秘書會看到，給你更準的建議</div>
             <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('d')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('d')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
           </div>
-          <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><div style="font-size:11px;color:var(--text3);margin-top:6px;margin-bottom:4px">📝 拍照為主、文字為輔助——想補充什麼寫這裡（選填）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px"><div class="ai-card" id="d-ai"></div></div>
+          <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><div class="ai-card" id="d-ai"></div></div>
         </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:4px">📝 不方便拍照？用文字記錄也可以（文字為輔助，拍照更好）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('d',this.value)">
       </div>
     </div>
 
@@ -2648,9 +2650,13 @@ function handleMealFile(input){
       var addBtn = grid.querySelector('.pt-add');
       if(addBtn) grid.insertBefore(thumb, addBtn); else grid.appendChild(thumb);
     }
-    // 暫存待上傳的照片，跳出油量詢問
-    window._pendingMeal = { base64: base64, fileName: file.name||'meal.jpg', mimeType: file.type||'image/jpeg', meal: mealNames[m]||'' };
-    openJudge(m);
+    // 2026-08-29統一流程（她的原則：不管只用文字、只用拍照、還是兩者，後面都要連上自我判斷）：
+    // 照片先暫存（每一餐各自一疊，可以多張），不立刻跳判斷——讓客人有時間補文字或再加照片，
+    // 按「儲存後完成」那一刻才進入「換你來判斷」，判斷完成時照片和文字一起送出
+    if (!window._pendingMeals) window._pendingMeals = {};
+    if (!window._pendingMeals[m]) window._pendingMeals[m] = [];
+    window._pendingMeals[m].push({ base64: base64, fileName: file.name||'meal.jpg', mimeType: file.type||'image/jpeg', meal: mealNames[m]||'' });
+    toast('📷 照片已加入，記錄完按「儲存後完成」');
     // 照片已經有了，就算備註文字沒填也該讓「儲存後完成」按鈕可以按——這裡漏掉是造成「上傳照片後存不了檔」的原因
     if(typeof enableMealBtn==='function') enableMealBtn(m);
   };
@@ -2670,6 +2676,8 @@ function openJudge(m){
   document.querySelectorAll('#judge-modal .j-chip').forEach(function(c){ c.style.background='#fff'; c.style.color='#2B3A35'; c.style.borderColor='#E2EDE7'; });
   var ok = document.getElementById('judge-ok');
   if(ok){ ok.disabled = true; ok.style.opacity = .45; }
+  var askB = document.getElementById('judge-ask');
+  if(askB){ askB.disabled = true; askB.style.opacity = .45; }
   var tgt = document.getElementById('judge-target');
   if(tgt){
     if(_carbPlanVal !== '' && _carbPlanVal !== '0'){
@@ -2690,6 +2698,8 @@ function pickJudge(el, group, val){
   if(_judgeSel.oil && _judgeSel.prot && _judgeSel.carb){
     var ok = document.getElementById('judge-ok');
     if(ok){ ok.disabled = false; ok.style.opacity = 1; }
+    var ask = document.getElementById('judge-ask');
+    if(ask){ ask.disabled = false; ask.style.opacity = 1; }
   }
 }
 function judgeConfirm(){
@@ -2699,33 +2709,55 @@ function judgeConfirm(){
   var modal = document.getElementById('judge-modal');
   if(modal) modal.style.display = 'none';
   _mealJudge[m] = {oil:sel.oil, prot:sel.prot, carb:sel.carb};
-  var pm = window._pendingMeal;
-  if(pm){
+  var pmList = (window._pendingMeals && window._pendingMeals[m]) || [];
+  if(pmList.length){
     toast('📤 照片上傳中…');
-    callAPI({action:'saveMealPhoto', clientId:CLIENT_ID, meal:pm.meal, oilAmount:'油脂'+sel.oil, fileData:pm.base64, fileName:pm.fileName, mimeType:pm.mimeType}, function(d){
-      if(d && d.status==='ok') toast('✅ 照片已傳給秘書');
-      else toast('⚠️ 照片上傳失敗，請再試一次');
+    pmList.forEach(function(pm){
+      callAPI({action:'saveMealPhoto', clientId:CLIENT_ID, meal:pm.meal, oilAmount:'油脂'+sel.oil, fileData:pm.base64, fileName:pm.fileName, mimeType:pm.mimeType}, function(d){
+        if(d && d.status==='ok') toast('✅ 照片已傳給秘書');
+        else toast('⚠️ 照片上傳失敗，請再試一次');
+      });
     });
-    window._pendingMeal = null;
+    window._pendingMeals[m] = [];
   }
   // 自我判斷寫進每日記錄的油脂/蛋白質/澱粉欄，秘書後台對照照片就能校正
-  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）', oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(){});
+  // 2026-08-29補：客人在三餐區塊打的文字備註一起附上（之前只送判斷結果，文字打了卻沒傳出去）
+  var jStepMap = {b:3, l:4, d:5};
+  var jNoteInp = jStepMap[m] ? document.querySelector('#diet-step-'+jStepMap[m]+' input.inp') : null;
+  var jNote = (jNoteInp && jNoteInp.value.trim()) ? '｜'+jNoteInp.value.trim() : '';
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）'+jNote, oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(){});
   renderJudgeSummary();
-  judgeFeedback(sel.carb);
+  // 2026-08-29新增（她的設計）：客人判斷完如果不確定對不對，可以一鍵請秘書幫忙看——
+  // 判斷照常完成、記錄照常送出，另外多發一則求助訊息給秘書（含這一餐的判斷內容）
+  if (window._judgeAskSecretary) {
+    window._judgeAskSecretary = false;
+    callAPI({action:'addNote', clientId:CLIENT_ID,
+      content:'【飲食判斷求助】' + jMealNames[m] + '：客人自己判斷 油脂' + sel.oil + '／蛋白質' + sel.prot + '／碳水' + sel.carb + jNote + '，但不太確定對不對，請幫他看一下照片並回覆 🙏',
+      type:'飲食判斷求助', secretary:'系統'}, function(){});
+    setTimeout(function(){ toast('💌 已請秘書幫你看這一餐，會盡快回覆你'); }, 1800);
+  } else {
+    judgeFeedback(sel.carb);
+  }
   if (m !== 's') _finishMeal(m); // 點心只記錄給秘書，不算進每日4任務
   else toast('🍩 點心已記錄，傳給秘書了');
+}
+function judgeConfirmAsk(){
+  window._judgeAskSecretary = true;
+  judgeConfirm();
 }
 function judgeSkip(){
   var m = _judgeMeal; if(!m) return;
   var modal = document.getElementById('judge-modal');
   if(modal) modal.style.display='none';
-  var pm = window._pendingMeal;
-  if(pm){
+  var pmList = (window._pendingMeals && window._pendingMeals[m]) || [];
+  if(pmList.length){
     toast('📤 照片上傳中…');
-    callAPI({action:'saveMealPhoto', clientId:CLIENT_ID, meal:pm.meal, oilAmount:'未判斷', fileData:pm.base64, fileName:pm.fileName, mimeType:pm.mimeType}, function(d){
-      if(d && d.status==='ok') toast('✅ 照片已傳給秘書');
+    pmList.forEach(function(pm){
+      callAPI({action:'saveMealPhoto', clientId:CLIENT_ID, meal:pm.meal, oilAmount:'未判斷', fileData:pm.base64, fileName:pm.fileName, mimeType:pm.mimeType}, function(d){
+        if(d && d.status==='ok') toast('✅ 照片已傳給秘書');
+      });
     });
-    window._pendingMeal = null;
+    window._pendingMeals[m] = [];
   }
   _finishMeal(m);
 }
@@ -7752,6 +7784,7 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
     </div>
     <div style="font-size:11.5px;color:#0F6E56;margin-bottom:14px">🥬 葉菜、菇類不用算，放心吃</div>
     <button id="judge-ok" disabled onclick="judgeConfirm()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;opacity:.45">完成判斷</button>
+    <button id="judge-ask" disabled onclick="judgeConfirmAsk()" style="width:100%;padding:11px;background:#fff;color:#0F6E56;border:1.5px solid #0F6E56;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;opacity:.45">✉️ 完成，但不太確定，請秘書幫我看</button>
     <div style="text-align:center;margin-top:8px"><button onclick="judgeSkip()" style="background:none;border:none;font-size:11px;color:#8A9992;cursor:pointer">這餐先跳過判斷</button></div>
   </div>
 </div>
