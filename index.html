@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-28h';
+var MX_BUILD = '2026-08-28i';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -724,6 +724,7 @@ window.openHealthForm = function() {
           <div id="b-content" style="display:none"><div class="pt-grid" id="b-grid"></div><div class="ai-card" id="b-ai"></div></div>
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:4px">📝 不方便拍照？用文字記錄也可以（文字為輔助，拍照更好）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('b',this.value)">
+        <div id="ask-sec-b" style="display:none;margin-top:2px"><button onclick="askSecretaryMeal('b')" style="width:100%;background:#fff;color:#0F6E56;border:1.5px dashed #0F6E56;border-radius:10px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">✉️ 不確定判斷得對？請秘書幫我看</button></div>
       </div>
     </div>
 
@@ -749,6 +750,7 @@ window.openHealthForm = function() {
           <div style="font-size:11px;color:var(--text3);margin-top:3px">秘書會看到，給你更準的建議</div>
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:4px">📝 不方便拍照？用文字記錄也可以（文字為輔助，拍照更好）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('l',this.value)">
+        <div id="ask-sec-l" style="display:none;margin-top:2px"><button onclick="askSecretaryMeal('l')" style="width:100%;background:#fff;color:#0F6E56;border:1.5px dashed #0F6E56;border-radius:10px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">✉️ 不確定判斷得對？請秘書幫我看</button></div>
       </div>
     </div>
 
@@ -774,6 +776,7 @@ window.openHealthForm = function() {
           <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><div class="ai-card" id="d-ai"></div></div>
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:8px;margin-bottom:4px">📝 不方便拍照？用文字記錄也可以（文字為輔助，拍照更好）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('d',this.value)">
+        <div id="ask-sec-d" style="display:none;margin-top:2px"><button onclick="askSecretaryMeal('d')" style="width:100%;background:#fff;color:#0F6E56;border:1.5px dashed #0F6E56;border-radius:10px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">✉️ 不確定判斷得對？請秘書幫我看</button></div>
       </div>
     </div>
 
@@ -2676,8 +2679,6 @@ function openJudge(m){
   document.querySelectorAll('#judge-modal .j-chip').forEach(function(c){ c.style.background='#fff'; c.style.color='#2B3A35'; c.style.borderColor='#E2EDE7'; });
   var ok = document.getElementById('judge-ok');
   if(ok){ ok.disabled = true; ok.style.opacity = .45; }
-  var askB = document.getElementById('judge-ask');
-  if(askB){ askB.disabled = true; askB.style.opacity = .45; }
   var tgt = document.getElementById('judge-target');
   if(tgt){
     if(_carbPlanVal !== '' && _carbPlanVal !== '0'){
@@ -2698,8 +2699,6 @@ function pickJudge(el, group, val){
   if(_judgeSel.oil && _judgeSel.prot && _judgeSel.carb){
     var ok = document.getElementById('judge-ok');
     if(ok){ ok.disabled = false; ok.style.opacity = 1; }
-    var ask = document.getElementById('judge-ask');
-    if(ask){ ask.disabled = false; ask.style.opacity = 1; }
   }
 }
 function judgeConfirm(){
@@ -2727,23 +2726,35 @@ function judgeConfirm(){
   var jNote = (jNoteInp && jNoteInp.value.trim()) ? '｜'+jNoteInp.value.trim() : '';
   callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）'+jNote, oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(){});
   renderJudgeSummary();
-  // 2026-08-29新增（她的設計）：客人判斷完如果不確定對不對，可以一鍵請秘書幫忙看——
-  // 判斷照常完成、記錄照常送出，另外多發一則求助訊息給秘書（含這一餐的判斷內容）
-  if (window._judgeAskSecretary) {
-    window._judgeAskSecretary = false;
-    callAPI({action:'addNote', clientId:CLIENT_ID,
-      content:'【飲食判斷求助】' + jMealNames[m] + '：客人自己判斷 油脂' + sel.oil + '／蛋白質' + sel.prot + '／碳水' + sel.carb + jNote + '，但不太確定對不對，請幫他看一下照片並回覆 🙏',
-      type:'飲食判斷求助', secretary:'系統'}, function(){});
-    setTimeout(function(){ toast('💌 已請秘書幫你看這一餐，會盡快回覆你'); }, 1800);
-  } else {
-    judgeFeedback(sel.carb);
+  judgeFeedback(sel.carb);
+  if (m !== 's') {
+    _finishMeal(m);
+    // 2026-08-29改（她的指正：猶豫常常是存完之後才出現的，求助按鈕要留在頁面上，不能鎖在儲存視窗裡）——
+    // 這一餐完成後，餐卡上出現「不確定判斷得對？請秘書幫我看」，隨時想問都按得到
+    var askRow = document.getElementById('ask-sec-' + m);
+    if (askRow) askRow.style.display = 'block';
   }
-  if (m !== 's') _finishMeal(m); // 點心只記錄給秘書，不算進每日4任務
   else toast('🍩 點心已記錄，傳給秘書了');
 }
-function judgeConfirmAsk(){
-  window._judgeAskSecretary = true;
-  judgeConfirm();
+// 存完之後隨時可按：把這一餐的自我判斷＋備註打包成求助訊息發給秘書
+function askSecretaryMeal(m){
+  var j = _mealJudge[m];
+  var names = {b:'早餐', l:'午餐', d:'晚餐'};
+  var stepMap = {b:3, l:4, d:5};
+  var inp = document.querySelector('#diet-step-'+stepMap[m]+' input.inp');
+  var note = (inp && inp.value.trim()) ? '｜' + inp.value.trim() : '';
+  var judged = j ? ('客人自己判斷 油脂' + j.oil + '／蛋白質' + j.prot + '／碳水' + j.carb) : '客人這餐跳過了自我判斷';
+  callAPI({action:'addNote', clientId:CLIENT_ID,
+    content:'【飲食判斷求助】' + names[m] + '：' + judged + note + '，不太確定對不對，請幫他看一下照片並回覆 🙏',
+    type:'飲食判斷求助', secretary:'系統'}, function(d){
+    if(d && d.status === 'ok'){
+      var btn = document.querySelector('#ask-sec-' + m + ' button');
+      if(btn){ btn.textContent = '💌 已請秘書幫你看，會回覆你'; btn.disabled = true; btn.style.opacity = .6; btn.style.cursor = 'default'; }
+      toast('💌 已請秘書幫你看這一餐');
+    } else {
+      toast('⚠️ 送出失敗，請再試一次');
+    }
+  });
 }
 function judgeSkip(){
   var m = _judgeMeal; if(!m) return;
@@ -7784,7 +7795,6 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
     </div>
     <div style="font-size:11.5px;color:#0F6E56;margin-bottom:14px">🥬 葉菜、菇類不用算，放心吃</div>
     <button id="judge-ok" disabled onclick="judgeConfirm()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;opacity:.45">完成判斷</button>
-    <button id="judge-ask" disabled onclick="judgeConfirmAsk()" style="width:100%;padding:11px;background:#fff;color:#0F6E56;border:1.5px solid #0F6E56;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;opacity:.45">✉️ 完成，但不太確定，請秘書幫我看</button>
     <div style="text-align:center;margin-top:8px"><button onclick="judgeSkip()" style="background:none;border:none;font-size:11px;color:#8A9992;cursor:pointer">這餐先跳過判斷</button></div>
   </div>
 </div>
