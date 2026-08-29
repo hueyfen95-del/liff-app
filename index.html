@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-28d';
+var MX_BUILD = '2026-08-28e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -721,7 +721,7 @@ window.openHealthForm = function() {
             <div style="font-size:11px;color:var(--text3)">上傳後 秘書會看到，給你更準的建議</div>
             <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('b')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('b')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
           </div>
-          <div id="b-content" style="display:none"><div class="pt-grid" id="b-grid"></div><input class="inp" placeholder="補充說明（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px"><div style="font-size:12px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div><div class="ai-card" id="b-ai"></div></div>
+          <div id="b-content" style="display:none"><div class="pt-grid" id="b-grid"></div><div style="font-size:11px;color:var(--text3);margin-top:6px;margin-bottom:4px">📝 拍照為主、文字為輔助——想補充什麼寫這裡（選填）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px"><div class="ai-card" id="b-ai"></div></div>
         </div>
       </div>
     </div>
@@ -740,8 +740,7 @@ window.openHealthForm = function() {
         </div>
         <div class="meal-body" style="display:none" id="l-content">
           <div class="pt-grid" id="l-grid"></div>
-          <input class="inp" placeholder="備註食物名稱（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px" oninput="onMealTextInput('l',this.value)">
-          <div style="font-size:12px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;margin-bottom:4px">📝 拍照為主、文字為輔助——想補充什麼寫這裡（選填）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px" oninput="onMealTextInput('l',this.value)">
           <div class="ai-card" id="l-ai" style="display:none"></div>
         </div>
         <div class="pz" id="lz" onclick="uploadMeal('l')">
@@ -771,7 +770,7 @@ window.openHealthForm = function() {
             <div style="font-size:11px;color:var(--text3)">上傳後 秘書會看到，給你更準的建議</div>
             <div class="pz-btns"><div class="pzb cam" onclick="event.stopPropagation();uploadMeal('d')"><i class="ti ti-camera" style="font-size:13px"></i>拍照</div><div class="pzb" onclick="event.stopPropagation();uploadMeal('d')"><i class="ti ti-photo" style="font-size:13px"></i>相簿</div></div>
           </div>
-          <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><input class="inp" placeholder="補充說明（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px"><div style="font-size:12px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div><div class="ai-card" id="d-ai"></div></div>
+          <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><div style="font-size:11px;color:var(--text3);margin-top:6px;margin-bottom:4px">📝 拍照為主、文字為輔助——想補充什麼寫這裡（選填）</div><input class="inp" placeholder="例如：外食便當，油可能不夠" style="width:100%;font-size:12px;margin-bottom:5px"><div class="ai-card" id="d-ai"></div></div>
         </div>
       </div>
     </div>
