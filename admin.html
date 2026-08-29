@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28a';
+var MX_BUILD = '2026-08-28b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -347,6 +347,13 @@ var MX_BUILD = '2026-08-28a';
         <div class="card-body" id="odue-body" style="padding-top:4px"></div>
       </div>
 
+      <!-- 🍽 飲食判斷求助（客人在前台按「請秘書幫我看這一餐」會出現在這裡，2026-08-29新增） -->
+      <div class="card" id="mealhelp-card" style="margin-bottom:14px;display:none;border:1px solid #F5D9A8">
+        <div class="card-hd">
+          <div class="card-title" style="color:#8A5A0A"><i class="ti ti-tools-kitchen-2"></i>飲食判斷求助</div>
+        </div>
+        <div class="card-body" id="mealhelp-body" style="padding-top:4px"></div>
+      </div>
       <!-- ❓ 客人未回答的問題（AI答不出來或客人追問還是沒效，都會出現在這裡） -->
       <div class="card" id="unknown-q-card" style="margin-bottom:14px;display:none;border:1px solid #F2C9C9">
         <div class="card-hd">
@@ -5491,6 +5498,42 @@ function odueFollowUp(i){
 }
 // ── 客人未回答的問題看板 ──
 var _unknownQCache = [];
+// ══════ 🍽 飲食判斷求助（2026-08-29：客人前台的「請秘書幫我看這一餐」，之前只寫進備註表沒人看見）══════
+function loadMealHelp(){
+  var card = document.getElementById('mealhelp-card');
+  var body = document.getElementById('mealhelp-body');
+  if(!card || !body) return;
+  adminAPI({action:'getMealHelpRequests'}, function(d){
+    card = document.getElementById('mealhelp-card');
+    body = document.getElementById('mealhelp-body');
+    if(!card || !body) return;
+    var items = (d && d.items) || [];
+    var pending = items.filter(function(it){ return !it.replied; });
+    _mxDashNavSet('mealhelp-card', pending.length, '飲食求助', 'ti ti-tools-kitchen-2');
+    if(items.length === 0){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    body.innerHTML = items.map(function(it){
+      return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)' + (it.replied ? ';opacity:.55' : '') + '">'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+        + '<span style="font-size:11px;color:var(--text3)">'+escH(it.time)+'</span>'
+        + '<b style="font-size:12px">'+escH(it.name || it.clientId)+'</b>'
+        + '<span style="font-size:10.5px;color:var(--text3)">'+escH(it.clientId)+'</span>'
+        + (it.replied
+            ? '<span style="font-size:10.5px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:700">已回覆 ✅</span>'
+            : '<button class="ai-btn" style="font-size:10.5px;padding:3px 10px;margin-left:auto" onclick="markMealHelpReplied('+it.row+',\''+escH(it.clientId)+'\')">已回覆客人，標記完成</button>')
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--text2);line-height:1.6">'+escH(it.content)+'</div>'
+        + '<button class="ai-btn b" style="font-size:10.5px;padding:3px 10px;margin-top:5px" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name||'')+'\')">看這位客人的照片與記錄 →</button>'
+        + '</div>';
+    }).join('');
+  });
+}
+function markMealHelpReplied(row, cid){
+  adminAPIPost({action:'markMealHelpReplied', row:row, clientId:cid}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已標記回覆'); loadMealHelp(); loadTodayDuty(); }
+    else toast('⚠️ '+((d&&d.message)||'標記失敗'));
+  });
+}
 function loadUnknownQuestions(){
   var card = document.getElementById('unknown-q-card');
   var body = document.getElementById('unknown-q-body');
@@ -6320,6 +6363,7 @@ function loadDashboard(){
   if(typeof loadPurchases==='function') loadPurchases();
   if(typeof loadBookings==='function') loadBookings();
   if(typeof loadUnknownQuestions==='function') loadUnknownQuestions();
+  if(typeof loadMealHelp==='function') loadMealHelp();
   if(typeof loadOverdueLabs==='function') loadOverdueLabs();
   loadClientsList(function(clients){
     var box = document.getElementById('dash-clients');
@@ -8665,6 +8709,7 @@ function loadTodayDuty(){
     // 待辦項目：系統偵測到才顯示，數字+一鍵處理
     var items=[];
     // 新預約放最上面（創始人2026-08-10：這最緊急）
+    if(dt.mealHelp>0) items.push({icon:'🍽',text:'<b>'+dt.mealHelp+' 筆</b>客人的飲食判斷求助還沒回覆，回覆了客人才學得會',act:"scrollToCard('mealhelp-card')"});
     if(dt.newBookings>0) items.push({icon:'💉',text:'<b>'+dt.newBookings+' 筆</b>新預約還沒聯繫，先跟客人確認檢測日期',act:"scrollToCard('bkg-card')"});
     if(dt.alertsCritical>0) items.push({icon:'🚨',text:'<b>'+dt.alertsCritical+' 位</b>客人可能有酮酸風險',act:"scrollToCard('alert-card')",urgent:true});
     if(dt.alerts>0) items.push({icon:'⚠️',text:'<b>'+dt.alerts+' 位</b>客人近期有不適症狀，需關心',act:"scrollToCard('alert-card')"});
