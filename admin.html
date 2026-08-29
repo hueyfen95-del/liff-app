@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28g';
+var MX_BUILD = '2026-08-28h';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5683,8 +5683,68 @@ function loadUnknownQuestions(){
           + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已用LINE回覆，標記完成</button>'
           + '</div>';
       }
+      // 2026-08-30（創始人）：回覆QA時能直接搜部落格/Podcast有沒有相關文章，找到就一鍵傳給客人
+      box += '<div style="display:flex;gap:6px;margin-top:7px">'
+        + '<input id="unq-kw-' + i + '" class="form-input" style="font-size:11.5px;flex:1;padding:6px 9px" placeholder="關鍵字（例：酮體）" value="' + escH(_unqKeyword(q.question)) + '">'
+        + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 10px;white-space:nowrap" onclick="unqSearchArticles(' + i + ')">🔍 找相關文章</button>'
+        + '</div>'
+        + '<div id="unq-art-' + i + '" style="margin-top:5px"></div>';
       return box + '</div>';
     }).join('');
+  });
+}
+
+// ══════ 🔍 QA回覆時搜尋部落格/Podcast文章（2026-08-30）══════
+// 用前台同一套 getRSS 代理抓方格子與Firstory清單，後台快取一份，關鍵字比對標題/摘要
+var _admVocus = [], _admPod = [], _admRssLoaded = false, _admRssLoading = 0, _admRssCbs = [];
+function admLoadRSS(cb){
+  if (_admRssLoaded) { if (cb) cb(); return; }
+  if (cb) _admRssCbs.push(cb);
+  if (_admRssLoading > 0) return;
+  _admRssLoading = 2;
+  function done(){ _admRssLoading--; if (_admRssLoading <= 0) { _admRssLoaded = true; _admRssCbs.forEach(function(f){ f(); }); _admRssCbs = []; } }
+  adminAPI({action:'getRSS', url:'https://rsshub.app/vocus/salon/metabolica'}, function(d){ if(d && d.status==='ok' && d.items) _admVocus = d.items; done(); });
+  adminAPI({action:'getRSS', url:'https://feed.firstory.me/rss/user/cmjqwlcyo052m01rh61f1h53d'}, function(d){ if(d && d.status==='ok' && d.items) _admPod = d.items; done(); });
+}
+// 把整句問題修剪成比較會命中的關鍵字（拿掉常見疑問詞尾；標題比對是「包含」，字越短越容易中）
+function _unqKeyword(qtext){
+  var k = String(qtext || '').replace(/[「」？?！!。，, ]/g, '');
+  ['是什麼','什麼是','怎麼辦','怎麼','如何','要不要','可以嗎','嗎'].forEach(function(w){ k = k.split(w).join(''); });
+  return k.slice(0, 12);
+}
+var _unqArtCache = {};
+function unqSearchArticles(i){
+  var inp = document.getElementById('unq-kw-' + i);
+  var box = document.getElementById('unq-art-' + i);
+  if (!inp || !box) return;
+  var kw = inp.value.trim();
+  if (!kw) { toast('⚠️ 先輸入關鍵字'); inp.focus(); return; }
+  box.innerHTML = '<span style="font-size:11px;color:var(--text3)">搜尋文章中…（第一次要抓清單，稍等幾秒）</span>';
+  admLoadRSS(function(){
+    var lk = kw.toLowerCase();
+    var hit = function(it){ return (it.title||'').toLowerCase().indexOf(lk) >= 0 || (it.description||'').toLowerCase().indexOf(lk) >= 0; };
+    var arts = _admVocus.filter(hit).map(function(it){ return {t:'📝 文章', title: it.title, link: it.link}; })
+      .concat(_admPod.filter(hit).map(function(it){ return {t:'🎧 Podcast', title: it.title, link: it.link}; }));
+    _unqArtCache[i] = arts;
+    if (arts.length === 0) { box.innerHTML = '<span style="font-size:11px;color:var(--text3)">「' + escH(kw) + '」沒有比對到文章，換個關鍵字試試（例如拆短一點）</span>'; return; }
+    box.innerHTML = arts.slice(0, 6).map(function(a, j){
+      return '<div style="display:flex;align-items:center;gap:7px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:6px 9px;margin-bottom:4px">'
+        + '<span style="font-size:10px;color:var(--text3);flex-shrink:0">' + a.t + '</span>'
+        + '<a href="' + escH(a.link) + '" target="_blank" style="flex:1;font-size:11.5px;color:var(--text);text-decoration:none;line-height:1.4">' + escH(a.title) + '</a>'
+        + '<button class="btn-g" style="font-size:10.5px;padding:4px 10px;flex-shrink:0" onclick="unqSendArticle(' + i + ',' + j + ')">💌 傳給客人</button>'
+        + '</div>';
+    }).join('');
+  });
+}
+function unqSendArticle(i, j){
+  var q = _unknownQCache[i];
+  var a = (_unqArtCache[i] || [])[j];
+  if (!q || !a) return;
+  adminAPIPost({action:'sendGift', clientId:q.clientId, giftType:'message',
+    message:'📚 關於你問的「' + q.question + '」，秘書推薦你看：\n《' + a.title + '》\n' + a.link,
+    secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d && d.status==='ok') toast('💌 文章已傳給 ' + q.clientId + '，客人前台鈴鐺會亮紅點');
+    else toast('⚠️ 傳送失敗，請重試');
   });
 }
 // ── 未知問題審核通過（輸入答案，加入QA設定）──
