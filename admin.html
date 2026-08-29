@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-27b';
+var MX_BUILD = '2026-08-28a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -204,6 +204,13 @@ var MX_BUILD = '2026-08-27b';
       var prev = null, guard = null;
       try { prev = localStorage.getItem(key); guard = sessionStorage.getItem('mx_verjump_' + page); } catch(e){}
       if (prev && prev !== et && guard !== et) {
+        // 2026-08-28：使用者已經開始打字（例如登入帳密打到一半）就不要強制刷新，
+        // 免得頁面突然重載把輸入清掉、看起來像登入壞掉；下次打開自然會更新
+        var ae = document.activeElement;
+        if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA') && ae.value) {
+          try { localStorage.setItem(key, et); } catch(e){}
+          return;
+        }
         try { sessionStorage.setItem('mx_verjump_' + page, et); localStorage.setItem(key, et); } catch(e){}
         var u = new URL(location.href);
         u.searchParams.set('_v', (et.replace(/[^A-Za-z0-9]/g,'').slice(0,12)) || String(new Date().getTime()));
@@ -9540,24 +9547,49 @@ function isPricingTier(){
   var other = CURRENT_USER.otherRoles || [];
   return r === '創始人' || r === '老闆' || r === '財務主管' || r === '行政' || other.indexOf('財務主管') >= 0 || other.indexOf('行政') >= 0;
 }
+// 2026-08-28 登入強化（她回報「要按很多次都登入不進去」）：
+// (1) Apps Script 剛部署完或閒置後第一次連線要「喚醒」，可能等 5~20 秒——以前畫面只停在「登入中…」
+//     沒有任何回饋，看起來像壞掉，使用者就狂按；現在按鈕會鎖住並倒數提示，等太久會說明是後端喚醒中。
+// (2) 連按會同時發出好幾個登入請求互相打架——加 busy 旗標，一次只送一個。
+// (3) 改用 POST，帳密不再放在網址列（跟前台 callAPI 同一個安全修正）。
+var _loginBusy = false;
 function doLogin(){
+  if (_loginBusy) return;
   var u = document.getElementById('lg-user').value.trim();
   var p = document.getElementById('lg-pass').value;
   var err = document.getElementById('lg-error');
   if(!u || !p){ err.textContent='請輸入帳號密碼'; return; }
-  err.textContent='登入中…';
-  adminAPI({action:'adminLogin', username:u, password:p}, function(d){
-    if(d && d.status==='ok'){
-      CURRENT_USER = { username:d.username, role:d.role, name:d.name, extraPages:d.extraPages||[], canEditClients:d.canEditClients !== false, otherRoles:d.otherRoles||[] };
-      ADMIN_TOKEN = d.token || null;
-      try { sessionStorage.setItem('mx_admin_sess', JSON.stringify({user:CURRENT_USER, token:ADMIN_TOKEN})); } catch(e){}
-      err.textContent='';
-      document.getElementById('login-overlay').style.display='none';
-      applyPermissions();
-    } else {
-      err.textContent = (d && d.message) || '帳號或密碼錯誤';
-    }
-  });
+  _loginBusy = true;
+  var btn = document.querySelector('#login-overlay button');
+  if(btn){ btn.disabled = true; btn.textContent = '登入中…'; btn.style.opacity = .6; }
+  err.textContent = '';
+  var slowHint = setTimeout(function(){
+    if(_loginBusy) err.textContent = '後端喚醒中，第一次連線比較慢，請稍等不用重按…';
+  }, 6000);
+  function loginDone(){
+    _loginBusy = false;
+    clearTimeout(slowHint);
+    if(btn){ btn.disabled = false; btn.textContent = '登入'; btn.style.opacity = 1; }
+  }
+  fetch(ADMIN_API, {method:'POST', body: JSON.stringify({action:'adminLogin', username:u, password:p})})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      loginDone();
+      if(d && d.status==='ok'){
+        CURRENT_USER = { username:d.username, role:d.role, name:d.name, extraPages:d.extraPages||[], canEditClients:d.canEditClients !== false, otherRoles:d.otherRoles||[] };
+        ADMIN_TOKEN = d.token || null;
+        try { sessionStorage.setItem('mx_admin_sess', JSON.stringify({user:CURRENT_USER, token:ADMIN_TOKEN})); } catch(e){}
+        err.textContent='';
+        document.getElementById('login-overlay').style.display='none';
+        applyPermissions();
+      } else {
+        err.textContent = (d && d.message) || '帳號或密碼錯誤';
+      }
+    })
+    .catch(function(e){
+      loginDone();
+      err.textContent = '連不上後端，請確認網路後再按一次登入';
+    });
 }
 function applyPermissions(){
   if(!CURRENT_USER) return;
