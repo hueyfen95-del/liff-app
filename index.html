@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-29d';
+var MX_BUILD = '2026-08-29e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5929,6 +5929,19 @@ function updateBellDot(){
 function openMsgInbox(){
   goPage('sec-hub','秘書互動');
 }
+// 訊息裡的網址轉成可點擊的連結（2026-08-30：秘書傳的文章連結客人點不進去——原本整段當純文字顯示）
+function _linkifyMsg(text){
+  var s = String(text || '');
+  var esc = function(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var re = /(https?:\/\/[^\s<>"']+)/g;
+  var out = '', last = 0, m;
+  while ((m = re.exec(s)) !== null) {
+    out += esc(s.slice(last, m.index));
+    out += '<a href="' + m[0].replace(/"/g,'&quot;') + '" target="_blank" style="color:#0F6E56;font-weight:700;text-decoration:underline;word-break:break-all">' + esc(m[0]) + '</a>';
+    last = m.index + m[0].length;
+  }
+  return out + esc(s.slice(last));
+}
 function renderSechubMsgs(){
   var listEl = document.getElementById('sechub-msg-list');
   if (!listEl) return;
@@ -5937,7 +5950,7 @@ function renderSechubMsgs(){
     ? list.map(function(it){
         return '<div style="background:var(--card);border:0.5px solid var(--border);border-radius:11px;padding:10px 13px;margin-bottom:7px">'
           + '<div style="font-size:11px;color:#9CA3AF;margin-bottom:3px">' + it.t + '</div>'
-          + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + String(it.m).replace(/</g,'&lt;') + '</div>'
+          + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + _linkifyMsg(it.m) + '</div>'
           + '</div>';
       }).join('')
     : '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有訊息，秘書的建議和關心都會出現在這裡 🌱</div>';
