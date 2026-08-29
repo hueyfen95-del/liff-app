@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-28b';
+var MX_BUILD = '2026-08-28c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -475,7 +475,7 @@ window.openHealthForm = function() {
           </div>
           <div class="g-task" id="home-gt6" onclick="goTaskPage(6)" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:pointer;transition:all .15s">
             <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt6-check">○</div>
-            <div style="flex:1;font-size:11px;color:#374151">🙏 今日感謝</div>
+            <div style="flex:1;font-size:11px;color:#374151">💬 今日心情</div>
             <div style="font-size:12px;color:#6B7280">點擊記錄</div>
           </div>
         </div>
@@ -1893,7 +1893,7 @@ window.openHealthForm = function() {
     <button class="gs-task pending" id="gt3" onclick="goTaskPage(3)"><span class="gt-em">💦</span>補電解質</button>
     <button class="gs-task pending" id="gt4" onclick="goTaskPage(4)"><span class="gt-em">😊</span>今日體感</button>
     <button class="gs-task pending" id="gt5" onclick="goTaskPage(5)"><span class="gt-em">🌙</span>早睡11點前</button>
-    <button class="gs-task pending" id="gt6" onclick="goTaskPage(6)"><span class="gt-em">🙏</span>今日感謝</button>
+    <button class="gs-task pending" id="gt6" onclick="goTaskPage(6)"><span class="gt-em">💬</span>今日心情</button>
   </div>
 
   <div class="gs-msg" id="gs-msg">
@@ -1942,12 +1942,13 @@ window.openHealthForm = function() {
   </div>
 </div>
 </div>
-<!-- 今日感謝小視窗 -->
+<!-- 今日心情小視窗（2026-08-28 由「今日感謝」改版：不強迫感恩，順與不順都能說，負面心情會標記給秘書關心） -->
 <div id="thanks-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;display:none;align-items:center;justify-content:center;padding:20px">
   <div style="background:var(--card);border-radius:20px;padding:20px 18px;width:100%;max-width:340px;max-height:85vh;overflow-y:auto">
-    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">🙏 今日感謝</div>
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">今天有什麼讓你感謝的事？（可多選）</div>
-    <div id="thanks-options" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">💬 今天過得怎麼樣？</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">順的、不順的都可以說，不用報喜不報憂（可多選）</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:5px">順的日子 🌤</div>
+    <div id="thanks-options" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px">
       <button class="thanks-opt" onclick="toggleThanksOption(this,'身體感覺變好了')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">💪 身體感覺變好了</button>
       <button class="thanks-opt" onclick="toggleThanksOption(this,'今天血酮/體態很穩定')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">📊 數值表現很穩定</button>
       <button class="thanks-opt" onclick="toggleThanksOption(this,'睡得比平常好')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">😴 睡得比平常好</button>
@@ -1956,11 +1957,19 @@ window.openHealthForm = function() {
       <button class="thanks-opt" onclick="toggleThanksOption(this,'堅持完成了今天的任務')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">🎯 堅持完成了今天的任務</button>
       <button class="thanks-opt" onclick="toggleThanksOption(this,'心情很平靜開心')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">🌤 心情很平靜開心</button>
     </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:5px">不順的日子 🌧（說出來，秘書會看到）</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px">
+      <button class="thanks-opt" onclick="toggleThanksOption(this,'今天有點累')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">😮‍💨 今天有點累</button>
+      <button class="thanks-opt" onclick="toggleThanksOption(this,'嘴饞好想吃澱粉')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">🍚 嘴饞好想吃澱粉</button>
+      <button class="thanks-opt" onclick="toggleThanksOption(this,'心情悶悶的')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">😔 心情悶悶的</button>
+      <button class="thanks-opt" onclick="toggleThanksOption(this,'身體不太舒服')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">🤒 身體不太舒服</button>
+      <button class="thanks-opt" onclick="toggleThanksOption(this,'太忙差點沒空記錄')" style="padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:12px;color:var(--text2);cursor:pointer;transition:all .15s">⏰ 太忙差點沒空記錄</button>
+    </div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:6px">還有其他想說的嗎？（選填）</div>
-    <textarea id="thanks-inp" style="width:100%;border:0.5px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--text);resize:none;height:60px;background:var(--bg)" placeholder="例如：今天血酮很穩定，身體狀況不錯 😊"></textarea>
+    <textarea id="thanks-inp" style="width:100%;border:0.5px solid var(--border);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--text);resize:none;height:60px;background:var(--bg)" placeholder="想說什麼都可以，秘書會看到 😊"></textarea>
     <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:12px">
       <button onclick="closeThanksModal()" style="background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:10px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>
-      <button onclick="submitThanks()" style="background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">送出感謝 🙏</button>
+      <button onclick="submitThanks()" style="background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">留下今天的心情 💬</button>
     </div>
   </div>
 </div>
@@ -5009,12 +5018,12 @@ function goTaskPage(i) {
     toast('🌙 太棒了！早睡是最好的代謝修復 😊');
     
   } else if (i === 6) {
-    // 今日感謝 → 跳出小視窗
+    // 今日心情 → 跳出小視窗
     openThanksModal();
   }
 }
 
-// ── 今日感謝視窗 ──
+// ── 今日心情視窗 ──
 function openThanksModal() {
   var modal = document.getElementById('thanks-modal');
   if (modal) {
@@ -5048,18 +5057,21 @@ function toggleThanksOption(btn, text) {
   }
 }
 
+// 不順的選項清單：選到任何一個，記錄會加上關心標記讓秘書注意到
+var THANKS_NEG_OPTIONS = ['今天有點累','嘴饞好想吃澱粉','心情悶悶的','身體不太舒服','太忙差點沒空記錄'];
 function submitThanks() {
   var extraText = document.getElementById('thanks-inp').value.trim();
   var allParts = thanksSelectedOptions.slice();
   if (extraText) allParts.push(extraText);
   var content = allParts.join('、');
-  if (!content) { toast('請選擇至少一項，或寫下今天感謝的事 😊'); return; }
+  if (!content) { toast('選一個最接近的，或寫一句話都可以 😊'); return; }
+  var hasNeg = thanksSelectedOptions.some(function(t){ return THANKS_NEG_OPTIONS.indexOf(t) >= 0; });
   
-  // 儲存到Sheets
+  // 儲存到Sheets（不順的日子加上標記，秘書一眼看到就能隔天主動關心）
   callAPI({
     action: 'addTestimonial',
     clientId: CLIENT_ID,
-    content: '【今日感謝】' + content
+    content: (hasNeg ? '【今日心情⚠️需要關心】' : '【今日心情】') + content
   }, function(d) {});
   
   // 完成任務
@@ -5067,7 +5079,7 @@ function submitThanks() {
   var gt6 = document.getElementById('gt6');
   if (gt6) gt6.className = 'gs-task done';
   updateHomeTask(6);
-  syncGardenTask('今日感謝', true);
+  syncGardenTask('今日心情', true);
   updateGardenProgress();
   
   // 關閉視窗並重置選項
@@ -5080,7 +5092,7 @@ function submitThanks() {
     b.style.borderColor = 'var(--border)';
   });
   
-  toast('🙏 感謝已記錄！花園多了一份溫暖 😊');
+  toast(hasNeg ? '🌿 謝謝你願意說，秘書會看到的' : '😊 心情已記錄，明天見！');
   
   // 跳回花園（延遲讓慶祝動畫播完）
   setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
@@ -5131,7 +5143,7 @@ function updateGardenHint() {
     if (!gsTasks[i]) { nextTask = i; break; }
   }
   
-  var taskNames = ['血酮記錄', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日感謝'];
+  var taskNames = ['血酮記錄', '體重腰圍', '飲食記錄', '補電解質', '今日體感', '早睡打勾', '今日心情'];
   
   if (done === 0) {
     hint.textContent = '今天還沒開始，點下方任務開始記錄 😊';
@@ -5140,7 +5152,7 @@ function updateGardenHint() {
     hint.textContent = '今天全部完成了！花園為你盛開 🌸';
     if (arrow) arrow.style.display = 'none';
   } else if (nextTask >= 0) {
-    var names = ['血酮記錄', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日感謝'];
+    var names = ['血酮記錄', '體重腰圍', '飲食記錄', '電解質補充', '今日體感', '早睡打勾', '今日心情'];
     hint.textContent = '很棒！繼續點「' + names[nextTask] + '」完成今日任務 👇';
     if (arrow) arrow.style.display = 'block';
   }
@@ -5491,7 +5503,7 @@ function celebrateTask(taskName, doneCnt) {
     '電解質補充完成！身體說謝謝你 💦',
     '今日體感記錄完成！了解自己更多 😊',
     '早睡任務完成！好好休息 🌙',
-    '今日感謝記錄完成！溫暖的一天 🙏'
+    '今日心情記錄完成！謝謝你願意說 💬'
   ];
   
   var countEl = document.getElementById('garden-task-count');
