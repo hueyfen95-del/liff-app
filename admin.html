@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28e';
+var MX_BUILD = '2026-08-28f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5013,7 +5013,7 @@ function openClientDetail(id, name){
     + '<div id="cd-meal-records" style="font-size:12px;color:var(--text3)">載入中…</div>'
     + '<div style="font-size:11px;font-weight:700;color:#8A5A0A;margin-top:9px;margin-bottom:2px">💬 回覆飲食建議給這位客人</div>'
     + _mealReplyUI('cd' + escH(id))
-    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px;margin-top:6px" onclick="sendMealReply(\'cd' + escH(id) + '\',\'' + escH(id) + '\',0)">💌 送出建議（客人打開前台就會看到）</button>'
+    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px;margin-top:6px" onclick="sendMealReply(\'cd' + escH(id) + '\',\'' + escH(id) + '\',0,this)">💌 送出建議（客人打開前台就會看到）</button>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）</div>'
@@ -5565,7 +5565,7 @@ var MEAL_REPLY_TEMPLATES = [
   '建議進食順序：先喝湯或吃菜、再吃蛋白質、最後才吃碳水，血糖會更穩。'
 ];
 function _mealReplyUI(uid){
-  return '<div style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
+  return '<div class="mr-wrap" style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
     + '<select class="form-select" style="font-size:11.5px;width:100%;margin-bottom:6px" onchange="mealReplyPick(this,\''+uid+'\')">'
     + '<option value="">📋 選一句常用回覆（可連選幾句疊加，選完還能修改）…</option>'
     + MEAL_REPLY_TEMPLATES.map(function(t,i){ return '<option value="'+i+'">'+escH(t)+'</option>'; }).join('')
@@ -5573,17 +5573,32 @@ function _mealReplyUI(uid){
     + '<textarea id="mr-txt-'+uid+'" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12px;resize:vertical;min-height:52px;box-sizing:border-box" placeholder="也可以直接手動輸入回覆內容…"></textarea>'
     + '</div>';
 }
+// 2026-08-29修正（她回報「按送出建議一直沒法送出」）：原本用全頁ID找輸入框，
+// 只要畫面上有任何重複或殘留，就會讀到錯的（空的）那一個。改成「就近找」——
+// 從點擊的元素往上找到回覆卡容器，取容器裡的那個輸入框，保證讀到眼前這一個
+function _mealReplyBox(el, uid){
+  var wrap = el && el.closest ? el.closest('.mr-wrap') : null;
+  if (wrap) { var t = wrap.querySelector('textarea'); if (t) return t; }
+  // 送出按鈕在回覆卡外面（客人詳情那顆）：往上找共同父層再找回覆卡
+  var p = el ? el.parentElement : null;
+  while (p) {
+    var w2 = p.querySelector ? p.querySelector('.mr-wrap textarea') : null;
+    if (w2) return w2;
+    p = p.parentElement;
+  }
+  return document.getElementById('mr-txt-' + uid); // 最後備援
+}
 function mealReplyPick(sel, uid){
   var i = parseInt(sel.value, 10);
   if (isNaN(i)) return;
-  var ta = document.getElementById('mr-txt-' + uid);
+  var ta = _mealReplyBox(sel, uid);
   if (ta) ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + MEAL_REPLY_TEMPLATES[i];
   sel.value = '';
 }
-function sendMealReply(uid, cid, row){
-  var ta = document.getElementById('mr-txt-' + uid);
+function sendMealReply(uid, cid, row, btnEl){
+  var ta = _mealReplyBox(btnEl || null, uid);
   var text = ta ? ta.value.trim() : '';
-  if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); return; }
+  if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); if(ta) ta.focus(); return; }
   adminAPIPost({action:'sendGift', clientId:cid, giftType:'message',
     message:'🍽 飲食建議：' + text, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok'){
@@ -5619,7 +5634,7 @@ function loadMealHelp(){
         + '<button class="ai-btn b" style="font-size:10.5px;padding:3px 10px;margin-top:5px" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name||'')+'\')">看這位客人的照片與記錄 →</button>'
         + (it.replied ? '' : (_mealReplyUI(uid)
             + '<div style="display:flex;gap:6px;margin-top:6px">'
-            + '<button class="btn-g" style="flex:2;padding:8px;font-size:12px" onclick="sendMealReply(\''+uid+'\',\''+escH(it.clientId)+'\','+it.row+')">💌 送出回覆給客人（自動標記完成）</button>'
+            + '<button class="btn-g" style="flex:2;padding:8px;font-size:12px" onclick="sendMealReply(\''+uid+'\',\''+escH(it.clientId)+'\','+it.row+',this)">💌 送出回覆給客人（自動標記完成）</button>'
             + '<button class="ai-btn" style="flex:1;font-size:10.5px" onclick="markMealHelpReplied('+it.row+',\''+escH(it.clientId)+'\')">已用LINE回覆，僅標記</button>'
             + '</div>'))
         + '</div>';
