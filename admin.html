@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28d';
+var MX_BUILD = '2026-08-28e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5011,6 +5011,9 @@ function openClientDetail(id, name){
     + '<div style="font-size:11px;font-weight:700;color:#8A5A0A;margin-bottom:3px">🍽 飲食記錄與照片（近3天）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">客人的餐盤照片、自我判斷（油脂/蛋白質/碳水）都在這裡，回覆「飲食判斷求助」前先看這區。點照片可以放大看原圖。照片檔保留30天後自動清理，文字記錄永久保留。</div>'
     + '<div id="cd-meal-records" style="font-size:12px;color:var(--text3)">載入中…</div>'
+    + '<div style="font-size:11px;font-weight:700;color:#8A5A0A;margin-top:9px;margin-bottom:2px">💬 回覆飲食建議給這位客人</div>'
+    + _mealReplyUI('cd' + escH(id))
+    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px;margin-top:6px" onclick="sendMealReply(\'cd' + escH(id) + '\',\'' + escH(id) + '\',0)">💌 送出建議（客人打開前台就會看到）</button>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）</div>'
@@ -5546,6 +5549,50 @@ function loadMealRecordsAdmin(id){
   });
 }
 // ══════ 🍽 飲食判斷求助（2026-08-29：客人前台的「請秘書幫我看這一餐」，之前只寫進備註表沒人看見）══════
+// 秘書一鍵回覆的罐頭句（創始人2026-08-29提供前5句＋補列）。選了會填進輸入框，可以再手動修改或多選疊加
+var MEAL_REPLY_TEMPLATES = [
+  '您這餐的飲食油脂量還不太夠，下一餐請增加油脂。',
+  '您這餐的蛋白質加總超過一個掌心，下一餐請調整到一個掌心以內（不含手指）。',
+  '您這餐的碳水量偏多，下一餐請盡量減少。',
+  '您這餐的調味料可能有碳水地雷，下次請避免。',
+  '您這一餐的整體熱量偏少，下一餐請補足。',
+  '判斷正確！這一餐吃得很好，請照這個方式繼續保持 💪',
+  '您的油脂量判斷得很準，繼續維持這個量就可以。',
+  '蛋白質略少了一點，下一餐請補到約一個掌心。',
+  '這餐的加工食品成分較多，下次盡量選原型食物。',
+  '蔬菜量可以再多一點，葉菜、菇類不限量，放心加。',
+  '這餐搭配得不錯，只要把醬料換掉就更完美了。',
+  '建議進食順序：先喝湯或吃菜、再吃蛋白質、最後才吃碳水，血糖會更穩。'
+];
+function _mealReplyUI(uid){
+  return '<div style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
+    + '<select class="form-select" style="font-size:11.5px;width:100%;margin-bottom:6px" onchange="mealReplyPick(this,\''+uid+'\')">'
+    + '<option value="">📋 選一句常用回覆（可連選幾句疊加，選完還能修改）…</option>'
+    + MEAL_REPLY_TEMPLATES.map(function(t,i){ return '<option value="'+i+'">'+escH(t)+'</option>'; }).join('')
+    + '</select>'
+    + '<textarea id="mr-txt-'+uid+'" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12px;resize:vertical;min-height:52px;box-sizing:border-box" placeholder="也可以直接手動輸入回覆內容…"></textarea>'
+    + '</div>';
+}
+function mealReplyPick(sel, uid){
+  var i = parseInt(sel.value, 10);
+  if (isNaN(i)) return;
+  var ta = document.getElementById('mr-txt-' + uid);
+  if (ta) ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + MEAL_REPLY_TEMPLATES[i];
+  sel.value = '';
+}
+function sendMealReply(uid, cid, row){
+  var ta = document.getElementById('mr-txt-' + uid);
+  var text = ta ? ta.value.trim() : '';
+  if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); return; }
+  adminAPIPost({action:'sendGift', clientId:cid, giftType:'message',
+    message:'🍽 飲食建議：' + text, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d && d.status==='ok'){
+      toast('💌 已回覆 ' + cid + '，客人打開前台就會看到');
+      if (row) { adminAPIPost({action:'markMealHelpReplied', row:row, clientId:cid}, function(){ loadMealHelp(); loadTodayDuty(); }); }
+      else if (ta) ta.value = '';
+    } else toast('⚠️ 送出失敗，請重試');
+  });
+}
 function loadMealHelp(){
   var card = document.getElementById('mealhelp-card');
   var body = document.getElementById('mealhelp-body');
@@ -5560,17 +5607,21 @@ function loadMealHelp(){
     if(items.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = items.map(function(it){
+      var uid = 'mh' + it.row;
       return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)' + (it.replied ? ';opacity:.55' : '') + '">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
         + '<span style="font-size:11px;color:var(--text3)">'+escH(it.time)+'</span>'
         + '<b style="font-size:12px">'+escH(it.name || it.clientId)+'</b>'
         + '<span style="font-size:10.5px;color:var(--text3)">'+escH(it.clientId)+'</span>'
-        + (it.replied
-            ? '<span style="font-size:10.5px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:700">已回覆 ✅</span>'
-            : '<button class="ai-btn" style="font-size:10.5px;padding:3px 10px;margin-left:auto" onclick="markMealHelpReplied('+it.row+',\''+escH(it.clientId)+'\')">已回覆客人，標記完成</button>')
+        + (it.replied ? '<span style="font-size:10.5px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:700">已回覆 ✅</span>' : '')
         + '</div>'
         + '<div style="font-size:12px;color:var(--text2);line-height:1.6">'+escH(it.content)+'</div>'
         + '<button class="ai-btn b" style="font-size:10.5px;padding:3px 10px;margin-top:5px" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name||'')+'\')">看這位客人的照片與記錄 →</button>'
+        + (it.replied ? '' : (_mealReplyUI(uid)
+            + '<div style="display:flex;gap:6px;margin-top:6px">'
+            + '<button class="btn-g" style="flex:2;padding:8px;font-size:12px" onclick="sendMealReply(\''+uid+'\',\''+escH(it.clientId)+'\','+it.row+')">💌 送出回覆給客人（自動標記完成）</button>'
+            + '<button class="ai-btn" style="flex:1;font-size:10.5px" onclick="markMealHelpReplied('+it.row+',\''+escH(it.clientId)+'\')">已用LINE回覆，僅標記</button>'
+            + '</div>'))
         + '</div>';
     }).join('');
   });
