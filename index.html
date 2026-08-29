@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-28c';
+var MX_BUILD = '2026-08-28d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -673,37 +673,8 @@ window.openHealthForm = function() {
     </button>
 
     <div class="sec" id="diet-section"><i class="ti ti-camera" style="font-size:13px"></i>飲食記錄<span style="margin-left:auto;font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 8px;font-weight:600">拍照記錄・秘書把關</span></div>
-<!-- 🍽 餐盤快記 -->
-<div style="background:#fff;border:1px solid #E2EDE7;border-radius:14px;padding:14px;margin:12px 0">
-  <div style="font-size:13.5px;font-weight:800;color:#1E2B27;margin-bottom:3px">🍽 餐盤快記（選填，10 秒）</div>
-  <div style="font-size:11px;color:#8A9992;margin-bottom:10px">拍照看不出油放了多少，這一餐點一下告訴秘書，建議會更準</div>
-  <div style="font-size:12px;font-weight:700;color:#43584F;margin-bottom:5px">🕐 這是哪一餐？</div>
-  <div style="display:flex;gap:6px;margin-bottom:10px">
-    <div class="chip meal-chip" data-g="meal" data-v="早餐" onclick="mealPick(this)">早餐</div>
-    <div class="chip meal-chip" data-g="meal" data-v="午餐" onclick="mealPick(this)">午餐</div>
-    <div class="chip meal-chip" data-g="meal" data-v="晚餐" onclick="mealPick(this)">晚餐</div>
-    <div class="chip meal-chip" data-g="meal" data-v="點心" onclick="mealPick(this)">點心</div>
-  </div>
-  <div style="font-size:12px;font-weight:700;color:#43584F;margin-bottom:5px">🫒 這一餐的油脂 <span onclick="toggleTip('tip-oil')" style="cursor:pointer;color:#0F6E56;font-weight:400">ⓘ 怎麼吃</span></div><div id="tip-oil" style="display:none;background:#F3F9F6;border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:11px;color:#43584F;line-height:1.7">吃油身體才敢燒油、吃太少反而更保留脂肪，勇敢吃！煮菜用橄欖油、酪梨油、堅果油、草飼奶油、豬油輪流；喝的油選苦茶油、紫蘇油、亞麻仁油。<br>調整初期最好 80% 熱量來自好油脂 💪</div>
-  <div style="display:flex;gap:6px;margin-bottom:10px">
-    <div class="chip meal-chip" data-g="oil" data-v="不太夠" onclick="mealPick(this)">不太夠</div>
-    <div class="chip meal-chip" data-g="oil" data-v="剛剛好" onclick="mealPick(this)">剛剛好</div>
-    <div class="chip meal-chip" data-g="oil" data-v="加好加滿" onclick="mealPick(this)">加好加滿</div>
-  </div>
-  <div style="font-size:12px;font-weight:700;color:#43584F;margin-bottom:5px">🍖 這一餐的蛋白質 <span onclick="toggleTip('tip-protein')" style="cursor:pointer;color:#0F6E56;font-weight:400">ⓘ 怎麼吃</span></div><div id="tip-protein" style="display:none;background:#F3F9F6;border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:11px;color:#43584F;line-height:1.7">每餐約「一個掌心」大小（不含手指的部分）。如果一餐吃不下那麼多，可以在早上喝奶油咖啡時搭配一顆雞蛋補足。蛋白質也不要超過一掌心喔！</div>
-  <div style="display:flex;gap:6px;margin-bottom:10px">
-    <div class="chip meal-chip" data-g="protein" data-v="未滿掌心" onclick="mealPick(this)">未滿掌心</div>
-    <div class="chip meal-chip" data-g="protein" data-v="約一掌心" onclick="mealPick(this)">約一掌心</div>
-    <div class="chip meal-chip" data-g="protein" data-v="超過掌心" onclick="mealPick(this)">超過掌心</div>
-  </div>
-  <div style="font-size:12px;font-weight:700;color:#43584F;margin-bottom:5px">🍚 這一餐的澱粉或含糖醬料 <span onclick="toggleTip('tip-starch')" style="cursor:pointer;color:#0F6E56;font-weight:400">ⓘ 怎麼看</span></div><div id="tip-starch" style="display:none;background:#F3F9F6;border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:11px;color:#43584F;line-height:1.7">判斷食物能不能吃，看三點：①有沒有過多添加物 ②有沒有 Omega-6 油脂 ③有沒有碳水或糖。任何一種有，就先避開。含糖醬料常是隱藏地雷，成分表要看喔！</div>
-  <div style="display:flex;gap:6px;margin-bottom:12px">
-    <div class="chip meal-chip" data-g="starch" data-v="沒有" onclick="mealPick(this)">沒有</div>
-    <div class="chip meal-chip" data-g="starch" data-v="有一點" onclick="mealPick(this)">有一點</div>
-    <div class="chip meal-chip" data-g="starch" data-v="有" onclick="mealPick(this)">有</div>
-  </div>
-  <button onclick="quickSave('meal')" style="width:100%;background:#0F6E56;color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer">傳給秘書</button>
-</div>
+<!-- 🍽 餐盤快記卡已於2026-08-28移除（創始人指示：跟下面「換你來判斷」重複，合併保留下面的流程；
+     這卡的優良問法（不太夠/剛剛好/加好加滿、掌心單位、怎麼吃小教學）已整套搬進「換你來判斷」視窗） -->
 
 
     <!-- 今日待辦進度 -->
@@ -803,6 +774,11 @@ window.openHealthForm = function() {
           <div id="d-content" style="display:none"><div class="pt-grid" id="d-grid"></div><input class="inp" placeholder="補充說明（選填）" style="width:100%;font-size:12px;margin-bottom:4px;margin-top:5px"><div style="font-size:12px;color:var(--text3);text-align:right;margin-bottom:5px">文字為輔助</div><div class="ai-card" id="d-ai"></div></div>
         </div>
       </div>
+    </div>
+
+    <!-- 🍩 點心快記（原餐盤快記的點心選項保留在這裡：只記錄給秘書，不算每日任務） -->
+    <div style="text-align:center;margin:-4px 0 14px">
+      <button onclick="openJudge('s')" style="background:none;border:1px dashed var(--border2);border-radius:20px;padding:7px 16px;font-size:12px;color:var(--text2);cursor:pointer">🍩 點心也想記一筆？</button>
     </div>
 
     <!-- 今日比例・我的判斷（2026-08-28：取代AI估算，累計客人自己的判斷） -->
@@ -2684,7 +2660,7 @@ function handleMealFile(input){
 // ══════ 🍽 換你來判斷（2026-08-28，她的設計：取代AI估算——AI看照片不準，客人也學不會；
 // 改成客人自己判斷油脂/蛋白質/碳水比例，秘書看照片校正，練習幾週就有自己的眼睛。
 // 嚴格期目標比例直接秀給客人：脂肪70%・蛋白質25%・醬料/碳水5%・葉菜菇類不計）══════
-var _mealJudge = {b:null, l:null, d:null};
+var _mealJudge = {b:null, l:null, d:null, s:null};
 var _mealJudgeBypass = {b:false, l:false, d:false};
 var _judgeMeal = '';
 var _judgeSel = {oil:'', prot:'', carb:''};
@@ -2720,7 +2696,7 @@ function pickJudge(el, group, val){
 function judgeConfirm(){
   var m = _judgeMeal; if(!m) return;
   var sel = _judgeSel;
-  var jMealNames = {b:'早餐', l:'午餐', d:'晚餐'};
+  var jMealNames = {b:'早餐', l:'午餐', d:'晚餐', s:'點心'};
   var modal = document.getElementById('judge-modal');
   if(modal) modal.style.display = 'none';
   _mealJudge[m] = {oil:sel.oil, prot:sel.prot, carb:sel.carb};
@@ -2737,7 +2713,8 @@ function judgeConfirm(){
   callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）', oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(){});
   renderJudgeSummary();
   judgeFeedback(sel.carb);
-  _finishMeal(m);
+  if (m !== 's') _finishMeal(m); // 點心只記錄給秘書，不算進每日4任務
+  else toast('🍩 點心已記錄，傳給秘書了');
 }
 function judgeSkip(){
   var m = _judgeMeal; if(!m) return;
@@ -2757,12 +2734,12 @@ function judgeFeedback(carb){
   var strict = (_carbPlanVal === '' || _carbPlanVal === '0');
   var msg;
   if(strict){
-    if(carb === '無') msg = '💪 太棒了！嚴格期就是這樣吃';
-    else if(carb === '一點') msg = '👀 嚴格期連醬料裡的糖都盡量避開，下一餐再調整';
+    if(carb === '沒有') msg = '💪 太棒了！嚴格期就是這樣吃';
+    else if(carb === '有一點') msg = '👀 嚴格期連醬料裡的糖都盡量避開，下一餐再調整';
     else msg = '🥬 現在是嚴格期——下一餐試試把澱粉換成花椰菜米或葉菜';
   } else {
     var g = Number(_carbPlanVal)||0; if(g>=1&&g<=6) g=g*15;
-    if(carb === '無' || carb === '一點') msg = '👍 不錯！記得全天碳水加總控制在 ' + g + 'g 內';
+    if(carb === '沒有' || carb === '有一點') msg = '👍 不錯！記得全天碳水加總控制在 ' + g + 'g 內';
     else msg = '⚠️ 這餐碳水偏多，今天其他餐先避開澱粉（全天目標 ' + g + 'g）';
   }
   setTimeout(function(){ toast(msg); }, 900);
@@ -2770,9 +2747,9 @@ function judgeFeedback(carb){
 function renderJudgeSummary(){
   var box = document.getElementById('judge-day-summary');
   if(!box) return;
-  var names = {b:'早餐', l:'午餐', d:'晚餐'};
+  var names = {b:'早餐', l:'午餐', d:'晚餐', s:'點心'};
   var rows = [];
-  ['b','l','d'].forEach(function(m){
+  ['b','l','d','s'].forEach(function(m){
     var j = _mealJudge[m];
     if(j) rows.push('<div style="display:flex;gap:10px;font-size:12px;padding:3px 0"><b style="width:38px">'+names[m]+'</b><span>🫒 油脂'+j.oil+'</span><span>🍗 蛋白質'+j.prot+'</span><span>🍚 碳水'+j.carb+'</span></div>');
   });
@@ -7753,24 +7730,26 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
     <div style="font-size:16px;font-weight:800;color:#1E2B27;margin-bottom:4px">🍽 換你來判斷：這一餐的比例？</div>
     <div style="font-size:12px;color:#8A9992;margin-bottom:10px">看一眼你的盤子，自己估估看——練習幾次，眼睛就會了</div>
     <div id="judge-target" style="background:#E1F5EE;border-radius:10px;padding:9px 12px;font-size:12px;color:#085041;line-height:1.7;margin-bottom:14px"></div>
-    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🫒 油脂（好油）</div>
+    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🫒 這一餐的油脂 <span onclick="toggleTip('jtip-oil')" style="cursor:pointer;color:#0F6E56;font-weight:400;font-size:11px">ⓘ 怎麼吃</span></div>
+    <div id="jtip-oil" style="display:none;background:#F3F9F6;border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:11px;color:#43584F;line-height:1.7">吃油身體才敢燒油、吃太少反而更保留脂肪，勇敢吃！煮菜用橄欖油、酪梨油、堅果油、草飼奶油、豬油輪流；喝的油選苦茶油、紫蘇油、亞麻仁油。<br>調整初期最好 80% 熱量來自好油脂 💪</div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="j-chip" onclick="pickJudge(this,'oil','少')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">少</button>
-      <button class="j-chip" onclick="pickJudge(this,'oil','中')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">中</button>
-      <button class="j-chip" onclick="pickJudge(this,'oil','多')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">多</button>
+      <button class="j-chip" onclick="pickJudge(this,'oil','不太夠')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">不太夠</button>
+      <button class="j-chip" onclick="pickJudge(this,'oil','剛剛好')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">剛剛好</button>
+      <button class="j-chip" onclick="pickJudge(this,'oil','加好加滿')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">加好加滿</button>
     </div>
-    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🍗 蛋白質（肉、蛋、魚）</div>
+    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🍖 這一餐的蛋白質 <span onclick="toggleTip('jtip-protein')" style="cursor:pointer;color:#0F6E56;font-weight:400;font-size:11px">ⓘ 怎麼吃</span></div>
+    <div id="jtip-protein" style="display:none;background:#F3F9F6;border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:11px;color:#43584F;line-height:1.7">每餐約「一個掌心」大小（不含手指的部分）。如果一餐吃不下那麼多，可以在早上喝奶油咖啡時搭配一顆雞蛋補足。蛋白質也不要超過一掌心喔！</div>
     <div style="display:flex;gap:8px;margin-bottom:12px">
-      <button class="j-chip" onclick="pickJudge(this,'prot','少')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">少</button>
-      <button class="j-chip" onclick="pickJudge(this,'prot','中')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">中</button>
-      <button class="j-chip" onclick="pickJudge(this,'prot','多')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">多</button>
+      <button class="j-chip" onclick="pickJudge(this,'prot','未滿掌心')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">未滿掌心</button>
+      <button class="j-chip" onclick="pickJudge(this,'prot','約一掌心')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">約一掌心</button>
+      <button class="j-chip" onclick="pickJudge(this,'prot','超過掌心')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">超過掌心</button>
     </div>
-    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🍚 碳水（澱粉、糖、醬料）</div>
+    <div style="font-size:12.5px;font-weight:700;color:#2B3A35;margin-bottom:6px">🍚 這一餐的澱粉或含糖醬料 <span onclick="toggleTip('jtip-starch')" style="cursor:pointer;color:#0F6E56;font-weight:400;font-size:11px">ⓘ 怎麼看</span></div>
+    <div id="jtip-starch" style="display:none;background:#F3F9F6;border-radius:8px;padding:9px 11px;margin-bottom:8px;font-size:11px;color:#43584F;line-height:1.7">判斷食物能不能吃，看三點：①有沒有過多添加物 ②有沒有 Omega-6 油脂 ③有沒有碳水或糖。任何一種有，就先避開。含糖醬料常是隱藏地雷，成分表要看喔！</div>
     <div style="display:flex;gap:8px;margin-bottom:6px">
-      <button class="j-chip" onclick="pickJudge(this,'carb','無')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">無</button>
-      <button class="j-chip" onclick="pickJudge(this,'carb','一點')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">一點</button>
-      <button class="j-chip" onclick="pickJudge(this,'carb','中')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">中</button>
-      <button class="j-chip" onclick="pickJudge(this,'carb','多')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:14px;cursor:pointer;background:#fff;color:#2B3A35">多</button>
+      <button class="j-chip" onclick="pickJudge(this,'carb','沒有')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">沒有</button>
+      <button class="j-chip" onclick="pickJudge(this,'carb','有一點')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">有一點</button>
+      <button class="j-chip" onclick="pickJudge(this,'carb','有')" style="flex:1;padding:11px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:13px;cursor:pointer;background:#fff;color:#2B3A35">有</button>
     </div>
     <div style="font-size:11.5px;color:#0F6E56;margin-bottom:14px">🥬 葉菜、菇類不用算，放心吃</div>
     <button id="judge-ok" disabled onclick="judgeConfirm()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer;opacity:.45">完成判斷</button>
