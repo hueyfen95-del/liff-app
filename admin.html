@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28f';
+var MX_BUILD = '2026-08-28g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1947,6 +1947,8 @@ function _mxDashNavRender(){
     var dt = _mxDashStats;
     if(typeof dt.totalClients==='number') btns.push(_mxNavBtn("goPg('clients',document.querySelectorAll('.si')[1])", 'ti ti-users', '服務中', dt.totalClients, false));
     if(typeof dt.recorded==='number') btns.push(_mxNavBtn("scrollToCard('today-records-body')", 'ti ti-activity', '今日已記錄', dt.recorded, false));
+    // 飲食求助改常駐顯示（2026-08-30 創始人反映「不見了」——原本沒未回覆就隱藏，改成一直在，0灰色/有未回覆紅色）
+    if(typeof dt.mealHelp==='number') btns.push(_mxNavBtn("scrollToCard('mealhelp-card')", 'ti ti-tools-kitchen-2', '飲食求助', dt.mealHelp, dt.mealHelp>0));
     // 分開兩顆而不是合併成一顆「待關心」：沒記錄的客人跟症狀警示的客人是不同名單、不同卡片，
     // 合併成一個數字點下去只能跳一個地方，另一半的人反而找不到（2026-08-26修正）
     if(typeof dt.noRecord==='number') btns.push(_mxNavBtn("scrollToCard('today-records-body')", 'ti ti-notes', '今日沒記錄', dt.noRecord, dt.noRecord>0));
@@ -5618,7 +5620,7 @@ function loadMealHelp(){
     if(!card || !body) return;
     var items = (d && d.items) || [];
     var pending = items.filter(function(it){ return !it.replied; });
-    _mxDashNavSet('mealhelp-card', pending.length, '飲食求助', 'ti ti-tools-kitchen-2');
+    // pill 已改由今日待辦的常駐統計列顯示（dt.mealHelp），這裡不再重複註冊
     if(items.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = items.map(function(it){

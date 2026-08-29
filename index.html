@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-29c';
+var MX_BUILD = '2026-08-29d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5941,19 +5941,28 @@ function renderSechubMsgs(){
           + '</div>';
       }).join('')
     : '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有訊息，秘書的建議和關心都會出現在這裡 🌱</div>';
-  // 進來看了，紅點與未讀數歸零
+  // 進來看了，紅點與未讀數歸零；同步告訴後端「已讀」（秘書那邊的已讀狀態才是真的看過）
   try { localStorage.setItem('mx_msg_unread', '0'); } catch(e){}
+  if (CLIENT_ID) callAPI({action:'markGiftsRead', clientId:CLIENT_ID}, function(){});
   updateBellDot();
   if (typeof updateSecHubBadge === 'function') updateSecHubBadge();
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(updateBellDot, 400); });
 
 function checkGifts() {
-  callAPI({action:'getGift', clientId:CLIENT_ID}, function(d) {
+  // 2026-08-30：改用 peek 模式——只查看、不標記已讀（點開秘書互動才標記），
+  // 這樣手機和電腦都會亮紅點，不會被先開的那台搶走。用列號去重，同一則不會重複跳
+  callAPI({action:'getGift', clientId:CLIENT_ID, peek:1}, function(d) {
     if (d.status === 'ok' && d.gifts && d.gifts.length > 0) {
       var giftMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star' };
       var shown = false;
+      var lastRow = 0;
+      try { lastRow = parseInt(localStorage.getItem('mx_gift_lastrow') || '0', 10) || 0; } catch(e){}
+      var maxRow = lastRow;
       d.gifts.forEach(function(g) {
+        var rw = Number(g.row) || 0;
+        if (rw && rw <= lastRow) return; // 這台裝置已經處理過這一則
+        if (rw > maxRow) maxRow = rw;
         var key = giftMap[g.giftType];
         // 2026-08-26修正：這裡本來是「有gsGift就只跑gsGift，不跑showGift」——但gsGift找的是
         // #gs-gift-msg（畫面上根本沒有這個元素），秘書寫的真正留言訊息從來沒有顯示出來，
@@ -5968,6 +5977,7 @@ function checkGifts() {
         // 每一則有內容的訊息都存進秘書訊息匣（鈴鐺亮紅點，隨時可以回看）
         if (g.message) addToMsgInbox(g.message);
       });
+      try { if (maxRow > lastRow) localStorage.setItem('mx_gift_lastrow', String(maxRow)); } catch(e){}
       if (shown) toast('🎁 秘書送你禮物，去花園看看 😊');
     }
   });
