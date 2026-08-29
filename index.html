@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-28i';
+var MX_BUILD = '2026-08-29b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -322,8 +322,13 @@ window.openHealthForm = function() {
 <div class="phone">
 <div class="tbar">
   <div class="tbar-t" id="page-title">元代謝健康管理</div>
+  <div onclick="openMsgInbox()" style="position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:2px;-webkit-tap-highlight-color:transparent">
+    <span style="font-size:19px">🔔</span>
+    <span id="mx-bell-dot" style="display:none;position:absolute;top:4px;right:3px;min-width:15px;height:15px;background:#E24B4A;color:#fff;border-radius:10px;font-size:9.5px;font-weight:800;line-height:15px;text-align:center;padding:0 3px;border:1.5px solid #fff"></span>
+  </div>
   <div class="tbar-av">美</div>
 </div>
+<!-- 秘書訊息已併入「秘書互動」專區（2026-08-29 創始人指示與既有功能結合），鈴鐺是入口 -->
 
 
 
@@ -1278,6 +1283,11 @@ window.openHealthForm = function() {
     <div style="background:linear-gradient(135deg,#085041,#158066);border-radius:14px;padding:16px 18px;color:#fff;margin-bottom:16px">
       <div style="font-size:14px;font-weight:700;margin-bottom:4px">💛 秘書給你的回覆與推薦</div>
       <div style="font-size:11px;opacity:.85">你問過的問題、秘書推薦的保健品，都集中在這裡</div>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📬 秘書給你的訊息</div>
+    <div id="sechub-msg-list" style="margin-bottom:18px">
+      <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有訊息，秘書的建議和關心都會出現在這裡 🌱</div>
     </div>
 
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📋 我問過的問題</div>
@@ -2255,7 +2265,7 @@ function goPage(id,title){
   if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
   if(id === 'qa' && typeof loadMyQuestions==='function') loadMyQuestions();
   if(id === 'qa' && typeof loadMyAnsweredSymptoms==='function') loadMyAnsweredSymptoms();
-  if(id === 'sec-hub'){ if(typeof loadMyQuestions==='function') loadMyQuestions(); if(typeof loadMySupplementRecs==='function') loadMySupplementRecs(); }
+  if(id === 'sec-hub'){ if(typeof loadMyQuestions==='function') loadMyQuestions(); if(typeof loadMySupplementRecs==='function') loadMySupplementRecs(); if(typeof renderSechubMsgs==='function') renderSechubMsgs(); }
   if(id === 'record' && typeof loadCarbPlan==='function') loadCarbPlan();
   // 進入花園時檢查禮物
   if (id === 'garden') {
@@ -4588,7 +4598,7 @@ var _sechubQuestionsCount = 0, _sechubSuppCount = 0;
 function updateSecHubBadge(){
   var badge = document.getElementById('home-sechub-badge');
   if(!badge) return;
-  var total = _sechubQuestionsCount + _sechubSuppCount;
+  var total = _sechubQuestionsCount + _sechubSuppCount + (typeof _msgUnread === 'function' ? _msgUnread() : 0);
   if(total > 0){ badge.textContent = total; badge.style.display = ''; }
   else { badge.style.display = 'none'; }
 }
@@ -5893,6 +5903,51 @@ function showGift(type, msg) {
   cfg.fx();
 }
 
+// ══════ 📬 秘書訊息匣 ══════
+function _msgInbox(){ try { return JSON.parse(localStorage.getItem('mx_msg_inbox') || '[]'); } catch(e){ return []; } }
+function _msgSave(list){ try { localStorage.setItem('mx_msg_inbox', JSON.stringify(list.slice(0, 20))); } catch(e){} }
+function _msgUnread(){ try { return parseInt(localStorage.getItem('mx_msg_unread') || '0', 10) || 0; } catch(e){ return 0; } }
+function addToMsgInbox(text){
+  if (!text) return;
+  var list = _msgInbox();
+  var now = new Date();
+  var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+  list.unshift({ t: pad(now.getMonth()+1) + '/' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()), m: String(text) });
+  _msgSave(list);
+  try { localStorage.setItem('mx_msg_unread', String(_msgUnread() + 1)); } catch(e){}
+  updateBellDot();
+  if (typeof updateSecHubBadge === 'function') updateSecHubBadge();
+}
+function updateBellDot(){
+  var dot = document.getElementById('mx-bell-dot');
+  if (!dot) return;
+  var n = _msgUnread();
+  if (n > 0) { dot.textContent = n > 9 ? '9+' : n; dot.style.display = 'block'; }
+  else dot.style.display = 'none';
+}
+// 鈴鐺點下去＝前往「秘書互動」專區（2026-08-29 創始人指示：跟既有功能結合，不另開視窗）
+function openMsgInbox(){
+  goPage('sec-hub','秘書互動');
+}
+function renderSechubMsgs(){
+  var listEl = document.getElementById('sechub-msg-list');
+  if (!listEl) return;
+  var list = _msgInbox();
+  listEl.innerHTML = list.length
+    ? list.map(function(it){
+        return '<div style="background:var(--card);border:0.5px solid var(--border);border-radius:11px;padding:10px 13px;margin-bottom:7px">'
+          + '<div style="font-size:11px;color:#9CA3AF;margin-bottom:3px">' + it.t + '</div>'
+          + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + String(it.m).replace(/</g,'&lt;') + '</div>'
+          + '</div>';
+      }).join('')
+    : '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有訊息，秘書的建議和關心都會出現在這裡 🌱</div>';
+  // 進來看了，紅點與未讀數歸零
+  try { localStorage.setItem('mx_msg_unread', '0'); } catch(e){}
+  updateBellDot();
+  if (typeof updateSecHubBadge === 'function') updateSecHubBadge();
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(updateBellDot, 400); });
+
 function checkGifts() {
   callAPI({action:'getGift', clientId:CLIENT_ID}, function(d) {
     if (d.status === 'ok' && d.gifts && d.gifts.length > 0) {
@@ -5910,6 +5965,8 @@ function checkGifts() {
           toast('💌 ' + g.message);
           shown = true;
         }
+        // 每一則有內容的訊息都存進秘書訊息匣（鈴鐺亮紅點，隨時可以回看）
+        if (g.message) addToMsgInbox(g.message);
       });
       if (shown) toast('🎁 秘書送你禮物，去花園看看 😊');
     }
