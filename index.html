@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-30f';
+var MX_BUILD = '2026-08-30g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6083,12 +6083,16 @@ function showGift(type, msg) {
 function _msgInbox(){ try { return JSON.parse(localStorage.getItem('mx_msg_inbox') || '[]'); } catch(e){ return []; } }
 function _msgSave(list){ try { localStorage.setItem('mx_msg_inbox', JSON.stringify(list.slice(0, 20))); } catch(e){} }
 function _msgUnread(){ try { return parseInt(localStorage.getItem('mx_msg_unread') || '0', 10) || 0; } catch(e){ return 0; } }
-function addToMsgInbox(text){
+// 禮物類型 → 訊息匣標籤（2026-08-30 她的回饋「為什麼沒有看到秘書給我的雨水或陽光」：
+// 動畫只在收到當下的花園頁出現，人在別頁就錯過了，訊息匣又只存文字——現在禮物跟著訊息一起存，
+// 每則訊息都看得到附了什麼禮物，點標籤隨時重看動畫）
+var GIFT_LABELS = { sunshine:'☀️ 陽光', rain:'🌧 雨水', sprout:'🌱 新芽', leaf:'🍃 新葉', star:'⭐ 星星', flower:'🌸 花朵' };
+function addToMsgInbox(text, gtype){
   if (!text) return;
   var list = _msgInbox();
   var now = new Date();
   var pad = function(n){ return (n < 10 ? '0' : '') + n; };
-  list.unshift({ t: pad(now.getMonth()+1) + '/' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()), m: String(text) });
+  list.unshift({ t: pad(now.getMonth()+1) + '/' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()), m: String(text), g: (gtype && gtype !== 'message') ? String(gtype) : '' });
   _msgSave(list);
   try { localStorage.setItem('mx_msg_unread', String(_msgUnread() + 1)); } catch(e){}
   updateBellDot();
@@ -6123,9 +6127,13 @@ function renderSechubMsgs(){
   if (!listEl) return;
   var list = _msgInbox();
   listEl.innerHTML = list.length
-    ? list.map(function(it){
+    ? list.map(function(it, i){
+        var giftTag = (it.g && GIFT_LABELS[it.g])
+          ? '<span onclick="replayGift(' + i + ')" style="display:inline-flex;align-items:center;gap:4px;background:#FFF8E6;border:1px solid #F0DEA0;color:#8a6d00;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:5px">' + GIFT_LABELS[it.g] + '禮物・點我重看 ✨</span>'
+          : '';
         return '<div style="background:var(--card);border:0.5px solid var(--border);border-radius:11px;padding:10px 13px;margin-bottom:7px">'
           + '<div style="font-size:11px;color:#9CA3AF;margin-bottom:3px">' + it.t + '</div>'
+          + giftTag
           + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + _linkifyMsg(it.m) + '</div>'
           + '</div>';
       }).join('')
@@ -6138,6 +6146,19 @@ function renderSechubMsgs(){
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(updateBellDot, 400); });
 
+// 點訊息上的禮物標籤：帶客人回花園，重播那一份禮物的動畫和卡片
+function replayGift(i){
+  var it = _msgInbox()[i];
+  if (!it || !it.g) return;
+  var keyMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower' };
+  var key = keyMap[it.g];
+  if (!key) return;
+  goPage('garden', '代謝花園');
+  setTimeout(function(){
+    if (typeof gsGift === 'function') { try { gsGift(key); } catch(e){} }
+    if (typeof showGift === 'function') showGift(key, it.m);
+  }, 350);
+}
 function checkGifts() {
   // 2026-08-30：改用 peek 模式——只查看、不標記已讀（點開秘書互動才標記），
   // 這樣手機和電腦都會亮紅點，不會被先開的那台搶走。用列號去重，同一則不會重複跳
@@ -6164,7 +6185,7 @@ function checkGifts() {
           shown = true;
         }
         // 每一則有內容的訊息都存進秘書訊息匣（鈴鐺亮紅點，隨時可以回看）
-        if (g.message) addToMsgInbox(g.message);
+        if (g.message) addToMsgInbox(g.message, g.giftType);
       });
       try { if (maxRow > lastRow) localStorage.setItem('mx_gift_lastrow', String(maxRow)); } catch(e){}
       if (shown) toast('🎁 秘書送你禮物，去花園看看 😊');
