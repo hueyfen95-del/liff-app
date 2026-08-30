@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-29g';
+var MX_BUILD = '2026-08-30b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -339,7 +339,7 @@ window.openHealthForm = function() {
          拿掉了，但她明確說過之後還是要留著讓客人隨時能重看（「只是第一次要先引導他的眼光，之後
          還是要留著阿」）。注意：這顆開的是「功能導覽框」（ob-wrap，一步步介紹下面每個功能怎麼用
          的那組卡片），不是介紹影片——影片有下面深色卡片裡自己的「點擊播放介紹影片」大按鈕 -->
-    <button onclick="openObGuide()" style="position:absolute;top:16px;right:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent"><i class="ti ti-map-2" style="font-size:11px"></i>新手導覽</button>
+    <button onclick="openGuideMenu()" style="position:absolute;top:16px;right:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;-webkit-tap-highlight-color:transparent"><i class="ti ti-help-circle" style="font-size:11px"></i>導覽與說明</button>
     <div style="font-size:12px;opacity:.75;margin-bottom:3px">嗨，陳小美</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:3px" id="home-stage-day">你的健康旅程</div>
     <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">–</span> 天 🔥</div>
@@ -571,6 +571,7 @@ window.openHealthForm = function() {
       <div class="qg" onclick="goPage('journey','粒腺體健康旅程')"><i class="ti ti-route"></i><div class="qg-l">健康旅程</div></div>
       <div class="qg" onclick="goPage('qa','問答')"><i class="ti ti-message-circle"></i><div class="qg-l">問答</div></div>
       <div class="qg" onclick="goPage('sec-hub','秘書互動')"><i class="ti ti-heart-handshake"></i><div class="qg-l">秘書互動</div><div class="qg-n" id="home-sechub-badge" style="display:none;color:var(--r)"></div></div>
+      <div class="qg" onclick="goPage('media','代謝學習之路')"><i class="ti ti-school"></i><div class="qg-l">學習之路</div></div>
     </div>
 
     <!-- 分享自測給親友（老客帶新客）-->
@@ -899,6 +900,8 @@ window.openHealthForm = function() {
 <div class="page" id="p-food">
   <div class="fb">
     <div style="padding:14px 16px 0">
+    <!-- 💡 便利商店外食小提示（2026-08-30 從影音清單搬來——這才是客人讀到它的場景） -->
+    <div style="background:#FFFBEB;border:0.5px solid #FCD34D;border-radius:12px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:#92400E;line-height:1.7">💡 <b>便利商店小提示</b>：可選松陵雞翅、德式香腸等碳水較低的品項。已經入酮後，早上補充足量含鹽奶油（加進咖啡或雞湯），完全不會餓，精神會非常好。</div>
     <!-- 🍚 我的碳水計畫（依秘書設定的份數個人化）-->
     <div id="carb-plan-card" style="border-radius:14px;padding:14px 15px;margin-bottom:10px;background:linear-gradient(135deg,#7A4F1D,#A8742E);color:#fff;display:none">
       <div style="font-size:13px;font-weight:700;margin-bottom:3px">🍚 我的碳水計畫</div>
@@ -1202,7 +1205,8 @@ window.openHealthForm = function() {
 
   <!-- ⑥ 體組成・血酮 -->
   <div id="itc-bod" style="display:none;padding:14px 16px 28px">
-    <div style="font-size:12px;font-weight:700;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:10px">🧍 體組成數值對照</div>
+    <div style="font-size:12px;font-weight:700;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid #E5E7EB;margin-bottom:6px">🧍 體組成數值對照</div>
+    <div style="margin-bottom:10px"><a href="https://youtu.be/4XKsSR2iOvQ" target="_blank" style="font-size:11.5px;color:#0F6E56;text-decoration:underline">📽 教你看懂體組成報告（影片）</a></div>
     <div id="itc-bod-nodata" style="display:none;padding:20px 0;text-align:center;color:#6B7280;font-size:12px">還沒有 InBody 檢測記錄，健康秘書幫你檢測後就會顯示在這裡</div>
     <div id="itc-bod-rows">
     <div id="itc-bod-fat" style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #F3F4F6"><div style="flex:1"><div style="font-size:12px;font-weight:600;color:#111827">體脂肪率</div><div style="font-size:12px;color:#6B7280;margin-top:2px">理想範圍：女&lt;25%</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0" id="itc-bod-fat-v"></div></div>
@@ -1300,7 +1304,29 @@ window.openHealthForm = function() {
       <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中…</div>
     </div>
 
-    <div style="text-align:center;margin-top:18px"><a href="manual_client.html" target="_blank" style="font-size:11.5px;color:var(--g3);text-decoration:underline">📖 APP 完整使用說明</a></div>
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin:18px 0 8px">📡 追蹤元代謝</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <a href="https://www.youtube.com/channel/UCylcz3E2h93xUxO7Rx9J1Jw" target="_blank" style="background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;color:var(--text);text-decoration:none">▶️ YouTube</a>
+      <a href="https://vocus.cc/salon/metabolica" target="_blank" style="background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;color:var(--text);text-decoration:none">📝 方格子</a>
+      <a href="https://open.firstory.me/user/metabolica/episodes" target="_blank" style="background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;color:var(--text);text-decoration:none">🎧 Podcast</a>
+      <a href="https://www.facebook.com/profile.php?id=61587936841918" target="_blank" style="background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;color:var(--text);text-decoration:none">📘 元代謝FB</a>
+      <a href="https://www.facebook.com/profile.php?id=61567707208197&locale=zh_TW" target="_blank" style="background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;color:var(--text);text-decoration:none">👥 減重營FB</a>
+      <a href="https://www.isometabolix.com" target="_blank" style="background:var(--card);border:0.5px solid var(--border);border-radius:20px;padding:6px 12px;font-size:11.5px;color:var(--text);text-decoration:none">🌐 官網</a>
+    </div>
+    <div style="text-align:center;font-size:10.5px;color:var(--text3);margin-top:10px">service@isometabolix.com・0965-593140</div>
+    <div style="text-align:center;margin-top:12px"><a href="manual_client.html" target="_blank" style="font-size:11.5px;color:var(--g3);text-decoration:underline">📖 APP 完整使用說明</a></div>
+  </div>
+</div>
+<!-- ══ 🎓 代謝學習之路（2026-08-30 重排：觀念影片做成有順序的課程；操作教學留在使用現場、
+     進階服務在商店、社群連結在秘書互動——按客人的意圖分家，不按媒體形式集中） ══ -->
+<div class="page" id="p-media">
+  <div style="padding:14px">
+    <div style="background:linear-gradient(135deg,#085041,#158066);border-radius:14px;padding:16px 18px;color:#fff;margin-bottom:14px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">🎓 代謝學習之路</div>
+      <div style="font-size:11px;opacity:.85;line-height:1.6">照著順序看，一步步搞懂身體為什麼需要這趟旅程。每支影片幾分鐘，搭配你的實際數據看更有感 🌱</div>
+    </div>
+<a href="https://youtu.be/QrXxsGEajjQ" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">1</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">代謝症候群與 IRCT 檢測 說明</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">為什麼胰島素阻抗是三高、肥胖背後的主因，IRCT 又在看什麼</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://youtu.be/Eu_HGWBpENk" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">2</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">身體像一部油電混合車（Randle cycle）</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">細胞怎麼在「燒糖」和「燒脂肪」之間切換——整個計畫的科學核心</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://youtu.be/GEdz327d8L8" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">3</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">三種飲食，你選擇哪一種？</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">看懂日常飲食結構怎麼天天消耗你的代謝健康</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://www.youtube.com/watch?v=1Vn8-Xy6uZI" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">4</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">生酮飲食：從邪門歪道到健康工具</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">破除迷思：生酮不是流行減肥法，是有醫學根據的代謝工具</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://www.youtube.com/watch?v=1ULljhK0mdg" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">5</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">生酮飲食：從市場迷思到代謝工具</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">市面上的「生酮商品」跟真正的治療性生酮差在哪</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://youtu.be/TDIdb3J5UsQ" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">6</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">IRT 治療性生酮之旅</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">你正在走的這條路完整長什麼樣：嚴格期、回補期、然後呢</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://www.youtube.com/watch?v=IX7GgwtNWzE" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">7</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">虛胖的四個模式</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">分辨你的體重是哪一種「虛」，對策完全不同</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://youtu.be/c33ABU8TY4k" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">8</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">什麼是抗老化體適能</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">體重之後的下一站：肌肉、體能與老化速度</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a><a href="https://youtu.be/h4QePCHZN-c" target="_blank" style="display:flex;gap:12px;background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px;text-decoration:none;align-items:flex-start"><span style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--g2);color:var(--g3);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">9</span><span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:2px">三安社區呼吸肌少症哈拉營</span><span style="font-size:11.5px;color:var(--text2);line-height:1.5">加映：呼吸與肌少症——高年級學員特別值得看</span></span><span style="flex-shrink:0;font-size:16px;align-self:center">▶️</span></a>
+    <div style="background:var(--g2);border-radius:12px;padding:12px 14px;margin-top:12px;font-size:12px;color:var(--g3);line-height:1.7">看完有問題或想討論？到「問答」頁問，或直接請秘書幫你解讀你自己的數據 😊</div>
   </div>
 </div>
 <!-- ══ IRCT 預約流程 ══ -->
@@ -1326,7 +1352,8 @@ window.openHealthForm = function() {
     <!-- Step 1：飲食模式 -->
     <div id="bk-step1" style="padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">這次 IRCT 期間，你的飲食模式是？</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">選擇最接近你目前飲食習慣的選項，結果將與上次報告對照。</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px;line-height:1.6">選擇最接近你目前飲食習慣的選項，結果將與上次報告對照。</div>
+      <div style="margin-bottom:10px"><a href="https://youtu.be/QrXxsGEajjQ" target="_blank" style="font-size:11.5px;color:var(--g3);text-decoration:underline">📽 還不清楚 IRCT 是什麼？先看 3 分鐘說明影片</a></div>
       <div id="bk-prev-diet-card" style="background:var(--b2);border:1px solid #93C5FD;border-radius:10px;padding:9px 12px;margin-bottom:12px;display:flex;align-items:center;gap:9px">
         <span style="font-size:20px" id="bk-prev-diet-icon">📋</span>
         <div><div style="font-size:12px;font-weight:700;color:var(--b3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px" id="bk-prev-diet-label">請選擇你目前的飲食習慣</div><div style="font-size:12px;font-weight:700;color:var(--b3)" id="bk-prev-diet-value">這將作為你的飲食基準線</div><div style="font-size:12px;color:var(--b);margin-top:2px" id="bk-prev-diet-note">用於跟之後的檢測結果比較</div></div>
@@ -1557,6 +1584,7 @@ window.openHealthForm = function() {
       <div style="padding:13px 16px;padding-bottom:20px">
         <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--g3);line-height:1.9"><div style="font-weight:700;margin-bottom:4px">預約確認 ✓</div><span id="bk-confirm-summary">IRCT 動態胰島素檢測・NT$6,800</span><br><span id="bk-confirm-location">瑞絲得診所・新竹・06/21 08:30</span><br><strong>飲食模式：</strong><span id="bk-confirm-diet">🥑 粒腺體飲食（碳水 5%，脂肪 70%）</span></div>
         <div style="background:var(--b2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--b3);line-height:1.7;margin-bottom:11px">📩 預約已送出給健康秘書<br>💬 已幫你傳訊息給秘書，秘書會在 LINE 回覆你，確認實際檢測日期<br>🌙 確認日期後，記得檢測前一晚要空腹唷</div>
+        <a href="https://youtu.be/hOEKfWTbOp4" target="_blank" style="display:block;background:var(--g);color:#fff;border-radius:11px;padding:11px;text-align:center;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:11px">▶️ 檢測前必看：IRCT 檢前說明影片</a>
         <button onclick="goPage('irct','IRCT 報告')" style="width:100%;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">返回報告頁</button>
       </div>
     </div>
@@ -1984,6 +2012,7 @@ window.openHealthForm = function() {
         <div onclick="scrollToCategory('cat-goods')" style="flex-shrink:0;border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);white-space:nowrap;transition:all .13s">🩸 檢測用品</div>
         <div onclick="scrollToCategory('cat-supp')" style="flex-shrink:0;border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);white-space:nowrap;transition:all .13s">💊 保健品</div>
         <div onclick="scrollToCategory('cat-soup')" style="flex-shrink:0;border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);white-space:nowrap;transition:all .13s">🍲 防彈雞湯</div>
+        <div onclick="scrollToCategory('cat-services')" style="flex-shrink:0;border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);white-space:nowrap;transition:all .13s">🌟 進階服務</div>
         <div onclick="scrollToCategory('cat-snack')" style="flex-shrink:0;border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);white-space:nowrap;transition:all .13s">🍫 防彈點心</div>
         <div onclick="scrollToCategory('cat-oil')" style="flex-shrink:0;border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);white-space:nowrap;transition:all .13s">🫙 防彈油品</div>
         <div onclick="scrollToCategory('cat-electrolyte')" style="flex-shrink:0;border:1px solid var(--border2);border-radius:20px;padding:5px 13px;font-size:11px;color:var(--text2);cursor:pointer;background:var(--card);white-space:nowrap;transition:all .13s">🧂 電解質</div>
@@ -2172,6 +2201,10 @@ window.openHealthForm = function() {
       </div>
     </div>
 
+    <!-- 🌟 進階服務（2026-08-30：從影音清單搬進商店——這些是服務商品，放商店才會產生詢問） -->
+    <div id="cat-services" style="font-size:14px;font-weight:700;color:var(--text);margin:18px 0 4px;display:flex;align-items:center;gap:8px"><span style="font-size:22px">🌟</span>進階服務</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">想了解或預約任何一項，直接跟你的健康秘書說就可以 😊</div>
+<div style="background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;flex-shrink:0">🏃</span><div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:var(--text)">全方位陪跑服務</div><div style="font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px">醫師×秘書×數據，一整年陪你走完代謝調整</div></div></div><div style="display:flex;gap:7px;margin-top:9px"><a href="https://youtu.be/8RC6sPwuwJ0" target="_blank" style="flex:1;text-align:center;background:var(--g2);color:var(--g3);border-radius:9px;padding:8px;font-size:12px;font-weight:700;text-decoration:none">▶️ 看介紹影片</a></div></div><div style="background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;flex-shrink:0">👨‍🍳</span><div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:var(--text)">代謝私廚服務</div><div style="font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px">把「吃得對」外包給專業，適合忙碌或想犒賞自己的你</div></div></div><div style="display:flex;gap:7px;margin-top:9px"><a href="https://youtu.be/Zs-8QISFfoI" target="_blank" style="flex:1;text-align:center;background:var(--g2);color:var(--g3);border-radius:9px;padding:8px;font-size:12px;font-weight:700;text-decoration:none">▶️ 看介紹影片</a></div></div><div style="background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;flex-shrink:0">🍲</span><div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:var(--text)">法式雞湯</div><div style="font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px">嚴格期的好朋友：好油、蛋白質、零負擔</div></div></div><div style="display:flex;gap:7px;margin-top:9px"><a href="https://youtu.be/TyyICV_tcEA" target="_blank" style="flex:1;text-align:center;background:var(--g2);color:var(--g3);border-radius:9px;padding:8px;font-size:12px;font-weight:700;text-decoration:none">▶️ 看介紹影片</a><a href="https://forms.gle/e6xa35zhAEXWsoEg7" target="_blank" style="flex:1;text-align:center;background:var(--g);color:#fff;border-radius:9px;padding:8px;font-size:12px;font-weight:700;text-decoration:none">🛒 我要訂購</a></div></div><div style="background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;flex-shrink:0">👑</span><div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:var(--text)">畢業禮物：風格重設・重生加冕儀式</div><div style="font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px">瘦下來之後的儀式感——美學顧問幫你重新定義自己</div></div></div><div style="display:flex;gap:7px;margin-top:9px"><a href="https://youtu.be/JhdxUcOCrs8" target="_blank" style="flex:1;text-align:center;background:var(--g2);color:var(--g3);border-radius:9px;padding:8px;font-size:12px;font-weight:700;text-decoration:none">▶️ 看介紹影片</a></div></div><div style="background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;flex-shrink:0">🏢</span><div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:var(--text)">企業合作方案</div><div style="font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px">把代謝健康帶進你的公司</div></div></div><div style="display:flex;gap:7px;margin-top:9px"><a href="https://youtu.be/Hdn8EV_aEkM" target="_blank" style="flex:1;text-align:center;background:var(--g2);color:var(--g3);border-radius:9px;padding:8px;font-size:12px;font-weight:700;text-decoration:none">▶️ 看介紹影片</a></div></div><div style="background:var(--card);border:0.5px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:9px"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;flex-shrink:0">🥐</span><div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:var(--text)">朵蜜法式廚藝教室</div><div style="font-size:11.5px;color:var(--text2);line-height:1.5;margin-top:2px">學會自己做出好吃又合規的料理</div></div></div><div style="display:flex;gap:7px;margin-top:9px"><a href="https://youtu.be/eJEBCwjGMVs" target="_blank" style="flex:1;text-align:center;background:var(--g2);color:var(--g3);border-radius:9px;padding:8px;font-size:12px;font-weight:700;text-decoration:none">▶️ 看介紹影片</a></div></div>
     <!-- 前往官網按鈕 -->
     <a href="https://www.isometabolix.com/category/all-products" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,#085041,var(--g));color:#fff;border:none;border-radius:12px;padding:14px;font-size:14px;font-weight:700;text-decoration:none;margin-top:4px">
       <i class="ti ti-shopping-cart" style="font-size:18px"></i>
@@ -5695,6 +5728,26 @@ function _finishMeal(mealCode) {
 
 
 
+<!-- 📚 導覽與說明三合一選單（2026-08-30 創始人指示：功能導覽/介紹影片/使用手冊是同一件事的三種深度，集中一個入口） -->
+<div id="guide-menu" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9997;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeGuideMenu()">
+  <div style="background:#fff;border-radius:18px 18px 0 0;padding:20px 18px 30px;width:100%;max-width:440px">
+    <div style="font-size:16px;font-weight:800;color:#1E2B27;margin-bottom:3px">📚 認識這個 App</div>
+    <div style="font-size:12px;color:#8A9992;margin-bottom:14px">想看多深，自己選 😊</div>
+    <button onclick="closeGuideMenu();openObGuide()" style="width:100%;display:flex;align-items:center;gap:12px;background:#F4FAF7;border:1px solid #E2EDE7;border-radius:13px;padding:13px 15px;margin-bottom:8px;cursor:pointer;text-align:left">
+      <span style="font-size:22px">🗺</span><span><b style="display:block;font-size:14px;color:#1E2B27">功能導覽</b><span style="font-size:11.5px;color:#8A9992">3 分鐘卡片，快速認識每個功能</span></span>
+    </button>
+    <button onclick="closeGuideMenu();openIntroVideo()" style="width:100%;display:flex;align-items:center;gap:12px;background:#F4FAF7;border:1px solid #E2EDE7;border-radius:13px;padding:13px 15px;margin-bottom:8px;cursor:pointer;text-align:left">
+      <span style="font-size:22px">📽</span><span><b style="display:block;font-size:14px;color:#1E2B27">介紹影片</b><span style="font-size:11.5px;color:#8A9992">5 分鐘了解為什麼身體需要這趟旅程</span></span>
+    </button>
+    <button onclick="closeGuideMenu();goPage('media','代謝學習之路')" style="width:100%;display:flex;align-items:center;gap:12px;background:#F4FAF7;border:1px solid #E2EDE7;border-radius:13px;padding:13px 15px;margin-bottom:8px;cursor:pointer;text-align:left">
+      <span style="font-size:22px">🎓</span><span><b style="display:block;font-size:14px;color:#1E2B27">代謝學習之路</b><span style="font-size:11.5px;color:#8A9992">9 堂課照順序看，搞懂這趟旅程的為什麼</span></span>
+    </button>
+    <button onclick="window.open('manual_client.html','_blank')" style="width:100%;display:flex;align-items:center;gap:12px;background:#F4FAF7;border:1px solid #E2EDE7;border-radius:13px;padding:13px 15px;margin-bottom:8px;cursor:pointer;text-align:left">
+      <span style="font-size:22px">📖</span><span><b style="display:block;font-size:14px;color:#1E2B27">完整使用手冊</b><span style="font-size:11.5px;color:#8A9992">圖文說明，所有功能一次看懂</span></span>
+    </button>
+    <div style="text-align:center;margin-top:6px"><button onclick="closeGuideMenu()" style="background:none;border:none;font-size:12px;color:#8A9992;cursor:pointer">關閉</button></div>
+  </div>
+</div>
 <!-- 新手指引 -->
 <div id="ob-wrap" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);z-index:99999;display:none;align-items:flex-end;justify-content:center">
   <div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 40px;max-height:85vh;overflow-y:auto">
@@ -5733,9 +5786,10 @@ function _finishMeal(mealCode) {
         <div style="font-size:12px;font-weight:700;color:#1E40AF;margin-bottom:4px">重點二：讓機器吸血</div>
         <div style="font-size:11px;color:#1E40AF;line-height:1.6">引流口輕輕碰觸血液，讓它自己吸進去，不是把血滴入</div>
       </div>
-      <div style="background:#E1F5EE;border-radius:12px;padding:12px 15px;margin-bottom:14px">
+      <div style="background:#E1F5EE;border-radius:12px;padding:12px 15px;margin-bottom:8px">
         <div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定生酮 ✅　超過3.0：深層生酮</div>
       </div>
+      <div style="text-align:center;margin-bottom:14px"><a href="https://www.youtube.com/watch?v=fYLgcM7q_kA" target="_blank" style="font-size:12px;color:#0F6E56;text-decoration:underline">▶️ 看實際操作影片（FORA MD6）</a></div>
       <div style="display:flex;gap:8px">
         <button style="flex:1;background:#F3F4F6;color:#4B5563;border:none;border-radius:14px;padding:12px;font-size:13px;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s1').style.display='none';document.getElementById('ob-s0').style.display='block'">← 上一步</button>
         <button style="flex:2;background:#1D9E75;color:#fff;border:none;border-radius:14px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-s1').style.display='none';document.getElementById('ob-s2').style.display='block'">下一步 →</button>
@@ -5793,7 +5847,9 @@ function _finishMeal(mealCode) {
 // 「不見了？」背後的一部分原因。改成串接：先看完/關掉影片，才輪到顯示這個新手導覽小卡，
 // 不會再兩層疊在一起搶畫面。
 var _obWizardShown = false;
-// 右上角「新手導覽」按鈕：隨時手動重看功能導覽框（從第一步開始），不受 ob_done 影響
+function openGuideMenu(){ var g=document.getElementById('guide-menu'); if(g) g.style.display='flex'; }
+function closeGuideMenu(){ var g=document.getElementById('guide-menu'); if(g) g.style.display='none'; }
+// 「導覽與說明」選單裡的功能導覽：隨時手動重看（從第一步開始），不受 ob_done 影響
 function openObGuide(){
   try {
     var s0=document.getElementById('ob-s0'), s1=document.getElementById('ob-s1'),
@@ -6293,7 +6349,7 @@ function showKetoGuide() {
   var modal = document.createElement('div');
   modal.id = 'keto-guide-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:flex-end;justify-content:center';
-  modal.innerHTML = '<div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 20px 36px;max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:16px;font-weight:700;color:#111827">🩸 血酮機怎麼用？</div><button onclick="document.getElementById(\'keto-guide-modal\').remove()" style="background:#F3F4F6;border:none;border-radius:20px;padding:5px 11px;cursor:pointer;font-size:12px">關閉</button></div><div style="background:#FEF2EE;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #E24B4A"><div style="font-size:12px;font-weight:700;color:#712B13;margin-bottom:4px">重點一：先等，再採血</div><div style="font-size:11px;color:#993C1D;line-height:1.6">插入試紙後，等機器說完話、螢幕出現閃動血點，才採血</div></div><div style="background:#EFF6FF;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #378ADD"><div style="font-size:12px;font-weight:700;color:#1E40AF;margin-bottom:4px">重點二：讓機器吸血</div><div style="font-size:11px;color:#1E40AF;line-height:1.6">引流口輕輕碰觸血液，讓它自己吸進去，不是把血滴入</div></div><div style="background:#E1F5EE;border-radius:12px;padding:12px 15px"><div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定生酮 ✅　超過3.0：深層生酮</div></div></div>';
+  modal.innerHTML = '<div style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:20px 20px 36px;max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:16px;font-weight:700;color:#111827">🩸 血酮機怎麼用？</div><button onclick="document.getElementById(\'keto-guide-modal\').remove()" style="background:#F3F4F6;border:none;border-radius:20px;padding:5px 11px;cursor:pointer;font-size:12px">關閉</button></div><div style="background:#FEF2EE;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #E24B4A"><div style="font-size:12px;font-weight:700;color:#712B13;margin-bottom:4px">重點一：先等，再採血</div><div style="font-size:11px;color:#993C1D;line-height:1.6">插入試紙後，等機器說完話、螢幕出現閃動血點，才採血</div></div><div style="background:#EFF6FF;border-radius:12px;padding:13px 15px;margin-bottom:10px;border-left:3px solid #378ADD"><div style="font-size:12px;font-weight:700;color:#1E40AF;margin-bottom:4px">重點二：讓機器吸血</div><div style="font-size:11px;color:#1E40AF;line-height:1.6">引流口輕輕碰觸血液，讓它自己吸進去，不是把血滴入</div></div><div style="background:#E1F5EE;border-radius:12px;padding:12px 15px"><div style="font-size:11px;color:#085041;line-height:1.8">0.5–1.0：入酮中 🌱　1.0–3.0：穩定生酮 ✅　超過3.0：深層生酮</div></div><a href="https://www.youtube.com/watch?v=fYLgcM7q_kA" target="_blank" style="display:block;background:#0F6E56;color:#fff;border-radius:12px;padding:11px;text-align:center;font-size:13px;font-weight:700;text-decoration:none;margin-top:10px">▶️ 看 FORA MD6 實際操作影片</a><a href="https://youtu.be/hHr9747Id-o" target="_blank" style="display:block;color:#0F6E56;text-align:center;font-size:11.5px;margin-top:8px">6合1 血糖機藍牙配對教學 →</a></div>';
   document.body.appendChild(modal);
 }
 </script>
