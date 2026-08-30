@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28k';
+var MX_BUILD = '2026-08-30d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -250,6 +250,8 @@ var MX_BUILD = '2026-08-28k';
     <div class="sb-logo-s">管理系統 v2.0</div>
     <div class="sb-logo-s" id="mx-build-line" style="opacity:.75;font-size:10px;margin-top:2px"></div>
     <div onclick="window.open('manual_secretary.html','_blank')" style="margin-top:7px;font-size:11px;color:rgba(255,255,255,.85);cursor:pointer;text-decoration:underline">📖 使用手冊</div>
+    <div onclick="openVoiceModal()" style="margin-top:5px;font-size:11px;color:rgba(255,255,255,.85);cursor:pointer;text-decoration:underline">💡 跟創辦人說</div>
+    <div id="founder-manual-link" onclick="window.open('manual_founder.html','_blank')" style="display:none;margin-top:5px;font-size:11px;color:#FFE9B8;cursor:pointer;text-decoration:underline">👑 創辦人手冊</div>
   </div>
   <div class="sb-nav">
     <div class="sb-sec">主要</div>
@@ -444,13 +446,12 @@ var MX_BUILD = '2026-08-28k';
       </div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-bar"></i>本週整體血酮趨勢（所有客人平均）</div></div>
-    <div class="card-body">
-      <div class="mini-bar-wrap" id="dash-ketone-bars">
-        <div style="font-size:11px;color:var(--text3);text-align:center;width:100%;padding:16px 0">載入中…</div>
-      </div>
-      <div style="font-size:12px;color:var(--text2);margin-top:8px" id="dash-ketone-text"></div>
+  <!-- 血酮統計卡已整個移除（2026-08-30 創始人裁定：血酮不用統計了，沒有太大意義） -->
+  <!-- 📈 經營指標（2026-08-30：只有創始人/老闆看得到，loadFounderMetrics會依角色決定顯示與否） -->
+  <div class="card" id="founder-metrics-card" style="display:none">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-line"></i>📈 經營指標（創始人專屬）</div><button class="tb-btn" style="font-size:11px" onclick="loadFounderMetrics()">更新</button></div>
+    <div class="card-body" id="founder-metrics-body">
+      <div style="font-size:11px;color:var(--text3);text-align:center;padding:16px 0">載入中…</div>
     </div>
   </div>
 </div>
@@ -5561,6 +5562,14 @@ function loadMealRecordsAdmin(id){
 }
 // ══════ 📥 客人互動信箱（2026-08-30 創始人指示：所有前台互動都要有後台顯示＋選擇題回覆）══════
 // 諮詢預約的罐頭回覆
+// 進階服務詢問的罐頭回覆（2026-08-30：客人在商店按「我想了解」後，秘書用選的就能回）
+var SVC_REPLY_TEMPLATES = [
+  '收到您的詢問！稍後為您詳細介紹這項服務的內容與價格 😊',
+  '這項服務很適合您現在的階段，我把詳細說明用LINE傳給您。',
+  '可以先看服務卡上的介紹影片，看完有任何問題隨時問我。',
+  '幫您預約一次線上說明好嗎？請告訴我您方便的時段。',
+  '這項服務目前有優惠方案，詳情我整理好傳給您。'
+];
 var CONSULT_REPLY_TEMPLATES = [
   '已收到你的諮詢預約！請回我幾個你方便的時段（例如：週三下午、週五早上），秘書馬上幫你安排 😊',
   '已幫你登記諮詢，秘書會在 1 個工作天內跟你確認時間，請留意鈴鐺通知 🔔',
@@ -5635,7 +5644,7 @@ function loadClientInbox(){
     if(_ciCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = _ciCache.map(function(it, i){
-      var setName = it.src === 'mood' ? 'MOOD_REPLY_TEMPLATES' : 'CONSULT_REPLY_TEMPLATES';
+      var setName = it.src === 'mood' ? 'MOOD_REPLY_TEMPLATES' : (it.noteType === '進階服務詢問' ? 'SVC_REPLY_TEMPLATES' : 'CONSULT_REPLY_TEMPLATES');
       return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
         + '<span style="font-size:10.5px;background:'+(it.src==='mood'?'#EFF6FF':'#F5F3FF')+';color:'+(it.src==='mood'?'#1E40AF':'#5B21B6')+';border-radius:20px;padding:2px 8px;font-weight:700">'+escH(it.kind)+'</span>'
@@ -5660,17 +5669,17 @@ function ciSendReply(i, btnEl){
   if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); if(ta) ta.focus(); return; }
   var ciGift = _pickedGift(btnEl || null);
   adminAPIPost({action:'sendGift', clientId:it.clientId, giftType: ciGift || 'message',
-    message:(it.src==='mood' ? '💛 秘書的關心：' : '🎫 諮詢預約回覆：') + text,
+    message:(it.src==='mood' ? '💛 秘書的關心：' : (it.noteType==='進階服務詢問' ? '🛍 服務介紹：' : '🎫 諮詢預約回覆：')) + text,
     secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok'){
       toast('💌 已回覆 ' + (it.name||it.clientId) + '，客人鈴鐺會亮紅點');
-      adminAPIPost({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId}, function(){ loadClientInbox(); loadTodayDuty(); });
+      adminAPIPost({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(){ loadClientInbox(); loadTodayDuty(); });
     } else toast('⚠️ 送出失敗，請重試');
   });
 }
 function ciMarkOnly(i){
   var it = _ciCache[i]; if(!it) return;
-  adminAPIPost({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId}, function(d){
+  adminAPIPost({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok'){ toast('✅ 已標記完成'); loadClientInbox(); loadTodayDuty(); }
     else toast('⚠️ '+((d&&d.message)||'標記失敗'));
   });
@@ -5732,7 +5741,7 @@ function sendMealReply(uid, cid, row, btnEl){
     message:'🍽 飲食建議：' + text, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok'){
       toast('💌 已回覆 ' + cid + '，客人打開前台就會看到');
-      if (row) { adminAPIPost({action:'markMealHelpReplied', row:row, clientId:cid}, function(){ loadMealHelp(); loadTodayDuty(); }); }
+      if (row) { adminAPIPost({action:'markMealHelpReplied', row:row, clientId:cid, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(){ loadMealHelp(); loadTodayDuty(); }); }
       else if (ta) ta.value = '';
     } else toast('⚠️ 送出失敗，請重試');
   });
@@ -5771,7 +5780,7 @@ function loadMealHelp(){
   });
 }
 function markMealHelpReplied(row, cid){
-  adminAPIPost({action:'markMealHelpReplied', row:row, clientId:cid}, function(d){
+  adminAPIPost({action:'markMealHelpReplied', row:row, clientId:cid, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok'){ toast('✅ 已標記回覆'); loadMealHelp(); loadTodayDuty(); }
     else toast('⚠️ '+((d&&d.message)||'標記失敗'));
   });
@@ -6626,42 +6635,188 @@ function promptSavePhoneAndCall(id){
   });
 }
 
-// ── 本週整體血酮趨勢（真實資料版）──
-function loadKetoneTrend(){
-  var bars = document.getElementById('dash-ketone-bars');
-  var txt = document.getElementById('dash-ketone-text');
-  if(!bars || !txt) return;
-  adminAPI({action:'getWeeklyKetoneTrend'}, function(d){
-    bars = document.getElementById('dash-ketone-bars');
-    txt = document.getElementById('dash-ketone-text');
-    if(!bars || !txt) return;
-    if(!d || d.status !== 'ok'){ bars.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;width:100%;padding:16px 0">載入失敗</div>'; txt.textContent=''; return; }
-    var daily = d.daily || [], labels = ['一','二','三','四','五','六','日'];
-    var vals = daily.filter(function(v){ return v !== null; });
-    if(vals.length === 0){
-      bars.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;width:100%;padding:16px 0">本週還沒有客人的血酮記錄</div>';
-      txt.textContent = d.lastAvg !== null ? '上週整體平均血酮：' + d.lastAvg + ' mmol/L' : '';
-      return;
+// ── 📈 經營指標（2026-08-30二版，創始人指示：血酮統計拿掉，改成有效的經營指標——
+// 客戶滿意度、續購率、客帶客、秘書的困擾與建議；秘書KPI維持按排班歸屬。只有創始人/老闆看得到）──
+function loadFounderMetrics(){
+  var card = document.getElementById('founder-metrics-card');
+  var body = document.getElementById('founder-metrics-body');
+  if(!card || !body) return;
+  var fmR = CURRENT_USER && CURRENT_USER.role;
+  if(fmR !== '創始人' && fmR !== '老闆'){ card.style.display='none'; return; }
+  card.style.display='';
+  adminAPI({action:'getFounderMetrics'}, function(d){
+    body = document.getElementById('founder-metrics-body');
+    if(!body) return;
+    if(!d || d.status!=='ok'){ body.innerHTML='<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px 0">'+escH((d&&d.message)||'載入失敗，點「更新」重試')+'</div>'; return; }
+    var w = d.weekly||{}, res = d.results||{}, hp = d.help||{};
+    var rn = d.renewal||{renewed:0,expired:0,notRenewed:[]};
+    var rf = d.referrals||{count90:0,top:[]};
+    var sat = d.satisfaction||{n:0,avg:null,prevAvg:null,sad:[]};
+    var diff = (w.active||0)-(w.lastActive||0);
+    var stat = function(label, val, sub){
+      return '<div style="background:#F6FBF9;border:1px solid var(--border);border-radius:10px;padding:9px 10px">'
+        + '<div style="font-size:10.5px;color:var(--text3)">'+label+'</div>'
+        + '<div style="font-size:16px;font-weight:800;color:#0F6E56">'+val+'</div>'
+        + (sub?'<div style="font-size:10px;color:var(--text3);line-height:1.5">'+sub+'</div>':'')+'</div>';
+    };
+    var satFace = sat.avg==null ? '—' : (sat.avg>=2.5?'😊 ':sat.avg>=1.8?'😐 ':'😞 ')+sat.avg;
+    var satSub = sat.n ? sat.n+' 位填了本月評分'+(sat.prevAvg!=null?'（上月 '+sat.prevAvg+'）':'') : '本月還沒有客人填（前台每月會自動問一次）';
+    var rnRate = rn.expired ? Math.round(rn.renewed/rn.expired*100) : null;
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:7px;margin-bottom:10px">'
+      + stat('本月客戶滿意度', satFace, satSub)
+      + stat('續購率（近90天）', rnRate==null?'—':rnRate+'%', rn.expired? rn.expired+' 位到期中 '+rn.renewed+' 位續約':'近90天沒有方案到期')
+      + stat('客帶客（近90天）', (rf.count90||0)+' 位', rf.top&&rf.top.length? '最熱心：'+escH(rf.top[0].name)+'（'+rf.top[0].count+' 位）':'還沒有介紹記錄')
+      + stat('本週活躍客人', (w.active||0)+' / '+(w.total||0), '上週 '+(w.lastActive||0)+' 位（'+(diff>0?'↑+'+diff:diff<0?'↓'+diff:'持平')+'）')
+      + stat('成果累計', '減 '+(res.lossKg||0)+' kg', (res.lossKgN||0)+' 位有減重・腰圍共 −'+(res.lossWaist||0)+' cm（'+(res.lossWaistN||0)+' 位）')
+      + stat('本週求助/互動', (hp.count7||0)+' 筆', hp.avgReplyHours!=null?'平均 '+hp.avgReplyHours+' 小時回覆':'（還沒有回覆時效資料）')
+      + stat('HOMA-IR 平均改善', (d.homa&&d.homa.avgPct!=null)?(d.homa.avgPct>0?'↓ ':'')+d.homa.avgPct+'%':'—', (d.homa&&d.homa.n)?d.homa.n+' 位驗過兩次以上（第一次vs最新）':'還沒有客人驗過兩次')
+      + stat('儲值餘額總水位', '$'+((d.storedTotal||0).toLocaleString()), '已核查的儲值−消費加總')
+      + stat('點數諮詢（近90天）', ((d.consult&&d.consult.redeem90)||0)+' 次兌換', '另有 '+((d.consult&&d.consult.requests90)||0)+' 筆預約需求——諮詢旺＝服務被重視')
+      + stat('進階服務詢問（近90天）', ((d.svcInquiries&&d.svcInquiries.count90)||0)+' 筆', (d.svcInquiries&&d.svcInquiries.top&&d.svcInquiries.top.length)?'最熱門：'+escH(d.svcInquiries.top[0].name)+'（'+d.svcInquiries.top[0].count+'）':'商店服務卡的「我想了解」按了就會算')
+      + '</div>';
+    // 進階服務詢問明細（哪個服務最多人想了解＝下一個主打）
+    if(d.svcInquiries && d.svcInquiries.top && d.svcInquiries.top.length > 1){
+      html += '<div style="background:#FFF8E6;border:1px solid #F0DEA0;border-radius:10px;padding:9px 11px;margin-bottom:8px">'
+        + '<b style="font-size:12.5px;color:#8a6d00">🛍 進階服務詢問排行（近90天）</b>'
+        + '<div style="margin-top:5px">'+d.svcInquiries.top.map(function(t,i){
+            return '<span style="display:inline-block;background:#fff;border:1px solid #F0DEA0;border-radius:20px;padding:3px 10px;font-size:11.5px;margin:2px">'+(i===0?'🔥 ':'')+escH(t.name)+' <b>'+t.count+'</b> 筆</span>';
+          }).join('')+'</div></div>';
     }
-    var scale = Math.max.apply(null, vals.concat([1.5])); // 至少以1.5為滿格基準，低血酮不會畫成滿柱
-    bars.innerHTML = daily.map(function(v, i){
-      var isToday = i === d.todayIndex;
-      var h = v === null ? 4 : Math.max(6, Math.round(v / scale * 90));
-      var barStyle = v === null ? 'height:4%;background:var(--border);border-color:var(--border)' : 'height:' + h + '%';
-      return '<div class="mbc"><div class="mb-bar' + (isToday ? ' hi' : '') + '" style="' + barStyle + '" title="' + (v === null ? '沒有記錄' : '平均 ' + v + ' mmol/L') + '"></div>'
-        + '<div class="mb-d"' + (isToday ? ' style="color:var(--g);font-weight:700"' : '') + '>' + (isToday ? '今' : labels[i]) + '</div></div>';
+    var chipRow = function(title, color, bg, bd, list, fmt, emptyMsg){
+      return '<div style="background:'+bg+';border:1px solid '+bd+';border-radius:10px;padding:9px 11px;margin-bottom:8px">'
+        + '<b style="font-size:12.5px;color:'+color+'">'+title+'</b>'
+        + (list.length? '<div style="margin-top:5px">'+list.map(function(c){
+            return '<span onclick="openClientDetail(\''+escH(c.clientId)+'\',\''+escH(c.name)+'\')" style="display:inline-block;background:#fff;border:1px solid '+bd+';border-radius:20px;padding:3px 10px;font-size:11.5px;margin:2px;cursor:pointer">'+fmt(c)+'</span>';
+          }).join('')+'</div>' : (emptyMsg?'<div style="font-size:11.5px;color:var(--text2);margin-top:3px">'+emptyMsg+'</div>':''))
+        + '</div>';
+    };
+    // 😞 本月不滿意的客人——最需要先知道的名單
+    if((sat.sad||[]).length){
+      html += chipRow('😞 本月給了不滿意的客人：'+sat.sad.length+' 位（點開看看發生什麼事）', '#B91C1C', '#FFF1F0', '#F5C6C4',
+        sat.sad, function(c){ return escH(c.name)+(c.comment?' <span style="color:#B91C1C">「'+escH(c.comment)+'」</span>':''); }, '');
+    }
+    html += chipRow('💳 到期沒續約（近90天）：'+(rn.notRenewed||[]).length+' 位', '#8a6d00', '#FFF8E6', '#F0DEA0',
+      rn.notRenewed||[], function(c){ return escH(c.name)+' <span style="color:#8a6d00">'+escH(c.endDate||'')+'到期</span>'; }, '近90天到期的都續約了 ✨');
+    html += chipRow('🚪 流失風險（超過7天沒動靜）：'+(d.churnRisk||[]).length+' 位', '#B91C1C', '#FFF1F0', '#F5C6C4',
+      d.churnRisk||[], function(c){ return escH(c.name)+' <span style="color:#B91C1C">'+(c.days==null?'從未記錄':c.days+'天')+'</span>'; }, '太好了，大家最近都有在動 ✨');
+    html += chipRow('📆 30天內方案到期：'+(d.expiring30||[]).length+' 位（提前續約）', '#0E3A47', '#EAF5F8', '#C9E3EA',
+      d.expiring30||[], function(c){ return escH(c.name)+' <span style="color:#0E7A94">'+c.daysLeft+'天</span>'; }, '最近沒有客人要到期');
+    // 客帶客 Top 名單
+    if((rf.top||[]).length){
+      html += '<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:9px 11px;margin-bottom:8px">'
+        + '<b style="font-size:12.5px;color:#166534">🤝 客帶客熱心榜（近90天，記得感謝他們）</b>'
+        + '<div style="margin-top:5px">'+rf.top.map(function(t,i){
+            return '<span style="display:inline-block;background:#fff;border:1px solid #BBF7D0;border-radius:20px;padding:3px 10px;font-size:11.5px;margin:2px">'+(i===0?'🏆 ':'')+escH(t.name)+' 介紹了 <b>'+t.count+'</b> 位</span>';
+          }).join('')+'</div></div>';
+    }
+    // 💡 秘書心聲
+    html += '<div style="background:#FDF4FF;border:1px solid #E9D5FF;border-radius:10px;padding:9px 11px;margin-bottom:8px">'
+      + '<b style="font-size:12.5px;color:#6B21A8">💡 秘書的困擾與建議'+(d.voicesPending>0?'（<span style="color:#B91C1C">'+d.voicesPending+' 則還沒處理</span>）':'')+'</b>'
+      + '<div id="voice-list" style="margin-top:5px"><span style="font-size:11px;color:var(--text3)">載入中…</span></div></div>';
+    // 秘書KPI
+    var kpi = d.kpi||[];
+    html += '<div style="background:#F6FBF9;border:1px solid var(--border);border-radius:10px;padding:9px 11px">'
+      + '<b style="font-size:12.5px;color:#0E3A47">👩‍💼 秘書表現（近7天・一快一暖一不漏）</b>'
+      + '<div style="font-size:10.5px;color:var(--text3);margin:3px 0 6px">「當班收件」＝求助進來那天誰當班就歸誰盯（照排班表）；「回覆」記的是實際回覆的人。這張表只有您看得到，秘書只會看到積壓警示。</div>';
+    if(!kpi.length){ html += '<div style="font-size:11.5px;color:var(--text2)">還沒有可統計的資料——要等排班表有排班、且秘書開始用系統回覆之後才算得出來</div>'; }
+    else {
+      html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11.5px;min-width:380px">'
+        + '<tr style="color:var(--text3);text-align:left"><th style="padding:4px 6px">秘書</th><th style="padding:4px 6px">當班收件</th><th style="padding:4px 6px">回覆</th><th style="padding:4px 6px">平均時效</th><th style="padding:4px 6px">主動關心</th><th style="padding:4px 6px">積壓</th></tr>'
+        + kpi.map(function(k2,i){
+            var fast = k2.avgReplyHours!=null && k2.avgReplyHours<=4;
+            return '<tr style="border-top:1px solid var(--border)">'
+              +'<td style="padding:5px 6px;font-weight:700">'+(i===0&&(k2.replies+k2.gifts)>0?'🏆 ':'')+escH(k2.secretary)+'</td>'
+              +'<td style="padding:5px 6px">'+k2.onDutyIn+'</td>'
+              +'<td style="padding:5px 6px">'+k2.replies+'</td>'
+              +'<td style="padding:5px 6px">'+(k2.avgReplyHours==null?'—':(fast?'⚡ ':'')+k2.avgReplyHours+'h')+'</td>'
+              +'<td style="padding:5px 6px">'+(k2.gifts>0?'💛 ':'')+k2.gifts+'</td>'
+              +'<td style="padding:5px 6px">'+(k2.backlog>0?'<span style="color:#B91C1C;font-weight:700">⚠️ '+k2.backlog+'</span>':'0')+'</td>'
+              +'</tr>';
+          }).join('')
+        + '</table></div>';
+    }
+    if(d.backlog24>0) html += '<div style="font-size:11px;color:#B91C1C;margin-top:6px">⚠️ 全隊目前有 '+d.backlog24+' 筆客人訊息超過24小時沒回覆</div>';
+    html += '</div>';
+    body.innerHTML = html;
+    loadVoiceList();
+  });
+}
+// ── 秘書心聲清單（經營指標卡內；只有創始人拿得到資料）──
+function loadVoiceList(){
+  var box = document.getElementById('voice-list');
+  if(!box) return;
+  adminAPI({action:'getSecretaryVoices'}, function(d){
+    box = document.getElementById('voice-list');
+    if(!box) return;
+    if(!d || d.status!=='ok'){ box.innerHTML='<span style="font-size:11px;color:var(--text3)">載入失敗</span>'; return; }
+    var items = d.items||[];
+    if(!items.length){ box.innerHTML='<span style="font-size:11.5px;color:var(--text2)">目前沒有留言——側邊欄的「💡 跟創辦人說」就是秘書的留言入口</span>'; return; }
+    box.innerHTML = items.map(function(v){
+      return '<div style="background:#fff;border:1px solid #E9D5FF;border-radius:9px;padding:8px 10px;margin-bottom:6px'+(v.resolved?';opacity:.55':'')+'">'
+        + '<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">'
+        + '<span style="font-size:10.5px;background:'+(v.voiceType==='困擾'?'#FFF1F0':'#EFF6FF')+';color:'+(v.voiceType==='困擾'?'#B91C1C':'#1E40AF')+';border-radius:20px;padding:2px 8px;font-weight:700">'+(v.voiceType==='困擾'?'😣 困擾':'💡 建議')+'</span>'
+        + '<b style="font-size:11.5px">'+(v.name?escH(v.name):'🙈 匿名')+'</b>'
+        + '<span style="font-size:10.5px;color:var(--text3)">'+escH(v.time)+'</span>'
+        + (v.resolved?'<span style="font-size:10.5px;color:#0F6E56">✅ 已處理</span>':'')
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--text2);line-height:1.6">'+escH(v.content)+'</div>'
+        + (v.resolved?'':'<button class="ai-btn" style="margin-top:5px;font-size:10.5px" onclick="resolveVoice('+v.row+')">看過了，標記已處理</button>')
+        + '</div>';
     }).join('');
-    var t = '本週整體平均血酮：' + d.thisAvg + ' mmol/L';
-    if(d.lastAvg !== null){
-      var diff = Math.round((d.thisAvg - d.lastAvg) * 100) / 100;
-      t += '（上週 ' + d.lastAvg + '，' + (diff > 0 ? '↑+' + diff : diff < 0 ? '↓' + diff : '持平') + '）';
-    } else t += '（上週沒有記錄）';
-    txt.textContent = t;
+  });
+}
+function resolveVoice(row){
+  adminAPIPost({action:'resolveSecretaryVoice', row:row}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已標記'); loadVoiceList(); }
+    else toast('⚠️ '+((d&&d.message)||'操作失敗'));
+  });
+}
+// ── 💡 跟創辦人說（所有後台帳號都能用；可勾匿名）──
+function openVoiceModal(){
+  var old = document.getElementById('voice-modal'); if(old) old.remove();
+  var m = document.createElement('div');
+  m.id = 'voice-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  m.innerHTML = '<div style="background:#fff;border-radius:18px;width:100%;max-width:420px;padding:18px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    + '<div style="font-size:15px;font-weight:800;color:#111827">💡 跟創辦人說</div>'
+    + '<button onclick="document.getElementById(\'voice-modal\').remove()" style="background:#F3F4F6;border:none;border-radius:20px;padding:5px 11px;cursor:pointer;font-size:12px">關閉</button></div>'
+    + '<div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">工作上的困擾、對系統或流程的建議都可以寫，只有創辦人看得到。勾了匿名，連創辦人也不會知道是誰寫的。</div>'
+    + '<div style="display:flex;gap:7px;margin-bottom:9px">'
+    + '<button id="vm-type-worry" class="ai-btn" style="flex:1;font-size:12.5px" onclick="vmPickType(\'困擾\')">😣 我有困擾</button>'
+    + '<button id="vm-type-idea" class="ai-btn" style="flex:1;font-size:12.5px;background:#0F6E56;color:#fff" onclick="vmPickType(\'建議\')">💡 我有建議</button>'
+    + '</div>'
+    + '<textarea id="vm-content" style="width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;min-height:90px;resize:vertical;box-sizing:border-box" placeholder="想說什麼都可以，寫具體一點創辦人比較好處理…"></textarea>'
+    + '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin:8px 0 12px;cursor:pointer"><input type="checkbox" id="vm-anon" style="width:15px;height:15px"> 🙈 匿名送出（不留名字）</label>'
+    + '<button class="btn-g" style="width:100%;padding:11px;font-size:13.5px" onclick="submitVoice()">送出給創辦人</button>'
+    + '</div>';
+  document.body.appendChild(m);
+  window._vmType = '建議';
+}
+function vmPickType(t){
+  window._vmType = t;
+  var w = document.getElementById('vm-type-worry'), i = document.getElementById('vm-type-idea');
+  if(w&&i){
+    w.style.background = t==='困擾' ? '#B91C1C' : ''; w.style.color = t==='困擾' ? '#fff' : '';
+    i.style.background = t==='建議' ? '#0F6E56' : ''; i.style.color = t==='建議' ? '#fff' : '';
+  }
+}
+function submitVoice(){
+  var ta = document.getElementById('vm-content');
+  var content = ta ? ta.value.trim() : '';
+  if(!content){ toast('⚠️ 先寫點內容再送出'); if(ta) ta.focus(); return; }
+  var anon = !!(document.getElementById('vm-anon')||{}).checked;
+  adminAPIPost({action:'addSecretaryVoice', voiceType: window._vmType||'建議', content: content,
+    anonymous: anon ? 1 : 0, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(d && d.status==='ok'){
+      var vm = document.getElementById('voice-modal'); if(vm) vm.remove();
+      toast('💌 已送給創辦人，謝謝你說真話');
+    } else toast('⚠️ '+((d&&d.message)||'送出失敗，請重試'));
   });
 }
 // ── 儀表板 ──
 function loadDashboard(){
-  if(typeof loadKetoneTrend==='function') loadKetoneTrend();
+  if(typeof loadFounderMetrics==='function') loadFounderMetrics();
   if(typeof loadHandover==='function') loadHandover();
   if(typeof loadTodayDuty==='function') loadTodayDuty();
   if(typeof loadOpenDiscussions==='function') loadOpenDiscussions();
@@ -9015,6 +9170,7 @@ function loadTodayDuty(){
     // 待辦項目：系統偵測到才顯示，數字+一鍵處理
     var items=[];
     // 新預約放最上面（創始人2026-08-10：這最緊急）
+    if(dt.backlog24>0) items.push({icon:'⏰',text:'<b>'+dt.backlog24+' 筆</b>客人訊息超過<b>24小時</b>還沒回覆，請優先處理',act:"scrollToCard('mealhelp-card')",urgent:true});
     if(dt.clientInbox>0) items.push({icon:'📥',text:'<b>'+dt.clientInbox+' 筆</b>客人互動（諮詢預約/心情關心）還沒回覆',act:"scrollToCard('client-inbox-card')"});
     if(dt.mealHelp>0) items.push({icon:'🍽',text:'<b>'+dt.mealHelp+' 筆</b>客人的飲食判斷求助還沒回覆，回覆了客人才學得會',act:"scrollToCard('mealhelp-card')"});
     if(dt.newBookings>0) items.push({icon:'💉',text:'<b>'+dt.newBookings+' 筆</b>新預約還沒聯繫，先跟客人確認檢測日期',act:"scrollToCard('bkg-card')"});
@@ -9946,6 +10102,9 @@ function doLogin(){
 function applyPermissions(){
   if(!CURRENT_USER) return;
   var allowed = ROLE_PAGES[CURRENT_USER.role];
+  // 👑 創辦人手冊入口只給創始人/老闆看（2026-08-30：功能太多，給經營者一頁看懂的地圖）
+  var fmlLink = document.getElementById('founder-manual-link');
+  if(fmlLink) fmlLink.style.display = (CURRENT_USER.role==='創始人'||CURRENT_USER.role==='老闆') ? '' : 'none';
   // 角色主題色＋頂欄角色徽章：一眼看出目前用哪個身分登入
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');
