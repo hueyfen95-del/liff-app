@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28j';
+var MX_BUILD = '2026-08-28k';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -249,6 +249,7 @@ var MX_BUILD = '2026-08-28j';
     <div class="sb-logo-t">元代謝後台</div>
     <div class="sb-logo-s">管理系統 v2.0</div>
     <div class="sb-logo-s" id="mx-build-line" style="opacity:.75;font-size:10px;margin-top:2px"></div>
+    <div onclick="window.open('manual_secretary.html','_blank')" style="margin-top:7px;font-size:11px;color:rgba(255,255,255,.85);cursor:pointer;text-decoration:underline">📖 使用手冊</div>
   </div>
   <div class="sb-nav">
     <div class="sb-sec">主要</div>
