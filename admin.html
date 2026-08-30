@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-28h';
+var MX_BUILD = '2026-08-28j';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -347,6 +347,13 @@ var MX_BUILD = '2026-08-28h';
         <div class="card-body" id="odue-body" style="padding-top:4px"></div>
       </div>
 
+      <!-- 📥 客人互動信箱（2026-08-30：點數諮詢預約＋今日心情需要關心——前台送出但原本後台看不到的互動） -->
+      <div class="card" id="client-inbox-card" style="margin-bottom:14px;display:none;border:1px solid #C9B8F5">
+        <div class="card-hd">
+          <div class="card-title" style="color:#5B3FA8"><i class="ti ti-inbox"></i>客人互動信箱</div>
+        </div>
+        <div class="card-body" id="client-inbox-body" style="padding-top:4px"></div>
+      </div>
       <!-- 🍽 飲食判斷求助（客人在前台按「請秘書幫我看這一餐」會出現在這裡，2026-08-29新增） -->
       <div class="card" id="mealhelp-card" style="margin-bottom:14px;display:none;border:1px solid #F5D9A8">
         <div class="card-hd">
@@ -1949,6 +1956,7 @@ function _mxDashNavRender(){
     if(typeof dt.recorded==='number') btns.push(_mxNavBtn("scrollToCard('today-records-body')", 'ti ti-activity', '今日已記錄', dt.recorded, false));
     // 飲食求助改常駐顯示（2026-08-30 創始人反映「不見了」——原本沒未回覆就隱藏，改成一直在，0灰色/有未回覆紅色）
     if(typeof dt.mealHelp==='number') btns.push(_mxNavBtn("scrollToCard('mealhelp-card')", 'ti ti-tools-kitchen-2', '飲食求助', dt.mealHelp, dt.mealHelp>0));
+    if(typeof dt.clientInbox==='number') btns.push(_mxNavBtn("scrollToCard('client-inbox-card')", 'ti ti-inbox', '互動信箱', dt.clientInbox, dt.clientInbox>0));
     // 分開兩顆而不是合併成一顆「待關心」：沒記錄的客人跟症狀警示的客人是不同名單、不同卡片，
     // 合併成一個數字點下去只能跳一個地方，另一半的人反而找不到（2026-08-26修正）
     if(typeof dt.noRecord==='number') btns.push(_mxNavBtn("scrollToCard('today-records-body')", 'ti ti-notes', '今日沒記錄', dt.noRecord, dt.noRecord>0));
@@ -5550,6 +5558,122 @@ function loadMealRecordsAdmin(id){
     }).join('');
   });
 }
+// ══════ 📥 客人互動信箱（2026-08-30 創始人指示：所有前台互動都要有後台顯示＋選擇題回覆）══════
+// 諮詢預約的罐頭回覆
+var CONSULT_REPLY_TEMPLATES = [
+  '已收到你的諮詢預約！請回我幾個你方便的時段（例如：週三下午、週五早上），秘書馬上幫你安排 😊',
+  '已幫你登記諮詢，秘書會在 1 個工作天內跟你確認時間，請留意鈴鐺通知 🔔',
+  '好的！醫師諮詢需要先確認醫師班表，確認後馬上通知你可選的時段。',
+  '收到！這次諮詢會用你的陪跑點數扣抵，確認時間後會告訴你扣幾點。',
+  '你的點數餘額不太夠這個項目，秘書幫你看看其他方案，稍後回覆你 😊'
+];
+// 心情關心的罐頭回覆
+var MOOD_REPLY_TEMPLATES = [
+  '秘書看到你今天的心情了，辛苦了！你不是一個人，有什麼想說的隨時跟我說 🌿',
+  '嘴饞很正常，代表身體正在切換能量模式。多喝水、補點好油，撐過這幾天就會輕鬆很多 💪',
+  '身體不舒服要多休息、記得補電解質（鹽最重要）；如果持續不舒服，請告訴秘書具體症狀。',
+  '今天累就好好休息，有記錄就已經很棒了。睡飽一點，明天我們繼續 🌱',
+  '忙碌的日子還願意記錄，真的很不容易！健康就是這樣一點一點累積的 😊',
+  '看到你心情悶悶的，想聊聊嗎？也可以約秘書諮詢，我們一起想辦法 🤝'
+];
+// 2026-08-30（創始人）：每個回覆都可以附一個可愛小圖案——客人收到回覆的同時，
+// 花園會跳出對應動畫（陽光/雨水/新芽/新葉/星星/花朵），回應不只有文字還有溫度
+var GIFT_PICK_OPTIONS = [['','🚫 不加'],['sunshine','☀️ 陽光'],['rain','🌧 雨水'],['sprout','🌱 新芽'],['leaf','🍃 新葉'],['star','⭐ 星星'],['flower','🌸 花朵']];
+function _giftPickRow(){
+  return '<div class="gift-pick" data-gift="" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;align-items:center">'
+    + '<span style="font-size:10.5px;color:var(--text3)">附上小圖案：</span>'
+    + GIFT_PICK_OPTIONS.map(function(g){
+        return '<button class="gp-chip" data-g="'+g[0]+'" onclick="qrGiftPick(this)" style="border:1px solid '+(g[0]===''?'var(--g)':'var(--border)')+';background:'+(g[0]===''?'var(--g2)':'#fff')+';border-radius:20px;padding:3px 9px;font-size:11px;cursor:pointer">'+g[1]+'</button>';
+      }).join('')
+    + '</div>';
+}
+function qrGiftPick(btn){
+  var row = btn.closest('.gift-pick');
+  if (!row) return;
+  row.querySelectorAll('.gp-chip').forEach(function(c){ c.style.background='#fff'; c.style.borderColor='var(--border)'; });
+  btn.style.background='var(--g2)'; btn.style.borderColor='var(--g)';
+  row.setAttribute('data-gift', btn.getAttribute('data-g') || '');
+}
+function _pickedGift(el){
+  var wrap = el && el.closest ? el.closest('.mr-wrap') : null;
+  var row = wrap ? wrap.querySelector('.gift-pick') : null;
+  var p = el ? el.parentElement : null;
+  while (!row && p) { row = p.querySelector ? p.querySelector('.gift-pick') : null; p = p.parentElement; }
+  return row ? (row.getAttribute('data-gift') || '') : '';
+}
+function _quickReplyUI(uid, setName){
+  var tpl = window[setName] || [];
+  return '<div class="mr-wrap" style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
+    + '<select class="form-select" style="font-size:11.5px;width:100%;margin-bottom:6px" onchange="qrPick(this,\''+setName+'\')">'
+    + '<option value="">📋 選一句常用回覆（可連選幾句疊加，選完還能修改）…</option>'
+    + tpl.map(function(t,i){ return '<option value="'+i+'">'+escH(t)+'</option>'; }).join('')
+    + '</select>'
+    + '<textarea id="mr-txt-'+uid+'" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12px;resize:vertical;min-height:52px;box-sizing:border-box" placeholder="也可以直接手動輸入回覆內容…"></textarea>'
+    + _giftPickRow()
+    + '</div>';
+}
+function qrPick(sel, setName){
+  var i = parseInt(sel.value, 10);
+  if (isNaN(i)) return;
+  var wrap = sel.closest('.mr-wrap');
+  var ta = wrap ? wrap.querySelector('textarea') : null;
+  var tpl = window[setName] || [];
+  if (ta && tpl[i]) ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + tpl[i];
+  sel.value = '';
+}
+var _ciCache = [];
+function loadClientInbox(){
+  var card = document.getElementById('client-inbox-card');
+  var body = document.getElementById('client-inbox-body');
+  if(!card || !body) return;
+  adminAPI({action:'getClientInteractions'}, function(d){
+    card = document.getElementById('client-inbox-card');
+    body = document.getElementById('client-inbox-body');
+    if(!card || !body) return;
+    _ciCache = (d && d.items) || [];
+    if(_ciCache.length === 0){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    body.innerHTML = _ciCache.map(function(it, i){
+      var setName = it.src === 'mood' ? 'MOOD_REPLY_TEMPLATES' : 'CONSULT_REPLY_TEMPLATES';
+      return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)">'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+        + '<span style="font-size:10.5px;background:'+(it.src==='mood'?'#EFF6FF':'#F5F3FF')+';color:'+(it.src==='mood'?'#1E40AF':'#5B21B6')+';border-radius:20px;padding:2px 8px;font-weight:700">'+escH(it.kind)+'</span>'
+        + '<span style="font-size:11px;color:var(--text3)">'+escH(it.time)+'</span>'
+        + '<b style="font-size:12px">'+escH(it.name || it.clientId)+'</b>'
+        + '<span style="font-size:10.5px;color:var(--text3)">'+escH(it.clientId)+'</span>'
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--text2);line-height:1.6">'+escH(it.content)+'</div>'
+        + _quickReplyUI('ci'+i, setName)
+        + '<div style="display:flex;gap:6px;margin-top:6px">'
+        + '<button class="btn-g" style="flex:2;padding:8px;font-size:12px" onclick="ciSendReply('+i+',this)">💌 送出回覆給客人（自動標記完成）</button>'
+        + '<button class="ai-btn" style="flex:1;font-size:10.5px" onclick="ciMarkOnly('+i+')">已用LINE回覆，僅標記</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+  });
+}
+function ciSendReply(i, btnEl){
+  var it = _ciCache[i]; if(!it) return;
+  var ta = _mealReplyBox(btnEl || null, 'ci'+i);
+  var text = ta ? ta.value.trim() : '';
+  if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); if(ta) ta.focus(); return; }
+  var ciGift = _pickedGift(btnEl || null);
+  adminAPIPost({action:'sendGift', clientId:it.clientId, giftType: ciGift || 'message',
+    message:(it.src==='mood' ? '💛 秘書的關心：' : '🎫 諮詢預約回覆：') + text,
+    secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d && d.status==='ok'){
+      toast('💌 已回覆 ' + (it.name||it.clientId) + '，客人鈴鐺會亮紅點');
+      adminAPIPost({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId}, function(){ loadClientInbox(); loadTodayDuty(); });
+    } else toast('⚠️ 送出失敗，請重試');
+  });
+}
+function ciMarkOnly(i){
+  var it = _ciCache[i]; if(!it) return;
+  adminAPIPost({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已標記完成'); loadClientInbox(); loadTodayDuty(); }
+    else toast('⚠️ '+((d&&d.message)||'標記失敗'));
+  });
+}
 // ══════ 🍽 飲食判斷求助（2026-08-29：客人前台的「請秘書幫我看這一餐」，之前只寫進備註表沒人看見）══════
 // 秘書一鍵回覆的罐頭句（創始人2026-08-29提供前5句＋補列）。選了會填進輸入框，可以再手動修改或多選疊加
 var MEAL_REPLY_TEMPLATES = [
@@ -5573,6 +5697,7 @@ function _mealReplyUI(uid){
     + MEAL_REPLY_TEMPLATES.map(function(t,i){ return '<option value="'+i+'">'+escH(t)+'</option>'; }).join('')
     + '</select>'
     + '<textarea id="mr-txt-'+uid+'" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12px;resize:vertical;min-height:52px;box-sizing:border-box" placeholder="也可以直接手動輸入回覆內容…"></textarea>'
+    + _giftPickRow()
     + '</div>';
 }
 // 2026-08-29修正（她回報「按送出建議一直沒法送出」）：原本用全頁ID找輸入框，
@@ -5601,7 +5726,8 @@ function sendMealReply(uid, cid, row, btnEl){
   var ta = _mealReplyBox(btnEl || null, uid);
   var text = ta ? ta.value.trim() : '';
   if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); if(ta) ta.focus(); return; }
-  adminAPIPost({action:'sendGift', clientId:cid, giftType:'message',
+  var mrGift = _pickedGift(btnEl || null);
+  adminAPIPost({action:'sendGift', clientId:cid, giftType: mrGift || 'message',
     message:'🍽 飲食建議：' + text, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok'){
       toast('💌 已回覆 ' + cid + '，客人打開前台就會看到');
@@ -5727,7 +5853,7 @@ function unqSearchArticles(i){
       .concat(_admPod.filter(hit).map(function(it){ return {t:'🎧 Podcast', title: it.title, link: it.link}; }));
     _unqArtCache[i] = arts;
     if (arts.length === 0) { box.innerHTML = '<span style="font-size:11px;color:var(--text3)">「' + escH(kw) + '」沒有比對到文章，換個關鍵字試試（例如拆短一點）</span>'; return; }
-    box.innerHTML = arts.slice(0, 6).map(function(a, j){
+    box.innerHTML = _giftPickRow() + arts.slice(0, 6).map(function(a, j){
       return '<div style="display:flex;align-items:center;gap:7px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:6px 9px;margin-bottom:4px">'
         + '<span style="font-size:10px;color:var(--text3);flex-shrink:0">' + a.t + '</span>'
         + '<a href="' + escH(a.link) + '" target="_blank" style="flex:1;font-size:11.5px;color:var(--text);text-decoration:none;line-height:1.4">' + escH(a.title) + '</a>'
@@ -5740,7 +5866,10 @@ function unqSendArticle(i, j){
   var q = _unknownQCache[i];
   var a = (_unqArtCache[i] || [])[j];
   if (!q || !a) return;
-  adminAPIPost({action:'sendGift', clientId:q.clientId, giftType:'message',
+  var uaBox = document.getElementById('unq-art-' + i);
+  var uaRow = uaBox ? uaBox.querySelector('.gift-pick') : null;
+  var uaGift = uaRow ? (uaRow.getAttribute('data-gift') || '') : '';
+  adminAPIPost({action:'sendGift', clientId:q.clientId, giftType: uaGift || 'message',
     message:'📚 關於你問的「' + q.question + '」，秘書推薦你看：\n《' + a.title + '》\n' + a.link,
     secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok') toast('💌 文章已傳給 ' + q.clientId + '，客人前台鈴鐺會亮紅點');
@@ -6539,6 +6668,7 @@ function loadDashboard(){
   if(typeof loadBookings==='function') loadBookings();
   if(typeof loadUnknownQuestions==='function') loadUnknownQuestions();
   if(typeof loadMealHelp==='function') loadMealHelp();
+  if(typeof loadClientInbox==='function') loadClientInbox();
   if(typeof loadOverdueLabs==='function') loadOverdueLabs();
   loadClientsList(function(clients){
     var box = document.getElementById('dash-clients');
@@ -8884,6 +9014,7 @@ function loadTodayDuty(){
     // 待辦項目：系統偵測到才顯示，數字+一鍵處理
     var items=[];
     // 新預約放最上面（創始人2026-08-10：這最緊急）
+    if(dt.clientInbox>0) items.push({icon:'📥',text:'<b>'+dt.clientInbox+' 筆</b>客人互動（諮詢預約/心情關心）還沒回覆',act:"scrollToCard('client-inbox-card')"});
     if(dt.mealHelp>0) items.push({icon:'🍽',text:'<b>'+dt.mealHelp+' 筆</b>客人的飲食判斷求助還沒回覆，回覆了客人才學得會',act:"scrollToCard('mealhelp-card')"});
     if(dt.newBookings>0) items.push({icon:'💉',text:'<b>'+dt.newBookings+' 筆</b>新預約還沒聯繫，先跟客人確認檢測日期',act:"scrollToCard('bkg-card')"});
     if(dt.alertsCritical>0) items.push({icon:'🚨',text:'<b>'+dt.alertsCritical+' 位</b>客人可能有酮酸風險',act:"scrollToCard('alert-card')",urgent:true});

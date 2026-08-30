@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-29e';
+var MX_BUILD = '2026-08-29f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5967,7 +5967,7 @@ function checkGifts() {
   // 這樣手機和電腦都會亮紅點，不會被先開的那台搶走。用列號去重，同一則不會重複跳
   callAPI({action:'getGift', clientId:CLIENT_ID, peek:1}, function(d) {
     if (d.status === 'ok' && d.gifts && d.gifts.length > 0) {
-      var giftMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star' };
+      var giftMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower' };
       var shown = false;
       var lastRow = 0;
       try { lastRow = parseInt(localStorage.getItem('mx_gift_lastrow') || '0', 10) || 0; } catch(e){}
@@ -5981,7 +5981,7 @@ function checkGifts() {
         // #gs-gift-msg（畫面上根本沒有這個元素），秘書寫的真正留言訊息從來沒有顯示出來，
         // 客人只看到背景特效（陽光/花朵），完全看不到內容。showGift才是接到正確id（gift-msg等）
         // 的實作，所以兩個都要跑：gsGift負責畫面特效，showGift負責把留言真的顯示出來。
-        if (key && typeof gsGift === 'function') { gsGift(key); }
+        if (key && typeof gsGift === 'function') { try { gsGift(key); } catch(e){} } // flower只有禮物卡動畫、沒有花園特效，不能讓它中斷後面的顯示
         if (key && typeof showGift === 'function') { showGift(key, g.message); shown = true; }
         if (g.giftType === 'message' && g.message) {
           toast('💌 ' + g.message);
