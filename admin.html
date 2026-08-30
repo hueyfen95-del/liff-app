@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-30e';
+var MX_BUILD = '2026-08-30g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -368,6 +368,7 @@ var MX_BUILD = '2026-08-30e';
       <div class="card" id="unknown-q-card" style="margin-bottom:14px;display:none;border:1px solid #F2C9C9">
         <div class="card-hd">
           <div class="card-title" style="color:#A83A24"><i class="ti ti-message-question"></i>客人未回答的問題</div>
+          <button class="tb-btn" style="font-size:11px" onclick="syncArticleLib(this)" title="剛發佈新文章後按一下，馬上就搜得到">🔄 同步文章庫</button>
         </div>
         <div class="card-body" id="unknown-q-body" style="padding-top:4px"></div>
       </div>
@@ -5893,13 +5894,48 @@ function loadUnknownQuestions(){
 // ══════ 🔍 QA回覆時搜尋部落格/Podcast文章（2026-08-30）══════
 // 用前台同一套 getRSS 代理抓方格子與Firstory清單，後台快取一份，關鍵字比對標題/摘要
 var _admVocus = [], _admPod = [], _admRssLoaded = false, _admRssLoading = 0, _admRssCbs = [];
+// 手動同步文章庫（剛發佈新文章後按一下，馬上就搜得到，不用等下次開後台）
+function syncArticleLib(btn){
+  if (btn) { btn.disabled = true; btn.textContent = '同步中…'; }
+  adminAPIPost({action:'syncVocusArticles'}, function(d){
+    if (btn) { btn.disabled = false; btn.textContent = '🔄 同步文章庫'; }
+    if (d && d.status==='ok') {
+      toast(d.added > 0 ? ('📚 新增 ' + d.added + ' 篇文章（庫裡共 ' + d.total + ' 篇）') : ('📚 文章庫已是最新（共 ' + d.total + ' 篇）'));
+      _admRssLoaded = false; _admVocus = []; admLoadRSS(); // 重新載入，讓新文章立刻可搜
+    } else toast('⚠️ ' + ((d && d.message) || '同步失敗，稍後再試'));
+  });
+}
 function admLoadRSS(cb){
   if (_admRssLoaded) { if (cb) cb(); return; }
   if (cb) _admRssCbs.push(cb);
   if (_admRssLoading > 0) return;
   _admRssLoading = 2;
   function done(){ _admRssLoading--; if (_admRssLoading <= 0) { _admRssLoaded = true; _admRssCbs.forEach(function(f){ f(); }); _admRssCbs = []; } }
-  adminAPI({action:'getRSS', url:'https://rsshub.app/vocus/salon/metabolica'}, function(d){ if(d && d.status==='ok' && d.items) _admVocus = d.items; done(); });
+  // 2026-08-30 修復（她回報「補鹽寫進部落格了為什麼搜不到」）：rsshub 代理被機器人驗證擋掉，
+  // 整個方格子來源都是空的。改成先直接抓沙龍頁（getVocusSalon），失敗才退回 rsshub 備援；
+  // 兩邊都失敗就把 _admVocusDown 記起來，搜尋提示會老實說「來源連不上」而不是誤導成「沒有相關文章」
+  window._admVocusDown = false;
+  // 2026-08-30二版（創始人：「要抓到全部文章」）：搜尋改查自家「📚 文章庫」（全部文章的目錄），
+  // 每次後台開啟都先背景同步一次（只補新文章，幾秒內完成），文章庫空的話同步完再讀
+  var _admVocusFinish = function(){
+    adminAPI({action:'getArticleLibrary'}, function(d){
+      if (d && d.status==='ok' && d.items && d.items.length) { _admVocus = d.items; done(); return; }
+      // 文章庫還是空的（同步也失敗）→ 最後備援：沙龍頁直抓最新10篇
+      adminAPI({action:'getVocusSalon', slug:'metabolica'}, function(d2){
+        if (d2 && d2.status==='ok' && d2.items && d2.items.length) _admVocus = d2.items;
+        else window._admVocusDown = true;
+        done();
+      });
+    });
+  };
+  if (sessionStorage.getItem('mx_art_synced')) { _admVocusFinish(); }
+  else {
+    adminAPIPost({action:'syncVocusArticles'}, function(sd){
+      try { sessionStorage.setItem('mx_art_synced', '1'); } catch(e){}
+      if (sd && sd.status==='ok' && sd.added > 0) toast('📚 文章庫同步：新增 ' + sd.added + ' 篇（共 ' + sd.total + ' 篇）');
+      _admVocusFinish();
+    });
+  }
   adminAPI({action:'getRSS', url:'https://feed.firstory.me/rss/user/cmjqwlcyo052m01rh61f1h53d'}, function(d){ if(d && d.status==='ok' && d.items) _admPod = d.items; done(); });
 }
 // 把整句問題修剪成比較會命中的關鍵字（拿掉常見疑問詞尾；標題比對是「包含」，字越短越容易中）
@@ -5922,7 +5958,12 @@ function unqSearchArticles(i){
     var arts = _admVocus.filter(hit).map(function(it){ return {t:'📝 文章', title: it.title, link: it.link}; })
       .concat(_admPod.filter(hit).map(function(it){ return {t:'🎧 Podcast', title: it.title, link: it.link}; }));
     _unqArtCache[i] = arts;
-    if (arts.length === 0) { box.innerHTML = '<span style="font-size:11px;color:var(--text3)">「' + escH(kw) + '」沒有比對到文章，換個關鍵字試試（例如拆短一點）</span>'; return; }
+    if (arts.length === 0) {
+      box.innerHTML = window._admVocusDown
+        ? '<span style="font-size:11px;color:#B45309">⚠️ 方格子文章來源暫時連不上（剛剛只搜到 Podcast）——不是沒有相關文章。稍後重新整理頁面再試一次</span>'
+        : '<span style="font-size:11px;color:var(--text3)">「' + escH(kw) + '」沒有比對到文章，換個關鍵字試試（例如拆短一點）</span>';
+      return;
+    }
     box.innerHTML = _giftPickRow() + arts.slice(0, 6).map(function(a, j){
       return '<div style="display:flex;align-items:center;gap:7px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:6px 9px;margin-bottom:4px">'
         + '<span style="font-size:10px;color:var(--text3);flex-shrink:0">' + a.t + '</span>'

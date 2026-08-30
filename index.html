@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-30d';
+var MX_BUILD = '2026-08-30f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2769,7 +2769,18 @@ function judgeConfirm(){
   var jStepMap = {b:3, l:4, d:5};
   var jNoteInp = jStepMap[m] ? document.querySelector('#diet-step-'+jStepMap[m]+' input.inp') : null;
   var jNote = (jNoteInp && jNoteInp.value.trim()) ? '｜'+jNoteInp.value.trim() : '';
-  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）'+jNote, oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(){});
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）'+jNote, oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(d){
+    if (d && d.status === 'ok') return; // 成功就不吵
+    // 2026-08-30修正：以前失敗完全沉默、按鈕還顯示「已完成 ✅」——記錄其實沒傳出去。
+    // 現在把按鈕還原成可以再按，明確告訴客人再按一次
+    toast('⚠️ 這一餐沒有傳出去（連線不穩或需要重新登入）——請再按一次「儲存後完成」');
+    if (m !== 's') {
+      var jrBtn = document.getElementById('meal-btn-' + m);
+      if (jrBtn) { jrBtn.disabled = false; jrBtn.textContent = '儲存後完成'; jrBtn.style.background = 'var(--g)'; jrBtn.style.cursor = 'pointer'; }
+      var jrAsk = document.getElementById('ask-sec-' + m);
+      if (jrAsk) jrAsk.style.display = 'none';
+    }
+  });
   renderJudgeSummary();
   judgeFeedback(sel.carb);
   if (m !== 's') {
@@ -3954,10 +3965,12 @@ function callAPI(params, callback) {
   var slowHintTimer = setTimeout(function(){
     toast('🌱 資料準備中，第一次連線可能要等一下下，不會太久喔');
   }, 2000);
+  var _cbCalled = false; // 防止 callback 內丟例外時被 catch 再叫一次
   fetch(API_URL, { method: 'POST', body: JSON.stringify(params) })
     .then(function(r) { return r.json(); })
     .then(function(d) {
       clearTimeout(slowHintTimer);
+      _cbCalled = true;
       // 2026-08-17新增：萬一這台裝置是在補上clientToken機制「之前」就綁定過的（token是空的），
       // 後端會擋下來——這種情況不要讓畫面靜默停在「載入中」，直接請客人重新完成一次綁定即可拿到新token
       if (d && d.code === 'clientauth') {
@@ -3967,7 +3980,15 @@ function callAPI(params, callback) {
       }
       if (callback) callback(d);
     })
-    .catch(function() { clearTimeout(slowHintTimer); });
+    .catch(function() {
+      clearTimeout(slowHintTimer);
+      // 2026-08-30修正：連線失敗（斷網、逾時、後端剛重新部署的冷啟動失敗）以前完全沉默——
+      // 按了儲存畫面顯示「儲存中…」然後什麼都沒發生，客人以為存了其實沒存。
+      // 現在一定回報一個 error 物件，讓每個呼叫端有機會提示「沒存成功，請再試一次」
+      if (!_cbCalled && callback) {
+        try { callback({ status: 'error', code: 'network', message: '連線失敗，請再試一次' }); } catch (e) {}
+      }
+    });
 }
 
 // ── 每日記錄 ──
@@ -4039,7 +4060,8 @@ function submitDailyRecord() {
       goPage('garden', '代謝花園');
       toast('✅ 今日記錄已完整儲存！');
     } else {
-      toast('⚠️ 請稍後再試');
+      // 2026-08-30改：失敗要講清楚——填的資料都還在原地，再按一次就好，不要讓客人以為存了
+      toast('⚠️ 剛剛沒有存成功（連線不穩或後端喚醒中）——你填的資料都還在，請再按一次「儲存今日記錄」');
     }
   });
 }
@@ -4886,9 +4908,13 @@ function loadAllRSS(onDone) {
     }
   }
   // 抓方格子
-  callAPI({action:'getRSS', url:'https://rsshub.app/vocus/salon/metabolica'}, function(d) {
-    if (d.status === 'ok' && d.items) _vocusArticles = d.items;
-    checkAllDone();
+  // 2026-08-30修復：舊的rsshub代理被機器人驗證擋掉，改查自家「📚 文章庫」（全部文章目錄，秘書後台會自動同步）
+  callAPI({action:'getArticleLibrary'}, function(d) {
+    if (d.status === 'ok' && d.items && d.items.length) { _vocusArticles = d.items; checkAllDone(); return; }
+    callAPI({action:'getVocusSalon', slug:'metabolica'}, function(d2) { // 文章庫還沒建好前的備援：直抓最新10篇
+      if (d2 && d2.status === 'ok' && d2.items) _vocusArticles = d2.items;
+      checkAllDone();
+    });
   });
   // 抓Firstory Podcast
   callAPI({action:'getRSS', url:'https://feed.firstory.me/rss/user/cmjqwlcyo052m01rh61f1h53d'}, function(d) {
@@ -5655,7 +5681,9 @@ function quickBreakfast(type) {
   mealDone['b'] = false; // 重置讓quickSaveMeal可以執行
   quickSaveMeal('b');
   // 額外儲存早餐類型
-  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', breakfast:type}, function(){});
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', breakfast:type}, function(d){
+    if (!(d && d.status === 'ok')) toast('⚠️ 早餐記錄沒有傳出去，請再選一次');
+  });
   toast('☕ ' + type + ' 已記錄！');
 }
 
@@ -5672,7 +5700,9 @@ function mealFasting(mealCode) {
   _mealJudgeBypass[mealCode] = true; // 斷食沒吃東西，不用做比例判斷
   var mealNames = {b:'早餐', l:'午餐', d:'晚餐'};
   var name = mealNames[mealCode] || '餐食';
-  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：斷食沒有吃'}, function(){});
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：斷食沒有吃'}, function(d){
+    if (!(d && d.status === 'ok')) toast('⚠️ 斷食記錄沒有傳出去，請再點一次「沒有吃（斷食）」');
+  });
   quickSaveMeal(mealCode);
   var statusEl = document.getElementById(mealCode + 's');
   if (statusEl) { statusEl.textContent = '斷食 ✅'; statusEl.className = 'meal-st ok'; }
