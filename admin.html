@@ -193,7 +193,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-30d';
+var MX_BUILD = '2026-08-30e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5008,6 +5008,7 @@ function openClientDetail(id, name){
     + '<span onclick="'+(cdIsActive?'lockClientQuick':'unlockClientQuick')+'(\''+escH(id)+'\')" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+(cdIsActive?'var(--g2)':'var(--a2)')+';color:'+(cdIsActive?'var(--g3)':'#B26A00')+'">'+(cdIsActive?'✅ 陪跑中':'🔒 未開通')+'</span></div>'
     + '<button class="cd-close-btn" onclick="document.getElementById(\'client-detail-modal\').remove()" style="border:none;background:none;cursor:pointer;font-size:18px;color:var(--text2)">✕</button></div>'
     + '<div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">'
+    + '<button onclick="openCompose(\''+escH(id)+'\',\''+escH(name||id)+'\')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:12.5px;font-weight:800;cursor:pointer;box-shadow:0 2px 8px rgba(15,110,86,.3)">💌 傳訊息給客人</button>'
     + '<button class="ai-btn g" onclick="copyCareMsg(\''+escH(id)+'\',\''+escH(name||'')+'\')">複製關心訊息</button>'
     + '<button class="ai-btn gray" onclick="callClient(\''+escH(id)+'\')">撥打電話</button>'
     + '<select id="cd-stage-sel" onchange="setClientStageUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
@@ -5610,6 +5611,65 @@ function _pickedGift(el){
   var p = el ? el.parentElement : null;
   while (!row && p) { row = p.querySelector ? p.querySelector('.gift-pick') : null; p = p.parentElement; }
   return row ? (row.getAttribute('data-gift') || '') : '';
+}
+
+// ── 💌 傳訊息給客人（專注撰寫視窗；重用 _quickReplyUI 的罐頭句＋小圖案機制）──
+var _composeTypes = {
+  meal:    { label: '🍽 飲食建議', set: 'MEAL_REPLY_TEMPLATES',    prefix: '🍽 飲食建議：' },
+  care:    { label: '💛 關心問候', set: 'MOOD_REPLY_TEMPLATES',    prefix: '💛 秘書的關心：' },
+  service: { label: '🛍 服務介紹', set: 'SVC_REPLY_TEMPLATES',     prefix: '🛍 服務介紹：' }
+};
+function openCompose(cid, cname){
+  var old = document.getElementById('compose-modal'); if(old) old.remove();
+  window._composeCid = cid; window._composeType = 'meal';
+  var m = document.createElement('div');
+  m.id = 'compose-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999999;display:flex;align-items:center;justify-content:center;padding:14px';
+  m.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:460px;max-height:88vh;overflow-y:auto;padding:16px 18px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+    + '<div style="font-size:15px;font-weight:800">💌 傳訊息給 '+escH(cname)+'</div>'
+    + '<button onclick="document.getElementById(\'compose-modal\').remove()" style="background:#F3F4F6;border:none;border-radius:20px;padding:5px 11px;cursor:pointer;font-size:12px">關閉</button></div>'
+    + '<div style="font-size:11px;color:var(--text3);margin-bottom:9px">送出後客人前台的鈴鐺會亮紅點，打開「秘書互動」就看得到</div>'
+    + '<div style="display:flex;gap:6px;margin-bottom:8px" id="compose-type-row">'
+    + Object.keys(_composeTypes).map(function(k){
+        return '<button id="compose-t-'+k+'" onclick="composePickType(\''+k+'\')" style="flex:1;border:1px solid var(--border);border-radius:9px;padding:7px 4px;font-size:12px;font-weight:700;cursor:pointer;background:#fff">'+_composeTypes[k].label+'</button>';
+      }).join('')
+    + '</div>'
+    + '<div id="compose-body"></div>'
+    + '<button class="btn-g" style="width:100%;padding:11px;font-size:13.5px;margin-top:9px" onclick="composeSend(this)">💌 送出給客人</button>'
+    + '</div>';
+  document.body.appendChild(m);
+  composePickType('meal');
+}
+function composePickType(k){
+  window._composeType = k;
+  // 型態切換時保留已輸入的文字，不讓秘書打到一半被清空
+  var body = document.getElementById('compose-body');
+  var keep = '';
+  if (body) { var ta0 = body.querySelector('.mr-wrap textarea'); if (ta0) keep = ta0.value; }
+  Object.keys(_composeTypes).forEach(function(t){
+    var b = document.getElementById('compose-t-' + t);
+    if (b) { b.style.background = t === k ? 'var(--g)' : '#fff'; b.style.color = t === k ? '#fff' : 'var(--text)'; b.style.borderColor = t === k ? 'var(--g)' : 'var(--border)'; }
+  });
+  if (body) {
+    body.innerHTML = _quickReplyUI('compose', _composeTypes[k].set);
+    var ta = body.querySelector('.mr-wrap textarea');
+    if (ta && keep) ta.value = keep;
+  }
+}
+function composeSend(btnEl){
+  var ta = _mealReplyBox(btnEl || null, 'compose');
+  var text = ta ? ta.value.trim() : '';
+  if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); if (ta) ta.focus(); return; }
+  var t = _composeTypes[window._composeType || 'meal'];
+  var g = _pickedGift(btnEl || null);
+  adminAPIPost({action:'sendGift', clientId: window._composeCid, giftType: g || 'message',
+    message: t.prefix + text, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if (d && d.status === 'ok') {
+      var cm = document.getElementById('compose-modal'); if (cm) cm.remove();
+      toast('💌 已送出，客人前台鈴鐺會亮紅點');
+    } else toast('⚠️ 送出失敗，請重試');
+  });
 }
 function _quickReplyUI(uid, setName){
   var tpl = window[setName] || [];
