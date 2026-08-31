@@ -15,7 +15,8 @@ body{background:var(--bg);min-height:100vh}
 .sb-logo-t{font-size:16px;font-weight:700;color:#fff}
 .sb-logo-s{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
 .sb-nav{padding:8px 0;flex:1}
-.sb-sec{font-size:10px;color:rgba(255,255,255,.28);letter-spacing:.07em;text-transform:uppercase;padding:10px 15px 4px}
+.sb-sec{font-size:10.5px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.07em;text-transform:uppercase;padding:12px 15px 4px;border-top:1px solid rgba(255,255,255,.08);margin-top:2px}
+.sb-sec:first-child{border-top:none;margin-top:0}
 .si{display:flex;align-items:center;gap:8px;padding:9px 15px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);border-left:3px solid transparent;transition:all .12s}
 .si:hover{background:rgba(255,255,255,.07);color:#fff}
 .si.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:#4FD5A8}
@@ -193,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-30g';
+var MX_BUILD = '2026-08-31a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -261,6 +262,9 @@ var MX_BUILD = '2026-08-30g';
     <div class="sb-sec">管理</div>
     <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接</div>
     <div class="si nav-item" onclick="goPg('report',this)"><i class="ti ti-file-text"></i>月報生成</div>
+    <!-- 2026-08-31 重新分類：原本「內容管理」塞了14個性質不同的項目（財務/排程/檢測都混在一起），
+         這次把財務類併進財務結算、檢測相關獨立一類、IRT模型（只剩1項）併進檢測類、商店管理（只剩1項）併進花園，
+         讓每一類的項目數量比較平均，也不會有名不符實的分類——她的原話「免得後台的人員看的眼花撩亂」 -->
     <div class="sb-sec">財務結算</div>
     <div class="si nav-item" onclick="goPg('roles',this)"><i class="ti ti-users-group"></i>分帳角色名單 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('accounts',this)"><i class="ti ti-shield-lock"></i>帳號管理 <span class="si-badge g">NEW</span></div>
@@ -268,30 +272,30 @@ var MX_BUILD = '2026-08-30g';
     <div class="si nav-item" onclick="goPg('rules',this)"><i class="ti ti-settings-2"></i>分帳規則設定 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('settlement',this)"><i class="ti ti-report-money"></i>月結算 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('finance-entry',this)"><i class="ti ti-cash"></i>財務登記 <span class="si-badge g">NEW</span></div>
+    <div class="si nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
+    <div class="si nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
+    <div class="sb-sec">檢測與分型</div>
+    <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
+    <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
+    <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
     <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表 <span class="si-badge g">NEW</span></div>
-    <div class="sb-sec">內容管理</div>
+    <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所時間表</div>
+    <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
+    <div class="sb-sec">客戶內容管理</div>
     <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
     <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
     <div class="si nav-item" onclick="goPg('food-mgmt',this)"><i class="ti ti-tools-kitchen-2"></i>外食速查</div>
     <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒腺體友善餐廳 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
     <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
-    <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
-    <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所時間表</div>
-    <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
-    <div class="si nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
-    <div class="si nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
     <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
-    <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
     <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照 <span class="si-badge g">NEW</span></div>
     <div class="sb-sec">追蹤管理</div>
     <div class="si nav-item" onclick="goPg('tracking',this)"><i class="ti ti-activity"></i>自訂追蹤模組 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('remind',this)"><i class="ti ti-bell-ringing"></i>複檢提醒 <span class="si-badge r" id="sb-badge-remind" style="display:none">–</span></div>
     <div class="si nav-item" onclick="goPg('upload',this)"><i class="ti ti-file-upload"></i>上傳外部報告 <span class="si-badge g">NEW</span></div>
-    <div class="sb-sec">商店管理</div>
+    <div class="sb-sec">商店與花園</div>
     <div class="si nav-item" onclick="goPg('shop-mgmt',this)"><i class="ti ti-shopping-bag"></i>好物推薦管理 <span class="si-badge g">NEW</span></div>
-    <div class="sb-sec">IRT 模型</div>
-    <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
     <div class="si nav-item" onclick="goPg('garden-mgmt',this)"><i class="ti ti-plant"></i>代謝花園管理 <span class="si-badge g">NEW</span></div>
   </div>
 </div>
@@ -5032,7 +5036,9 @@ function openClientDetail(id, name){
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
-    + '<select id="cd-supp-doctor" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">建議醫師／藥師・誰建議的？…</option></select>' + '<select id="cd-supp-sel" class="form-select" style="font-size:12px"><option value="">載入補充品…</option></select>'
+    + '<select id="cd-supp-doctor" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">建議醫師／藥師・誰建議的？…</option></select>'
+    + '<select id="cd-supp-freq" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">服用頻率（選填）…</option><option>每天</option><option>單號日</option><option>雙號日</option></select>'
+    + '<select id="cd-supp-sel" class="form-select" style="font-size:12px"><option value="">載入補充品…</option></select>'
     + '<select id="cd-supp-reason-sel" class="form-select" style="font-size:12px" onchange="onSuppReasonChange()">'
     + '<option value="">推薦原因（點選）…</option>'
     + '<option>亂流期電解質補充</option><option>夜間抽筋・肌肉緊繃</option><option>睡眠品質調整</option>'
@@ -8108,14 +8114,19 @@ function recSupplement(clientId){
   if(!sel || !sel.value){toast('請先選擇補充品');return;}
   var parts=sel.value.split('|');
   var reason=getSuppReason();
+  var doctorSel=document.getElementById('cd-supp-doctor');
+  var freqSel=document.getElementById('cd-supp-freq');
   adminAPIPost({action:'addSupplementRec', clientId:clientId,
     supplementId:parts[0], supplementName:parts[1], level:parts[2]||'',
-    reason:reason, secretary:(CURRENT_USER&&CURRENT_USER.name)||'', isPurchase:'false'}, function(d){
+    reason:reason, doctorName:(doctorSel&&doctorSel.value)||'', frequency:(freqSel&&freqSel.value)||'',
+    secretary:(CURRENT_USER&&CURRENT_USER.name)||'', isPurchase:'false'}, function(d){
     if(d.status==='ok'){
       toast('✅ 已記錄推薦「'+parts[1]+'」給 '+clientName(clientId));
       document.getElementById('cd-supp-reason').value='';
       var rsel=document.getElementById('cd-supp-reason-sel'); if(rsel){rsel.selectedIndex=0;onSuppReasonChange();}
       sel.selectedIndex=0;
+      if(freqSel) freqSel.selectedIndex=0;
+      // 建議醫師常常同一位客人維持不變，特意不清空，方便連續記錄同一位醫師的多項建議
     } else toast('⚠️ 記錄失敗，請重試');
   });
 }
@@ -8134,10 +8145,11 @@ function loadSuppHistory(clientId){
     }
     var html='';
     _suppHist.forEach(function(h, i){
+      var meta=[h.reason, h.doctorName?('醫師/藥師：'+h.doctorName):'', h.frequency?('頻率：'+h.frequency):''].filter(Boolean).join('・');
       html += '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">'
         + '<div style="flex:1"><span style="font-weight:700;color:var(--text)">'+escH(h.supplementName)+'</span>'
         + (h.level?' <span class="badge b" style="font-size:9px">'+escH(h.level)+'</span>':'')
-        + '<div style="font-size:10px;color:var(--text3);margin-top:1px">'+escH(h.date)+(h.reason?'・'+escH(h.reason):'')+'</div></div>'
+        + '<div style="font-size:10px;color:var(--text3);margin-top:1px">'+escH(h.date)+(meta?'・'+escH(meta):'')+'</div></div>'
         + '<button class="ai-btn g" style="font-size:10px;padding:4px 10px" onclick="reRecSupplement('+i+',\''+escH(String(_cdCurrentId||''))+'\')">再次推薦</button>'
         + '</div>';
     });
@@ -8148,9 +8160,10 @@ function reRecSupplement(idx, clientId){
   var h=_suppHist[idx]; if(!h) return;
   adminAPIPost({action:'addSupplementRec', clientId:clientId,
     supplementId:h.supplementId, supplementName:h.supplementName, level:h.level||'',
-    reason:h.reason||'', secretary:(CURRENT_USER&&CURRENT_USER.name)||'', isPurchase:'false'}, function(d){
+    reason:h.reason||'', doctorName:h.doctorName||'', frequency:h.frequency||'',
+    secretary:(CURRENT_USER&&CURRENT_USER.name)||'', isPurchase:'false'}, function(d){
     if(d.status==='ok'){
-      toast('✅ 已再次推薦「'+h.supplementName+'」（含上次的原因，不用重打）');
+      toast('✅ 已再次推薦「'+h.supplementName+'」（含上次的原因/醫師/頻率，不用重打）');
       loadSuppHistory(clientId);
     } else toast('⚠️ 推薦失敗，請重試');
   });
