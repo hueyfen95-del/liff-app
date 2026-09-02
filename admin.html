@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-02a';
+var MX_BUILD = '2026-09-02c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -5446,6 +5446,7 @@ function loadHandover(){
     body.innerHTML = _handoverCache.map(function(h, i){
       return '<div style="padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px">'
         + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px">'
+        + '<span style="font-size:11px;font-weight:700;color:#6D4AA8;background:#EFE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<b style="color:var(--text)">' + escH(h.fromSecretary || '前一班') + '</b>'
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(h.date) + '</span>'
         + (h.important ? '<span style="font-size:10px;background:#FDEAEA;color:#A32D2D;border-radius:5px;padding:1px 6px;font-weight:700">⚠️ ' + escH(h.important) + '</span>' : '')
@@ -5485,6 +5486,7 @@ function loadOverdueLabs(){
       var thr = o.threshold || (o.src === 'fm' ? _odueThresholds.fm : _odueThresholds.general) || 1;
       var severe = o.days >= thr * 1.5; // 超過門檻的1.5倍才算「很急」，兩類天數基準不同，用比例判斷比固定天數合理
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
+        + '<span style="font-size:11px;font-weight:700;color:#A32D2D;background:#FBE3DB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<span style="font-size:9.5px;font-weight:700;color:#fff;background:' + (severe ? '#A32D2D' : '#B26A00') + ';border-radius:5px;padding:1px 6px">逾 ' + o.days + ' 天</span>'
         + '<span style="font-size:9px;color:var(--text3)">（門檻 ' + thr + ' 天）</span>'
         + '<b style="color:var(--text)">' + escH(clientName(o.clientId)) + '</b>'
@@ -5715,6 +5717,7 @@ function loadClientInbox(){
       var setName = it.src === 'mood' ? 'MOOD_REPLY_TEMPLATES' : (it.noteType === '進階服務詢問' ? 'SVC_REPLY_TEMPLATES' : 'CONSULT_REPLY_TEMPLATES');
       return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+        + '<span style="font-size:11px;font-weight:700;color:#5B3FA8;background:#EDE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<span style="font-size:10.5px;background:'+(it.src==='mood'?'#EFF6FF':'#F5F3FF')+';color:'+(it.src==='mood'?'#1E40AF':'#5B21B6')+';border-radius:20px;padding:2px 8px;font-weight:700">'+escH(it.kind)+'</span>'
         + '<span style="font-size:11px;color:var(--text3)">'+escH(it.time)+'</span>'
         + '<b style="font-size:12px">'+escH(it.name || it.clientId)+'</b>'
@@ -5827,10 +5830,11 @@ function loadMealHelp(){
     // pill 已改由今日待辦的常駐統計列顯示（dt.mealHelp），這裡不再重複註冊
     if(items.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
-    body.innerHTML = items.map(function(it){
+    body.innerHTML = items.map(function(it, i){
       var uid = 'mh' + it.row;
       return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)' + (it.replied ? ';opacity:.55' : '') + '">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
+        + '<span style="font-size:11px;font-weight:700;color:#8A5A0A;background:#FDF3E0;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<span style="font-size:11px;color:var(--text3)">'+escH(it.time)+'</span>'
         + '<b style="font-size:12px">'+escH(it.name || it.clientId)+'</b>'
         + '<span style="font-size:10.5px;color:var(--text3)">'+escH(it.clientId)+'</span>'
@@ -5870,6 +5874,7 @@ function loadUnknownQuestions(){
       var box = '<div style="padding:9px 0;border-bottom:1px dashed var(--border)'
         + (isCopied ? ';background:#FDEDEC;border-radius:8px;padding:9px 10px;margin-bottom:4px' : '') + '">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+        + '<span style="font-size:11px;font-weight:700;color:#A83A24;background:#FBE5E5;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + (isCopied ? '<span style="color:#C0392B;font-weight:700;font-size:11px">🔴 已複製・尚未確認送出</span>' : '')
         + '<b style="color:var(--text)">' + escH(clientName(q.clientId)) + '</b>'
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(q.date) + '</span>'
@@ -6085,6 +6090,7 @@ function loadBookings(){
     card.style.display = '';
     body.innerHTML = _bkgCache.map(function(b, i){
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
+        + '<span style="font-size:11px;font-weight:700;color:#6D4AA8;background:#EFE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<b style="color:var(--text)">' + escH(clientName(b.clientId)) + '</b>'
         + '<span style="color:var(--text2)">' + escH(b.clinic) + (b.time ? '・' + escH(b.time) : '') + '</span>'
         + (b.diet ? '<span style="font-size:10px;background:var(--b2);color:var(--b3);border-radius:5px;padding:1px 6px">' + escH(b.diet) + '</span>' : '')
@@ -6152,6 +6158,7 @@ function loadPurchases(){
       var isPending = p.status === '待處理';
       var isPaid = p.status.indexOf('完成') >= 0;
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
+        + '<span style="font-size:11px;font-weight:700;color:#2465A8;background:#E8F1FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<span style="font-size:9.5px;font-weight:700;color:#fff;background:' + (isPending ? '#B26A00' : '#2465A8') + ';border-radius:5px;padding:1px 6px">' + escH(p.status) + '</span>'
         + '<b style="color:var(--text)">' + escH(clientName(p.clientId)) + '</b>'
         + '<span style="color:var(--text2)">' + escH(p.product) + ' x' + escH(p.qty) + '</span>'
@@ -6517,8 +6524,9 @@ function loadOpenDiscussions(){
     _mxDashNavSet('disc-card', items.length, '個案討論', 'ti ti-messages');
     if(items.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
-    body.innerHTML = items.map(function(t){
+    body.innerHTML = items.map(function(t, i){
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
+        + '<span style="font-size:11px;font-weight:700;color:#B26A00;background:#FBF3E3;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<b style="color:var(--text)">' + escH(t.clientId) + '</b>'
         + '<span style="color:var(--text2);flex:1;min-width:150px">' + escH(t.title) + '</span>'
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(t.by) + '・' + t.replies.length + ' 則回覆</span>'
@@ -9068,12 +9076,13 @@ function loadSymptomAlerts(){
     if(alerts.length===0){ card.style.display='none'; return; }
     card.style.display='block';
     var html='';
-    alerts.forEach(function(a){
+    alerts.forEach(function(a, ai){
       var color = a.level==='critical' ? '#C0392B' : (a.level==='high' ? '#D35400' : '#B8860B');
       var bg = a.level==='critical' ? '#FDEDEC' : (a.level==='high' ? '#FEF5EC' : '#FEFBF0');
       var badge = a.level==='critical' ? '🚨 緊急' : (a.level==='high' ? '⚠️ 需關心' : '注意');
       html += '<div style="background:'+bg+';border-radius:9px;padding:9px 12px;margin-bottom:7px;border-left:4px solid '+color+'">'
         + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">'
+        + '<span style="font-size:11px;font-weight:700;color:'+color+';background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ai + 1) + '</span>'
         + '<span style="font-weight:800;color:'+color+';font-size:12px">'+badge+'</span>'
         + '<span style="font-weight:700;font-size:13px">'+escH(a.name||a.clientId)+'</span>'
         + '<span style="font-size:10.5px;color:var(--text3)">'+escH(a.date)+'・'+escH(a.tag)+(a.isInsulin?'・💉胰島素客人':'')+'</span>'
@@ -9101,6 +9110,7 @@ function loadBirthdays(){
     today.forEach(function(b,bi){
       html += '<div style="background:#FDF3F7;border-radius:9px;margin-bottom:6px;padding:8px 10px">'
         + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<span style="font-size:11px;font-weight:700;color:#C2185B;background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (bi + 1) + '</span>'
         + '<span style="font-size:20px">🎂</span>'
         + '<div style="flex:1"><span style="font-weight:800;color:#C2185B">今天生日！</span> '+escH(b.name)
         + (b.secretary?'<span style="font-size:10.5px;color:var(--text3)"> · '+escH(b.secretary)+'</span>':'')+'</div>'
@@ -9113,8 +9123,9 @@ function loadBirthdays(){
         + '</div>'
         + '</div>';
     });
-    up.forEach(function(b){
+    up.forEach(function(b, ui){
       html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;color:var(--text2);font-size:12px">'
+        + '<span style="font-size:11px;font-weight:700;color:#C2185B;background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (today.length + ui + 1) + '</span>'
         + '<span>🎈</span><div style="flex:1">'+escH(b.name)+'　<span style="color:var(--text3)">'+escH(b.date)+'（'+b.inDays+' 天後）</span></div>'
         + '</div>';
     });
@@ -9171,8 +9182,9 @@ function loadCareAwards(){
     if(!box) return;
     if(awards.length===0){ box.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">這個月還沒有足夠記錄可以頒獎，等客人多記錄幾天就會出現 🌱</div>'; return; }
     var html='<div style="font-size:11px;color:var(--text3);margin-bottom:9px">這些是鼓勵用的溫柔稱讚，可以複製到 LINE 給客人打氣（非競賽排名）</div>';
-    awards.forEach(function(a){
+    awards.forEach(function(a, ai){
       html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--mint);border-radius:11px;margin-bottom:7px">'
+        + '<span style="font-size:11px;font-weight:700;color:var(--g3);background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ai + 1) + '</span>'
         + '<span style="font-size:26px">'+escH(a.icon)+'</span>'
         + '<div style="flex:1"><div style="font-weight:800;color:var(--g3);font-size:13px">'+escH(a.title)+'</div>'
         + '<div style="font-size:11px;color:var(--text2);margin-top:1px">'+escH(a.name)+'　'+escH(a.desc)+'</div></div>'
