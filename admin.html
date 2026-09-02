@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-02c';
+var MX_BUILD = '2026-09-02f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2809,6 +2809,7 @@ function loadIRCTFullHistory(clientId){
     box = document.getElementById('irct-f-history');
     if(!box) return;
     var items = (d && d.items) || [];
+    _cdSetBadge('cd-badge-irct', items.length > 0);
     if(items.length === 0){ box.innerHTML = '還沒有完整記錄'; return; }
     box.innerHTML = items.map(function(it){
       return '<div style="padding:6px 0;border-bottom:1px dashed var(--border)">'
@@ -4225,6 +4226,7 @@ function loadClientReferrals(clientId){
     box = document.getElementById('cd-referrals');
     if(!box) return;
     var items = (d && d.items) || [];
+    _cdSetBadge('cd-badge-ref', items.length > 0);
     if(items.length === 0){ box.innerHTML = '<div style="font-size:10.5px;color:var(--text3)">還沒有介紹記錄</div>'; return; }
     box.innerHTML = items.map(function(it){
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:11px;border-top:1px dashed var(--border)">'
@@ -4994,6 +4996,17 @@ function applyClientPanelReadonlyMode(panelEl){
     el.style.pointerEvents = 'none';
   });
 }
+// 2026-09-02（她：「後台一塊一塊要看得很清楚，知道哪個處理完了哪個沒處理」）：客人詳情頁每個資料區塊
+// 標題右側統一加一個小圓角狀態標籤，讓秘書一眼掃過去就知道這位客人哪些資料已經有、哪些還空著，
+// 不用每個區塊都展開才知道。filled=true 顯示綠底「已填寫」、false 顯示灰底「尚未填寫」；
+// yesText/noText 可以自訂文字（例如陪跑點數用「已開通／未開通」比較貼切）。
+function _cdSetBadge(id, filled, yesText, noText){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = filled ? (yesText || '✅ 已填寫') : (noText || '－ 尚未填寫');
+  el.style.background = filled ? 'var(--g2)' : 'var(--bg2)';
+  el.style.color = filled ? 'var(--g3)' : 'var(--text3)';
+}
 function openClientDetail(id, name){
   _cdCurrentName = name || id;
   setTimeout(function(){ if(typeof loadDoctorsToSelects==='function') loadDoctorsToSelects(); }, 300);
@@ -5035,7 +5048,7 @@ function openClientDetail(id, name){
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px;margin-top:6px" onclick="sendMealReply(\'cd' + escH(id) + '\',\'' + escH(id) + '\',0,this)">💌 送出建議（客人打開前台就會看到）</button>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）<span id="cd-badge-supp" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
     + '<select id="cd-supp-doctor" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">建議醫師／藥師・誰建議的？…</option></select>'
     + '<select id="cd-supp-freq" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">服用頻率（選填）…</option><option>每天</option><option>單號日</option><option>雙號日</option></select>'
@@ -5062,7 +5075,7 @@ function openClientDetail(id, name){
     + '<div id="cd-supp-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💉 加測檢測（IRCT 套組／單項→💉 檢體記錄；功能醫學→💉 功能醫學記錄） <span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTPricing()">改IRCT價格</span></div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💉 加測檢測（IRCT 套組／單項→💉 檢體記錄；功能醫學→💉 功能醫學記錄） <span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTPricing()">改IRCT價格</span><span id="cd-badge-lab" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
     + '<select id="cd-lab-sel" class="form-select" style="font-size:12px" onchange="onLabSelChange()"><option value="">載入檢測項目…</option></select>'
     + '<select id="cd-lab-sendto" class="form-select" style="font-size:12px;margin-bottom:6px"><option value="">送往哪個診所/實驗室？（選填，會影響逾期提醒的門檻與催收對象）</option></select>'
@@ -5100,7 +5113,7 @@ function openClientDetail(id, name){
     + '</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💊 用藥記錄（寫入 💊 用藥記錄）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💊 用藥記錄（寫入 💊 用藥記錄）<span id="cd-badge-med" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">客人回報的用藥登記在這裡；劑量調整由客人的醫師決定，我們負責記下時間軸。</div>'
     + '<div style="display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:7px">'
     // 2026-08-17 新增：這個表單原本沒有「開藥醫師」欄位，但 recMedication() 一直都在讀
@@ -5124,7 +5137,7 @@ function openClientDetail(id, name){
     + '<div id="cd-med-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🎯 目標體重（設定後，客人前台和月報都會顯示「距離目標」）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🎯 目標體重（設定後，客人前台和月報都會顯示「距離目標」）<span id="cd-badge-goal" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:flex;gap:8px;align-items:center">'
     + '<input id="cd-goal-weight" type="number" step="0.1" class="form-input" style="font-size:12px;flex:1" placeholder="公斤，例：60">'
     + '<button class="btn-g" style="padding:8px 14px;font-size:12px;flex-shrink:0" onclick="saveClientGoalWeight(\''+escH(id)+'\')">儲存</button>'
@@ -5132,7 +5145,7 @@ function openClientDetail(id, name){
     + '<div id="cd-goal-current" style="font-size:10.5px;color:var(--text3);margin-top:6px"></div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💪 InBody 記錄（寫入 💪 InBody記錄，會自動整合進月報）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💪 InBody 記錄（寫入 💪 InBody記錄，會自動整合進月報）<span id="cd-badge-ib" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">檢測時拍InBody報告單直接辨識，或手動輸入數字。身高只要量過一次通常不太會變，之後可以留空沿用。</div>'
     + '<button class="ai-btn b" style="font-size:11px;padding:8px 10px;margin-bottom:8px" onclick="document.getElementById(\'cd-ib-file\').click()">📷 拍InBody報告單辨識</button>'
     + '<input type="file" id="cd-ib-file" accept="image/*,application/pdf" style="display:none" onchange="handleInBodyPhoto(this,\''+escH(id)+'\')">'
@@ -5158,8 +5171,8 @@ function openClientDetail(id, name){
     + '<div id="cd-ib-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🔬 IRCT 完整檢測記錄（依血糖／血脂／胰島素／體組成分類，存檔後前台報告分析頁會自動更新）</div>'
-    + '<div style="font-size:10px;color:var(--text3);margin-bottom:6px">檢測時拍檢驗報告表格直接辨識，或手動輸入數字。</div>'
+    + '<div style="font-size:13.5px;font-weight:800;color:var(--text);margin-bottom:3px">🔬 新增／登記 IRCT 完整檢測記錄<span id="cd-badge-irct" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:6px">下面欄位依血糖／血脂／胰島素／體組成分類，各有顏色區塊方便辨識——檢測時拍檢驗報告表格直接辨識，或手動輸入數字，存檔後前台報告分析頁會自動更新。</div>'
     + '<div id="irct-f-meds-hint" style="font-size:10.5px;color:var(--text3);margin-bottom:8px;padding:6px 8px;background:var(--bg2);border-radius:7px">載入用藥記錄中…</div>'
     + '<div style="background:var(--bg2);border-radius:8px;padding:8px 10px;margin-bottom:10px">'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text2);margin-bottom:5px">慢性病用藥情境（會跟著這次檢測記錄一起存，讓醫師能看到用藥時間軸——血糖／血脂藥確定會讓數值失準，血壓藥影響較小）</div>'
@@ -5205,52 +5218,58 @@ function openClientDetail(id, name){
     + '<option value="修復模式">修復模式（力不從心、慢性疲勞）</option>'
     + '<option value="慢病模式">慢病模式（已使用慢性病藥）</option>'
     + '</select></div>'
-    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">🩸 1. 血糖（糖化＋血糖波動）</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '<div style="background:#FDEDF0;border:1px solid #F5C6D3;border-radius:9px;padding:8px 10px;margin-bottom:8px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:#C2185B;margin-bottom:6px">🩸 1. 血糖（糖化＋血糖波動）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
     + '<input id="irct-f-hba1c" class="form-input" style="font-size:12px" placeholder="HbA1c %">'
     + '<input id="irct-f-glucoseAC" class="form-input" style="font-size:12px" placeholder="空腹血糖">'
     + '<input id="irct-f-glucose1h" class="form-input" style="font-size:12px" placeholder="飯後1hr血糖">'
     + '<input id="irct-f-glucose2h" class="form-input" style="font-size:12px" placeholder="飯後2hr血糖">'
     + '<input id="irct-f-glucose3h" class="form-input" style="font-size:12px" placeholder="飯後3hr血糖">'
-    + '</div>'
-    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">🫀 2. 血脂（含心血管發炎因子）</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '</div></div>'
+    + '<div style="background:#FFF3E0;border:1px solid #F5D9A8;border-radius:9px;padding:8px 10px;margin-bottom:8px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:#B26A00;margin-bottom:6px">🫀 2. 血脂（含心血管發炎因子）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
     + '<input id="irct-f-cholesterol" class="form-input" style="font-size:12px" placeholder="總膽固醇">'
     + '<input id="irct-f-tg" class="form-input" style="font-size:12px" placeholder="三酸甘油脂TG">'
     + '<input id="irct-f-hdl" class="form-input" style="font-size:12px" placeholder="HDL">'
     + '<input id="irct-f-ldl" class="form-input" style="font-size:12px" placeholder="LDL">'
     + '<input id="irct-f-sdldl" class="form-input" style="font-size:12px" placeholder="sdLDL（t2）">'
     + '<input id="irct-f-homocysteine" class="form-input" style="font-size:12px" placeholder="同半胱胺酸（t2）">'
-    + '</div>'
-    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">💉 3. 胰島素（高胰島素血症／貝塔細胞／壓抑觀察）</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '</div></div>'
+    + '<div style="background:#F5F3FF;border:1px solid #D9C9F2;border-radius:9px;padding:8px 10px;margin-bottom:8px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:#5B3FA8;margin-bottom:6px">💉 3. 胰島素（高胰島素血症／貝塔細胞／壓抑觀察）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
     + '<input id="irct-f-insulinAC" class="form-input" style="font-size:12px" placeholder="空腹胰島素">'
     + '<input id="irct-f-insulin1h" class="form-input" style="font-size:12px" placeholder="飯後1hr胰島素">'
     + '<input id="irct-f-insulin2h" class="form-input" style="font-size:12px" placeholder="飯後2hr胰島素">'
     + '<input id="irct-f-insulin3h" class="form-input" style="font-size:12px" placeholder="飯後3hr胰島素">'
     + '<input id="irct-f-homaIR" class="form-input" style="font-size:12px" placeholder="HOMA-IR">'
     + '<input id="irct-f-ketone" class="form-input" style="font-size:12px" placeholder="空腹血酮">'
-    + '</div>'
-    + '<div style="font-size:10.5px;font-weight:700;color:var(--g3);margin:8px 0 4px">📏 4. 體組成（代謝症候群觀察）</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">'
+    + '</div></div>'
+    + '<div style="background:#EAF2FB;border:1px solid #C9DEF2;border-radius:9px;padding:8px 10px;margin-bottom:8px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:#2465A8;margin-bottom:6px">📏 4. 體組成（代謝症候群觀察）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
     + '<input id="irct-f-waist" class="form-input" style="font-size:12px" placeholder="腰圍cm">'
     + '<input id="irct-f-hip" class="form-input" style="font-size:12px" placeholder="臀圍cm">'
     + '<input id="irct-f-bodyFatPct" class="form-input" style="font-size:12px" placeholder="體脂肪率%">'
     + '<input id="irct-f-visceralFat" class="form-input" style="font-size:12px" placeholder="內臟脂肪">'
     + '<input id="irct-f-bmi" class="form-input" style="font-size:12px" placeholder="BMI">'
     + '<input id="irct-f-weight" class="form-input" style="font-size:12px" placeholder="體重kg">'
-    + '</div>'
-    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:8px 0 4px">其他（腎肝功能・可留空）</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'
+    + '</div></div>'
+    + '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:8px 10px;margin-bottom:8px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:var(--text2);margin-bottom:6px">🧪 5. 其他（腎肝功能・可留空）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">'
     + '<input id="irct-f-creatinine" class="form-input" style="font-size:12px" placeholder="肌酸酐">'
     + '<input id="irct-f-ua" class="form-input" style="font-size:12px" placeholder="尿酸UA">'
     + '<input id="irct-f-got" class="form-input" style="font-size:12px" placeholder="GOT">'
     + '<input id="irct-f-gpt" class="form-input" style="font-size:12px" placeholder="GPT">'
     + '<input id="irct-f-egfr" class="form-input" style="font-size:12px" placeholder="eGFR">'
     + '<input id="irct-f-esi" class="form-input" style="font-size:12px" placeholder="ESI（留空自動算TG/HDL）">'
-    + '</div>'
-    + '<div id="irct-f-more-toggle" onclick="document.getElementById(\'irct-f-more-box\').style.display=\'grid\';this.style.display=\'none\'" style="font-size:10.5px;color:var(--g3);cursor:pointer;margin-bottom:8px;text-decoration:underline">+ 這次有加測其他項目（電解質／甲狀腺／進階血脂）</div>'
-    + '<div id="irct-f-more-box" style="display:none;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'
+    + '</div></div>'
+    + '<div style="background:#E6F7F5;border:1px solid #B9E5DF;border-radius:9px;padding:8px 10px;margin-bottom:8px">'
+    + '<div id="irct-f-more-toggle" onclick="document.getElementById(\'irct-f-more-box\').style.display=\'grid\';this.style.display=\'none\'" style="font-size:12.5px;font-weight:800;color:#0F6E56;cursor:pointer;text-decoration:underline">🧬 6. 加測項目（電解質／甲狀腺／進階血脂）・點這裡展開</div>'
+    + '<div id="irct-f-more-box" style="display:none;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">'
     + '<input id="irct-f-na" class="form-input" style="font-size:12px" placeholder="鈉離子Na">'
     + '<input id="irct-f-k" class="form-input" style="font-size:12px" placeholder="鉀離子K">'
     + '<input id="irct-f-cl" class="form-input" style="font-size:12px" placeholder="氯離子Cl">'
@@ -5258,7 +5277,7 @@ function openClientDetail(id, name){
     + '<input id="irct-f-tsh" class="form-input" style="font-size:12px" placeholder="甲狀腺促進素TSH">'
     + '<input id="irct-f-lipoproteinA" class="form-input" style="font-size:12px" placeholder="脂蛋白元A">'
     + '<input id="irct-f-apob" class="form-input" style="font-size:12px" placeholder="載脂蛋白B ApoB">'
-    + '</div>'
+    + '</div></div>'
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="saveIRCTFull(\''+escH(id)+'\')">儲存 IRCT 完整記錄（同步解鎖前台報告）</button>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">IRCT 檢測歷史</div>'
     + '<div id="irct-f-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
@@ -5266,7 +5285,7 @@ function openClientDetail(id, name){
     + '<div id="irct-f-analysis" style="font-size:11.5px;color:var(--text2);line-height:1.8">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍚 碳水計畫（寫入 👤 客人名單）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍚 碳水計畫（寫入 👤 客人名單）<span id="cd-badge-carb" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">代謝靈活性調整期間分兩段：嚴格期（內部：治療性生酮）不建議吃碳水；碳水回補期（內部：營養性生酮）以 15g 為單位往上加，找客人的碳水甜蜜點。客人前台只會看到中性用語（嚴格期／碳水回補期），不會出現「治療」或「生酮」。</div>'
     + '<div style="display:grid;grid-template-columns:1fr auto;gap:7px">'
     + '<select id="cd-carb-sel" class="form-select" style="font-size:12px">'
@@ -5287,7 +5306,7 @@ function openClientDetail(id, name){
     + '</label>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🎫 陪跑點數（寫入 🎫 陪跑點數帳本）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🎫 陪跑點數（寫入 🎫 陪跑點數帳本）<span id="cd-badge-cps" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">1點=100元。年費陪跑內含100點：開卡禮4點＋每月8點×12（系統每月1號起自動發放，不用手動按）。點數可換秘書/醫師諮詢（隨時），每月最後7天可折抵好物商城（系統會自動提醒還有餘額的客人），沒用完自動累積，合約到期後60天內要用完。代購結帳時秘書也可以直接選「用陪跑點數折抵」。</div>'
     + '<div id="cd-cps-body" style="font-size:12px;color:var(--text3)">載入中…</div>'
     + '</div>'
@@ -5298,11 +5317,11 @@ function openClientDetail(id, name){
     + '<div id="cd-sweetspot-body" style="margin-top:9px"></div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💬 客人心得分享（客人在前台自己送出）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💬 客人心得分享（客人在前台自己送出）<span id="cd-badge-testi" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div id="cd-testimonials">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🤝 介紹記錄（寫入 👤 介紹記錄）</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🤝 介紹記錄（寫入 👤 介紹記錄）<span id="cd-badge-ref" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px">'
     + '<input id="cd-ref-referredId" class="form-input" style="font-size:12px" placeholder="被介紹人ID（如果已經是客人）">'
     + '<input id="cd-ref-referredName" class="form-input" style="font-size:12px" placeholder="被介紹人姓名">'
@@ -6307,9 +6326,10 @@ function loadCarePointsAdmin(id){
   box.innerHTML = '載入中…';
   adminAPI({action:'getCarePoints', clientId:id}, function(d){
     if(!d || d.status!=='ok'){ box.innerHTML='<span style="color:var(--r3)">讀取失敗（Apps Script 需要部署含陪跑點數的新版）</span>'; return; }
+    _cdSetBadge('cd-badge-cps', !!d.opened, '✅ 已開通', '－ 未開通');
     if(!d.opened){
       box.innerHTML = '<div style="color:var(--text3);margin-bottom:8px">這位客人還沒開通陪跑點數</div>'
-        + (canEditClientsNow() ? '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="cpsOpen()">🎫 開通並發開卡禮 4 點</button>' : '');
+        + (isFinanceTier() ? '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="cpsOpen()">🎫 開通並發開卡禮 4 點</button>' : '<div style="font-size:11px;color:var(--text3)">🔒 開通要請財務主管或創始人操作（需要先核對這位客人是否已繳費含陪跑點數的方案）</div>');
       return;
     }
     var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
@@ -6388,6 +6408,7 @@ function loadCarbPlanAdmin(id){
     sel.value = v;
     var chk = document.getElementById('cd-carb-approved');
     if(chk) chk.checked = !!d.approved;
+    _cdSetBadge('cd-badge-carb', !!v, (d.approved ? '✅ 已設定（已核准）' : '✅ 已設定（待核准）'), '－ 未設定');
   });
 }
 function startCarbSweetSpotPlan(clientId){
@@ -6548,6 +6569,7 @@ function loadClientTestimonials(clientId){
     box = document.getElementById('cd-testimonials');
     if(!box) return;
     var items = ((d && d.items) || []).filter(function(t){ return t.clientId === clientId; });
+    _cdSetBadge('cd-badge-testi', items.length > 0);
     if(items.length === 0){ box.innerHTML = '<div style="font-size:11px;color:var(--text3)">這位客人還沒有分享過心得</div>'; return; }
     box.innerHTML = items.map(function(t){
       var statusLabel = t.reviewStatus === 'approved' ? '<span style="color:var(--g3);font-size:10px">✅ 已審核</span>' : '<span style="color:var(--text3);font-size:10px">待審核</span>';
@@ -8181,6 +8203,7 @@ function loadSuppHistory(clientId){
   if(!box) return;
   adminAPI({action:'getSupplementRecs', clientId:clientId}, function(d){
     _suppHist = d.items||[];
+    _cdSetBadge('cd-badge-supp', _suppHist.length > 0);
     if(_suppHist.length===0){
       box.innerHTML='<span style="color:var(--text3)">還沒有推薦記錄——第一次推薦後，之後就能一鍵重複</span>';
       return;
@@ -8479,6 +8502,7 @@ function loadLabHistory(clientId){
   if(!box) return;
   adminAPI({action:'getLabOrders', clientId:clientId}, function(d){
     _labHist = d.items||[];
+    _cdSetBadge('cd-badge-lab', _labHist.length > 0);
     if(_labHist.length===0){
       box.innerHTML='<span style="color:var(--text3)">還沒有加測記錄——點選項目按「記錄加測」，之後醫師點選歷史即可重複</span>';
       return;
@@ -8746,8 +8770,10 @@ function loadClientGoalWeight(clientId){
     if(d && d.status === 'ok' && d.targetWeight !== ''){
       if(input) input.value = d.targetWeight;
       el.textContent = '目前設定：' + d.targetWeight + ' kg' + (d.currentWeight !== '' ? '（目前體重 '+d.currentWeight+' kg，還差 '+Math.abs(d.distanceToGoal)+' kg）' : '');
+      _cdSetBadge('cd-badge-goal', true);
     } else {
       el.textContent = '這位客人還沒設定目標體重';
+      _cdSetBadge('cd-badge-goal', false);
     }
   });
 }
@@ -8767,6 +8793,7 @@ function loadInBodyHistory(clientId){
     box = document.getElementById('cd-ib-history');
     if(!box) return;
     var items = (d && d.items) || [];
+    _cdSetBadge('cd-badge-ib', items.length > 0);
     if(items.length === 0){ box.innerHTML = '還沒有 InBody 記錄'; return; }
     box.innerHTML = items.map(function(it){
       var parts = [];
@@ -8800,6 +8827,7 @@ function loadMedHistory(clientId){
   if(!box) return;
   adminAPI({action:'getMedications', clientId:clientId}, function(d){
     _medHist = d.items||[];
+    _cdSetBadge('cd-badge-med', _medHist.length > 0);
     if(_medHist.length===0){
       box.innerHTML='<span style="color:var(--text3)">還沒有用藥登記——客人回報用藥後在上方登記，之後的減藥、停藥時間都會自動留存</span>';
       return;
