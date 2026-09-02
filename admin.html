@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-08-31a';
+var MX_BUILD = '2026-09-02a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -463,8 +463,9 @@ var MX_BUILD = '2026-08-31a';
 
 <!-- ══ 客戶管理 ══ -->
 <div class="pg" id="pg-clients">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
-        <button class="ai-btn" style="font-size:12px;padding:8px 14px;background:var(--g2);color:var(--g3);font-weight:700" onclick="cpsGrantMonthly()">🎫 發放本月陪跑點數（每人+8點）</button>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:10.5px;color:var(--text3)">📌 系統每月1號起會自動幫符合資格的人發放，這顆按鈕是手動補發用</span>
+        <button class="ai-btn" style="font-size:12px;padding:8px 14px;background:var(--g2);color:var(--g3);font-weight:700" onclick="cpsGrantMonthly()">🎫 補發本月陪跑點數（每人+8點）</button>
       </div>
       <!-- 客人記錄查詢 -->
       <div class="card" style="margin-bottom:14px">
@@ -5287,7 +5288,7 @@ function openClientDetail(id, name){
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🎫 陪跑點數（寫入 🎫 陪跑點數帳本）</div>'
-    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">1點=100元。年費陪跑內含100點：開卡禮4點＋每月8點×12。點數可換秘書/醫師諮詢（隨時），每月最後7天可折抵好物商城，沒用完自動累積，合約到期後60天內要用完。</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">1點=100元。年費陪跑內含100點：開卡禮4點＋每月8點×12（系統每月1號起自動發放，不用手動按）。點數可換秘書/醫師諮詢（隨時），每月最後7天可折抵好物商城（系統會自動提醒還有餘額的客人），沒用完自動累積，合約到期後60天內要用完。代購結帳時秘書也可以直接選「用陪跑點數折抵」。</div>'
     + '<div id="cd-cps-body" style="font-size:12px;color:var(--text3)">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
@@ -6208,8 +6209,10 @@ function proxyFinish(i){
     + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:5px">付款方式</div>'
     + '<label style="display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:9px 11px;margin-bottom:6px;cursor:pointer;font-size:12px">'
     + '<input type="radio" name="pfm-pay" value="stored" checked style="margin-top:2px;accent-color:var(--g)"><span><b>從客人儲值扣款</b><br><span style="font-size:10.5px;color:var(--text3)">自動寫入消費記錄，轉給會計核查</span></span></label>'
-    + '<label style="display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:9px 11px;margin-bottom:11px;cursor:pointer;font-size:12px">'
+    + '<label style="display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:9px 11px;margin-bottom:6px;cursor:pointer;font-size:12px">'
     + '<input type="radio" name="pfm-pay" value="cash" style="margin-top:2px;accent-color:var(--g)"><span><b>已收現金，直接結案</b><br><span style="font-size:10.5px;color:var(--text3)">不動儲值餘額</span></span></label>'
+    + '<label id="pfm-pts-label" style="display:flex;align-items:flex-start;gap:8px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:9px 11px;margin-bottom:11px;cursor:pointer;font-size:12px;opacity:.5">'
+    + '<input type="radio" name="pfm-pay" value="points" id="pfm-pts-radio" disabled style="margin-top:2px;accent-color:var(--g)"><span><b>用陪跑點數折抵</b><br><span id="pfm-pts-note" style="font-size:10.5px;color:var(--text3)">檢查點數中…</span></span></label>'
     + '<div id="pfm-total" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:9px;padding:8px 11px;font-size:12.5px;color:#B45309;font-weight:700;margin-bottom:12px">合計 $0</div>'
     + '<div style="display:flex;gap:8px;justify-content:flex-end">'
     + '<button onclick="document.getElementById(\'proxy-finish-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
@@ -6217,12 +6220,41 @@ function proxyFinish(i){
     + '</div></div>';
   document.body.appendChild(ov);
   pfmUpdateTotal();
+  // 2026-09-02 陪跑點數 Phase 2：代購結帳新增「用點數折抵」——開窗時先問後端這位客人的點數餘額，
+  // 夠不夠這筆金額（1點=100元，無條件進位）才決定要不要開放選這個付款方式，避免秘書選了才發現點數不夠。
+  window._pfmBalance = null;
+  adminAPI({action:'getCarePoints', clientId:p.clientId}, function(d){
+    var m = document.getElementById('proxy-finish-modal'); if(!m) return; // 結帳視窗可能已經被關掉了
+    var note = document.getElementById('pfm-pts-note');
+    if(!note) return;
+    if(d && d.status === 'ok' && d.opened){
+      window._pfmBalance = d.balance;
+      pfmUpdateTotal(); // 拿到餘額後重算一次，把「夠不夠/差幾點」補上去
+    } else {
+      note.textContent = (d && d.opened === false) ? '這位客人還沒開通陪跑點數' : '讀取點數失敗';
+    }
+  });
 }
 function pfmUpdateTotal(){
   var amt = Math.round(Number((document.getElementById('pfm-amt')||{value:0}).value) || 0);
   var ship = Math.round(Number((document.getElementById('pfm-ship')||{value:0}).value) || 0);
+  var total = amt + ship;
   var el = document.getElementById('pfm-total');
-  if(el) el.textContent = '合計 $' + (amt + ship).toLocaleString() + (ship > 0 ? '（商品 $' + amt.toLocaleString() + '＋運費 $' + ship.toLocaleString() + '）' : '');
+  if(el) el.textContent = '合計 $' + total.toLocaleString() + (ship > 0 ? '（商品 $' + amt.toLocaleString() + '＋運費 $' + ship.toLocaleString() + '）' : '');
+  var radio = document.getElementById('pfm-pts-radio');
+  var note = document.getElementById('pfm-pts-note');
+  var label = document.getElementById('pfm-pts-label');
+  if(radio && note && label && window._pfmBalance != null){
+    var needed = total > 0 ? Math.ceil(total / 100) : 0;
+    if(needed > 0 && window._pfmBalance >= needed){
+      radio.disabled = false; label.style.opacity = '1';
+      note.textContent = '需要 ' + needed + ' 點（目前餘額 ' + window._pfmBalance + ' 點）';
+    } else {
+      radio.disabled = true; label.style.opacity = '.5';
+      if(radio.checked){ radio.checked = false; var storedRadio = document.querySelector('input[name="pfm-pay"][value="stored"]'); if(storedRadio) storedRadio.checked = true; }
+      note.textContent = needed > 0 ? '點數不足（需要 ' + needed + ' 點，目前餘額 ' + window._pfmBalance + ' 點）' : '請先填商品金額';
+    }
+  }
 }
 function submitProxyFinish(i){
   var p = _proxyCache[i]; if(!p) return;
@@ -6231,16 +6263,18 @@ function submitProxyFinish(i){
   if(!(amt > 0)){ toast('⚠️ 請填商品金額'); return; }
   if(ship < 0){ toast('⚠️ 運費不能是負數'); return; }
   var payEl = document.querySelector('input[name="pfm-pay"]:checked');
-  var useStored = !payEl || payEl.value === 'stored';
+  var payMode = (payEl && payEl.value) || 'stored';
   var total = amt + ship;
   var sb = document.getElementById('pfm-submit');
   if(sb){ sb.disabled = true; sb.textContent = '結帳中…'; sb.style.opacity = '.6'; } // 防連點
   adminAPIPost({action:'updatePurchase', row:p.row, newStatus:'完成', amount:amt, shipping:ship,
-    payMode: useStored ? 'stored' : 'cash',
+    payMode: payMode,
     secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
     if(d && d.status === 'ok'){
       var m = document.getElementById('proxy-finish-modal'); if(m) m.remove();
-      toast(useStored ? '✅ 已從儲值扣 $' + total.toLocaleString() + '，等會計核查' : '✅ 已收現金結案');
+      var doneMsg = payMode === 'points' ? ('✅ 已用陪跑點數折抵 ' + (d.pointsUsed != null ? d.pointsUsed : '') + ' 點，餘額 ' + (d.balance != null ? d.balance : '') + ' 點')
+        : (payMode === 'stored' ? '✅ 已從儲值扣 $' + total.toLocaleString() + '，等會計核查' : '✅ 已收現金結案');
+      toast(doneMsg);
       loadPurchases();
     } else {
       if(sb){ sb.disabled = false; sb.textContent = '確認結帳'; sb.style.opacity = ''; }
