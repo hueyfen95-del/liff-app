@@ -20,7 +20,7 @@ body{background:var(--bg);min-height:100vh}
 .si{display:flex;align-items:center;gap:8px;padding:9px 15px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);border-left:3px solid transparent;transition:all .12s}
 .si:hover{background:rgba(255,255,255,.07);color:#fff}
 .si.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:#4FD5A8}
-/* 角色主題色（創始人2026-08-10：不同角色登入後一眼可辨——創始人=原深綠、秘書=藍綠、行政=紫、會計=琥珀） */
+/* 角色主題色（管理人2026-08-10：不同角色登入後一眼可辨——管理人=原深綠、秘書=藍綠、行政=紫、會計=琥珀） */
 body[data-role="秘書"] .sidebar{background:#0E3A47}
 body[data-role="秘書"] .si.on{border-left-color:#4FC3D5}
 body[data-role="行政"] .sidebar{background:#2E2450}
@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-03a';
+var MX_BUILD = '2026-09-03d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -260,7 +260,7 @@ var MX_BUILD = '2026-09-03a';
     <div class="si nav-item" onclick="goPg('clients',this)"><i class="ti ti-users"></i>客戶管理</div>
     <div class="si nav-item" onclick="goPg('alerts',this)"><i class="ti ti-bell"></i>警示看板 <span class="si-badge r" id="sb-badge-alerts" style="display:none">–</span></div>
     <div class="sb-sec">管理</div>
-    <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接</div>
+    <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接 <span class="si-badge r" id="sb-badge-shiftgap" style="display:none">–</span></div>
     <div class="si nav-item" onclick="goPg('report',this)"><i class="ti ti-file-text"></i>月報生成</div>
     <!-- 2026-08-31 重新分類：原本「內容管理」塞了14個性質不同的項目（財務/排程/檢測都混在一起），
          這次把財務類併進財務結算、檢測相關獨立一類、IRT模型（只剩1項）併進檢測類、商店管理（只剩1項）併進花園，
@@ -329,7 +329,7 @@ var MX_BUILD = '2026-09-03a';
         </div>
       </div>
 
-      <!-- 💉 新預約待聯繫（創始人2026-08-10：最緊急，置頂） -->
+      <!-- 💉 新預約待聯繫（管理人2026-08-10：最緊急，置頂） -->
       <div class="card" id="bkg-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9F2">
         <div class="card-hd">
           <div class="card-title" style="color:#6D4AA8"><i class="ti ti-calendar-heart"></i>新預約・待聯繫確認日期</div>
@@ -455,10 +455,10 @@ var MX_BUILD = '2026-09-03a';
       </div>
     </div>
   </div>
-  <!-- 血酮統計卡已整個移除（2026-08-30 創始人裁定：血酮不用統計了，沒有太大意義） -->
-  <!-- 📈 經營指標（2026-08-30：只有創始人/老闆看得到，loadFounderMetrics會依角色決定顯示與否） -->
+  <!-- 血酮統計卡已整個移除（2026-08-30 管理人裁定：血酮不用統計了，沒有太大意義） -->
+  <!-- 📈 經營指標（2026-08-30：只有管理人/老闆看得到，loadFounderMetrics會依角色決定顯示與否） -->
   <div class="card" id="founder-metrics-card" style="display:none">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-line"></i>📈 經營指標（創始人專屬）</div><button class="tb-btn" style="font-size:11px" onclick="loadFounderMetrics()">更新</button></div>
+    <div class="card-hd"><div class="card-title"><i class="ti ti-chart-line"></i>📈 經營指標（管理人專屬）</div><button class="tb-btn" style="font-size:11px" onclick="loadFounderMetrics()">更新</button></div>
     <div class="card-body" id="founder-metrics-body">
       <div style="font-size:11px;color:var(--text3);text-align:center;padding:16px 0">載入中…</div>
     </div>
@@ -586,7 +586,7 @@ var MX_BUILD = '2026-09-03a';
     </div>
   </div>
 
-  <!-- 可預約時間指引（創始人2026-08-10：原「本月可預約時間管理」卡是早期遺留，存的資料前台從未讀取、
+  <!-- 可預約時間指引（管理人2026-08-10：原「本月可預約時間管理」卡是早期遺留，存的資料前台從未讀取、
        也沒分診所，會誤導秘書以為設定有生效——已移除，改為指引到真正生效的「診所時間表」頁 -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-hd">
@@ -666,6 +666,18 @@ var MX_BUILD = '2026-09-03a';
       <button onclick="submitShift()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增排班</button>
     </div>
   </div>
+  <!-- 2026-09-03 新增：秘書自己按「上班/下班打卡」按鈕，系統記錄時間（她確認過的打卡方式）。
+       配合排班表用，忘記打卡的話 maybeCheckMissedClockIns_ 會自動寫一則「打卡提醒」給行政 -->
+  <div class="card" style="margin-bottom:14px" id="clock-card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-clock-hour-4"></i>⏰ 上下班打卡</div></div>
+    <div class="card-body">
+      <div id="clock-status" style="font-size:12px;color:var(--text3);margin-bottom:11px">載入中…</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="doClockIn()" style="flex:1;background:var(--g);color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🟢 上班打卡</button>
+        <button onclick="doClockOut()" style="flex:1;background:#8A6A1F;color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🔴 下班打卡</button>
+      </div>
+    </div>
+  </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
     <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>今日值班</div></div><div class="card-body">
       <div id="today-duty-list" style="font-size:12px;color:var(--text3);padding:6px 0">載入中…</div>
@@ -702,7 +714,7 @@ var MX_BUILD = '2026-09-03a';
     <textarea id="handover-note" placeholder="其他想交接的事…" style="width:100%;height:65px;resize:none;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit;line-height:1.6"></textarea>
       <button onclick="saveHandoverNote()" style="margin-top:8px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px;font-size:13px;cursor:pointer;width:100%;font-weight:600">儲存交接</button>
     </div></div>
-    <script>document.addEventListener('DOMContentLoaded', function(){ if(document.getElementById('pg-duty')) setTimeout(function(){ if(typeof loadRecentHandovers==='function') loadRecentHandovers(); if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions(); if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags'); }, 200); });</script>
+    <script>document.addEventListener('DOMContentLoaded', function(){ if(document.getElementById('pg-duty')) setTimeout(function(){ if(typeof loadRecentHandovers==='function') loadRecentHandovers(); if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions(); if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags'); if(typeof loadShiftWishSummary==='function') loadShiftWishSummary(); if(typeof loadMyShiftTable==='function') loadMyShiftTable(); if(typeof loadClockStatus==='function') loadClockStatus(); }, 200); });</script>
   </div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-calendar-event"></i>下月排班意願</div></div><div class="card-body">
     <div style="font-size:12px;color:var(--text2);margin-bottom:11px">選擇可輪值的週次（可複選）和偏好時段（單選）</div>
@@ -719,6 +731,26 @@ var MX_BUILD = '2026-09-03a';
     </div>
     <button onclick="submitShiftWish(this)" style="margin-top:11px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;cursor:pointer;width:100%;font-weight:600">送出排班意願</button>
   </div></div>
+  <!-- 2026-09-03 新增：秘書個人「我的排班」——她說「要給秘書一個月表或週表，讓秘書個人知道這個月他填了
+       哪些班」。直接重用 buildShiftWishMatrix 同一份資料，只是篩出 secretary 等於自己的格子，不用再另外
+       開一個 sheet 或 API ── 跟管理人看到的「排班意願彙整」是同一份底層資料，只是視角換成「只看我的」 -->
+  <div class="card" id="my-shift-card" style="margin-top:14px">
+    <div class="card-hd">
+      <div class="card-title"><i class="ti ti-calendar-user"></i>我的排班（本期）</div>
+      <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="loadMyShiftTable()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
+    </div>
+    <div class="card-body" id="my-shift-body" style="font-size:12px;color:var(--text3);padding-top:8px">載入中…</div>
+  </div>
+  <!-- 2026-09-03 新增：排班意願彙整＋沒人排的時段警示（管理人專屬）——她說「應該要讓創始管理者知道哪個
+       時段沒有人排班，要跳出警示」，原本排班意願只是散落在交接記錄清單裡的一條一條原始文字，沒辦法一眼
+       看出哪些時段還缺人。這裡把最近的送出彙整成「週次 x 時段」的表格，缺人的格子用紅色警示標出來。 -->
+  <div class="card" id="shift-wish-summary-card" style="display:none;margin-top:14px;border:1px solid #F0C0B0">
+    <div class="card-hd">
+      <div class="card-title"><i class="ti ti-calendar-stats"></i>排班意願彙整・缺人警示（管理人專屬）</div>
+      <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="loadShiftWishSummary()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
+    </div>
+    <div class="card-body" id="shift-wish-summary-body" style="font-size:12px;color:var(--text3);padding-top:8px">載入中…</div>
+  </div>
 </div>
 
 <!-- ══ 月報生成 ══ -->
@@ -812,7 +844,7 @@ var MX_BUILD = '2026-09-03a';
 <!-- ══ 分帳角色名單 ══ -->
 <div class="pg" id="pg-roles">
   <div class="hint-box">先建立所有會參與分帳的角色（人或單位），之後在「分帳規則設定」決定每種服務怎麼分給誰。</div>
-  <div id="roles-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——可以核對名單，但新增/編輯/刪除角色要請財務主管或創始人來處理。</div>
+  <div id="roles-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——可以核對名單，但新增/編輯/刪除角色要請財務主管或管理人來處理。</div>
 
   <div class="card" id="role-add-card" style="margin-bottom:14px">
     <div class="card-hd">
@@ -871,9 +903,9 @@ var MX_BUILD = '2026-09-03a';
   </div>
 </div>
 
-<!-- ══ 帳號管理（只有創始人看得到）══ -->
+<!-- ══ 帳號管理（只有管理人看得到）══ -->
 <div class="pg" id="pg-accounts">
-  <div class="hint-box">秘書、會計、行政要用後台，先在這裡幫他們建一組帳號。密碼建議請本人自己改一次；這一頁只有創始人看得到，別人在後台看不到「帳號管理」這個選項。</div>
+  <div class="hint-box">秘書、會計、行政要用後台，先在這裡幫他們建一組帳號。密碼建議請本人自己改一次；這一頁只有管理人看得到，別人在後台看不到「帳號管理」這個選項。</div>
 
   <div class="card" style="margin-bottom:14px">
     <div class="card-hd">
@@ -902,7 +934,7 @@ var MX_BUILD = '2026-09-03a';
             <option value="會計">🧾 會計</option>
             <option value="行政">📋 行政</option>
             <option value="財務主管">💰 財務主管</option>
-            <option value="創始人">👑 創始人（看得到全部）</option>
+            <option value="管理人">👑 管理人（看得到全部）</option>
           </select>
         </div>
       </div>
@@ -992,7 +1024,7 @@ var MX_BUILD = '2026-09-03a';
 
 <div class="pg" id="pg-rules">
   <div class="hint-box">設定每種服務（IRCT檢測 / 陪跑服務費）要分給哪些角色、各分多少。每次調整都保留歷史，已收的款項不受新規則影響。</div>
-  <div id="rules-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——可以核對現有規則，但新增或調整分帳比例要請財務主管或創始人來設定。</div>
+  <div id="rules-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——可以核對現有規則，但新增或調整分帳比例要請財務主管或管理人來設定。</div>
 
   <div class="card" id="rule-add-card" style="margin-bottom:14px">
     <div class="card-hd">
@@ -1187,7 +1219,7 @@ var MX_BUILD = '2026-09-03a';
 
 <!-- ══ QA 症狀編輯 ══ -->
 <div class="pg" id="pg-qa-list">
-  <div class="hint-box" style="background:#ECFDF5;border-color:#6EE7B7;color:#065F46;font-size:11px">💡 答案裡可以放 <code>{{g-salt}}</code>、<code>{{g-mag}}</code>、<code>{{g-ketone}}</code> 等變數標記（完整清單在「全域設定」頁面），創始人之後改了那邊的數值，這裡用了標記的部分會自動跟著更新，不用回來改這則問答。</div>
+  <div class="hint-box" style="background:#ECFDF5;border-color:#6EE7B7;color:#065F46;font-size:11px">💡 答案裡可以放 <code>{{g-salt}}</code>、<code>{{g-mag}}</code>、<code>{{g-ketone}}</code> 等變數標記（完整清單在「全域設定」頁面），管理人之後改了那邊的數值，這裡用了標記的部分會自動跟著更新，不用回來改這則問答。</div>
   <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
     <div class="stat"><div class="stat-label">QA 總數</div><div class="stat-val" style="color:var(--g3)" id="qa-stat-total">–</div></div>
     <div class="stat"><div class="stat-label">上線中</div><div class="stat-val" style="color:var(--b3)" id="qa-stat-on">–</div></div>
@@ -1303,7 +1335,7 @@ var MX_BUILD = '2026-09-03a';
 
 <!-- ══ 補充品資料庫管理 ══ -->
 <div class="pg" id="pg-supplement-mgmt">
-  <div id="supplement-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:14px">🔒 目前是「查看」權限——補充品售價要請創始人、財務主管或行政來新增/調整。</div>
+  <div id="supplement-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:14px">🔒 目前是「查看」權限——補充品售價要請管理人、財務主管或行政來新增/調整。</div>
   <div style="display:flex;gap:9px;margin-bottom:14px;align-items:center">
     <button class="tb-btn g" id="supplement-add-btn" style="margin-left:auto" onclick="toggleSupplementForm()"><i class="ti ti-plus" style="font-size:14px"></i>新增補充品</button>
   </div>
@@ -1659,7 +1691,7 @@ var MX_BUILD = '2026-09-03a';
   <div style="background:var(--b2);border:1px solid #93C5FD;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--b3);line-height:1.7">
     <strong>說明：</strong>商品資料儲存在 Google Sheets「⚙️ 好物商品」（欄位：時間戳記/分類/商品名稱/售價/連結/狀態）。這裡新增或修改後，前台「好物推薦」頁自動更新；「下架」= 狀態改為停用，前台就不顯示。
   </div>
-  <div id="shop-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:14px">🔒 目前是「查看」權限——商品售價、數量優惠內容要請創始人、財務主管或行政來新增/調整。</div>
+  <div id="shop-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:14px">🔒 目前是「查看」權限——商品售價、數量優惠內容要請管理人、財務主管或行政來新增/調整。</div>
   <div class="add-form" id="add-prod-form">
     <div class="add-form-title"><i class="ti ti-plus" style="font-size:16px;color:var(--g)"></i><span id="prod-form-title">新增商品</span></div>
     <input type="hidden" id="prod-edit-row" value="">
@@ -1699,7 +1731,7 @@ var MX_BUILD = '2026-09-03a';
   </div>
 </div>
 
-<!-- ══ 分型系統說明（原「IRT建議模型」舊5型頁，創始人2026-08-10裁定移除）══ -->
+<!-- ══ 分型系統說明（原「IRT建議模型」舊5型頁，管理人2026-08-10裁定移除）══ -->
 <div class="pg" id="pg-irt-models">
   <div style="background:var(--r2);border:1px solid #F0B4B4;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--r3);line-height:1.7">
     <strong>⚠️ 這頁是舊版，已停用：</strong>原本這裡的「糖代謝風險型／肥胖減脂型／胰島素壓抑＋阻抗型／運動員目標型／瘦瘦針恢復型」5型分類，
@@ -1831,7 +1863,7 @@ var MX_BUILD = '2026-09-03a';
     <div class="card-hd"><div class="card-title"><i class="ti ti-gift"></i>儲值優惠方案</div>
       <button class="tb-btn" onclick="svpLoad()"><i class="ti ti-refresh" style="font-size:13px"></i>重新載入</button></div>
     <div class="card-body">
-      <div id="sv-promo-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——儲值優惠內容要請財務主管或創始人來新增/調整。</div>
+      <div id="sv-promo-readonly-hint" style="display:none;font-size:11.5px;color:#8A6A1F;background:#FFF6E0;border-radius:9px;padding:9px 12px;margin-bottom:12px">🔒 目前是「查看」權限——儲值優惠內容要請財務主管或管理人來新增/調整。</div>
       <div id="sv-promo-add" style="background:var(--bg);border-radius:9px;padding:12px;margin-bottom:12px">
         <div id="svp-edit-hint" style="display:none;font-size:11.5px;color:#0B5443;font-weight:700;margin-bottom:8px">✏️ 編輯方案中……改完按「更新方案」，或按「取消編輯」放棄修改</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -1970,7 +2002,7 @@ function _mxDashNavRender(){
     var dt = _mxDashStats;
     if(typeof dt.totalClients==='number') btns.push(_mxNavBtn("goPg('clients',document.querySelectorAll('.si')[1])", 'ti ti-users', '服務中', dt.totalClients, false));
     if(typeof dt.recorded==='number') btns.push(_mxNavBtn("scrollToCard('today-records-body')", 'ti ti-activity', '今日已記錄', dt.recorded, false));
-    // 飲食求助改常駐顯示（2026-08-30 創始人反映「不見了」——原本沒未回覆就隱藏，改成一直在，0灰色/有未回覆紅色）
+    // 飲食求助改常駐顯示（2026-08-30 管理人反映「不見了」——原本沒未回覆就隱藏，改成一直在，0灰色/有未回覆紅色）
     if(typeof dt.mealHelp==='number') btns.push(_mxNavBtn("scrollToCard('mealhelp-card')", 'ti ti-tools-kitchen-2', '飲食求助', dt.mealHelp, dt.mealHelp>0));
     if(typeof dt.clientInbox==='number') btns.push(_mxNavBtn("scrollToCard('client-inbox-card')", 'ti ti-inbox', '互動信箱', dt.clientInbox, dt.clientInbox>0));
     // 分開兩顆而不是合併成一顆「待關心」：沒記錄的客人跟症狀警示的客人是不同名單、不同卡片，
@@ -3151,7 +3183,7 @@ function sendGiftToClient() {
 // ── 可預約時間管理：舊卡已移除（前台從未讀取那份資料；正式功能在「診所時間表」頁）──
 
 // ── 報告狀態管理 ──
-// 修正（創始人2026-08-10）：原本呼叫 getTodayRecords 卻讀不存在的 d.clients 欄位，
+// 修正（管理人2026-08-10）：原本呼叫 getTodayRecords 卻讀不存在的 d.clients 欄位，
 // 下拉選單因此永遠是空的（跟客人有沒有測IRCT無關）——改用正式的客人清單載入
 function loadReportClients() {
   var select = document.getElementById('report-client-select');
@@ -3441,14 +3473,14 @@ function loadAdminAccounts(){
   adminAPI({action:'getAdminAccounts'}, function(d){
     listEl = document.getElementById('accounts-list');
     if(!listEl) return;
-    if(!d || d.status !== 'ok'){ listEl.innerHTML = '<div style="font-size:11px;color:var(--r);text-align:center;padding:14px">'+((d&&d.message)||'讀取失敗，可能沒有創始人權限')+'</div>'; return; }
+    if(!d || d.status !== 'ok'){ listEl.innerHTML = '<div style="font-size:11px;color:var(--r);text-align:center;padding:14px">'+((d&&d.message)||'讀取失敗，可能沒有管理人權限')+'</div>'; return; }
     if(!d.accounts || d.accounts.length === 0){ listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有帳號</div>'; return; }
     _acctCache = d.accounts;
-    var roleIcon = {'創始人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋','財務主管':'💰'};
+    var roleIcon = {'管理人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋','財務主管':'💰'};
     listEl.innerHTML = d.accounts.map(function(a, i){
       var isMe = CURRENT_USER && CURRENT_USER.username === a.username;
       var isActive = a.status !== '停用';
-      var isFounder = (a.role === '創始人' || a.role === '老闆');
+      var isFounder = (a.role === '管理人' || a.role === '老闆');
       var extraCount = (a.extraPages || []).length;
       var isClientRestrictedRole = (a.role === '行政' || a.role === '會計' || a.role === '財務主管');
       return '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px'+(isActive?'':';opacity:.55')+'">'+
@@ -3465,7 +3497,7 @@ function loadAdminAccounts(){
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
         '<input id="edit-name-'+i+'" value="'+escH(a.name||'')+'" placeholder="姓名" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
         '<select id="edit-role-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
-        ['秘書','會計','行政','財務主管','創始人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
+        ['秘書','會計','行政','財務主管','管理人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
         '</select></div>'+
         '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，其餘純顯示參考用）</div>'+
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
@@ -3753,7 +3785,7 @@ function openPartnerFeatures(btn) {
 // ══ 分帳規則設定 ══
 var ruleRoleRowCount = 0;
 
-// 分帳規則的服務類型：內建3種+創始人可自己新增(例如未來的功能醫學方案)，不再侷限於寫死的固定選項
+// 分帳規則的服務類型：內建3種+管理人可自己新增(例如未來的功能醫學方案)，不再侷限於寫死的固定選項
 function toggleServiceTypeManagePanel(){
   var panel = document.getElementById('service-type-manage-panel');
   if(!panel) return;
@@ -3958,7 +3990,7 @@ function loadRules() {
           var style = isPlatform ? 'color:var(--g3);font-weight:700' : '';
           return '<span style="' + style + '">' + s.roleName + ' ' + s.value + unit + '</span>';
         }).join('　');
-        // 2026-08-16 新增：如果這個服務類型有針對「自己客人」設定不同比例，額外顯示那一份給創始人/財務主管參考
+        // 2026-08-16 新增：如果這個服務類型有針對「自己客人」設定不同比例，額外顯示那一份給管理人/財務主管參考
         var ownVariantHtml = '';
         if (r.sharesBySource && r.sharesBySource['自己客人'] && r.sharesBySource['自己客人'].length) {
           var ownSharesHtml = r.sharesBySource['自己客人'].map(function(s) {
@@ -4889,7 +4921,7 @@ function copyText(text, label){
     navigator.clipboard.writeText(text).then(ok, function(){fallbackCopy(text); ok();});
   } else { fallbackCopy(text); ok(); }
 }
-// 複製後把「複製了什麼＋下一步做什麼」秀出來（創始人2026-08-10：剪貼簿是看不見的，秘書會困惑）
+// 複製後把「複製了什麼＋下一步做什麼」秀出來（管理人2026-08-10：剪貼簿是看不見的，秘書會困惑）
 function showCopyPreview(text, label){
   var old = document.getElementById('copy-preview-box'); if(old) old.remove();
   var box = document.createElement('div');
@@ -4989,7 +5021,7 @@ function applyClientPanelReadonlyMode(panelEl){
   if(!CURRENT_USER || CURRENT_USER.canEditClients !== false) return; // 有編輯權限，不用處理
   var tip = document.createElement('div');
   tip.style.cssText = 'background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;font-size:11px;padding:7px 12px;text-align:center;font-weight:700';
-  tip.textContent = '👁 目前是唯讀模式，只能查看客人資料，無法編輯（如需要請跟創始人申請開放）';
+  tip.textContent = '👁 目前是唯讀模式，只能查看客人資料，無法編輯（如需要請跟管理人申請開放）';
   panelEl.querySelector('div').insertBefore(tip, panelEl.querySelector('div').firstChild);
   panelEl.querySelectorAll('button, input, select, textarea').forEach(function(el){
     if(el.classList && el.classList.contains('cd-close-btn')) return; // 關閉按鈕不算編輯操作，維持可點
@@ -5369,7 +5401,7 @@ function openClientDetail(id, name){
     + '<div id="client-detail-body" style="font-size:12px;color:var(--text2)">載入中…</div></div>';
   m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
   document.body.appendChild(m);
-  // 檢測後的代謝分型連動顯示（創始人2026-08-10）：十型是系統依最新IRCT資料自動判定的，
+  // 檢測後的代謝分型連動顯示（管理人2026-08-10）：十型是系統依最新IRCT資料自動判定的，
   // 這裡唯讀顯示、不給改；旁邊的下拉選單是「特殊情境」（原本標籤誤寫成代謝分型，已更正）
   adminAPI({action:'getIRCTAnalysisFull', clientId:id}, function(d){
     var b = document.getElementById('cd-metatype-badge');
@@ -5438,12 +5470,12 @@ function openClientDetail(id, name){
 }
 // ── 交接記錄・上一班留言 ──
 var _handoverCache = [];
-// 可見性規則（創始人2026-08-10）：「排班意願」是給排班的管理者看的，
-// 只有創始人（含舊「老闆」帳號）和留言者本人看得到；一般交接留言則每個登入者都看得到
+// 可見性規則（管理人2026-08-10）：「排班意願」是給排班的管理者看的，
+// 只有管理人（含舊「老闆」帳號）和留言者本人看得到；一般交接留言則每個登入者都看得到
 function canSeeHandoverItem(h){
   if(String(h.important||'') !== '排班意願') return true;
   if(!CURRENT_USER) return false;
-  return CURRENT_USER.role === '創始人' || CURRENT_USER.role === '老闆' || h.fromSecretary === CURRENT_USER.name;
+  return CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆' || h.fromSecretary === CURRENT_USER.name;
 }
 // 2026-09-03 新增：交接留言「跟誰有關」標籤——純標示用，不限制誰看得到（她的決定：資訊越透明，
 // 越不用互相問來問去；只有上面「排班意願」那種本來就設計成私密的例外不受影響）。顏色沿用帳號管理
@@ -5454,7 +5486,7 @@ var HANDOVER_TAGS = [
   {key:'財務主管', label:'財務', icon:'💰', bg:'#E3F3E8', fg:'#1A6B3C'},
   {key:'會計', label:'會計', icon:'🧾', bg:'#FAEEDA', fg:'#633806'},
   {key:'行政', label:'行政', icon:'📋', bg:'#EEEDFE', fg:'#3C3489'},
-  {key:'創始人', label:'創始人', icon:'👑', bg:'#E1F5EE', fg:'#085041'}
+  {key:'管理人', label:'管理人', icon:'👑', bg:'#E1F5EE', fg:'#085041'}
 ];
 function handoverTagChip(key){
   if(!key) return '';
@@ -5486,7 +5518,7 @@ function hoGetTag(containerId){
   var box = document.getElementById(containerId);
   return box ? (box.getAttribute('data-selected') || '') : '';
 }
-// 2026-09-03 新增：交接留言「快速新增」視窗——她發現只有秘書（排班交接頁）跟創始人能寫交接留言，
+// 2026-09-03 新增：交接留言「快速新增」視窗——她發現只有秘書（排班交接頁）跟管理人能寫交接留言，
 // 會計／財務主管沒有那個頁面的權限，只能被動看、沒辦法自己留言，變成還是要口頭/另外問。
 // 這個按鈕直接開在「交接記錄」看板卡片上，dashboard 頁大家都看得到，所以誰都能按、都能留言。
 function openHandoverQuickAdd(){
@@ -5580,6 +5612,119 @@ function renderHandoverHistory(){
       + '</div>';
   }).join('');
 }
+// 2026-09-03 新增：排班意願彙整＋缺人時段警示（管理人專屬）——她說「應該要讓創始管理者知道哪個時段
+// 沒有人排班，要跳出警示」。原本「排班意願」只是散落在交接記錄清單裡的一條一條原始文字，沒辦法一眼
+// 看出哪些「週次 x 時段」還缺人。這裡把最近40天內送出的彙整成表格，缺人的格子用紅色警示標出來
+// （超過40天的視為上個排班週期的舊資料，不列入，避免跟這期的意願混在一起誤判成「有人排」——
+// 這個判斷用送出時的 dateISO 欄位，是2026-09-03跟getHandoverHistory一起加的，早期資料一樣有值）。
+var SHIFT_WISH_WEEKS = ['第一週','第二週','第三週','第四週'];
+var SHIFT_WISH_SLOTS = ['上午09:30–11:30','下午15:00–17:00','晚上19:00–21:00'];
+function parseShiftWish(note){
+  var m = String(note||'').match(/週次：([^／]*)／時段：(.*)$/);
+  if(!m) return null;
+  return { weeks: m[1].split('、').map(function(s){ return s.trim(); }).filter(Boolean), time: m[2].trim() };
+}
+function buildShiftWishMatrix(items){
+  var cutoff = Date.now() - 40*86400000;
+  var matrix = {};
+  SHIFT_WISH_WEEKS.forEach(function(w){ matrix[w] = {}; SHIFT_WISH_SLOTS.forEach(function(s){ matrix[w][s] = []; }); });
+  (items||[]).forEach(function(h){
+    if(String(h.important||'') !== '排班意願') return;
+    if(h.dateISO){ var t = new Date(h.dateISO).getTime(); if(!isNaN(t) && t < cutoff) return; }
+    var p = parseShiftWish(h.note);
+    if(!p || !p.time) return;
+    p.weeks.forEach(function(w){
+      if(!matrix[w] || !matrix[w][p.time]) return;
+      matrix[w][p.time].push({ secretary: h.fromSecretary, isRead: String(h.status||'pending') !== 'pending', row: h.row, date: h.date });
+    });
+  });
+  return matrix;
+}
+function countShiftWishGaps(matrix){
+  var n = 0;
+  SHIFT_WISH_WEEKS.forEach(function(w){ SHIFT_WISH_SLOTS.forEach(function(s){ if(matrix[w][s].length === 0) n++; }); });
+  return n;
+}
+function loadShiftWishSummary(){
+  var card = document.getElementById('shift-wish-summary-card');
+  if(!card) return;
+  var isFounder = CURRENT_USER && (CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆');
+  if(!isFounder){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  var body = document.getElementById('shift-wish-summary-body');
+  if(body) body.innerHTML = '載入中…';
+  adminAPI({action:'getHandoverHistory'}, function(d){
+    body = document.getElementById('shift-wish-summary-body');
+    if(!body) return;
+    var matrix = buildShiftWishMatrix((d && d.items) || []);
+    var gapCount = countShiftWishGaps(matrix);
+    var badge = document.getElementById('sb-badge-shiftgap');
+    if(badge){ badge.textContent = gapCount; badge.style.display = gapCount > 0 ? '' : 'none'; }
+    var html = '';
+    if(gapCount > 0){
+      var gapLabels = [];
+      SHIFT_WISH_WEEKS.forEach(function(w){ SHIFT_WISH_SLOTS.forEach(function(s){ if(matrix[w][s].length === 0) gapLabels.push(w + s.replace(/[0-9:–]/g,'').trim()); }); });
+      html += '<div style="background:#FDEAEA;border:1px solid #F0B0B0;border-radius:9px;padding:9px 12px;margin-bottom:11px;font-size:12px;color:#A32D2D">⚠️ 這個月還有 ' + gapCount + ' 個時段沒人排班：' + gapLabels.join('、') + '</div>';
+    } else {
+      html += '<div style="background:var(--g2);border-radius:9px;padding:9px 12px;margin-bottom:11px;font-size:12px;color:var(--g3)">✅ 目前所有時段都有人排了</div>';
+    }
+    html += '<div style="overflow-x:auto"><table class="dt" style="min-width:480px"><thead><tr><th></th>' + SHIFT_WISH_SLOTS.map(function(s){ return '<th style="font-size:11px">' + escH(s) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    SHIFT_WISH_WEEKS.forEach(function(w){
+      html += '<tr><td style="font-weight:700;font-size:12px">' + escH(w) + '</td>';
+      SHIFT_WISH_SLOTS.forEach(function(s){
+        var entries = matrix[w][s];
+        if(entries.length === 0){
+          html += '<td style="background:#FDEAEA;text-align:center;font-size:11px;color:#A32D2D;padding:6px">⚠️ 沒人</td>';
+        } else {
+          html += '<td style="font-size:11px;padding:6px">' + entries.map(function(e){
+            return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">'
+              + '<span>' + escH(e.secretary || '未填名') + '</span>'
+              + (e.isRead ? '<span style="font-size:9px;background:var(--g2);color:var(--g3);border-radius:5px;padding:0 5px">已排定</span>'
+                : '<button class="ai-btn gray" style="font-size:9px;padding:1px 6px" onclick="ackShiftWish(' + e.row + ')">標記已排定</button>')
+              + '</div>';
+          }).join('') + '</td>';
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '<div style="font-size:10.5px;color:var(--text3);margin-top:8px">只統計最近40天內送出的排班意願，避免跟上個週期的舊資料混在一起</div>';
+    body.innerHTML = html;
+  });
+}
+function ackShiftWish(row){
+  adminAPIPost({action:'ackHandover', row:row, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 已標記排定完成'); loadShiftWishSummary(); }
+    else toast('⚠️ 操作失敗');
+  });
+}
+// 2026-09-03 新增：秘書個人「我的排班」表——用同一份 buildShiftWishMatrix，只挑出自己被排到的格子
+function loadMyShiftTable(){
+  var body = document.getElementById('my-shift-body');
+  if(!body) return;
+  if(!CURRENT_USER || !CURRENT_USER.name){ body.innerHTML = '請先登入'; return; }
+  body.innerHTML = '載入中…';
+  adminAPI({action:'getHandoverHistory'}, function(d){
+    body = document.getElementById('my-shift-body');
+    if(!body) return;
+    var matrix = buildShiftWishMatrix((d && d.items) || []);
+    var mine = [];
+    SHIFT_WISH_WEEKS.forEach(function(w){
+      SHIFT_WISH_SLOTS.forEach(function(s){
+        var found = (matrix[w][s] || []).some(function(e){ return e.secretary === CURRENT_USER.name; });
+        if(found) mine.push(w + '・' + s);
+      });
+    });
+    if(mine.length === 0){
+      body.innerHTML = '<div style="color:var(--text3)">這期還沒有排到你的班，可以到上面「下月排班意願」送出想排的時段</div>';
+      return;
+    }
+    body.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">' + mine.map(function(m){
+      return '<div style="background:var(--g2);color:var(--g3);border-radius:8px;padding:7px 11px;font-size:12px;font-weight:600">✅ ' + escH(m) + '</div>';
+    }).join('') + '</div>'
+    + '<div style="font-size:10.5px;color:var(--text3);margin-top:8px">只統計最近40天內送出、還算「這期」的排班意願</div>';
+  });
+}
 // 把交接記錄裡「姓名(編號)、姓名(編號)」格式的待處理客人轉成可點擊連結，點了直接開客人面板
 function renderHandoverClientLinks(text){
   if(!text) return '';
@@ -5606,6 +5751,16 @@ function loadHandover(){
     if(_handoverCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = _handoverCache.map(function(h, i){
+      // 2026-09-03 新增：「排班缺人通知」「打卡提醒」是系統自動寫入的特殊交接留言（important標記），
+      // pendingClients欄位在這兩種類型裡不是存客人名單，而是分別存「週次|時段」跟「秘書姓名」，
+      // 所以要跟一般的「待處理客人」分開顯示，不能直接套 renderHandoverClientLinks
+      var isGapNotice = h.important === '排班缺人通知';
+      var isClockAlert = h.important === '打卡提醒';
+      var pendingLine = '';
+      if(h.pendingClients && !isGapNotice){
+        pendingLine = '<div style="font-size:11px;color:var(--text2);margin-bottom:2px">' + (isClockAlert ? '尚未打卡：' : '待處理客人：') + (isClockAlert ? escH(h.pendingClients) : renderHandoverClientLinks(h.pendingClients)) + '</div>';
+      }
+      var claimBtn = isGapNotice ? '<button class="ai-btn g" style="font-size:11px;padding:5px 11px;margin-top:6px;font-weight:700" onclick="claimShiftGap(' + i + ')">✋ 我可以補這班</button>' : '';
       return '<div style="padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px">'
         + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px">'
         + '<span style="font-size:11px;font-weight:700;color:#6D4AA8;background:#EFE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
@@ -5615,8 +5770,9 @@ function loadHandover(){
         + (h.important ? '<span style="font-size:10px;background:#FDEAEA;color:#A32D2D;border-radius:5px;padding:1px 6px;font-weight:700">⚠️ ' + escH(h.important) + '</span>' : '')
         + '<button class="ai-btn gray" style="font-size:10px;padding:3px 9px;margin-left:auto" onclick="ackHandoverUI(' + i + ')">已看過</button>'
         + '</div>'
-        + (h.pendingClients ? '<div style="font-size:11px;color:var(--text2);margin-bottom:2px">待處理客人：' + renderHandoverClientLinks(h.pendingClients) + '</div>' : '')
+        + pendingLine
         + (h.note ? '<div style="font-size:11.5px;color:var(--text)">' + escH(h.note) + '</div>' : '')
+        + claimBtn
         + '</div>';
     }).join('');
   });
@@ -5626,6 +5782,29 @@ function ackHandoverUI(i){
   adminAPIPost({action:'ackHandover', row:h.row, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
     if(d && d.status === 'ok'){ loadHandover(); }
     else toast('⚠️ 操作失敗');
+  });
+}
+// 2026-09-03 新增：秘書在「排班缺人通知」底下點「我可以補這班」。
+// 2026-09-03 修正（她提醒：同一則通知可能同時發給好幾位秘書，依回覆順序填入，比較晚點的人要被告知
+// 已經有人先補了，不能兩人都填進同一格）——改成呼叫後端新的 claimShiftGap action，後端用 LockService
+// 鎖住，「檢查通知還是不是pending＋標記＋寫入排班意願」一次做完，不再是前端分兩步呼叫
+// addHandover+ackHandover（兩步中間有空窗，兩人幾乎同時點還是可能都寫入成功）。
+function claimShiftGap(i){
+  var h = _handoverCache[i]; if(!h) return;
+  var parts = String(h.pendingClients || '').split('|');
+  var w = parts[0] || '', slot = parts[1] || '';
+  if(!w || !slot){ toast('⚠️ 資料格式有誤，請直接用下方「下月排班意願」送出'); return; }
+  adminAPIPost({action:'claimShiftGap', row:h.row, week:w, slot:slot, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ 已回報可以補這班，謝謝你！');
+    } else if(d && d.status === 'taken'){
+      toast('⚠️ ' + (d.message || '這個時段已經有人先回報了，下次可以再早一點喔'));
+    } else {
+      toast('⚠️ ' + ((d && d.message) || '回報失敗，請重試'));
+    }
+    loadHandover();
+    if(typeof loadShiftWishSummary === 'function') loadShiftWishSummary();
+    if(typeof loadMyShiftTable === 'function') loadMyShiftTable();
   });
 }
 // ── 檢測逾期未回報看板 ──
@@ -5734,7 +5913,7 @@ function loadMealRecordsAdmin(id){
     }).join('');
   });
 }
-// ══════ 📥 客人互動信箱（2026-08-30 創始人指示：所有前台互動都要有後台顯示＋選擇題回覆）══════
+// ══════ 📥 客人互動信箱（2026-08-30 管理人指示：所有前台互動都要有後台顯示＋選擇題回覆）══════
 // 諮詢預約的罐頭回覆
 // 進階服務詢問的罐頭回覆（2026-08-30：客人在商店按「我想了解」後，秘書用選的就能回）
 var SVC_REPLY_TEMPLATES = [
@@ -5760,7 +5939,7 @@ var MOOD_REPLY_TEMPLATES = [
   '忙碌的日子還願意記錄，真的很不容易！健康就是這樣一點一點累積的 😊',
   '看到你心情悶悶的，想聊聊嗎？也可以約秘書諮詢，我們一起想辦法 🤝'
 ];
-// 2026-08-30（創始人）：每個回覆都可以附一個可愛小圖案——客人收到回覆的同時，
+// 2026-08-30（管理人）：每個回覆都可以附一個可愛小圖案——客人收到回覆的同時，
 // 花園會跳出對應動畫（陽光/雨水/新芽/新葉/星星/花朵），回應不只有文字還有溫度
 var GIFT_PICK_OPTIONS = [['','🚫 不加'],['sunshine','☀️ 陽光'],['rain','🌧 雨水'],['sprout','🌱 新芽'],['leaf','🍃 新葉'],['star','⭐ 星星'],['flower','🌸 花朵']];
 function _giftPickRow(){
@@ -5919,7 +6098,7 @@ function ciMarkOnly(i){
   });
 }
 // ══════ 🍽 飲食判斷求助（2026-08-29：客人前台的「請秘書幫我看這一餐」，之前只寫進備註表沒人看見）══════
-// 秘書一鍵回覆的罐頭句（創始人2026-08-29提供前5句＋補列）。選了會填進輸入框，可以再手動修改或多選疊加
+// 秘書一鍵回覆的罐頭句（管理人2026-08-29提供前5句＋補列）。選了會填進輸入框，可以再手動修改或多選疊加
 var MEAL_REPLY_TEMPLATES = [
   '您這餐的飲食油脂量還不太夠，下一餐請增加油脂。',
   '您這餐的蛋白質加總超過一個掌心，下一餐請調整到一個掌心以內（不含手指）。',
@@ -6055,7 +6234,7 @@ function loadUnknownQuestions(){
           + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已用LINE回覆，標記完成</button>'
           + '</div>';
       }
-      // 2026-08-30（創始人）：回覆QA時能直接搜部落格/Podcast有沒有相關文章，找到就一鍵傳給客人
+      // 2026-08-30（管理人）：回覆QA時能直接搜部落格/Podcast有沒有相關文章，找到就一鍵傳給客人
       box += '<div style="display:flex;gap:6px;margin-top:7px">'
         + '<input id="unq-kw-' + i + '" class="form-input" style="font-size:11.5px;flex:1;padding:6px 9px" placeholder="關鍵字（例：酮體）" value="' + escH(_unqKeyword(q.question)) + '">'
         + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 10px;white-space:nowrap" onclick="unqSearchArticles(' + i + ')">🔍 找相關文章</button>'
@@ -6090,7 +6269,7 @@ function admLoadRSS(cb){
   // 整個方格子來源都是空的。改成先直接抓沙龍頁（getVocusSalon），失敗才退回 rsshub 備援；
   // 兩邊都失敗就把 _admVocusDown 記起來，搜尋提示會老實說「來源連不上」而不是誤導成「沒有相關文章」
   window._admVocusDown = false;
-  // 2026-08-30二版（創始人：「要抓到全部文章」）：搜尋改查自家「📚 文章庫」（全部文章的目錄），
+  // 2026-08-30二版（管理人：「要抓到全部文章」）：搜尋改查自家「📚 文章庫」（全部文章的目錄），
   // 每次後台開啟都先背景同步一次（只補新文章，幾秒內完成），文章庫空的話同步完再讀
   var _admVocusFinish = function(){
     adminAPI({action:'getArticleLibrary'}, function(d){
@@ -6176,7 +6355,7 @@ function confirmUnknownSent(i) {
     else toast('⚠️ 操作失敗');
   });
 }
-// 回答視窗（創始人2026-08-10：不用陽春的prompt——要「選擇＋填字」：既有分類可點選、也能自己輸入，
+// 回答視窗（管理人2026-08-10：不用陽春的prompt——要「選擇＋填字」：既有分類可點選、也能自己輸入，
 // 並說明部落格/YT/Podcast參考是依分類關鍵字自動附在客人答案下方的）
 function approveUnknownQuestion(i) {
   var item = _unknownQCache[i]; if(!item) return;
@@ -6310,7 +6489,7 @@ function loadPurchases(){
     _mxDashNavSet('proxy-card', _proxyCache.length, '代購需求', 'ti ti-shopping-cart');
     if(_proxyCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
-    // 流程附註常駐卡片頂端（創始人2026-08-10：不標示秘書會忘掉、老是來問）
+    // 流程附註常駐卡片頂端（管理人2026-08-10：不標示秘書會忘掉、老是來問）
     var proxyFlowHint = '<div style="background:var(--bg);border-radius:8px;padding:7px 10px;margin-bottom:6px;font-size:10.5px;color:var(--text3);line-height:1.9">'
       + '📌 <b style="color:var(--text2)">代購流程：</b>客人在前台送出需求後出現在這裡 → '
       + '① 秘書<b style="color:var(--text2)">實際去網路商店幫客人訂購完成後</b>，回來按「已幫客人下單」（記錄已訂，別班才不會重複訂）→ '
@@ -6359,7 +6538,7 @@ function proxyMark(i, st){
     else toast('⚠️ ' + ((d && d.message) || '操作失敗'));
   });
 }
-// 到貨結帳（創始人2026-08-10：要一頁填完，不用連答三次prompt）
+// 到貨結帳（管理人2026-08-10：要一頁填完，不用連答三次prompt）
 function proxyFinish(i){
   var p = _proxyCache[i]; if(!p) return;
   var old = document.getElementById('proxy-finish-modal'); if(old) old.remove();
@@ -6473,7 +6652,7 @@ function loadCarePointsAdmin(id){
     _cdSetBadge('cd-badge-cps', !!d.opened, '✅ 已開通', '－ 未開通');
     if(!d.opened){
       box.innerHTML = '<div style="color:var(--text3);margin-bottom:8px">這位客人還沒開通陪跑點數</div>'
-        + (isFinanceTier() ? '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="cpsOpen()">🎫 開通並發開卡禮 4 點</button>' : '<div style="font-size:11px;color:var(--text3)">🔒 開通要請財務主管或創始人操作（需要先核對這位客人是否已繳費含陪跑點數的方案）</div>');
+        + (isFinanceTier() ? '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="cpsOpen()">🎫 開通並發開卡禮 4 點</button>' : '<div style="font-size:11px;color:var(--text3)">🔒 開通要請財務主管或管理人操作（需要先核對這位客人是否已繳費含陪跑點數的方案）</div>');
       return;
     }
     var html = '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
@@ -6577,7 +6756,7 @@ function saveCarbPlan(){
     else toast('⚠️ ' + ((d && d.message) || '儲存失敗'));
   });
 }
-// ══════════════ 代謝甜蜜點分析（創始人2026-08-12要求）══════════════
+// ══════════════ 代謝甜蜜點分析（管理人2026-08-12要求）══════════════
 // 秘書按「分析」→ 呼叫getSweetSpotAnalysis算出完整明細（含IRCT複測佐證）→ 秘書看過、可編輯草稿文字，
 // 按「顯示給客人」才會真的曝光給客人（呼叫confirmSweetSpot寫入🍯甜蜜點確認表）。
 function sweetSpotDataStatusLabel_(s){
@@ -6858,7 +7037,7 @@ function searchDiscUI(){
 }
 var _discSearchMsgs = [];
 var _discSearchQAs = [];
-// ══ 關心用語範本選單（創始人2026-08-10：秘書要能從常用情境話術裡「選」，不是系統寫死一句）══
+// ══ 關心用語範本選單（管理人2026-08-10：秘書要能從常用情境話術裡「選」，不是系統寫死一句）══
 var CARE_MSG_TEMPLATES = [
   { label:'許久未記錄・想念關心', text:'{name} 您好 😊 這幾天沒看到您的記錄，有點想念您～最近過得如何呢？如果遇到什麼卡關的地方，隨時跟我說，我們一起想辦法！' },
   { label:'血酮偏高・關心狀況', text:'{name} 您好 😊 看到您最近血酮數值比較高，想關心一下您的狀況。方便的話，我們可以聊聊最近的飲食和身體感受，也可以幫您安排一次諮詢喔！' },
@@ -6934,7 +7113,7 @@ function callClient(id){
   if(phone){ window.location.href = 'tel:' + phone.replace(/[^0-9+]/g,''); }
   else promptSavePhoneAndCall(id);
 }
-// 沒電話時直接在畫面上補登（創始人2026-08-10：不要叫秘書自己去試算表加欄位）——
+// 沒電話時直接在畫面上補登（管理人2026-08-10：不要叫秘書自己去試算表加欄位）——
 // 輸入後由後端 setClientPhone 存進客人名單（「電話」欄自動建立），存好馬上撥出
 function promptSavePhoneAndCall(id){
   var p = prompt('這位客人還沒有電話資料。\n直接輸入電話號碼，系統會存進客人名單並馬上撥出：', '');
@@ -6950,14 +7129,14 @@ function promptSavePhoneAndCall(id){
   });
 }
 
-// ── 📈 經營指標（2026-08-30二版，創始人指示：血酮統計拿掉，改成有效的經營指標——
-// 客戶滿意度、續購率、客帶客、秘書的困擾與建議；秘書KPI維持按排班歸屬。只有創始人/老闆看得到）──
+// ── 📈 經營指標（2026-08-30二版，管理人指示：血酮統計拿掉，改成有效的經營指標——
+// 客戶滿意度、續購率、客帶客、秘書的困擾與建議；秘書KPI維持按排班歸屬。只有管理人/老闆看得到）──
 function loadFounderMetrics(){
   var card = document.getElementById('founder-metrics-card');
   var body = document.getElementById('founder-metrics-body');
   if(!card || !body) return;
   var fmR = CURRENT_USER && CURRENT_USER.role;
-  if(fmR !== '創始人' && fmR !== '老闆'){ card.style.display='none'; return; }
+  if(fmR !== '管理人' && fmR !== '老闆'){ card.style.display='none'; return; }
   card.style.display='';
   adminAPI({action:'getFounderMetrics'}, function(d){
     body = document.getElementById('founder-metrics-body');
@@ -7056,7 +7235,7 @@ function loadFounderMetrics(){
     loadVoiceList();
   });
 }
-// ── 秘書心聲清單（經營指標卡內；只有創始人拿得到資料）──
+// ── 秘書心聲清單（經營指標卡內；只有管理人拿得到資料）──
 function loadVoiceList(){
   var box = document.getElementById('voice-list');
   if(!box) return;
@@ -7244,7 +7423,7 @@ function callClientAlert(idx){
 function copyAlertMsg(idx){
   var a=_alertsCache && _alertsCache.alerts ? _alertsCache.alerts[idx] : null;
   if(!a) return;
-  // 依警示類型推薦範本，開啟關心用語選單讓秘書挑選/修改（創始人2026-08-10）
+  // 依警示類型推薦範本，開啟關心用語選單讓秘書挑選/修改（管理人2026-08-10）
   var rec = 7; // 一般問候
   if(a.type.indexOf('未填')>=0 || a.type.indexOf('從未')>=0) rec = 0;
   else if(a.type.indexOf('>3.5')>=0) rec = 1;
@@ -7466,12 +7645,41 @@ function submitShiftWish(btn){
     else if(t.indexOf(':')>=0) time=t;
   });
   if(weeks.length===0 && !time){toast('請先點選想排的週次與時段');return;}
-  // 防連點：API回來前先鎖住按鈕，避免同一份意願重複寫入好幾筆（創始人2026-08-10截圖：19:17連三筆）
+  // 防連點：API回來前先鎖住按鈕，避免同一份意願重複寫入好幾筆（管理人2026-08-10截圖：19:17連三筆）
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; btn.textContent='送出中…'; }
   adminAPIPost({action:'addHandover', note:'【排班意願】週次：'+weeks.join('、')+'／時段：'+time, fromSecretary:(CURRENT_USER && CURRENT_USER.name) || '', toSecretary:'', important:'排班意願', pendingClients:''}, function(d){
     if(btn){ btn.disabled=false; btn.style.opacity=''; btn.textContent='送出排班意願'; }
     if(d.status==='ok') toast('✅ 排班意願已送出（寫入 ⚙️ 交接記錄，管理者排班時參考）');
     else toast('⚠️ 送出失敗，請重試');
+  });
+}
+// ── 2026-09-03 新增：上下班打卡（秘書自己按按鈕，系統記錄時間）──
+function loadClockStatus(){
+  var el = document.getElementById('clock-status');
+  if(!el) return;
+  if(!CURRENT_USER || !CURRENT_USER.name){ el.textContent = '請先登入'; return; }
+  adminAPI({action:'getClockStatus', secretary:CURRENT_USER.name}, function(d){
+    el = document.getElementById('clock-status');
+    if(!el) return;
+    var items = (d && d.items) || [];
+    if(items.length === 0){ el.textContent = '今天還沒有打卡記錄'; return; }
+    el.innerHTML = '今天：' + items.map(function(it){
+      return '<span style="display:inline-block;margin-right:10px">' + (it.type === '上班' ? '🟢 上班 ' : '🔴 下班 ') + escH(it.time) + '</span>';
+    }).join('');
+  });
+}
+function doClockIn(){
+  if(!CURRENT_USER || !CURRENT_USER.name){ toast('⚠️ 請先登入'); return; }
+  adminAPIPost({action:'clockIn', secretary:CURRENT_USER.name}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 上班打卡成功'); loadClockStatus(); }
+    else toast('⚠️ 打卡失敗，請重試');
+  });
+}
+function doClockOut(){
+  if(!CURRENT_USER || !CURRENT_USER.name){ toast('⚠️ 請先登入'); return; }
+  adminAPIPost({action:'clockOut', secretary:CURRENT_USER.name}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 下班打卡成功'); loadClockStatus(); }
+    else toast('⚠️ 打卡失敗，請重試');
   });
 }
 
@@ -8149,6 +8357,17 @@ function refreshSidebarBadges(){
     }).length;
     el.textContent = n; el.style.display = n>0 ? '' : 'none';
   });
+  // 2026-09-03 新增：排班意願缺人時段警示——只有管理人/老闆需要主動知道，登入就先算一次，
+  // 不用她自己點進「排班交接」頁才看得到（loadShiftWishSummary 在該頁載入時也會算一次更完整的表格）。
+  var _fmR = CURRENT_USER && CURRENT_USER.role;
+  if(_fmR === '管理人' || _fmR === '老闆'){
+    adminAPI({action:'getHandoverHistory'}, function(d){
+      var el = document.getElementById('sb-badge-shiftgap');
+      if(!el || !d || d.status!=='ok') return;
+      var n = countShiftWishGaps(buildShiftWishMatrix(d.items||[]));
+      el.textContent = n; el.style.display = n>0 ? '' : 'none';
+    });
+  }
 }
 // ── 啟動 ──
 setTimeout(function(){
@@ -8264,7 +8483,7 @@ function showGiftMenu(idx, btn){
   },50);
 }
 
-// confirmIRTForm / loadIRTConfirms 已移除（創始人2026-08-10）：
+// confirmIRTForm / loadIRTConfirms 已移除（管理人2026-08-10）：
 // 舊5型IRT模型頁改成純說明頁，不再有可寫入的表單，詳見 pg-irt-models 區塊註解。
 
 
@@ -9320,7 +9539,7 @@ function loadBirthdays(){
   });
 }
 var _birthdayWishes = [];
-// 生日待辦一鍵記錄生日禮（創始人2026-08-10）：自動掛在該客人身上，寫入 👤 客人獎勵記錄；
+// 生日待辦一鍵記錄生日禮（管理人2026-08-10）：自動掛在該客人身上，寫入 👤 客人獎勵記錄；
 // 客人前台「健康旅程」頁的 🎁 你獲得的獎勵 會同步看到（記得之後在客人面板標「已發放」）
 var _bdayGiftSaving = false;
 function quickRecordBirthdayGift(cid, name){
@@ -9502,7 +9721,7 @@ function loadTodayDuty(){
     document.getElementById('dash-duty-date').textContent = d.date;
     // 待辦項目：系統偵測到才顯示，數字+一鍵處理
     var items=[];
-    // 新預約放最上面（創始人2026-08-10：這最緊急）
+    // 新預約放最上面（管理人2026-08-10：這最緊急）
     if(dt.backlog24>0) items.push({icon:'⏰',text:'<b>'+dt.backlog24+' 筆</b>客人訊息超過<b>24小時</b>還沒回覆，請優先處理',act:"scrollToCard('mealhelp-card')",urgent:true});
     if(dt.clientInbox>0) items.push({icon:'📥',text:'<b>'+dt.clientInbox+' 筆</b>客人互動（諮詢預約/心情關心）還沒回覆',act:"scrollToCard('client-inbox-card')"});
     if(dt.mealHelp>0) items.push({icon:'🍽',text:'<b>'+dt.mealHelp+' 筆</b>客人的飲食判斷求助還沒回覆，回覆了客人才學得會',act:"scrollToCard('mealhelp-card')"});
@@ -10082,7 +10301,7 @@ function svpLoad(){
   });
 }
 function svpAdd(){
-  if(!isFinanceTier()){ toast('僅財務主管或創始人可以新增/調整儲值優惠方案'); return; }
+  if(!isFinanceTier()){ toast('僅財務主管或管理人可以新增/調整儲值優惠方案'); return; }
   var title = (document.getElementById('svp-title')||{}).value || '';
   var threshold = (document.getElementById('svp-threshold')||{}).value || '';
   var detail = (document.getElementById('svp-detail')||{}).value || '';
@@ -10108,7 +10327,7 @@ function svpAdd(){
   });
 }
 function svpEdit(id){
-  if(!isFinanceTier()){ toast('僅財務主管或創始人可以新增/調整儲值優惠方案'); return; }
+  if(!isFinanceTier()){ toast('僅財務主管或管理人可以新增/調整儲值優惠方案'); return; }
   var p = _svpCache.filter(function(x){ return String(x.id)===String(id); })[0];
   if(!p){ toast('找不到這個方案，請重新載入'); return; }
   _svpEditId = id;
@@ -10132,7 +10351,7 @@ function svpCancelEdit(){
   document.getElementById('svp-cancel-edit-btn').style.display = 'none';
 }
 function svpDelete(id){
-  if(!isFinanceTier()){ toast('僅財務主管或創始人可以調整儲值優惠方案'); return; }
+  if(!isFinanceTier()){ toast('僅財務主管或管理人可以調整儲值優惠方案'); return; }
   adminAPI({action:'deleteStoredValuePromotion', id:id}, function(d){
     if(!d || d.status!=='ok'){ toast((d&&d.message)||'操作失敗'); return; }
     toast('已停用該方案');
@@ -10140,7 +10359,7 @@ function svpDelete(id){
   });
 }
 function svpReactivate(id){
-  if(!isFinanceTier()){ toast('僅財務主管或創始人可以調整儲值優惠方案'); return; }
+  if(!isFinanceTier()){ toast('僅財務主管或管理人可以調整儲值優惠方案'); return; }
   adminAPI({action:'updateStoredValuePromotion', id:id, status:'啟用'}, function(d){
     if(!d || d.status!=='ok'){ toast((d&&d.message)||'操作失敗'); return; }
     toast('已重新啟用該方案');
@@ -10355,30 +10574,30 @@ function forceRelogin(msg){
   var err = document.getElementById('lg-error');
   if (err) err.textContent = msg || '登入逾時，請重新登入';
 }
-// 各角色可見頁面（創始人看全部；「老闆」是舊帳號的相容別名，效果相同）
-// 設計原則：帳號管理、全域設定（含會影響所有客人的臨床建議內容）只給創始人；
+// 各角色可見頁面（管理人看全部；「老闆」是舊帳號的相容別名，效果相同）
+// 設計原則：帳號管理、全域設定（含會影響所有客人的臨床建議內容）只給管理人；
 // 其餘依日常工作內容分配，會計側重金流/庫存價值，秘書側重客人第一線服務，行政側重內容/物流
 var ROLE_PAGES = {
-  '創始人': null, // null = 全部
-  '老闆': null, // 舊帳號相容用，效果同創始人
+  '管理人': null, // null = 全部
+  '老闆': null, // 舊帳號相容用，效果同管理人
   '秘書': ['dashboard','clients','alerts','duty','lab-integrate','stored-value','tracking','remind','keto-rest-mgmt','garden-mgmt','qa-list','upload','diet-compare','extra-test','irct-mgmt','report','irt-models','sales-script','faq-mgmt','food-mgmt','supplement-mgmt','all-tests'],
   '會計': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
   '行政': ['dashboard','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','supplement-mgmt','inventory'],
   // 2026-08-16 新增：財務主管——側重合作單位收費模式、分帳比例、應收帳款、月結算，跟會計看的頁面一致，
-  // 差別在於財務主管額外有 setPartnerFeatures／addRule 這兩個動作層級的權限（後端已限定創始人/財務主管才能呼叫）
+  // 差別在於財務主管額外有 setPartnerFeatures／addRule 這兩個動作層級的權限（後端已限定管理人/財務主管才能呼叫）
   '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles']
 };
-// 舊帳號顯示「老闆」時，畫面一律改顯示「創始人」（權限判斷不受影響）
-function roleDisplayName(r){ return r === '老闆' ? '創始人' : r; }
+// 舊帳號顯示「老闆」時，畫面一律改顯示「管理人」（權限判斷不受影響）
+function roleDisplayName(r){ return r === '老闆' ? '管理人' : r; }
 // 2026-08-16 新增：判斷目前登入的帳號是不是「財務主管」層級（設定重要資訊），還是只是「會計」層級（核對日常帳務）。
-// 跟後端 FIN_TIER_ACTIONS 的判斷邏輯對齊：主要角色是財務主管/創始人/老闆，或身兼職務裡有掛財務主管，都算。
+// 跟後端 FIN_TIER_ACTIONS 的判斷邏輯對齊：主要角色是財務主管/管理人/老闆，或身兼職務裡有掛財務主管，都算。
 // 純粹用來決定畫面上要不要顯示「新增/編輯/刪除」這類設定型按鈕——真正擋下操作的是後端，這裡只是避免
 // 會計帳號看到按鈕、點了才發現被拒絕的困惑體驗。
 function isFinanceTier(){
   if (!CURRENT_USER) return false;
   var r = CURRENT_USER.role;
   var other = CURRENT_USER.otherRoles || [];
-  return r === '創始人' || r === '老闆' || r === '財務主管' || other.indexOf('財務主管') >= 0;
+  return r === '管理人' || r === '老闆' || r === '財務主管' || other.indexOf('財務主管') >= 0;
 }
 // 2026-08-16 新增：好物商城/補充品售價、數量優惠折扣的維護權限——比 isFinanceTier() 多開放「行政」，
 // 跟後端 PRICING_TIER_ACTIONS 的判斷邏輯一致
@@ -10386,7 +10605,7 @@ function isPricingTier(){
   if (!CURRENT_USER) return false;
   var r = CURRENT_USER.role;
   var other = CURRENT_USER.otherRoles || [];
-  return r === '創始人' || r === '老闆' || r === '財務主管' || r === '行政' || other.indexOf('財務主管') >= 0 || other.indexOf('行政') >= 0;
+  return r === '管理人' || r === '老闆' || r === '財務主管' || r === '行政' || other.indexOf('財務主管') >= 0 || other.indexOf('行政') >= 0;
 }
 // 2026-08-28 登入強化（她回報「要按很多次都登入不進去」）：
 // (1) Apps Script 剛部署完或閒置後第一次連線要「喚醒」，可能等 5~20 秒——以前畫面只停在「登入中…」
@@ -10435,15 +10654,15 @@ function doLogin(){
 function applyPermissions(){
   if(!CURRENT_USER) return;
   var allowed = ROLE_PAGES[CURRENT_USER.role];
-  // 👑 創辦人手冊入口只給創始人/老闆看（2026-08-30：功能太多，給經營者一頁看懂的地圖）
+  // 👑 創辦人手冊入口只給管理人/老闆看（2026-08-30：功能太多，給經營者一頁看懂的地圖）
   var fmlLink = document.getElementById('founder-manual-link');
-  if(fmlLink) fmlLink.style.display = (CURRENT_USER.role==='創始人'||CURRENT_USER.role==='老闆') ? '' : 'none';
+  if(fmlLink) fmlLink.style.display = (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆') ? '' : 'none';
   // 角色主題色＋頂欄角色徽章：一眼看出目前用哪個身分登入
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');
   if(tbT && !document.getElementById('role-chip')){
-    var chipColors = {'創始人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C']};
-    var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['創始人'];
+    var chipColors = {'管理人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C']};
+    var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['管理人'];
     var rc = document.createElement('span');
     rc.id = 'role-chip';
     rc.style.background = cc[0]; rc.style.color = cc[1];
@@ -10462,7 +10681,7 @@ function applyPermissions(){
     logo.appendChild(ui);
   }
   // 2026-08-16 新增：會計＝核對日常帳務，可以「看」分帳規則／角色名單頁面，但不該看到新增/編輯/刪除
-  // 這類設定型按鈕（點了也會被後端擋下來，畫面上乾脆先不放，避免會計以為卡bug）。財務主管／創始人／
+  // 這類設定型按鈕（點了也會被後端擋下來，畫面上乾脆先不放，避免會計以為卡bug）。財務主管／管理人／
   // 老闆才看得到這些設定型 UI。
   var _fin = isFinanceTier();
   var _ruleAddCard = document.getElementById('rule-add-card');
@@ -10493,7 +10712,7 @@ function applyPermissions(){
   var _supHint = document.getElementById('supplement-readonly-hint');
   if(_supAddBtn) _supAddBtn.style.display = _price ? '' : 'none';
   if(_supHint) _supHint.style.display = _price ? 'none' : '';
-  if(allowed === null) return; // 創始人／老闆看全部
+  if(allowed === null) return; // 管理人／老闆看全部
   var extra = (CURRENT_USER.extraPages || []);
   // 隐藏不该看的分页（基本角色允許的 或 額外加開的，兩者取聯集，都不隱藏）
   document.querySelectorAll('.nav-item').forEach(function(nav){
