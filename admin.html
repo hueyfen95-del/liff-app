@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-02f';
+var MX_BUILD = '2026-09-03a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -341,6 +341,10 @@ var MX_BUILD = '2026-09-02f';
       <div class="card" id="handover-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9F2">
         <div class="card-hd">
           <div class="card-title" style="color:#6D4AA8"><i class="ti ti-notes"></i>交接記錄・上一班留言</div>
+          <div style="display:flex;gap:6px">
+            <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="openHandoverQuickAdd()"><i class="ti ti-plus" style="font-size:13px"></i>留言</button>
+            <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="openHandoverHistory()"><i class="ti ti-history" style="font-size:13px"></i>歷史</button>
+          </div>
         </div>
         <div class="card-body" id="handover-body" style="padding-top:4px"></div>
       </div>
@@ -675,6 +679,10 @@ var MX_BUILD = '2026-09-02f';
     <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-notes"></i>今日交接備註</div><button class="tb-btn" onclick="focusHandover()"><i class="ti ti-plus" style="font-size:14px"></i>新增</button></div><div class="card-body">
       <div id="handover-recent" style="display:flex;flex-direction:column;gap:9px;margin-bottom:10px"></div>
       <div style="margin-bottom:9px">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px">🏷️ 跟誰有關（大家都看得到，選這個只是方便對方一眼注意到）</div>
+        <div id="handover-tags" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+      <div style="margin-bottom:9px">
         <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:5px">⚠️ 重要事項（急件，下一班會用紅色看到）</div>
         <input id="handover-important" placeholder="例：C012 明早要複檢，記得提醒她空腹" style="width:100%;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit">
       </div>
@@ -694,7 +702,7 @@ var MX_BUILD = '2026-09-02f';
     <textarea id="handover-note" placeholder="其他想交接的事…" style="width:100%;height:65px;resize:none;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit;line-height:1.6"></textarea>
       <button onclick="saveHandoverNote()" style="margin-top:8px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px;font-size:13px;cursor:pointer;width:100%;font-weight:600">儲存交接</button>
     </div></div>
-    <script>document.addEventListener('DOMContentLoaded', function(){ if(document.getElementById('pg-duty')) setTimeout(function(){ if(typeof loadRecentHandovers==='function') loadRecentHandovers(); if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions(); }, 200); });</script>
+    <script>document.addEventListener('DOMContentLoaded', function(){ if(document.getElementById('pg-duty')) setTimeout(function(){ if(typeof loadRecentHandovers==='function') loadRecentHandovers(); if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions(); if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags'); }, 200); });</script>
   </div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-calendar-event"></i>下月排班意願</div></div><div class="card-body">
     <div style="font-size:12px;color:var(--text2);margin-bottom:11px">選擇可輪值的週次（可複選）和偏好時段（單選）</div>
@@ -5437,6 +5445,141 @@ function canSeeHandoverItem(h){
   if(!CURRENT_USER) return false;
   return CURRENT_USER.role === '創始人' || CURRENT_USER.role === '老闆' || h.fromSecretary === CURRENT_USER.name;
 }
+// 2026-09-03 新增：交接留言「跟誰有關」標籤——純標示用，不限制誰看得到（她的決定：資訊越透明，
+// 越不用互相問來問去；只有上面「排班意願」那種本來就設計成私密的例外不受影響）。顏色沿用帳號管理
+// 頁面既有的角色配色（chipColors，line~10300），維持整個系統角色顏色一致。
+var HANDOVER_TAGS = [
+  {key:'', label:'一般（大家都看）', icon:''},
+  {key:'秘書', label:'秘書', icon:'💁', bg:'#DFF3F7', fg:'#0E5A6D'},
+  {key:'財務主管', label:'財務', icon:'💰', bg:'#E3F3E8', fg:'#1A6B3C'},
+  {key:'會計', label:'會計', icon:'🧾', bg:'#FAEEDA', fg:'#633806'},
+  {key:'行政', label:'行政', icon:'📋', bg:'#EEEDFE', fg:'#3C3489'},
+  {key:'創始人', label:'創始人', icon:'👑', bg:'#E1F5EE', fg:'#085041'}
+];
+function handoverTagChip(key){
+  if(!key) return '';
+  var t = null;
+  for(var i=0;i<HANDOVER_TAGS.length;i++){ if(HANDOVER_TAGS[i].key===key){ t=HANDOVER_TAGS[i]; break; } }
+  if(!t) return '';
+  return '<span style="font-size:10px;background:'+t.bg+';color:'+t.fg+';border-radius:5px;padding:1px 6px;font-weight:700">'+(t.icon?t.icon+' ':'')+escH(t.label)+'</span>';
+}
+// 通用的標籤選擇器（交接留言的快速新增視窗跟排班交接頁的表單共用同一套）
+function hoRenderTagPicker(containerId){
+  var box = document.getElementById(containerId);
+  if(!box) return;
+  box.innerHTML = HANDOVER_TAGS.map(function(t, ti){
+    var on = ti === 0;
+    return '<span class="ho-tag-chip" data-container="'+containerId+'" data-key="'+escH(t.key)+'" onclick="hoPickTag(this)" style="cursor:pointer;font-size:11px;padding:5px 10px;border-radius:20px;border:1.5px solid '+(on?'var(--g)':'var(--border2)')+';background:'+(on?'var(--g)':'var(--card)')+';color:'+(on?'#fff':'var(--text2)')+'">'+(t.icon?t.icon+' ':'')+escH(t.label)+'</span>';
+  }).join('');
+  box.setAttribute('data-selected', '');
+}
+function hoPickTag(el){
+  var containerId = el.getAttribute('data-container');
+  var box = document.getElementById(containerId);
+  if(box){
+    Array.prototype.forEach.call(box.querySelectorAll('.ho-tag-chip'), function(c){ c.style.border='1.5px solid var(--border2)'; c.style.background='var(--card)'; c.style.color='var(--text2)'; });
+    box.setAttribute('data-selected', el.getAttribute('data-key')||'');
+  }
+  el.style.border='1.5px solid var(--g)'; el.style.background='var(--g)'; el.style.color='#fff';
+}
+function hoGetTag(containerId){
+  var box = document.getElementById(containerId);
+  return box ? (box.getAttribute('data-selected') || '') : '';
+}
+// 2026-09-03 新增：交接留言「快速新增」視窗——她發現只有秘書（排班交接頁）跟創始人能寫交接留言，
+// 會計／財務主管沒有那個頁面的權限，只能被動看、沒辦法自己留言，變成還是要口頭/另外問。
+// 這個按鈕直接開在「交接記錄」看板卡片上，dashboard 頁大家都看得到，所以誰都能按、都能留言。
+function openHandoverQuickAdd(){
+  var old = document.getElementById('ho-quick-modal'); if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'ho-quick-modal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:420px;padding:18px 20px;max-height:90vh;overflow-y:auto">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text)">📋 新增交接留言</div>'
+    + '<div style="font-size:11.5px;color:var(--text2);margin-bottom:12px">留言大家都看得到，選一個「跟誰有關」方便對方一眼注意到</div>'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px">跟誰有關</div>'
+    + '<div id="hoq-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>'
+    + '<div style="margin-bottom:9px"><div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:5px">⚠️ 重要事項（選填，急件會用紅色標示）</div>'
+    + '<input id="hoq-important" placeholder="例：C012 明早要複檢，記得提醒她空腹" style="width:100%;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit"></div>'
+    + '<div style="margin-bottom:9px"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px">📝 留言內容</div>'
+    + '<textarea id="hoq-note" placeholder="想交接／告知的事…" style="width:100%;height:70px;resize:none;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit;line-height:1.6"></textarea></div>'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end">'
+    + '<button onclick="document.getElementById(\'ho-quick-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
+    + '<button id="hoq-submit" onclick="submitHandoverQuick()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">送出</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  hoRenderTagPicker('hoq-tags');
+}
+function submitHandoverQuick(){
+  var important = ((document.getElementById('hoq-important')||{}).value || '').trim();
+  var note = ((document.getElementById('hoq-note')||{}).value || '').trim();
+  if(!important && !note){ toast('至少填寫重要事項或留言內容'); return; }
+  var sb = document.getElementById('hoq-submit');
+  if(sb){ sb.disabled = true; sb.textContent = '送出中…'; sb.style.opacity='.6'; }
+  adminAPIPost({action:'addHandover', note:note, fromSecretary:(CURRENT_USER && CURRENT_USER.name) || '', toSecretary:hoGetTag('hoq-tags'), important:important, pendingClients:''}, function(d){
+    if(d && d.status==='ok'){
+      var m = document.getElementById('ho-quick-modal'); if(m) m.remove();
+      toast('✅ 交接留言已送出');
+      loadHandover();
+      if(typeof loadRecentHandovers === 'function') loadRecentHandovers();
+    } else {
+      if(sb){ sb.disabled=false; sb.textContent='送出'; sb.style.opacity=''; }
+      toast('⚠️ 儲存失敗，請重試');
+    }
+  });
+}
+// 2026-09-03 新增：交接記錄歷史查詢——她問「已看過的意義是？」，得知按了已看過的留言會直接從清單消失，
+// 追問「這樣都消失了可以嗎，要不要有記錄」。原本按已看過只是把表格狀態改成 read，資料還在，只是沒地方看。
+// 這裡加一個歷史查詢視窗，不管 pending 還是已處理都能查（後端 getHandoverHistory，最多回傳最近300筆）。
+function openHandoverHistory(){
+  var old = document.getElementById('ho-hist-modal'); if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'ho-hist-modal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:82vh;display:flex;flex-direction:column;padding:18px 20px">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text);display:flex;align-items:center;justify-content:space-between">'
+    + '<span>📜 交接記錄歷史</span>'
+    + '<span onclick="document.getElementById(\'ho-hist-modal\').remove()" style="cursor:pointer;color:var(--text3);font-size:20px;line-height:1;padding:2px 6px">✕</span></div>'
+    + '<input id="hoh-search" placeholder="搜尋留言內容／客人／秘書姓名…" oninput="renderHandoverHistory()" style="width:100%;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;outline:none;margin-bottom:10px;font-family:inherit">'
+    + '<div id="hoh-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:2px"><div style="text-align:center;color:var(--text3);font-size:12px;padding:20px">載入中…</div></div>'
+    + '</div>';
+  document.body.appendChild(ov);
+  adminAPI({action:'getHandoverHistory'}, function(d){
+    window._hohCache = ((d && d.items) || []).filter(canSeeHandoverItem);
+    renderHandoverHistory();
+  });
+}
+function renderHandoverHistory(){
+  var list = document.getElementById('hoh-list');
+  if(!list) return;
+  var kw = ((document.getElementById('hoh-search')||{}).value || '').trim();
+  var items = window._hohCache || [];
+  if(kw){
+    items = items.filter(function(h){
+      return (h.note||'').indexOf(kw)>=0 || (h.important||'').indexOf(kw)>=0 || (h.pendingClients||'').indexOf(kw)>=0 || (h.fromSecretary||'').indexOf(kw)>=0;
+    });
+  }
+  if(items.length === 0){ list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:20px">沒有符合的紀錄</div>'; return; }
+  list.innerHTML = items.map(function(h){
+    var isRead = String(h.status||'pending') !== 'pending';
+    var whoRead = '';
+    if(isRead){ var m = String(h.status||'').match(/^read（(.*)）$/); whoRead = m ? m[1] : ''; }
+    var statusChip = isRead
+      ? '<span style="font-size:10px;background:var(--g2);color:var(--g3);border-radius:5px;padding:1px 6px;font-weight:700">✅ 已處理'+(whoRead?'・'+escH(whoRead):'')+'</span>'
+      : '<span style="font-size:10px;background:var(--bg2);color:var(--text3);border-radius:5px;padding:1px 6px;font-weight:700">待處理</span>';
+    return '<div style="padding:9px 0;border-bottom:1px dashed var(--border);font-size:12px">'
+      + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px">'
+      + '<b style="color:var(--text)">' + escH(h.fromSecretary || '前一班') + '</b>'
+      + '<span style="color:var(--text3);font-size:10.5px">' + escH(h.date) + '</span>'
+      + handoverTagChip(h.toSecretary)
+      + (h.important ? '<span style="font-size:10px;background:#FDEAEA;color:#A32D2D;border-radius:5px;padding:1px 6px;font-weight:700">⚠️ ' + escH(h.important) + '</span>' : '')
+      + statusChip
+      + '</div>'
+      + (h.pendingClients ? '<div style="font-size:11px;color:var(--text2);margin-bottom:2px">待處理客人：' + renderHandoverClientLinks(h.pendingClients) + '</div>' : '')
+      + (h.note ? '<div style="font-size:11.5px;color:var(--text)">' + escH(h.note) + '</div>' : '')
+      + '</div>';
+  }).join('');
+}
 // 把交接記錄裡「姓名(編號)、姓名(編號)」格式的待處理客人轉成可點擊連結，點了直接開客人面板
 function renderHandoverClientLinks(text){
   if(!text) return '';
@@ -5468,6 +5611,7 @@ function loadHandover(){
         + '<span style="font-size:11px;font-weight:700;color:#6D4AA8;background:#EFE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<b style="color:var(--text)">' + escH(h.fromSecretary || '前一班') + '</b>'
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(h.date) + '</span>'
+        + handoverTagChip(h.toSecretary)
         + (h.important ? '<span style="font-size:10px;background:#FDEAEA;color:#A32D2D;border-radius:5px;padding:1px 6px;font-weight:700">⚠️ ' + escH(h.important) + '</span>' : '')
         + '<button class="ai-btn gray" style="font-size:10px;padding:3px 9px;margin-left:auto" onclick="ackHandoverUI(' + i + ')">已看過</button>'
         + '</div>'
@@ -7277,7 +7421,7 @@ function loadRecentHandovers(){
     if(items.length === 0){ box.innerHTML = '<div style="font-size:11.5px;color:var(--text3);text-align:center;padding:8px">目前沒有交接留言，點右上角「新增」開始寫第一筆</div>'; return; }
     box.innerHTML = items.slice(0,3).map(function(h){
       return '<div style="background:var(--bg);border-radius:10px;padding:10px 12px;border:1px solid var(--border)">'
-        + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">'+escH(h.fromSecretary||'前一班')+'・'+escH(h.date)+'</div>'
+        + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+escH(h.fromSecretary||'前一班')+'<span style="font-weight:400;color:var(--text3);font-size:10.5px">'+escH(h.date)+'</span>'+handoverTagChip(h.toSecretary)+'</div>'
         + (h.important ? '<div style="font-size:11.5px;color:#A32D2D;font-weight:700;margin-bottom:2px">⚠️ '+escH(h.important)+'</div>' : '')
         + (h.pendingClients ? '<div style="font-size:11px;color:var(--b3);margin-bottom:2px">👤 '+escH(h.pendingClients)+'</div>' : '')
         + (h.note ? '<div style="font-size:12px;color:var(--text2);line-height:1.7">'+escH(h.note)+'</div>' : '')
@@ -7300,13 +7444,14 @@ function saveHandoverNote(){
   var pendingClientsText = _handoverPendingClients.map(function(id){ return clientName(id)+'('+id+')'; }).join('、');
   if(!important && !note && _handoverPendingClients.length===0){ toast('至少填寫一項：重要事項／待處理客人／備註'); return; }
   _handoverSaving = true;
-  adminAPIPost({action:'addHandover', note:note, fromSecretary:(CURRENT_USER && CURRENT_USER.name) || '', toSecretary:'', important:important, pendingClients:pendingClientsText}, function(d){
+  adminAPIPost({action:'addHandover', note:note, fromSecretary:(CURRENT_USER && CURRENT_USER.name) || '', toSecretary:hoGetTag('handover-tags'), important:important, pendingClients:pendingClientsText}, function(d){
     _handoverSaving = false;
     if(d.status==='ok'){
       toast('✅ 交接已寫入，下一班登入就看得到');
       ta.value='';
       document.getElementById('handover-important').value='';
       _handoverPendingClients=[]; renderHandoverClientChips();
+      if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags');
       loadRecentHandovers();
     }
     else toast('⚠️ 儲存失敗，請重試');
