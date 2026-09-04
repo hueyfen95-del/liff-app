@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>元代謝・前台後台練習指南</title>
+<style>
+  :root{
+    --g:#0E7A94; --g2:#EAF5F8; --g3:#0E3A47; --text:#1F2A2D; --text2:#5B6C6F; --text3:#8A999B;
+    --card:#fff; --bg:#F3F9FA; --line:#DFEBEE; --warn:#B8860B; --warnbg:#FFF8E6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding-bottom:40px}
+  .hero{background:linear-gradient(135deg,#0E7A94,#0E3A47);color:#fff;padding:34px 20px 26px;text-align:center}
+  .hero .badge{display:inline-block;background:rgba(255,255,255,.18);border-radius:20px;padding:4px 14px;font-size:12px;margin-bottom:10px}
+  .hero h1{margin:0 0 8px;font-size:21px}
+  .hero p{margin:0;font-size:13px;opacity:.9}
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px}
+  .cta{display:block;background:#fff;color:var(--g3)!important;text-decoration:none;text-align:center;font-weight:700;font-size:15px;padding:14px;border-radius:14px;margin:18px 16px -20px;box-shadow:0 6px 18px rgba(14,58,71,.25);position:relative;z-index:2}
+  .cta span{display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:3px}
+  .section{margin-top:34px}
+  .section-title{font-size:15px;font-weight:700;color:var(--g3);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:10px}
+  .step{display:flex;gap:12px;margin-bottom:14px}
+  .step:last-child{margin-bottom:0}
+  .step-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--g);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .step-body b{display:block;font-size:14px;margin-bottom:2px}
+  .step-body span{font-size:12.5px;color:var(--text2)}
+  table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.tbl th{text-align:left;color:var(--text3);font-weight:600;font-size:11.5px;padding:6px 6px;border-bottom:1px solid var(--line)}
+  table.tbl td{padding:8px 6px;border-bottom:1px solid var(--line)}
+  table.tbl tr:last-child td{border-bottom:none}
+  table.tbl .me{color:var(--g);font-weight:700}
+  code{background:#EDF4F5;border-radius:5px;padding:1px 6px;font-size:12px}
+  .warn-box{background:var(--warnbg);border:1px solid #F0DEA0;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#7A5A00;margin-bottom:10px}
+  .info-box{background:var(--g2);border:1px solid #C9E3EA;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#0E3A47;margin-bottom:10px}
+  .faq{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px}
+  .faq b{display:block;font-size:13.5px;margin-bottom:4px}
+  .faq p{margin:0;font-size:12.5px;color:var(--text2)}
+  .contact{background:var(--g3);color:#fff;border-radius:16px;padding:20px;text-align:center;margin-top:34px}
+  .contact b{display:block;font-size:15px;margin-bottom:6px}
+  .contact span{font-size:12.5px;opacity:.85}
+  .footer{text-align:center;color:var(--text3);font-size:11px;margin-top:24px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">練習指南・前台＋後台</div>
+  <h1>上線前先練習一下</h1>
+  <p>不用怕點錯，這篇教你怎麼安全試用</p>
+</div>
+
+<div class="wrap">
+
+  <div class="section" style="margin-top:26px">
+    <div class="info-box">這篇分兩部分：<b>①前台</b>（客人看到的APP畫面，現在就能試，不用密碼）、<b>②後台</b>（秘書／行政在用的管理系統，用下面幫你準備好的練習帳號登入）。兩邊都花個幾分鐘點一點、滑一滑，熟悉一下就好。</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">① 前台試用（客人端畫面，現在就能玩）</div>
+    <a class="cta" style="margin:14px 0 20px;position:static;box-shadow:none;border:1px solid var(--line)" href="https://hueyfen95-del.github.io/liff-app/?switchtest=1" target="_blank" rel="noopener">📱 點我開啟前台試用版<span>手機或電腦瀏覽器打開即可，不用LINE登入</span></a>
+    <div class="card">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body"><b>打開上面的連結</b><span>會看到一個要你輸入「客人編號＋姓名」的畫面。</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body"><b>輸入你自己對應的測試編號＋姓名</b><span>下面表格找到自己的那一列，照著打就能進去，會看到跟真的客人一模一樣的畫面。</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body"><b>放心點、隨便滑</b><span>這些都是假的測試資料，不是真的客人，怎麼點都不會影響到真正的客戶或資料，也可以順便試試看別人的編號，了解不同身份看到的畫面有什麼不一樣。</span></div>
+      </div>
+    </div>
+    <table class="tbl">
+      <tr><th>測試編號</th><th>對應</th><th>身份</th></tr>
+      <tr><td>C00001</td><td>盼臨、正臨</td><td>秘書、行政、財務</td></tr>
+      <tr><td>C00002</td><td>婷婷</td><td>秘書</td></tr>
+      <tr><td>C00003</td><td>郭醫師</td><td>醫師</td></tr>
+      <tr><td>C00004</td><td>王藥師</td><td>秘書、藥局</td></tr>
+      <tr><td>C00005</td><td>映諠</td><td>秘書</td></tr>
+      <tr><td>C00006</td><td>雅琳</td><td>秘書</td></tr>
+      <tr><td>C00007</td><td>佩萱J</td><td>秘書</td></tr>
+      <tr><td>C00008</td><td>心苹</td><td>秘書</td></tr>
+      <tr><td>C00009</td><td>柏菁</td><td>客人</td></tr>
+      <tr><td>C00010</td><td>小慧</td><td>客人</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">② 後台試用（秘書／行政管理系統）</div>
+    <a class="cta" style="margin:14px 0 20px;position:static;box-shadow:none;border:1px solid var(--line)" href="https://hueyfen95-del.github.io/liff-app/admin.html" target="_blank" rel="noopener">💻 點我開啟後台<span>用手機或電腦瀏覽器打開，不需要透過LINE</span></a>
+    <div class="card">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body"><b>打開上面的連結</b><span>會看到帳號、密碼的登入畫面。</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body"><b>輸入下面表格裡你自己的練習帳號密碼</b><span>婷婷已經有自己的正式帳號了，直接用原本的帳號密碼登入就可以，不用另外的練習帳號。</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body"><b>點一點左側選單，熟悉每個功能在哪裡</b><span>儀表板、客戶管理、警示看板、排班交接……看看自己職務權限看得到哪些頁面。</span></div>
+      </div>
+    </div>
+    <table class="tbl">
+      <tr><th>姓名</th><th>帳號</th><th>密碼</th></tr>
+      <tr><td>盼臨</td><td>盼臨</td><td>mx1001</td></tr>
+      <tr><td>正臨</td><td>正臨</td><td>mx1002</td></tr>
+      <tr><td>王藥師</td><td>王藥師</td><td>mx1003</td></tr>
+      <tr><td>映諠</td><td>映諠</td><td>mx1004</td></tr>
+      <tr><td>雅琳</td><td>雅琳</td><td>mx1005</td></tr>
+      <tr><td>佩萱J</td><td>佩萱J</td><td>mx1006</td></tr>
+      <tr><td>心苹</td><td>心苹</td><td>mx1007</td></tr>
+      <tr><td class="me">婷婷</td><td colspan="2">用原本的正式帳號登入即可，不需要練習帳號</td></tr>
+    </table>
+    <div class="warn-box" style="margin-top:10px">⚠️ 後台看到的都是<b>真正在跑的資料</b>，跟真的客人共用同一套系統。練習時請以「點開看」為主，先不要對真實客戶按下寄送訊息、開通點數、扣款這類會產生實際影響的按鈕。如果想實際點按鈕試手感，可以用上面前台表格裡的測試客人編號（C00001～C00010）在「客戶管理」搜尋來操作，這幾筆是專門留給測試用的，最安全。不確定能不能點，直接問管理人（VV）就好。</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">③ 郭醫師的後台（2026-09-04 新增）</div>
+    <div class="card">
+      <p style="margin:0 0 8px;font-size:13px;color:var(--text2)">跟客人講解IRCT報告前，需要先看到客人完整狀況（含用藥記錄），所以後台新增了「醫師」這個身份——用下面帳密登入 admin.html（跟上面②同一個連結），只看得到<b>儀表板</b>跟<b>客戶管理</b>兩頁，畫面比秘書後台簡單很多，且預設只能查看、不能編輯客人資料。</p>
+      <table class="tbl" style="margin:0">
+        <tr><th>姓名</th><th>帳號</th><th>密碼</th></tr>
+        <tr><td>郭醫師</td><td>郭醫師</td><td>kuo1234</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">④ 常見問題</div>
+    <div class="faq"><b>Q：後台帳號密碼打不進去？</b><p>確認有沒有打錯字（注意大小寫），或直接跟管理人（VV）確認一下。</p></div>
+    <div class="faq"><b>Q：練習的時候不小心點到真的客人資料怎麼辦？</b><p>只是「點開看」不會有影響；如果不小心按到會實際發送/異動的按鈕（例如傳訊息、開通點數），跟管理人（VV）說一聲就好，不用緊張。</p></div>
+  </div>
+
+  <div class="contact">
+    <b>🙋 有任何問題</b>
+    <span>直接聯絡管理人（VV）即可</span>
+  </div>
+
+  <div class="footer">元代謝科技｜練習指南 2026-09-04｜對應後台版本 2026-09-04a</div>
+</div>
+
+</body>
+</html>

@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-03d';
+var MX_BUILD = '2026-09-04a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -934,6 +934,7 @@ var MX_BUILD = '2026-09-03d';
             <option value="會計">🧾 會計</option>
             <option value="行政">📋 行政</option>
             <option value="財務主管">💰 財務主管</option>
+            <option value="醫師">🩺 醫師</option>
             <option value="管理人">👑 管理人（看得到全部）</option>
           </select>
         </div>
@@ -3476,13 +3477,13 @@ function loadAdminAccounts(){
     if(!d || d.status !== 'ok'){ listEl.innerHTML = '<div style="font-size:11px;color:var(--r);text-align:center;padding:14px">'+((d&&d.message)||'讀取失敗，可能沒有管理人權限')+'</div>'; return; }
     if(!d.accounts || d.accounts.length === 0){ listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有帳號</div>'; return; }
     _acctCache = d.accounts;
-    var roleIcon = {'管理人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋','財務主管':'💰'};
+    var roleIcon = {'管理人':'👑','老闆':'👑','秘書':'💁','會計':'🧾','行政':'📋','財務主管':'💰','醫師':'🩺'};
     listEl.innerHTML = d.accounts.map(function(a, i){
       var isMe = CURRENT_USER && CURRENT_USER.username === a.username;
       var isActive = a.status !== '停用';
       var isFounder = (a.role === '管理人' || a.role === '老闆');
       var extraCount = (a.extraPages || []).length;
-      var isClientRestrictedRole = (a.role === '行政' || a.role === '會計' || a.role === '財務主管');
+      var isClientRestrictedRole = (a.role === '行政' || a.role === '會計' || a.role === '財務主管' || a.role === '醫師');
       return '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px'+(isActive?'':';opacity:.55')+'">'+
         '<div style="display:flex;align-items:center;gap:10px">'+
         '<span style="font-size:16px">'+(roleIcon[a.role]||'👤')+'</span>'+
@@ -3497,7 +3498,7 @@ function loadAdminAccounts(){
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
         '<input id="edit-name-'+i+'" value="'+escH(a.name||'')+'" placeholder="姓名" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
         '<select id="edit-role-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
-        ['秘書','會計','行政','財務主管','管理人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
+        ['秘書','會計','行政','財務主管','醫師','管理人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
         '</select></div>'+
         '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，其餘純顯示參考用）</div>'+
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
@@ -10585,7 +10586,9 @@ var ROLE_PAGES = {
   '行政': ['dashboard','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','supplement-mgmt','inventory'],
   // 2026-08-16 新增：財務主管——側重合作單位收費模式、分帳比例、應收帳款、月結算，跟會計看的頁面一致，
   // 差別在於財務主管額外有 setPartnerFeatures／addRule 這兩個動作層級的權限（後端已限定管理人/財務主管才能呼叫）
-  '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles']
+  '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
+  // 2026-09-04 新增：醫師——跟客人講解IRCT報告前要看到完整狀況（含用藥），只給客戶管理+儀表板，預設僅查看不可編輯
+  '醫師': ['dashboard','clients']
 };
 // 舊帳號顯示「老闆」時，畫面一律改顯示「管理人」（權限判斷不受影響）
 function roleDisplayName(r){ return r === '老闆' ? '管理人' : r; }
@@ -10661,7 +10664,7 @@ function applyPermissions(){
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');
   if(tbT && !document.getElementById('role-chip')){
-    var chipColors = {'管理人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C']};
+    var chipColors = {'管理人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C'],'醫師':['#E6F0FA','#154C79']};
     var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['管理人'];
     var rc = document.createElement('span');
     rc.id = 'role-chip';
