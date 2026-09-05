@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-05c';
+var MX_BUILD = '2026-09-05e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -3701,6 +3701,10 @@ function loadRoles() {
           ? '<div style="font-size:10px;color:var(--text3)">' + (r.contactPerson ? '對接：'+r.contactPerson+'　' : '') + (r.defaultDays ? '預設 '+r.defaultDays+' 天回報' : '') + '</div>' : '';
         var partnerInfo = (r.orgType || r.referralCode)
           ? '<div style="font-size:10px;color:#0F6E56">' + (r.orgType ? r.orgType + '　' : '') + (r.referralCode ? '轉介碼：'+r.referralCode : '') + '</div>' : '';
+        // 2026-09-05新增：vendor.html登入用的查詢密碼狀態——之前完全沒有地方看得出來某個角色能不能登入自己的工作台
+        var pwBadge = r.hasPassword
+          ? '<div style="font-size:10px;color:#0F6E56">🔑 已可登入 vendor.html（廠商代碼：' + r.roleName + '）</div>'
+          : '<div style="font-size:10px;color:#B45309">⚠️ 尚未設定登入密碼，還不能登入 vendor.html</div>';
         // 會計＝核對日常帳務，只能看角色名單，不顯示「深度合作／編輯／刪除」這幾個設定型按鈕
         // （後端 updateRole/deleteRole/setPartnerFeatures 也都已經擋下非財務主管層級的帳號）
         var roleActionBtns = isFinanceTier()
@@ -3711,7 +3715,7 @@ function loadRoles() {
         return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px">' +
           '<span style="font-size:16px">' + (typeIcons[r.roleType] || '•') + '</span>' +
           '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">' + r.roleName + '</div>' +
-          '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + partnerInfo + '</div>' +
+          '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + partnerInfo + pwBadge + '</div>' +
           roleActionBtns +
           '</div>';
       }).join('');
@@ -3803,10 +3807,17 @@ function openPartnerFeatures(btn) {
   var features = [];
   if (wantsReferral) features.push('referral');
   if (wantsSelfCollect) features.push('selfCollect');
-  adminAPI({
+  // 2026-09-05新增：設定/重設這個角色登入vendor.html（店家工作台）用的查詢密碼——這個密碼欄位之前完全沒有
+  // 任何UI能設定，導致沒有任何合作單位真的能登入自己的工作台；留空＝維持現況不變，不會不小心清空既有密碼
+  var queryPassword = prompt('設定「' + roleName + '」登入 vendor.html（店家工作台）用的查詢密碼？\n（廠商代碼＝角色名稱本身「' + roleName + '」，這裡設定的是搭配的密碼）\n\n留空＝維持現況不變：', '');
+  if (queryPassword === null) return;
+  queryPassword = queryPassword.trim();
+  var payload = {
     action: 'setPartnerFeatures', roleId: roleId, orgType: orgType, groupRoleId: groupRoleId,
     features: features.join(','), referralOneTime: oneTime, referralPercent: pct
-  }, function(d) {
+  };
+  if (queryPassword) payload.queryPassword = queryPassword;
+  adminAPI(payload, function(d) {
     if (d.status === 'ok') {
       loadRoles();
       if (wantsReferral && d.referralCode) {
@@ -4184,13 +4195,18 @@ var _dutySecretaryAccounts = [];
 function loadDutySecretaryOptions(){
   var sel = document.getElementById('duty-secretary');
   if(!sel) return;
-  adminAPI({action:'getAdminAccounts'}, function(d){
+  // 2026-09-05e改用getStaffAccounts（一般帳號輕量版），修復秘書/醫師登入時排班交接選單是空的bug；
+  // getAdminAccounts限定創始人/老闆才能呼叫，這裡額外補call一次只用來補薪資顯示，非創始人/老闆呼叫會被拒絕但不影響上面選單
+  adminAPI({action:'getStaffAccounts'}, function(d){
     sel = document.getElementById('duty-secretary');
-    if(!sel || !d || !d.accounts) return;
-    _dutySecretaryAccounts = d.accounts;
-    sel.innerHTML = '<option value="">選擇秘書…</option>' + d.accounts.filter(function(a){ return a.status !== '停用'; }).map(function(a){
+    if(!sel || !d || !d.staff) return;
+    _dutySecretaryAccounts = d.staff;
+    sel.innerHTML = '<option value="">選擇秘書…</option>' + d.staff.map(function(a){
       return '<option value="'+escH(a.name)+'">'+escH(a.name)+'</option>';
     }).join('');
+    adminAPI({action:'getAdminAccounts'}, function(d2){
+      if(d2 && d2.accounts) _dutySecretaryAccounts = d2.accounts;
+    });
   });
 }
 function loadSecretaryPayInfo(){
@@ -4432,8 +4448,9 @@ function openAddPlanOption(){
   });
 }
 function loadSecretaryDropdownsForClient(){
-  adminAPI({action:'getAdminAccounts'}, function(d){
-    var accounts = ((d && d.accounts) || []).filter(function(a){ return a.status !== '停用'; });
+  // 2026-09-05e改用getStaffAccounts（一般帳號輕量版），修復秘書/醫師登入時新增客人的專業/服務/實習秘書選單是空的bug
+  adminAPI({action:'getStaffAccounts'}, function(d){
+    var accounts = (d && d.staff) || [];
     var optsHtml = accounts.map(function(a){ return '<option value="'+escH(a.name)+'">'+escH(a.name)+'</option>'; }).join('');
     ['new-cl-prof-sec','new-cl-svc-sec'].forEach(function(id){
       var sel = document.getElementById(id);
@@ -7006,11 +7023,12 @@ function _discBadge(t){
 function loadDxAssigneeOptions(){
   var sel = document.getElementById('cd-dx-assignee');
   if(!sel) return;
-  adminAPI({action:'getAdminAccounts'}, function(d){
+  // 2026-09-05e改用getStaffAccounts（一般帳號輕量版），修復秘書/醫師登入時醫師診斷與交辦的交辦秘書選單是空的bug
+  adminAPI({action:'getStaffAccounts'}, function(d){
     sel = document.getElementById('cd-dx-assignee');
-    if(!sel || !d || d.status!=='ok' || !d.accounts) return;
-    var opts = d.accounts.filter(function(a){ return a.status !== '停用' && (a.role==='秘書' || a.role==='行政'); })
-      .map(function(a){ return '<option value="'+escH(a.name||a.username)+'">'+escH(a.name||a.username)+'</option>'; }).join('');
+    if(!sel || !d || d.status!=='ok' || !d.staff) return;
+    var opts = d.staff.filter(function(a){ return a.role==='秘書' || a.role==='行政'; })
+      .map(function(a){ return '<option value="'+escH(a.name)+'">'+escH(a.name)+'</option>'; }).join('');
     sel.innerHTML = '<option value="">不指定（任何秘書都可以處理）</option>' + opts;
   });
 }
@@ -7822,6 +7840,10 @@ function deleteClientUI(row, id, name){
 function toggleClientForm(){
   document.getElementById('add-client-form').classList.toggle('on');
   populateReferralDropdown();
+  // 2026-09-05e新增：方案/專業服務實習秘書下拉之前只在頁面剛載入時抓一次資料，
+  // 若是SPA切換分頁後才第一次打開這個表單就會抓不到（DOMContentLoaded早就跑完了），這裡改成每次打開表單都重新抓
+  loadPlanOptions();
+  loadSecretaryDropdownsForClient();
 }
 // 2026-08-14 新增：新增客人時可以選「這位是哪個合作單位轉介來的」，只列出有開通「轉介」功能的合作單位
 // （沒開通這項的角色，例如一般的診所/實驗室，不會出現在這裡，避免列表太長找不到）
@@ -8650,9 +8672,15 @@ function runPageLoader(id){
   if (id === 'alerts') loadAlerts();
   if (id === 'report') loadClientsList(function(){});
   if (id === 'tracking') loadTrackingAdmin();
-  if (id === 'remind') loadRemindList();
+  if (id === 'remind') {
+    loadRemindList();
+    if(typeof loadServiceEventTypeDropdown==='function') loadServiceEventTypeDropdown();
+  }
   if (id === 'upload') loadClientsList(function(){});
-  if (id === 'shop-mgmt') loadProductsAdmin();
+  if (id === 'shop-mgmt') {
+    loadProductsAdmin();
+    if(typeof loadDiscountList==='function') loadDiscountList();
+  }
   if (id === 'qa-list' && typeof loadQAAdmin === 'function') loadQAAdmin();
   if (id === 'food-mgmt' && typeof loadFoodAdmin === 'function') loadFoodAdmin();
   if (id === 'food-mgmt' && typeof loadUnknownFoodsAdmin === 'function') loadUnknownFoodsAdmin();
@@ -8661,15 +8689,39 @@ function runPageLoader(id){
   if (id === 'faq-mgmt' && typeof loadFAQAdmin === 'function') loadFAQAdmin();
   if (id === 'supplement-mgmt' && typeof loadSupplementAdmin === 'function') loadSupplementAdmin();
   if (id === 'roles' && typeof loadRoles === 'function') loadRoles();
-  if (id === 'rules' && typeof loadRules === 'function') loadRules();
+  if (id === 'rules') {
+    if(typeof loadRules === 'function') loadRules();
+    if(typeof loadServiceTypes==='function') loadServiceTypes();
+  }
   if (id === 'global') loadGlobalFields();
   if (id === 'garden-mgmt') loadGardenAdmin();
-  if (id === 'duty' && typeof loadShiftSchedule==='function') loadShiftSchedule();
+  if (id === 'duty') {
+    // 2026-09-05e：以下這些原本只在DOMContentLoaded時載入一次，秘書/醫師登入後如果先切別的分頁再切回「排班交接」
+    // 就會一直卡在「請先登入」或空白，因為DOMContentLoaded早就跑完了、CURRENT_USER當時還是null；
+    // 統一補進runPageLoader，確保每次切換到這頁都會用當下已登入的身份重新載入
+    if(typeof loadShiftSchedule==='function') loadShiftSchedule();
+    if(typeof loadDutySecretaryOptions==='function') loadDutySecretaryOptions();
+    if(typeof loadRecentHandovers==='function') loadRecentHandovers();
+    if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions();
+    if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags');
+    if(typeof loadShiftWishSummary==='function') loadShiftWishSummary();
+    if(typeof loadMyShiftTable==='function') loadMyShiftTable();
+    if(typeof loadClockStatus==='function') loadClockStatus();
+  }
   if (id === 'all-tests') {
     if(typeof loadAllClientsIRCTTable==='function') loadAllClientsIRCTTable();
     if(typeof loadAllClientsInBodyTable==='function') loadAllClientsInBodyTable();
   }
   // irt-models 頁改成純說明，不用再載入資料
+  if (id === 'finance-entry') {
+    // 2026-09-05e新增：這頁之前完全沒有wiring，客人下拉和診所/實驗室自動完成清單永遠是空的
+    if(typeof loadClientsList==='function') loadClientsList(function(){});
+    if(typeof loadFinClinicLabList==='function') loadFinClinicLabList();
+  }
+  if (id === 'extra-test') {
+    // 2026-09-05e新增：這頁客人下拉之前沒有wiring；本輪也剛開放醫師角色可看這頁，一併修復
+    if(typeof loadClientsList==='function') loadClientsList(function(){});
+  }
 }
 
 // 2026-08-16：側邊欄「警示看板」「複檢提醒」旁邊的數字原本是寫死的假數字，跟頁面實際內容對不上；
@@ -10925,7 +10977,9 @@ var ROLE_PAGES = {
   // 差別在於財務主管額外有 setPartnerFeatures／addRule 這兩個動作層級的權限（後端已限定管理人/財務主管才能呼叫）
   '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
   // 2026-09-04 新增：醫師——跟客人講解IRCT報告前要看到完整狀況（含用藥），只給客戶管理+儀表板，預設僅查看不可編輯
-  '醫師': ['dashboard','clients']
+  // 2026-09-05d 依創辦人指示擴大：醫師額外開放IRCT相關頁面（全部客人檢測總表/檢測整合/功能醫學加測建議/IRCT區間管理/分型系統說明），
+  // 方便醫師橫向比對數據、勾選加測建議；後端這些action本來就只檢查有無登入，不限定角色，這裡純粹是前端頁面顯示範圍的調整
+  '醫師': ['dashboard','clients','all-tests','lab-integrate','extra-test','irct-mgmt','irt-models']
 };
 // 舊帳號顯示「老闆」時，畫面一律改顯示「管理人」（權限判斷不受影響）
 function roleDisplayName(r){ return r === '老闆' ? '管理人' : r; }
