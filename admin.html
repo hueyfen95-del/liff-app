@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-05b';
+var MX_BUILD = '2026-09-05c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7035,11 +7035,11 @@ function toggleDxOverride(){
 function loadDxDoctorOptions(){
   var sel = document.getElementById('cd-dx-doctor');
   if(!sel) return;
-  adminAPI({action:'getAdminAccounts'}, function(d){
+  adminAPI({action:'getDoctorAccounts'}, function(d){
     sel = document.getElementById('cd-dx-doctor');
-    if(!sel || !d || d.status!=='ok' || !d.accounts) return;
-    var opts = d.accounts.filter(function(a){ return a.status !== '停用' && a.role==='醫師'; })
-      .map(function(a){ return '<option value="'+escH(a.name||a.username)+'">'+escH(a.name||a.username)+'</option>'; }).join('');
+    if(!sel) return;
+    if(!d || d.status!=='ok' || !d.doctors){ sel.innerHTML = '<option value="">載入失敗，請重新整理</option>'; return; }
+    var opts = d.doctors.map(function(a){ return '<option value="'+escH(a.name)+'">'+escH(a.name)+'</option>'; }).join('');
     sel.innerHTML = '<option value="">請選擇負責醫師</option>' + opts;
     if (CURRENT_USER && CURRENT_USER.role === '醫師') {
       sel.value = CURRENT_USER.name || CURRENT_USER.username || '';
@@ -8664,6 +8664,11 @@ function runPageLoader(id){
   if (id === 'rules' && typeof loadRules === 'function') loadRules();
   if (id === 'global') loadGlobalFields();
   if (id === 'garden-mgmt') loadGardenAdmin();
+  if (id === 'duty' && typeof loadShiftSchedule==='function') loadShiftSchedule();
+  if (id === 'all-tests') {
+    if(typeof loadAllClientsIRCTTable==='function') loadAllClientsIRCTTable();
+    if(typeof loadAllClientsInBodyTable==='function') loadAllClientsInBodyTable();
+  }
   // irt-models 頁改成純說明，不用再載入資料
 }
 

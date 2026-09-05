@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-05a';
+var MX_BUILD = '2026-09-05c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6617,7 +6617,7 @@ function updateComplexity() {
 
   // 從矩陣位置取得基礎係數
   var MATRIX_BASE = [[1.0,1.0,1.1],[1.1,1.1,1.2],[1.2,1.3,1.4],[1.4,1.5,1.6]];
-  var MATRIX_TIME = [['1-2個月','1-2個月','1-3個月'],['2-3個月','2-4個月','3-5個月'],['3-6個月','4-7個月','5-8個月'],['6-9個月','8-12個月','10-12個月以上']];
+  // 2026-09-05修改：移除獨立的MATRIX_TIME範圍表(跟手冊固定天數會對不上)，改成統一用下面MATRIX_SPEED
   var MATRIX_NAMES = [['自然燃脂型','活躍均衡型','肌肉爆發型'],['隱性警戒型','代謝轉折型','囤積前期型'],['疲勞纖細型','標準阻抗型','脂肌並存型'],['發炎阻抗型','代謝症候群型','重度囤積型']];
 
   // 讀取目前選中的矩陣格子
@@ -6674,12 +6674,15 @@ function updateComplexity() {
 
   scoreEl.textContent = '複雜度係數：' + score.toFixed(1);
 
-  var expectTime = (matrixR >= 0 && matrixC >= 0 && matrixR < 4 && matrixC < 3)
-    ? MATRIX_TIME[matrixR][matrixC]
-    : (score <= 1.1 ? '1-3個月' : score <= 1.3 ? '3-6個月' : score <= 1.5 ? '6-9個月' : '9-12個月以上');
+  // 2026-09-05修改：跟手冊固定陪跑天數(3/6/12個月)對不上的問題——改成直接沿用MATRIX_SPEED(矩陣格線同一份資料)，
+  // 不再另外算一個範圍時長。生活習慣風險因子改成文字提醒，不再顯示第二個數字。
+  var speedRow = (matrixR >= 0 && matrixR < 4) ? MATRIX_SPEED[matrixR] : null;
+  var expectTime = speedRow ? speedRow.time : (score <= 1.1 ? '3 個月' : score <= 1.3 ? '6 個月' : '12 個月');
+  var expectLabel = speedRow ? speedRow.label : (score <= 1.1 ? '鼓勵開始陪跑' : score <= 1.3 ? '建議陪跑計畫' : '需盡快開始陪跑');
 
   var level = score <= 1.1 ? '✅ 標準難度' : score <= 1.3 ? '⚠️ 中等難度' : score <= 1.5 ? '⚠️ 較高難度' : '🔴 高複雜度';
-  labelEl.innerHTML = level + '・預期效果時間 <strong>' + expectTime + '</strong>';
+  labelEl.innerHTML = level + '・建議陪跑方案 <strong>' + expectTime + '</strong>（' + expectLabel + '）'
+    + (factors.length > 0 ? '<br><span style="font-size:11px;opacity:.8">影響因子較多，建議提高陪跑頻率、跟秘書討論加強計畫，實際進展依配合度而定</span>' : '');
 
   factorsEl.innerHTML = factors.length > 0
     ? '<strong>影響因子：</strong><br>' + factors.join('<br>')
