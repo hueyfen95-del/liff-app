@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-08-30g';
+var MX_BUILD = '2026-09-05a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -568,10 +568,13 @@ window.openHealthForm = function() {
       <div class="qg" onclick="goPage('garden','代謝花園')"><i class="ti ti-plant-2"></i><div class="qg-l">代謝花園</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
       <!-- 2026-08-16 新增：「健康旅程」頁面(#p-journey)原本做得很完整（旅程階段/下一個目標/成就數字牆/獲得的獎勵），
            但整個系統找不到任何入口能進去，只有一個從別的子頁「返回」用的連結——等於孤兒頁面，客人永遠看不到，補上常用功能入口 -->
-      <div class="qg" onclick="goPage('journey','粒腺體健康旅程')"><i class="ti ti-route"></i><div class="qg-l">健康旅程</div></div>
+      <div class="qg" onclick="goPage('journey','粒線體健康旅程')"><i class="ti ti-route"></i><div class="qg-l">健康旅程</div></div>
       <div class="qg" onclick="goPage('qa','問答')"><i class="ti ti-message-circle"></i><div class="qg-l">問答</div></div>
       <div class="qg" onclick="goPage('sec-hub','秘書互動')"><i class="ti ti-heart-handshake"></i><div class="qg-l">秘書互動</div><div class="qg-n" id="home-sechub-badge" style="display:none;color:var(--r)"></div></div>
       <div class="qg" onclick="goPage('media','代謝學習之路')"><i class="ti ti-school"></i><div class="qg-l">學習之路</div></div>
+      <div class="qg" onclick="goPage('progress','我的進度')"><i class="ti ti-chart-arrows-vertical"></i><div class="qg-l">我的進度</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
+      <div class="qg" onclick="goPage('roadmap','我的療程地圖')"><i class="ti ti-map-2"></i><div class="qg-l">療程地圖</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
+      <div class="qg" onclick="goPage('pledge','我的療程承諾')"><i class="ti ti-handshake"></i><div class="qg-l">療程承諾</div><div class="qg-n" style="color:var(--g)">NEW</div></div>
     </div>
 
     <!-- 分享自測給親友（老客帶新客）-->
@@ -845,6 +848,41 @@ window.openHealthForm = function() {
       <div style="font-size:13px;font-weight:700;color:#8A5A00;margin-bottom:8px">🍯 你的代謝甜蜜點</div>
       <div id="sweetspot-card-body" style="font-size:12px;color:#6B4900;line-height:1.7"></div>
     </div>
+    <!-- 2026-09-05新增：對照手冊「健康趨勢：七大關鍵指標變化趨勢圖」功能描述新增——沿用IRCT完整檢測數據對照表同一個action(getIRCTFullTable)，不用另開後端action；這7項數字客人本來就在「完整檢測數據對照表」頁看得到原始值，這裡只是換個走勢圖畫法，跟下面「本週」的每日自我記錄趨勢是不同資料來源(這裡是每次IRCT檢測才有的數據) -->
+    <div id="kit-trend-wrap" style="display:none;margin-bottom:14px">
+      <div class="cw-t" style="margin-bottom:6px">📈 七大關鍵指標檢測趨勢</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">依你每一次 IRCT 檢測結果畫成的走勢圖，跟下面「本週」的每日記錄是不同的資料（那個是你自己每天填的）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">ESI</div>
+          <div id="kit-trend-esi"></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">腰圍 cm</div>
+          <div id="kit-trend-waist"></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">內臟脂肪</div>
+          <div id="kit-trend-visceralFat"></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">體脂率 %</div>
+          <div id="kit-trend-bodyFatPct"></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">GPT</div>
+          <div id="kit-trend-gpt"></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">動態胰島素總和</div>
+          <div id="kit-trend-insulinSum"></div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">血酮 mmol/L</div>
+          <div id="kit-trend-ketone"></div>
+        </div>
+      </div>
+    </div>
     <div class="chart-wrap">
       <div class="cw-t">本週血酮趨勢（mmol/L）</div>
       <div class="bars" id="chart-ketone-bars">
@@ -917,7 +955,7 @@ window.openHealthForm = function() {
     </div>
     <!-- 找餐廳區 -->
     <div style="background:linear-gradient(135deg,#0F6E56,#158066);color:#fff;border-radius:14px;padding:16px 15px;margin-bottom:14px">
-      <div style="font-size:14px;font-weight:700;margin-bottom:4px">🍽 找粒腺體友善餐廳</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">🍽 找粒線體友善餐廳</div>
       <div style="font-size:11px;opacity:.85;line-height:1.6">選你所在的地區，看看附近有哪些餐廳可以放心點，還有推薦的點法。</div>
     </div>
     <div style="margin-bottom:8px">
@@ -934,7 +972,7 @@ window.openHealthForm = function() {
     </div>
 
     <div class="food-top">
-      <div style="font-size:14px;font-weight:700;margin-bottom:4px">粒腺體健康之旅・第一階段外食實戰指南</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">粒線體健康之旅・第一階段外食實戰指南</div>
       <div style="font-size:11px;opacity:.8;line-height:1.5">三原則：選原型食物・看得到油・避開糖</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:7px">
         <div style="background:rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:12px">碳水 ≤20g/天</div>
@@ -956,22 +994,22 @@ window.openHealthForm = function() {
     </div>
     <div class="f-content on" id="fc-conv">
       <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">① 蔬菜沙拉盒（超商實戰）</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">可以</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">一日野菜（海藻沙拉底）</div><div class="fr-desc">海苔沙拉、高苣基底，低碳安全</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">彩蔬沙拉</div><div class="fr-desc">需手動挑除根莖類（紅蘿蔔、玉米、南瓜等）</div></div><div class="fr-tag a">挑除根莖</div></div><div class="ftip">醬料選油醋或和風醬。可自帶 MINIOLIVA 橄欖油隨行包淋上補油。</div></div></div>
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">② 帶皮烤雞翅 / 烤雞腿</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">強力推薦</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">美式肯瓊翅、紐奧良、蒜蒜辣</div><div class="fr-desc">以天然油脂為主，蛋白質＋油脂好來源</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">麻辣雞心</div><div class="fr-desc">高油脂、高蛋白，適合粒腺體</div></div><div class="fr-tag ok">可以</div></div><div class="ftip">品牌：<div class="brand-row"><div class="brand-tag">媽媽煮藝</div><div class="brand-tag">御料小館</div><div class="brand-tag">小松哥</div><div class="brand-tag">鑽魚蛋家</div></div></div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">② 帶皮烤雞翅 / 烤雞腿</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">強力推薦</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">美式肯瓊翅、紐奧良、蒜蒜辣</div><div class="fr-desc">以天然油脂為主，蛋白質＋油脂好來源</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">麻辣雞心</div><div class="fr-desc">高油脂、高蛋白，適合粒線體</div></div><div class="fr-tag ok">可以</div></div><div class="ftip">品牌：<div class="brand-row"><div class="brand-tag">媽媽煮藝</div><div class="brand-tag">御料小館</div><div class="brand-tag">小松哥</div><div class="brand-tag">鑽魚蛋家</div></div></div></div></div>
       <div class="ftip warn" style="margin-bottom:9px">超商飲料：黑咖啡、無糖茶、氣泡水最安全。飯糰、麵包完全避免。</div>
     </div>
     <div class="f-content" id="fc-snack">
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">牛肉類・高脂優質</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">牛小排、牛五花、牛肋條、牛髓</div><div class="fr-desc">油花豐富，最佳粒腺體肉類，沾鹽或胡椒</div></div><div class="fr-tag ok">多吃</div></div></div></div>
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">豬肉類 &amp; 禽類・帶皮吃</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">豬五花、松阪豬、絞肉（屜）</div><div class="fr-desc">油脂豐富，適合粒腺體</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">雞皮、雞翅、雞腿（帶皮）</div><div class="fr-desc">保留雞皮，天然油脂豐富</div></div><div class="fr-tag ok">推薦</div></div><div class="ftip warn">滷汁常含糖，不沾醬或用鹽、胡椒取代。</div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">牛肉類・高脂優質</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">牛小排、牛五花、牛肋條、牛髓</div><div class="fr-desc">油花豐富，最佳粒線體肉類，沾鹽或胡椒</div></div><div class="fr-tag ok">多吃</div></div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">豬肉類 &amp; 禽類・帶皮吃</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">豬五花、松阪豬、絞肉（屜）</div><div class="fr-desc">油脂豐富，適合粒線體</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">雞皮、雞翅、雞腿（帶皮）</div><div class="fr-desc">保留雞皮，天然油脂豐富</div></div><div class="fr-tag ok">推薦</div></div><div class="ftip warn">滷汁常含糖，不沾醬或用鹽、胡椒取代。</div></div></div>
       <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">魚類・清蒸為主</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">秋刀魚、鱸魚、虱目魚肚、鰻魚</div><div class="fr-desc">油脂豐富，Omega-3 好來源</div></div><div class="fr-tag ok">推薦</div></div><div class="ftip ok">火鍋場合：牛五花/豬五花＋葉菜＋清湯，可加一小匙奶油或橄欖油。</div></div></div>
     </div>
     <div class="f-content" id="fc-steak">
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">肉類 &amp; 搭配油脂</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">牛小排、牛五花（沾海鹽或黑胡椒）</div><div class="fr-desc">最佳選擇，不用甜醬</div></div><div class="fr-tag ok">最佳</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">草飼奶油、澄清奶油（Ghee）、牛油</div><div class="fr-desc">粒腺體最優質油脂，可要求加在肉上</div></div><div class="fr-tag ok">最佳</div></div><div class="ftip warn">避免 teriyaki（照燒）、薑汁、蜜汁等甜醬。</div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">肉類 &amp; 搭配油脂</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">牛小排、牛五花（沾海鹽或黑胡椒）</div><div class="fr-desc">最佳選擇，不用甜醬</div></div><div class="fr-tag ok">最佳</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">草飼奶油、澄清奶油（Ghee）、牛油</div><div class="fr-desc">粒線體最優質油脂，可要求加在肉上</div></div><div class="fr-tag ok">最佳</div></div><div class="ftip warn">避免 teriyaki（照燒）、薑汁、蜜汁等甜醬。</div></div></div>
     </div>
     <div class="f-content" id="fc-oil">
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">MINIOLIVA EVOO 橄欖油隨行包 ★★★</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">14ml 單次使用獨立包裝</div><div class="fr-desc">出門在外隨身攜帶，扭開即用，外食必備</div></div><div class="fr-tag ok">隨身帶</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">草飼奶油、Ghee、MCT 油</div><div class="fr-desc">粒腺體最推薦油脂組合</div></div><div class="fr-tag ok">最佳</div></div><div class="ftip ok">判斷油脂是否夠：菜要油亮亮、湯裡看得到油珠。</div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">MINIOLIVA EVOO 橄欖油隨行包 ★★★</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">14ml 單次使用獨立包裝</div><div class="fr-desc">出門在外隨身攜帶，扭開即用，外食必備</div></div><div class="fr-tag ok">隨身帶</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">草飼奶油、Ghee、MCT 油</div><div class="fr-desc">粒線體最推薦油脂組合</div></div><div class="fr-tag ok">最佳</div></div><div class="ftip ok">判斷油脂是否夠：菜要油亮亮、湯裡看得到油珠。</div></div></div>
     </div>
     <div class="f-content" id="fc-nuts">
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">堅果類 ★★（適量）</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">夏威夷豆</div><div class="fr-desc">碳水最低的堅果，最適合粒腺體，首選</div></div><div class="fr-tag ok">首選</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">酪梨、硬質起司</div><div class="fr-desc">健康油脂＋鉀，補電解質、增加飽足感</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">腰果</div><div class="fr-desc">碳水偏高，少量可以</div></div><div class="fr-tag a">少量</div></div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">堅果類 ★★（適量）</div><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">夏威夷豆</div><div class="fr-desc">碳水最低的堅果，最適合粒線體，首選</div></div><div class="fr-tag ok">首選</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">酪梨、硬質起司</div><div class="fr-desc">健康油脂＋鉀，補電解質、增加飽足感</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">腰果</div><div class="fr-desc">碳水偏高，少量可以</div></div><div class="fr-tag a">少量</div></div></div></div>
     </div>
     <div class="f-content" id="fc-danger">
       <div style="background:var(--r2);border:1px solid #F09595;border-radius:13px;padding:12px 14px;margin-bottom:10px">
@@ -1232,7 +1270,7 @@ window.openHealthForm = function() {
           <div style="font-size:12px;font-weight:600;color:#085041;margin-top:2px">生酮狀態確認</div>
         </div>
       </div>
-      <div style="font-size:11px;color:#633806;margin-top:11px;line-height:1.7">數值 &gt;0.5 mmol/L 顯示身體已進入生酮狀態，能量來源正在切換中。此數值為粒腺體健康之旅的重要觀察指標。</div>
+      <div style="font-size:11px;color:#633806;margin-top:11px;line-height:1.7">數值 &gt;0.5 mmol/L 顯示身體已進入生酮狀態，能量來源正在切換中。此數值為粒線體健康之旅的重要觀察指標。</div>
     </div>
   </div>
 <div id="itc-matrix" style="display:none;padding:10px 12px">
@@ -1279,6 +1317,20 @@ window.openHealthForm = function() {
         <tbody id="irct-table-body"></tbody>
       </table>
     </div>
+  </div>
+</div>
+<!-- ══ 我的進度（五階段效益驗證，2026-09-04e 新增） ══ -->
+<div class="page" id="p-progress">
+  <div style="padding:12px 14px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">依照你每次複測的資料，把整個療程分成期初/前期/中期/後期/期末五個階段，跟你目前的數值做對照，讓你清楚看到自己的進步。</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">💡 這裡的「期初/前期/中期/後期/期末」是依你的複測次數計算的療程進度，跟「健康旅程」頁面依身體代謝適應狀況判斷的階段，是兩件不同的事哦</div>
+    <div id="progress-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
+    <div id="progress-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有足夠的複測資料，先去完成第一次檢測，之後這裡就能看到你的進度 🌱</div>
+    <div id="progress-stages-wrap" style="display:none"></div>
+    <button onclick="goPage('progress-share','分享我的進度')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px">
+      <i class="ti ti-share" style="font-size:16px"></i>
+      分享我的進度
+    </button>
   </div>
 </div>
 <!-- ══ 秘書互動專區（集中所有秘書的回覆與推薦，不用到處找） ══ -->
@@ -1371,7 +1423,7 @@ window.openHealthForm = function() {
         </div>
         <div class="bk-opt" id="bkopt3" onclick="bkSelectDiet(3)" style="border:1.5px solid var(--g);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer;background:var(--g2);position:relative">
           <div style="position:absolute;top:10px;right:12px;width:20px;height:20px;background:var(--g);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">✓</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:20px">🥑</span><div style="font-size:13px;font-weight:700;color:var(--g3)">粒腺體飲食</div></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:20px">🥑</span><div style="font-size:13px;font-weight:700;color:var(--g3)">粒線體飲食</div></div>
           <div style="margin-bottom:3px"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--g3);width:36px">碳水</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:5%;background:#E24B4A;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#A32D2D;width:26px;text-align:right">5%</div></div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:12px;color:var(--g3);width:36px">蛋白質</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:25%;background:#378ADD;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#0C447C;width:26px;text-align:right">25%</div></div><div style="display:flex;align-items:center;gap:5px"><div style="font-size:12px;color:var(--g3);width:36px">脂肪</div><div style="flex:1;height:6px;background:rgba(255,255,255,.6);border-radius:3px;overflow:hidden"><div style="height:100%;width:70%;background:#1D9E75;border-radius:3px"></div></div><div style="font-size:12px;font-weight:700;color:#085041;width:26px;text-align:right">70%</div></div></div>
           <div style="font-size:11px;color:var(--g3)">碳水 5%，蛋白質 25%，脂肪 70%。</div>
         </div>
@@ -1388,7 +1440,7 @@ window.openHealthForm = function() {
       </div>
       <div style="margin-bottom:12px">
         <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px">補充說明（選填）</div>
-        <textarea id="bk-diet-note" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:12px;color:var(--text);background:var(--card);resize:none;outline:none;line-height:1.7;font-family:inherit;min-height:65px" placeholder="例如：大部分時間執行粒腺體，但週末偶爾外食不忌口…"></textarea>
+        <textarea id="bk-diet-note" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:12px;color:var(--text);background:var(--card);resize:none;outline:none;line-height:1.7;font-family:inherit;min-height:65px" placeholder="例如：大部分時間執行粒線體，但週末偶爾外食不忌口…"></textarea>
       </div>
       <!-- 加測項目建議（只在複測時顯示） -->
       <div id="bk-extra-tests-card" style="display:none;background:#FFFBEB;border:1px solid #FCD34D;border-radius:12px;padding:13px 14px;margin-bottom:14px">
@@ -1582,7 +1634,7 @@ window.openHealthForm = function() {
         <div id="bk-confirm-banner" style="font-size:11px;opacity:.8">06/21（六）08:30・瑞絲得診所・新竹</div>
       </div>
       <div style="padding:13px 16px;padding-bottom:20px">
-        <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--g3);line-height:1.9"><div style="font-weight:700;margin-bottom:4px">預約確認 ✓</div><span id="bk-confirm-summary">IRCT 動態胰島素檢測・NT$6,800</span><br><span id="bk-confirm-location">瑞絲得診所・新竹・06/21 08:30</span><br><strong>飲食模式：</strong><span id="bk-confirm-diet">🥑 粒腺體飲食（碳水 5%，脂肪 70%）</span></div>
+        <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--g3);line-height:1.9"><div style="font-weight:700;margin-bottom:4px">預約確認 ✓</div><span id="bk-confirm-summary">IRCT 動態胰島素檢測・NT$6,800</span><br><span id="bk-confirm-location">瑞絲得診所・新竹・06/21 08:30</span><br><strong>飲食模式：</strong><span id="bk-confirm-diet">🥑 粒線體飲食（碳水 5%，脂肪 70%）</span></div>
         <div style="background:var(--b2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--b3);line-height:1.7;margin-bottom:11px">📩 預約已送出給健康秘書<br>💬 已幫你傳訊息給秘書，秘書會在 LINE 回覆你，確認實際檢測日期<br>🌙 確認日期後，記得檢測前一晚要空腹唷</div>
         <a href="https://youtu.be/hOEKfWTbOp4" target="_blank" style="display:block;background:var(--g);color:#fff;border-radius:11px;padding:11px;text-align:center;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:11px">▶️ 檢測前必看：IRCT 檢前說明影片</a>
         <button onclick="goPage('irct','IRCT 報告')" style="width:100%;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">返回報告頁</button>
@@ -1596,7 +1648,7 @@ window.openHealthForm = function() {
   <!-- 頂部橫幅 -->
   <div style="background:linear-gradient(160deg,#085041,var(--g));color:#fff;padding:18px 16px 20px">
     <div style="font-size:11px;opacity:.75;margin-bottom:3px">陳小美的</div>
-    <div style="font-size:20px;font-weight:700;margin-bottom:8px">粒腺體健康旅程</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:8px">粒線體健康旅程</div>
     <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">
       <div style="background:rgba(255,255,255,.18);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px"><i class="ti ti-calendar" style="font-size:13px"></i>第 <span id="jn-daycount">–</span> 天</div>
       <div style="background:rgba(239,159,39,.28);border:1px solid rgba(239,159,39,.4);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:5px"><i class="ti ti-flame" style="font-size:13px"></i>連續打卡 <span id="streak-day-2">–</span> 天</div>
@@ -1606,6 +1658,7 @@ window.openHealthForm = function() {
       <div style="font-size:12px;opacity:.65;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:9px">旅程階段</div>
       <div id="jn-stage-badge" style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">依你的記錄評估中…</div>
       <div style="font-size:12px;opacity:.75" id="jn-stage-text2">秘書會依照你的檢測與記錄狀況，幫你確認目前所在的階段</div>
+      <div style="font-size:11px;opacity:.55;margin-top:6px">💡 跟「我的進度」「療程地圖」頁面看到的期初/前期/中期/後期/期末，是不同的階段哦</div>
     </div>
   </div>
 
@@ -1677,9 +1730,9 @@ window.openHealthForm = function() {
     <!-- 分享按鈕 -->
     <button onclick="openShareCard()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:16px">
       <i class="ti ti-share" style="font-size:16px"></i>
-      分享我的粒腺體健康旅程
+      分享我的粒線體健康旅程
     </button>
-    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;line-height:1.6">分享你的旅程，讓更多人看見粒腺體健康之旅的力量</div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;line-height:1.6">分享你的旅程，讓更多人看見粒線體健康之旅的力量</div>
 
   </div>
 </div>
@@ -1688,7 +1741,7 @@ window.openHealthForm = function() {
 <div class="page" id="p-sharecard">
   <div style="padding:14px 16px 24px">
     <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
-      <button onclick="goPage('journey','粒腺體健康旅程')" style="background:none;border:1px solid var(--border2);border-radius:9px;padding:7px 11px;font-size:12px;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-left" style="font-size:14px"></i>返回</button>
+      <button onclick="goPage('journey','粒線體健康旅程')" style="background:none;border:1px solid var(--border2);border-radius:9px;padding:7px 11px;font-size:12px;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-left" style="font-size:14px"></i>返回</button>
       <div style="font-size:14px;font-weight:700;color:var(--text)">分享圖卡</div>
     </div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:5px"><i class="ti ti-eye" style="font-size:13px"></i>對方收到後看到的樣子</div>
@@ -1702,7 +1755,7 @@ window.openHealthForm = function() {
           <div style="position:absolute;right:10px;bottom:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.04)"></div>
           <div style="font-size:11px;opacity:.7;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:6px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center"><i class="ti ti-leaf" style="font-size:11px"></i></div>元代謝健康管理</div>
           <div style="font-size:13px;opacity:.75;margin-bottom:3px" id="sc-name-line">你的</div>
-          <div style="font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.2">粒腺體健康旅程</div>
+          <div style="font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.2">粒線體健康旅程</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap" id="sc-day-tags">
             <div style="background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-calendar" style="font-size:12px"></i>第 <span id="sc-daycount">–</span> 天</div>
             <div style="background:rgba(239,159,39,.35);border:1px solid rgba(239,159,39,.5);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-flame" style="font-size:12px"></i>連續打卡 <span id="sc-streak">–</span> 天</div>
@@ -1722,7 +1775,7 @@ window.openHealthForm = function() {
         </div>
         <!-- 卡片底部 -->
         <div style="background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
-          <div style="font-size:12px;color:#6B7280">#粒腺體健康 #粒腺體飲食</div>
+          <div style="font-size:12px;color:#6B7280">#粒線體健康 #粒線體飲食</div>
           <div style="font-size:11px;color:#1D9E75;font-weight:600">isometabolix.com</div>
         </div>
       </div>
@@ -1737,6 +1790,85 @@ window.openHealthForm = function() {
   </div>
 </div>
 
+<!-- ══ 效益進度分享卡片頁（2026-09-04e 新增） ══ -->
+<div class="page" id="p-progress-share">
+  <div style="padding:14px 16px 24px">
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px">
+      <button onclick="goPage('progress','我的進度')" style="background:none;border:1px solid var(--border2);border-radius:9px;padding:7px 11px;font-size:12px;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px"><i class="ti ti-arrow-left" style="font-size:14px"></i>返回</button>
+      <div style="font-size:14px;font-weight:700;color:var(--text)">分享圖卡</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:5px"><i class="ti ti-eye" style="font-size:13px"></i>對方收到後看到的樣子</div>
+
+    <div id="progress-share-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
+    <div id="progress-share-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有可以分享的階段成果，先累積幾次複測記錄再回來看看 🌱</div>
+
+    <div id="progress-share-card-wrap" style="display:none">
+      <div style="border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#085041,#1D9E75);padding:2px;margin-bottom:14px">
+        <div style="border-radius:18px;overflow:hidden;background:#fff">
+          <div style="background:linear-gradient(160deg,#085041,#1D9E75);padding:20px 18px 16px;color:#fff;position:relative">
+            <div style="position:absolute;right:-10px;top:-10px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.06)"></div>
+            <div style="position:absolute;right:10px;bottom:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.04)"></div>
+            <div style="font-size:11px;opacity:.7;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:6px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center"><i class="ti ti-leaf" style="font-size:11px"></i></div>元代謝健康管理</div>
+            <div style="font-size:13px;opacity:.75;margin-bottom:3px" id="pgs-name-line">你的</div>
+            <div style="font-size:22px;font-weight:700;margin-bottom:10px;line-height:1.2">效益驗證進度</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <div style="background:rgba(255,255,255,.18);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px"><i class="ti ti-flag" style="font-size:12px"></i><span id="pgs-stage-label">–</span></div>
+            </div>
+          </div>
+          <div style="padding:14px 16px">
+            <div style="font-size:12px;font-weight:600;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;margin-bottom:9px">這個階段的成果</div>
+            <div id="pgs-metric-list"></div>
+          </div>
+          <div style="background:#F9FAFB;border-top:1px solid #F3F4F6;padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+            <div style="font-size:12px;color:#6B7280">#元代謝 #粒線體健康 #進步的證明</div>
+            <div style="font-size:11px;color:#1D9E75;font-weight:600">isometabolix.com</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:9px;margin-bottom:9px">
+        <button onclick="doSaveImg()" style="flex:1;background:var(--g);color:#fff;border:none;border-radius:11px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-download" style="font-size:15px"></i>儲存圖片</button>
+        <button onclick="doCopyProgressText()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:6px"><i class="ti ti-copy" style="font-size:15px"></i>複製文字</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.6">儲存圖片後，可以直接傳到 LINE、IG、FB 或任何社群</div>
+    </div>
+  </div>
+</div>
+<!-- ══ 我的療程地圖（2026-09-04f 新增） ══ -->
+<div class="page" id="p-roadmap">
+  <div style="padding:12px 14px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">依照你最新一次的檢測資料，往回推算到期末目標，幫你畫出期初到期末，每個階段大概會落在哪裡，讓你對整個療程有清楚的預期。</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">💡 這裡的階段是依複測次數推算的療程進度，跟「健康旅程」頁面看到的階段是兩件不同的事哦</div>
+    <div id="roadmap-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
+    <div id="roadmap-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有檢測資料，先去完成第一次檢測，之後這裡就能看到你的療程地圖 🌱</div>
+    <div id="roadmap-stages-wrap" style="display:none"></div>
+    <button onclick="goPage('pledge','我的療程承諾')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">查看我的療程承諾 →</button>
+  </div>
+</div>
+<!-- ══ 我的療程承諾（2026-09-04g 新增） ══ -->
+<div class="page" id="p-pledge">
+  <div style="padding:12px 14px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">這是我們一起要做到的事，不是單方面要求你——你做你的部分，元代謝也會做到我們的承諾。</div>
+    <div id="pledge-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
+    <div id="pledge-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有檢測資料，先去完成第一次檢測 🌱</div>
+    <div id="pledge-content-wrap" style="display:none">
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">🎯 我們一起要達到的目標</div>
+        <div id="pledge-targets-list"></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">🙋 我承諾</div>
+        <div id="pledge-client-items"></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">🤝 元代謝承諾</div>
+        <div id="pledge-company-items"></div>
+      </div>
+      <div id="pledge-committed-note" style="display:none;text-align:center;padding:10px;color:var(--g);font-size:12px;font-weight:700;margin-bottom:8px">✅ 你已經承諾了，我們會一起努力！</div>
+      <button id="pledge-commit-btn" onclick="doCommitPledge()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer">我承諾 🤝</button>
+    </div>
+  </div>
+</div>
 <!-- ══ 代謝花園 ══ -->
 <div class="page" id="p-garden">
 <style>
@@ -1995,13 +2127,13 @@ window.openHealthForm = function() {
 </div>
 
 
-<!-- ══ 粒腺體友善餐廳 ══ -->
+<!-- ══ 粒線體友善餐廳 ══ -->
 <!-- ══ 好物推薦 ══ -->
 <div class="page" id="p-shop">
   <div style="background:linear-gradient(160deg,#085041,var(--g));color:#fff;padding:16px 16px 20px">
     <div style="font-size:12px;opacity:.75;margin-bottom:3px">元代謝・嚴選好物</div>
-    <div style="font-size:20px;font-weight:700;margin-bottom:4px">粒腺體旅程必備好物</div>
-    <div style="font-size:12px;opacity:.85;line-height:1.6">每一樣都是為粒腺體健康之旅計畫設計，讓你的旅程更輕鬆、更美味 🌱</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px">粒線體旅程必備好物</div>
+    <div style="font-size:12px;opacity:.85;line-height:1.6">每一樣都是為粒線體健康之旅計畫設計，讓你的旅程更輕鬆、更美味 🌱</div>
   </div>
 
   <div style="padding:14px 16px;padding-bottom:20px">
@@ -2059,7 +2191,7 @@ window.openHealthForm = function() {
             <div style="font-size:11px;color:var(--text2);margin-top:1px">外食族・忙碌族・料理新手的救星</div>
           </div>
         </div>
-        <a href="https://www.isometabolix.com/category/法餐主廚的防彈雞湯｜粒腺體專用・常溫即食" target="_blank" style="font-size:11px;color:var(--g);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:3px;flex-shrink:0">全部 <i class="ti ti-chevron-right" style="font-size:13px"></i></a>
+        <a href="https://www.isometabolix.com/category/法餐主廚的防彈雞湯｜粒線體專用・常溫即食" target="_blank" style="font-size:11px;color:var(--g);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:3px;flex-shrink:0">全部 <i class="ti ti-chevron-right" style="font-size:13px"></i></a>
       </div>
       <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:10px 12px;margin-bottom:9px;font-size:11px;color:var(--g3);line-height:1.6">
         為了外食族、忙碌族、烹飪不擅長族，能吃到好口味的好油脂所預備。法餐主廚研發，常溫即食，隨時隨地補充優質油脂。
@@ -2095,10 +2227,10 @@ window.openHealthForm = function() {
           </div>
         </a>
       </div>
-      <!-- 粒腺體說明小卡 -->
+      <!-- 粒線體說明小卡 -->
       <div style="background:var(--color-background-secondary,#F3F4F6);border-radius:10px;padding:9px 12px;margin-top:9px;font-size:11px;color:var(--text2);line-height:1.7;display:flex;gap:8px;align-items:flex-start">
         <span style="font-size:16px;flex-shrink:0">💡</span>
-        <div>早晨開袋即飲，快速補充粒腺體缺少的鹽分與油脂。每份含 30g 優質油脂，也可作為 168 斷食期間的熱飲。</div>
+        <div>早晨開袋即飲，快速補充粒線體缺少的鹽分與油脂。每份含 30g 優質油脂，也可作為 168 斷食期間的熱飲。</div>
       </div>
     </div>
 
@@ -2117,7 +2249,7 @@ window.openHealthForm = function() {
         <a href="https://www.isometabolix.com/category/all-products" target="_blank" style="font-size:11px;color:var(--g);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:3px;flex-shrink:0">全部 <i class="ti ti-chevron-right" style="font-size:13px"></i></a>
       </div>
       <div style="background:var(--a2);border:1px solid #FCD34D;border-radius:11px;padding:10px 12px;margin-bottom:9px;font-size:11px;color:var(--a3);line-height:1.6">
-        為了第一階段不能吃碳水的嘴饞需求，嚴格篩選出的最佳點心零食。每一樣都通過粒腺體標準檢驗，安心享用。
+        為了第一階段不能吃碳水的嘴饞需求，嚴格篩選出的最佳點心零食。每一樣都通過粒線體標準檢驗，安心享用。
       </div>
       <div style="background:var(--bg);border-radius:11px;padding:16px;text-align:center;border:1.5px dashed var(--border2)">
         <div style="font-size:24px;margin-bottom:6px">🔜</div>
@@ -2161,13 +2293,13 @@ window.openHealthForm = function() {
           <span style="font-size:22px">🧂</span>
           <div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">電解質</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px">粒腺體後電解質平衡的關鍵補充</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px">粒線體後電解質平衡的關鍵補充</div>
           </div>
         </div>
         <a href="https://www.isometabolix.com/category/all-products" target="_blank" style="font-size:11px;color:var(--g);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:3px;flex-shrink:0">全部 <i class="ti ti-chevron-right" style="font-size:13px"></i></a>
       </div>
       <div style="background:var(--p2);border:1px solid #AFA9EC;border-radius:11px;padding:10px 12px;margin-bottom:9px;font-size:11px;color:var(--p3);line-height:1.6">
-        胰島素降低後，腎臟排出更多鈉鉀鎂。正確補充電解質是粒腺體成功的關鍵。我們嚴選最有效的配方，幫你補對、補夠。
+        胰島素降低後，腎臟排出更多鈉鉀鎂。正確補充電解質是粒線體成功的關鍵。我們嚴選最有效的配方，幫你補對、補夠。
       </div>
       <div style="background:var(--bg);border-radius:11px;padding:16px;text-align:center;border:1.5px dashed var(--border2)">
         <div style="font-size:24px;margin-bottom:6px">🔜</div>
@@ -2186,7 +2318,7 @@ window.openHealthForm = function() {
           <span style="font-size:22px">✨</span>
           <div>
             <div style="font-size:14px;font-weight:700;color:var(--text)">其他好物</div>
-            <div style="font-size:11px;color:var(--text2);margin-top:1px">粒腺體旅程中的各種好夥伴</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:1px">粒線體旅程中的各種好夥伴</div>
           </div>
         </div>
         <a href="https://www.isometabolix.com/category/all-products" target="_blank" style="font-size:11px;color:var(--g);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:3px;flex-shrink:0">全部 <i class="ti ti-chevron-right" style="font-size:13px"></i></a>
@@ -2195,7 +2327,7 @@ window.openHealthForm = function() {
         <div style="background:var(--bg);border-radius:11px;padding:16px;text-align:center;border:1.5px dashed var(--border2)">
           <div style="font-size:24px;margin-bottom:6px">🛍️</div>
           <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:3px">持續精選中</div>
-          <div style="font-size:11px;color:var(--text3)">更多粒腺體旅程好物陸續上架，敬請期待 😊</div>
+          <div style="font-size:11px;color:var(--text3)">更多粒線體旅程好物陸續上架，敬請期待 😊</div>
           <a href="https://www.isometabolix.com/category/all-products" target="_blank" style="display:inline-block;margin-top:10px;background:var(--g);color:#fff;border-radius:9px;padding:8px 18px;font-size:12px;font-weight:700;text-decoration:none">先看看全部商品</a>
         </div>
       </div>
@@ -2296,6 +2428,7 @@ function goPage(id,title){
   if(id === 'home' && typeof loadReportStatus==='function') loadReportStatus();
   if(id === 'trend' && typeof loadMonthlyLog==='function') loadMonthlyLog();
   if(id === 'trend' && typeof loadMySweetSpot==='function') loadMySweetSpot();
+  if(id === 'trend' && typeof loadKeyIndicatorsTrend==='function') loadKeyIndicatorsTrend();
   if(id === 'irct-table' && typeof loadIrctTable==='function') loadIrctTable();
   if(id === 'qa' && typeof loadQASearch==='function' && !_qaSearchData) loadQASearch();
   if(id === 'qa' && typeof loadMyQuestions==='function') loadMyQuestions();
@@ -2321,6 +2454,11 @@ function goPage(id,title){
     if (typeof loadReportStatus === 'function') setTimeout(loadReportStatus, 300);
   }
   if (id === 'irct' && typeof loadIRCTOverview === 'function') loadIRCTOverview();
+  if (id === 'progress' && typeof loadEffectivenessReportClientUI === 'function') loadEffectivenessReportClientUI();
+  if (id === 'progress-share' && typeof loadProgressShareCard === 'function') loadProgressShareCard();
+  if (id === 'roadmap' && typeof loadTreatmentRoadmapClientUI === 'function') loadTreatmentRoadmapClientUI();
+  if (id === 'pledge' && typeof loadTreatmentPledgeClientUI === 'function') loadTreatmentPledgeClientUI();
+
   if (id === 'irct' && typeof loadIRCTDetailTabs === 'function') loadIRCTDetailTabs();
   // 進入預約頁面時，依第一次/複檢動態調整標題
   if (id === 'booking') {
@@ -2334,7 +2472,7 @@ function openBooking(){
   goPage('booking','預約 IRCT 複檢');
   bkSetStep(1);
 }
-var bkDiet=3; // 預設粒腺體飲食已選
+var bkDiet=3; // 預設粒線體飲食已選
 function bkSelectDiet(n){
   bkDiet=n;
   for(var i=1;i<=5;i++){
@@ -2370,6 +2508,7 @@ function bkGoStep2(){
       bdInput.setAttribute('max', today.getFullYear()+'-'+mm+'-'+dd);
     }
     if (_bkBirthDate && !bdInput.value) bdInput.value = _bkBirthDate;
+    else if (!bdInput.value) bdInput.value = '1990-01-01'; // 2026-09-04她指示：會員多中年左右，預設年份讓日期選擇器少滑一點，客人仍可自行調整成正確生日
   }
 }
 function bkGoStep3(){
@@ -2445,7 +2584,7 @@ function bkGoStep5(){
   var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
   var timeText = timeEl ? timeEl.textContent.trim() : '';
 
-  var dietNames = {1:'🍞 混合飲食（碳水 50%）',2:'🥑 粒腺體飲食（碳水 5%，脂肪 70%）',3:'🥩 低碳飲食',4:'🌾 一般均衡飲食',5:'🥗 其他飲食模式'};
+  var dietNames = {1:'🍞 混合飲食（碳水 50%）',2:'🥑 粒線體飲食（碳水 5%，脂肪 70%）',3:'🥩 低碳飲食',4:'🌾 一般均衡飲食',5:'🥗 其他飲食模式'};
   var dietSummary = dietNames[bkDiet] || dietNames[2];
 
   // 更新確認畫面文字
@@ -2866,7 +3005,7 @@ function showAI(m){
     '<div class="mrow"><div class="ml">脂肪</div><div class="mb-w"><div class="mb-f" style="background:#1D9E75;width:0%" id="'+m+'f-b"></div><div class="mb-tgt" style="left:70%"></div></div><div class="mv" style="color:#085041">'+pf+'%</div><div class="mg">'+d.f+'g</div></div>'+
     '<div class="macro3"><div class="m3"><div class="m3v" style="color:#A32D2D">'+d.c+'g</div><div class="m3l">碳水</div></div><div class="m3"><div class="m3v" style="color:#0C447C">'+d.p+'g</div><div class="m3l">蛋白質</div></div><div class="m3"><div class="m3v" style="color:#085041">'+d.f+'g</div><div class="m3l">脂肪</div></div></div>'+
     '<div class="verdict '+vCls+'">'+d.adv+'</div>'+
-    '<div class="tgt-note">粒腺體健康之旅目標：脂肪 ≥70% ｜ 蛋白質 25% ｜ 碳水 ≤5%（細線＝目標）｜ 葉菜不計碳水</div></div>';
+    '<div class="tgt-note">粒線體健康之旅目標：脂肪 ≥70% ｜ 蛋白質 25% ｜ 碳水 ≤5%（細線＝目標）｜ 葉菜不計碳水</div></div>';
   setTimeout(function(){
     var cb=document.getElementById(m+'c-b'),pb=document.getElementById(m+'p-b'),fb=document.getElementById(m+'f-b');
     if(cb)cb.style.width=pc+'%';if(pb)pb.style.width=pp+'%';if(fb)fb.style.width=pf+'%';
@@ -3616,6 +3755,187 @@ var KETO_STAGE_DESC = {
   '二階營養性生酮': '也稱胰島素友善期，你已經知道如何防止「碳水化合物中毒」，融入生活',
   '三階抗老化健康': '以代謝健康為底，邁向系統醫學、生活醫學、體適能科學的全面抗老化保養'
 };
+function loadEffectivenessReportClientUI(){
+  var loading = document.getElementById('progress-loading');
+  var empty = document.getElementById('progress-empty');
+  var wrap = document.getElementById('progress-stages-wrap');
+  if(!wrap) return;
+  if(loading) loading.style.display='';
+  if(empty) empty.style.display='none';
+  wrap.style.display='none';
+  callAPI({action:'getEffectivenessReportClient', clientId:CLIENT_ID}, function(d){
+    if(loading) loading.style.display='none';
+    if(!d || d.status!=='ok' || !d.found || !d.stages || d.stages.length===0){
+      if(empty) empty.style.display='';
+      return;
+    }
+    wrap.style.display='';
+    wrap.innerHTML = d.stages.map(function(st){
+      var hasData = !!st.hasData;
+      var boxBg = hasData ? '#fff' : '#F9FAFB';
+      var titleColor = hasData ? 'var(--text)' : 'var(--text3)';
+      var head = '<div style="font-size:13px;font-weight:700;color:'+titleColor+';margin-bottom:3px">'+escHtml(st.label)+(st.testDate?'（'+escHtml(String(st.testDate).slice(0,10))+'）':'')+'</div>';
+      var summary = '<div style="font-size:11.5px;color:var(--text2);margin-bottom:8px;line-height:1.5">'+escHtml(st.summary||'')+'</div>';
+      var rows = '';
+      if(hasData && st.indicators){
+        rows = st.indicators.map(function(ind){
+          var icon = ind.met===true ? '✅' : (ind.met===false ? '💪' : '');
+          var valTxt;
+          if (ind.value===undefined) {
+            valTxt = ind.met===true ? '達標' : (ind.met===false ? '努力中' : '尚無資料');
+          } else {
+            valTxt = (ind.value===null) ? '—' : (ind.value+(ind.unit||''));
+          }
+          return '<div style="font-size:12px;color:var(--text2);display:flex;justify-content:space-between;gap:6px;padding:3px 0;border-bottom:1px dashed var(--border)"><span>'+icon+' '+escHtml(ind.name)+'</span><span style="font-weight:600">'+escHtml(valTxt)+'</span></div>';
+        }).join('');
+      }
+      return '<div style="background:'+boxBg+';border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px">'+head+summary+rows+'</div>';
+    }).join('');
+  });
+}
+var _progressShareText = '';
+function loadProgressShareCard(){
+  var loading = document.getElementById('progress-share-loading');
+  var empty = document.getElementById('progress-share-empty');
+  var wrap = document.getElementById('progress-share-card-wrap');
+  if(!wrap) return;
+  if(loading) loading.style.display='';
+  if(empty) empty.style.display='none';
+  wrap.style.display='none';
+  var nameEl = document.getElementById('pgs-name-line');
+  if(nameEl) nameEl.textContent = (CLIENT_NAME||'你') + '的';
+  callAPI({action:'getEffectivenessReportClient', clientId:CLIENT_ID}, function(d){
+    if(loading) loading.style.display='none';
+    var stages = (d && d.status==='ok' && d.found) ? (d.stages||[]) : [];
+    var achieved = stages.filter(function(st){ return st.hasData; });
+    var latest = achieved.length ? achieved[achieved.length-1] : null;
+    if(!latest){ if(empty) empty.style.display=''; return; }
+    wrap.style.display='';
+    var lblEl = document.getElementById('pgs-stage-label');
+    if(lblEl) lblEl.textContent = latest.label + (latest.testDate ? '（'+String(latest.testDate).slice(0,10)+'）' : '');
+    var metricBox = document.getElementById('pgs-metric-list');
+    var metHtml = '';
+    var metCount = 0, totalCount = 0;
+    (latest.indicators||[]).forEach(function(ind){
+      if (ind.value !== undefined) {
+        if (ind.baseline !== null && ind.baseline !== undefined && ind.value !== null && ind.value !== undefined) {
+          var diff = Math.round((ind.value - ind.baseline) * 10) / 10;
+          var arrow = diff < 0 ? '↓' : (diff > 0 ? '↑' : '');
+          metHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px"><div style="font-size:12px;color:#374151">'+escHtml(ind.name)+'</div><div style="font-size:12px;font-weight:600;color:#085041">'+escHtml(ind.baseline)+' → '+escHtml(ind.value)+' '+arrow+'</div></div>';
+        }
+      }
+      if (ind.met !== null && ind.met !== undefined) {
+        totalCount++;
+        if (ind.met) metCount++;
+      }
+    });
+    if (totalCount > 0) {
+      metHtml += '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #E5E7EB;font-size:12px;color:#085041;font-weight:700">🎯 這個階段 '+totalCount+' 項指標中，'+metCount+' 項已達到進度目標</div>';
+    }
+    if(metricBox) metricBox.innerHTML = metHtml || '<div style="font-size:12px;color:#6B7280">尚無足夠資料比較</div>';
+    _progressShareText = '🌱 我在元代謝的健康旅程進度更新！\n\n' + latest.label + '：' + totalCount + '項指標中' + metCount + '項已達標\n\n#元代謝 #粒線體健康 #進步的證明\nwww.isometabolix.com';
+  });
+}
+function doCopyProgressText(){
+  var text = _progressShareText || '🌱 我在元代謝的健康旅程持續進步中！\n\n#元代謝 #粒線體健康\nwww.isometabolix.com';
+  if(navigator.clipboard){navigator.clipboard.writeText(text);}
+  toast('✅ 文字已複製！可以貼到 LINE 或 IG 分享 😊');
+}
+function loadTreatmentRoadmapClientUI(){
+  var loading = document.getElementById('roadmap-loading');
+  var empty = document.getElementById('roadmap-empty');
+  var wrap = document.getElementById('roadmap-stages-wrap');
+  if(!wrap) return;
+  if(loading) loading.style.display='';
+  if(empty) empty.style.display='none';
+  wrap.style.display='none';
+  callAPI({action:'getTreatmentRoadmapClient', clientId:CLIENT_ID}, function(d){
+    if(loading) loading.style.display='none';
+    if(!d || d.status!=='ok' || !d.found || !d.stages || d.stages.length===0){
+      if(empty) empty.style.display='';
+      return;
+    }
+    wrap.style.display='';
+    wrap.innerHTML = d.stages.map(function(st){
+      var isBaseline = st.key==='期初';
+      var head = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">'+escHtml(st.label)+'</div>';
+      var rows = (st.indicators||[]).map(function(ind){
+        var valTxt;
+        if(isBaseline){
+          if (ind.value===undefined) { valTxt = '尚無資料'; }
+          else { valTxt = (ind.value===null) ? '—' : (ind.value+(ind.unit||'')); }
+        } else {
+          if (ind.expected===undefined) { valTxt = '尚無資料'; }
+          else { valTxt = (ind.expected===null) ? '—' : (ind.expected+(ind.unit||'')); }
+        }
+        return '<div style="font-size:12px;color:var(--text2);display:flex;justify-content:space-between;gap:6px;padding:3px 0;border-bottom:1px dashed var(--border)"><span>'+escHtml(ind.name)+'</span><span style="font-weight:600">'+escHtml(valTxt)+'</span></div>';
+      }).join('');
+      return '<div style="background:'+(isBaseline?'#EFF6FF':'#fff')+';border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px">'+head+rows+'</div>';
+    }).join('');
+  });
+}
+function loadTreatmentPledgeClientUI(){
+  var loading = document.getElementById('pledge-loading');
+  var empty = document.getElementById('pledge-empty');
+  var wrap = document.getElementById('pledge-content-wrap');
+  if(!wrap) return;
+  if(loading) loading.style.display='';
+  if(empty) empty.style.display='none';
+  wrap.style.display='none';
+  callAPI({action:'getTreatmentPledge', clientId:CLIENT_ID}, function(d){
+    if(loading) loading.style.display='none';
+    if(!d || d.status!=='ok' || !d.found){
+      if(empty) empty.style.display='';
+      return;
+    }
+    wrap.style.display='';
+    var targetsList = document.getElementById('pledge-targets-list');
+    if(targetsList){
+      targetsList.innerHTML = (d.targets||[]).map(function(t){
+        var valTxt = (t.value===undefined) ? '尚無資料' : ((t.value===null) ? '—' : (t.value+(t.unit||'')));
+        return '<div style="font-size:12px;color:var(--text2);display:flex;justify-content:space-between;gap:6px;padding:3px 0;border-bottom:1px dashed var(--border)"><span>'+escHtml(t.name)+'</span><span style="font-weight:600">'+escHtml(valTxt)+'</span></div>';
+      }).join('');
+    }
+    var clientItems = document.getElementById('pledge-client-items');
+    if(clientItems){
+      clientItems.innerHTML = (d.clientItems||[]).map(function(txt){
+        return '<div style="font-size:12px;color:var(--text2);padding:3px 0;line-height:1.5">• '+escHtml(txt)+'</div>';
+      }).join('');
+    }
+    var companyItems = document.getElementById('pledge-company-items');
+    if(companyItems){
+      companyItems.innerHTML = (d.companyItems||[]).map(function(txt){
+        return '<div style="font-size:12px;color:var(--text2);padding:3px 0;line-height:1.5">• '+escHtml(txt)+'</div>';
+      }).join('');
+    }
+    var note = document.getElementById('pledge-committed-note');
+    var btn = document.getElementById('pledge-commit-btn');
+    if(d.committed){
+      if(note) note.style.display='';
+      if(btn) btn.style.display='none';
+    } else {
+      if(note) note.style.display='none';
+      if(btn) btn.style.display='';
+    }
+  });
+}
+function doCommitPledge(){
+  var btn = document.getElementById('pledge-commit-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '送出中…'; }
+  callAPI({action:'commitTreatmentPledge', clientId:CLIENT_ID}, function(d){
+    if(!d || d.status!=='ok'){
+      if(btn){ btn.disabled = false; btn.textContent = '我承諾 🤝'; }
+      if(d && d.code === 'not_active'){
+        toast('請先聯繫秘書開通陪跑方案，才能送出承諾喔');
+      } else {
+        toast('❌ 送出失敗，請稍後再試');
+      }
+      return;
+    }
+    toast('✅ 已收到你的承諾！');
+    loadTreatmentPledgeClientUI();
+  });
+}
 function loadClientStage(){
   var badge = document.getElementById('jn-stage-badge');
   var textEl = document.getElementById('jn-stage-text2');
@@ -3652,7 +3972,7 @@ function doSaveImg(){
   toast('✅ 截圖已儲存！可以直接傳到 LINE 或 IG 😊');
 }
 function doCopyText(){
-  var text = _shareText || '🌱 我正在元代謝找回身體的原廠設定！\n\n#元代謝 #粒腺體健康 #代謝覺醒\nwww.isometabolix.com';
+  var text = _shareText || '🌱 我正在元代謝找回身體的原廠設定！\n\n#元代謝 #粒線體健康 #代謝覺醒\nwww.isometabolix.com';
   if(navigator.clipboard){navigator.clipboard.writeText(text);}
   toast('✅ 文字已複製！可以貼到 LINE 或 IG 分享 😊');
 }
@@ -4133,7 +4453,7 @@ function openFoodHelpPrompt(){
   name = name.trim();
   if(!name){ toast('沒有輸入食物名稱'); return; }
   if(confirm('要「推薦這個食材」給其他人參考嗎？（取消＝只是想問這個食物能不能吃）')){
-    var reason = prompt('推薦理由是什麼？（選填，例如：油脂高、適合粒腺體飲食）') || '';
+    var reason = prompt('推薦理由是什麼？（選填，例如：油脂高、適合粒線體飲食）') || '';
     submitFoodRecommend(name, '待分類', '客人推薦', reason);
   } else {
     logUnknownFood(name);
@@ -4446,8 +4766,8 @@ setTimeout(function() {
 var MATRIX_DATA = [
   [
     {name:'自然燃脂型',tag:'阻抗低・纖細',tagBg:'#E1F5EE',tagColor:'#085041',
-     desc:'天生胰島素受體少，不易囤脂也不易長肌肉。目前代謝健康，這是天生的優勢。維持粒腺體健康之旅即可，若想增肌需要有耐心。',
-     type:'纖細型',level:'低（健康）',cause:'天生體質優勢',focus:'維持粒腺體健康之旅、定期IRCT複檢、可討論增肌計畫'},
+     desc:'天生胰島素受體少，不易囤脂也不易長肌肉。目前代謝健康，這是天生的優勢。維持粒線體健康之旅即可，若想增肌需要有耐心。',
+     type:'纖細型',level:'低（健康）',cause:'天生體質優勢',focus:'維持粒線體健康之旅、定期IRCT複檢、可討論增肌計畫'},
     {name:'活躍均衡型',tag:'阻抗低・中間',tagBg:'#E1F5EE',tagColor:'#085041',
      desc:'受體中等，胰島素敏感度良好，精力充沛，體重容易維持。最理想的代謝狀態。可以開始討論增肌目標，搭配抗阻力運動效果好。',
      type:'中間型',level:'低（健康）',cause:'天生均衡體質',focus:'維持現況、可討論增肌、定期IRCT複檢'},
@@ -4457,44 +4777,44 @@ var MATRIX_DATA = [
   ],
   [
     {name:'隱性警戒型',tag:'需注意・纖細',tagBg:'#FAEEDA',tagColor:'#633806',
-     desc:'外表正常纖細，但ESI和血糖數值已開始偏移，最容易被忽略。第一步先開始粒腺體健康之旅，常見原因是長期壓力或睡眠不足，及早介入效果最好，輕度運動即可。',
-     type:'纖細型',level:'需注意',cause:'長期壓力或睡眠不足',focus:'開始粒腺體健康之旅、壓力管理和睡眠優先、輕度運動即可'},
+     desc:'外表正常纖細，但ESI和血糖數值已開始偏移，最容易被忽略。第一步先開始粒線體健康之旅，常見原因是長期壓力或睡眠不足，及早介入效果最好，輕度運動即可。',
+     type:'纖細型',level:'需注意',cause:'長期壓力或睡眠不足',focus:'開始粒線體健康之旅、壓力管理和睡眠優先、輕度運動即可'},
     {name:'代謝轉折型',tag:'需注意・中間',tagBg:'#FAEEDA',tagColor:'#633806',
-     desc:'正站在健康和胰島素阻抗的轉折點，這是最佳介入時機。1-3個月內積極執行粒腺體健康之旅，搭配中低強度抗阻力運動，可以快速回到健康區。不要拖！',
-     type:'中間型',level:'需注意',cause:'飲食不規律或壓力累積',focus:'立即開始粒腺體健康之旅、減少精緻碳水、中低強度抗阻力運動'},
+     desc:'正站在健康和胰島素阻抗的轉折點，這是最佳介入時機。1-3個月內積極執行粒線體健康之旅，搭配中低強度抗阻力運動，可以快速回到健康區。不要拖！',
+     type:'中間型',level:'需注意',cause:'飲食不規律或壓力累積',focus:'立即開始粒線體健康之旅、減少精緻碳水、中低強度抗阻力運動'},
     {name:'囤積前期型',tag:'需注意・囤積',tagBg:'#FAEEDA',tagColor:'#633806',
      desc:'受體多加上敏感度開始下降，囤脂趨勢已經明顯。控碳水飲食是首要任務，及早介入防止惡化，有運動習慣者降低強度即可。',
      type:'囤積型',level:'需注意',cause:'長期高碳飲食影響',focus:'控碳水飲食為主、無運動者從輕走路開始、有運動者降低強度'},
   ],
   [
     {name:'疲勞纖細型',tag:'阻抗中・纖細',tagBg:'#FAECE7',tagColor:'#712B13',
-     desc:'外表瘦但有明顯胰島素阻抗，俗稱「隱性肥胖」。常感疲勞無力，容易被醫師忽略。絕對不要再節食！多次減肥或長期壓力造成，粒腺體健康之旅要循序漸進，搭配輕度抗阻力恢復肌肉量。',
+     desc:'外表瘦但有明顯胰島素阻抗，俗稱「隱性肥胖」。常感疲勞無力，容易被醫師忽略。絕對不要再節食！多次減肥或長期壓力造成，粒線體健康之旅要循序漸進，搭配輕度抗阻力恢復肌肉量。',
      type:'纖細型',level:'中（警戒）',cause:'多次減肥史或長期慢性壓力',focus:'絕勿再節食、壓力和睡眠管理優先、輕度抗阻力恢復肌肉量'},
     {name:'標準阻抗型',tag:'阻抗中・中間',tagBg:'#FAECE7',tagColor:'#712B13',
-     desc:'最常見的體質，有明顯胰島素阻抗。第一步先啟動粒腺體健康之旅，斷碳燃脂為核心。有運動習慣者：搭配中低強度抗阻力即可。無運動習慣者：從彈力帶、深蹲開始。',
-     type:'中間型',level:'中（警戒）',cause:'長期高碳飲食影響',focus:'嚴格執行粒腺體健康之旅、3-6個月積極陪跑、搭配中低強度抗阻力運動'},
+     desc:'最常見的體質，有明顯胰島素阻抗。第一步先啟動粒線體健康之旅，斷碳燃脂為核心。有運動習慣者：搭配中低強度抗阻力即可。無運動習慣者：從彈力帶、深蹲開始。',
+     type:'中間型',level:'中（警戒）',cause:'長期高碳飲食影響',focus:'嚴格執行粒線體健康之旅、6個月積極陪跑、搭配中低強度抗阻力運動'},
     {name:'脂肌並存型',tag:'阻抗中・囤積',tagBg:'#FAECE7',tagColor:'#712B13',
-     desc:'受體多，增肌和囤脂同時發生。控碳水飲食才是主軸，粒腺體健康之旅優先啟動。有運動習慣者：外表結實但體脂率偏高，訓練強度降低即可，不需要停止運動。無運動習慣者：先控脂，從輕度運動開始。',
+     desc:'受體多，增肌和囤脂同時發生。控碳水飲食才是主軸，粒線體健康之旅優先啟動。有運動習慣者：外表結實但體脂率偏高，訓練強度降低即可，不需要停止運動。無運動習慣者：先控脂，從輕度運動開始。',
      type:'囤積型',level:'中（警戒）',cause:'受體多+阻抗中期',focus:'控碳水飲食為主軸、先減脂再談增肌、有運動者降低強度勿停'},
   ],
   [
-    {name:'虛寒阻抗型',tag:'阻抗高・纖細',tagBg:'#FCEBEB',tagColor:'#791F1F',
-     desc:'外表瘦但內臟脂肪高，俗稱「泡芙人」。最難調整也最容易被忽略。絕對不要再節食！粒腺體健康之旅循序漸進，壓力管理是第一優先，從非常輕度運動開始（散步、瑜珈）。',
-     type:'纖細型',level:'高（建議就醫評估）',cause:'多次減肥+長期慢性壓力',focus:'粒腺體健康之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
+    {name:'發炎阻抗型',tag:'阻抗高・纖細',tagBg:'#FCEBEB',tagColor:'#791F1F',
+     desc:'外表瘦但內臟脂肪高，俗稱「泡芙人」。最難調整也最容易被忽略。絕對不要再節食！粒線體健康之旅循序漸進，壓力管理是第一優先，從非常輕度運動開始（散步、瑜珈）。',
+     type:'纖細型',level:'高（建議就醫評估）',cause:'多次減肥+長期慢性壓力',focus:'粒線體健康之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
     {name:'代謝症候群型',tag:'阻抗高・中間',tagBg:'#FCEBEB',tagColor:'#791F1F',
-     desc:'明顯疲勞、水腫，血糖血脂異常。嚴格粒腺體健康之旅搭配電解質補充非常重要。有運動習慣者：先大幅降低強度，等血糖穩定再慢慢恢復。無運動習慣者：散步就好，不急著健身。',
-     type:'中間型',level:'高（建議就醫評估）',cause:'長期代謝失調累積',focus:'嚴格粒腺體健康之旅+電解質補充、密切追蹤每月回診、大幅降低運動強度'},
+     desc:'明顯疲勞、水腫，血糖血脂異常。嚴格粒線體健康之旅搭配電解質補充非常重要。有運動習慣者：先大幅降低強度，等血糖穩定再慢慢恢復。無運動習慣者：散步就好，不急著健身。',
+     type:'中間型',level:'高（建議就醫評估）',cause:'長期代謝失調累積',focus:'嚴格粒線體健康之旅+電解質補充、密切追蹤每月回診、大幅降低運動強度'},
     {name:'重度囤積型',tag:'阻抗高・囤積',tagBg:'#FCEBEB',tagColor:'#791F1F',
-     desc:'糖尿病高風險，心血管疾病風險高，最需要緊急介入。嚴格粒腺體健康之旅為唯一主軸，需和醫師密切配合。有運動習慣者：大幅降低強度，高強度運動讓血糖更不穩定。無運動習慣者：飲食穩定後再加入輕度運動。',
-     type:'囤積型',level:'高（建議就醫評估）',cause:'受體多+嚴重胰島素阻抗',focus:'嚴格粒腺體健康之旅為唯一主軸、最密集陪跑頻率、大幅降低或暫緩運動'},
+     desc:'糖尿病高風險，心血管疾病風險高，最需要緊急介入。嚴格粒線體健康之旅為唯一主軸，需和醫師密切配合。有運動習慣者：大幅降低強度，高強度運動讓血糖更不穩定。無運動習慣者：飲食穩定後再加入輕度運動。',
+     type:'囤積型',level:'高（建議就醫評估）',cause:'受體多+嚴重胰島素阻抗',focus:'嚴格粒線體健康之旅為唯一主軸、最密集陪跑頻率、大幅降低或暫緩運動'},
   ]
 ];
 
 var MATRIX_SPEED=[
   {icon:'✅',time:'已達標',label:'維持即可',bg:'#E1F5EE',color:'#085041'},
-  {icon:'⚡',time:'1-3 個月',label:'鼓勵開始陪跑',bg:'#FFF8F0',color:'#633806'},
-  {icon:'🕐',time:'3-6 個月',label:'建議陪跑計畫',bg:'#FEF2EE',color:'#712B13'},
-  {icon:'🐌',time:'6-12 個月',label:'需盡快開始陪跑',bg:'#FFF0F0',color:'#791F1F'},
+  {icon:'⚡',time:'3 個月',label:'鼓勵開始陪跑',bg:'#FFF8F0',color:'#633806'},
+  {icon:'🕐',time:'6 個月',label:'建議陪跑計畫',bg:'#FEF2EE',color:'#712B13'},
+  {icon:'🐌',time:'12 個月',label:'需盡快開始陪跑',bg:'#FFF0F0',color:'#791F1F'},
 ];
 var MATRIX_ROW_LABELS=[
   {name:'阻抗低',range:'ESI<1.3 / HbA1c<5.7% / 血糖<90',bg:'#E1F5EE',color:'#085041'},
@@ -5018,7 +5338,7 @@ window.searchYTAfterAnswer = function(query) {
 
 // 官網相關頁面（固定連結）
 var OFFICIAL_LINKS = [
-  {title:'元代謝健康・官方網站', link:'https://www.isometabolix.com', desc:'粒腺體健康之旅健康管理服務', tags:['元代謝','胰島素','粒腺體','代謝']},
+  {title:'元代謝健康・官方網站', link:'https://www.isometabolix.com', desc:'粒線體健康之旅健康管理服務', tags:['元代謝','胰島素','粒線體','代謝']},
   {title:'諮詢＆IRCT檢測預約', link:'https://www.isometabolix.com/book-online', desc:'預約動態胰島素阻抗檢測', tags:['預約','檢測','IRCT','諮詢']},
   {title:'健康改善陪跑計畫', link:'https://www.isometabolix.com/檢測及方案', desc:'三個月/一年陪跑計畫介紹', tags:['陪跑','計畫','旅程','改善']},
   {title:'🎓 方案一：代謝覺醒基礎班', link:'https://www.isometabolix.com/challenge-page/0dbcf48a-438a-4b2f-b8f1-e3072c436078?programId=0dbcf48a-438a-4b2f-b8f1-e3072c436078', desc:'調整代謝狀況大師・基礎班・NT$3,980', tags:['課程','基礎','覺醒','學習','代謝']},
@@ -6298,7 +6618,7 @@ function updateComplexity() {
   // 從矩陣位置取得基礎係數
   var MATRIX_BASE = [[1.0,1.0,1.1],[1.1,1.1,1.2],[1.2,1.3,1.4],[1.4,1.5,1.6]];
   var MATRIX_TIME = [['1-2個月','1-2個月','1-3個月'],['2-3個月','2-4個月','3-5個月'],['3-6個月','4-7個月','5-8個月'],['6-9個月','8-12個月','10-12個月以上']];
-  var MATRIX_NAMES = [['自然燃脂型','活躍均衡型','肌肉爆發型'],['隱性警戒型','代謝轉折型','囤積前期型'],['疲勞纖細型','標準阻抗型','脂肌並存型'],['虛寒阻抗型','代謝症候群型','重度囤積型']];
+  var MATRIX_NAMES = [['自然燃脂型','活躍均衡型','肌肉爆發型'],['隱性警戒型','代謝轉折型','囤積前期型'],['疲勞纖細型','標準阻抗型','脂肌並存型'],['發炎阻抗型','代謝症候群型','重度囤積型']];
 
   // 讀取目前選中的矩陣格子
   var activeCell = document.querySelector('.m-cell.active');
@@ -6400,7 +6720,7 @@ var USER_STATUS = 'locked'; // 預設鎖定，查到「陪跑中」才解鎖，�
 function applyLockStatus() {
   if (USER_STATUS === 'active') return;
   // 灰階預覽頁：底層內容變灰、禁止互動，但看得到畫面長相，引導購買
-  var previewPages = ['p-record','p-trend','p-irct','p-journey'];
+  var previewPages = ['p-record','p-trend','p-irct','p-journey','p-progress','p-progress-share','p-pledge'];
   // 簡單鎖定頁：這些是秘書才會用到的個人化互動內容(還沒陪跑的人本來就沒有資料可看)，完全隱藏、不做預覽
   var simpleLockPages = ['p-sec-hub','p-irct-table','p-sharecard','p-qa'];
 
@@ -7589,6 +7909,40 @@ function loadIrctTable(){
     }
   });
 }
+// 2026-09-05新增：健康趨勢頁「七大關鍵指標檢測趨勢」——沿用IRCT完整檢測數據對照表同一個action(getIRCTFullTable)
+function loadKeyIndicatorsTrend(){
+  callAPI({action:'getIRCTFullTable', clientId:CLIENT_ID}, function(d){
+    var wrap = document.getElementById('kit-trend-wrap');
+    if(!wrap) return;
+    if(!d || d.status!=='ok' || !d.found || !d.tests || d.tests.length<1 || !d.rows){ wrap.style.display='none'; return; }
+    wrap.style.display='';
+    var dates = d.tests.map(function(t){ return t.date; });
+    function rowByKey(key){ return d.rows.find(function(r){ return r.key===key; }); }
+    var simpleKeys = [
+      {key:'esi', el:'kit-trend-esi', color:'#B8460E'},
+      {key:'waist', el:'kit-trend-waist', color:'#2465A8'},
+      {key:'visceralFat', el:'kit-trend-visceralFat', color:'#8A5A00'},
+      {key:'bodyFatPct', el:'kit-trend-bodyFatPct', color:'#7A3E9D'},
+      {key:'gpt', el:'kit-trend-gpt', color:'#C0392B'},
+      {key:'ketone', el:'kit-trend-ketone', color:'#1D9E75'}
+    ];
+    simpleKeys.forEach(function(sk){
+      var row = rowByKey(sk.key);
+      var vals = row ? row.values.map(function(v){ return v.value; }) : [];
+      drawSimpleTrendChart(sk.el, dates, vals, sk.color);
+    });
+    // 動態胰島素總和＝飯後1+2+3小時胰島素相加，IRCT完整表沒有現成的合計欄位，這裡跟GAS後端_dxIndVal_同一套算法用前端算出來
+    var i1 = rowByKey('insulin1h'), i2 = rowByKey('insulin2h'), i3 = rowByKey('insulin3h');
+    var sumVals = dates.map(function(_, idx){
+      var a = i1 && i1.values[idx] ? parseFloat(i1.values[idx].value) : NaN;
+      var b = i2 && i2.values[idx] ? parseFloat(i2.values[idx].value) : NaN;
+      var c = i3 && i3.values[idx] ? parseFloat(i3.values[idx].value) : NaN;
+      if(isNaN(a) && isNaN(b) && isNaN(c)) return '';
+      return (isNaN(a)?0:a) + (isNaN(b)?0:b) + (isNaN(c)?0:c);
+    });
+    drawSimpleTrendChart('kit-trend-insulinSum', dates, sumVals, '#4A6FA5');
+  });
+}
 function loadMonthlyLog(){
   var sel = document.getElementById('mw-month-sel');
   var box = document.getElementById('mw-log-list');
@@ -7742,7 +8096,7 @@ function loadMyStats(){
     if(d.weightChange!==null && d.weightChange<0) parts.push('✅ 體重 '+d.weightChange+'kg');
     if(d.waistChange!==null && d.waistChange<0) parts.push('✅ 腰圍 '+d.waistChange+'cm');
     if(d.streak>=7) parts.push('✅ 連續打卡 '+d.streak+' 天');
-    _shareText = parts.join('\n') + '\n\n#元代謝 #粒腺體健康 #代謝覺醒\nwww.isometabolix.com';
+    _shareText = parts.join('\n') + '\n\n#元代謝 #粒線體健康 #代謝覺醒\nwww.isometabolix.com';
     var kEl=document.getElementById('ms-ketone'), kSub=document.getElementById('ms-ketone-sub');
     if(kEl) kEl.textContent = (d.avgKetone!==null && d.avgKetone!==undefined) ? d.avgKetone : '–';
     if(kSub){
@@ -7848,9 +8202,9 @@ function loadTodayGarden(){
 }
 
 
-// 全域 HTML 跳脫（給粒腺體餐廳等新功能用）
+// 全域 HTML 跳脫（給粒線體餐廳等新功能用）
 function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-// ══════ 粒腺體友善餐廳 ══════
+// ══════ 粒線體友善餐廳 ══════
 var _ketoRestaurants = [];
 var _ketoRegions = [];
 var _ketoCurRegion = null;

@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-04a';
+var MX_BUILD = '2026-09-05b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -285,7 +285,7 @@ var MX_BUILD = '2026-09-04a';
     <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
     <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
     <div class="si nav-item" onclick="goPg('food-mgmt',this)"><i class="ti ti-tools-kitchen-2"></i>外食速查</div>
-    <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒腺體友善餐廳 <span class="si-badge g">NEW</span></div>
+    <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒線體友善餐廳 <span class="si-badge g">NEW</span></div>
     <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
     <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
     <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
@@ -395,6 +395,14 @@ var MX_BUILD = '2026-09-04a';
           <div class="card-title" style="color:#B26A00"><i class="ti ti-messages"></i>個案討論・等你的意見</div>
         </div>
         <div class="card-body" id="disc-body" style="padding-top:4px"></div>
+      </div>
+
+      <!-- 🩺 醫師交辦事項待處理 -->
+      <div class="card" id="dxtask-card" style="margin-bottom:14px;display:none;border:1px solid #C9E3EA">
+        <div class="card-hd">
+          <div class="card-title" style="color:#0E7A94"><i class="ti ti-stethoscope"></i>醫師交辦事項待處理</div>
+        </div>
+        <div class="card-body" id="dxtask-body" style="padding-top:4px"></div>
       </div>
 
       <!-- ⚠️ 症狀關鍵字預警 -->
@@ -517,7 +525,7 @@ var MX_BUILD = '2026-09-04a';
 
   <div id="client-search-filter-row" data-nav-label="搜尋／篩選／新增客人" data-nav-icon="ti ti-filter" style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
     <input placeholder="搜尋客人姓名…" style="flex:1;max-width:200px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
-    <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部階段</option><option>亂流期</option><option>粒腺體期</option><option>穩酮期</option><option>固酮期</option></select>
+    <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部階段</option><option>亂流期</option><option>粒線體期</option><option>穩酮期</option><option>固酮期</option></select>
     <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部秘書</option><option>婷婷</option><option>Vivien</option></select>
     <button class="tb-btn" style="margin-left:auto" onclick="exportClientsCSV()"><i class="ti ti-download" style="font-size:14px"></i>匯出</button>
     <button id="new-client-btn" class="tb-btn g" onclick="toggleClientForm()"><i class="ti ti-plus" style="font-size:14px"></i>新增客人</button>
@@ -598,7 +606,7 @@ var MX_BUILD = '2026-09-04a';
   </div>
 
   <!-- 報告狀態管理 -->
-  <div class="card" style="margin-bottom:12px">
+  <div class="card" id="report-status-card" style="margin-bottom:12px">
     <div class="card-hd">
       <div class="card-title"><i class="ti ti-file-report"></i>IRCT 報告狀態</div>
     </div>
@@ -629,6 +637,11 @@ var MX_BUILD = '2026-09-04a';
         <button onclick="setReportStatus('recheck')" style="background:#FFFBEB;color:#92400E;border:1.5px solid #FCD34D;border-radius:10px;padding:9px;font-size:10px;cursor:pointer;font-weight:600">
           🎉 可以複檢了
         </button>
+      </div>
+      <!-- 2026-09-05新增：VV要求給行政/秘書/管理人的重要提醒——報告已出但還沒跟客人講解的名單，依等待天數由久到近排序 -->
+      <div id="report-ready-list" style="margin-top:4px;padding-top:12px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px">📋 報告已出、還沒跟客人講解（依等待天數排序）</div>
+        <div id="report-ready-list-body" style="font-size:12px;color:var(--text3)">載入中...</div>
       </div>
     </div>
   </div>
@@ -820,9 +833,9 @@ var MX_BUILD = '2026-09-04a';
   <div class="hint-box" style="background:#ECFDF5;border-color:#6EE7B7;color:#065F46"><strong>✅ 技術上真的串接了：</strong>QA症狀編輯／FAQ問答管理裡的答案文字，只要放入變數標記（例如 <code>{{g-salt}}</code>，標記名稱就是下面每個輸入框的id），顯示給客人看的時候，系統會自動替換成這裡目前設定的最新值。改這裡的數值，用了對應標記的問答內容就會立刻同步，不用再去每一則問答個別修改。<br><strong>但既有的問答如果本來就是寫死的純文字（沒有用變數標記），不會自動變成用標記寫法</strong>——系統沒辦法安全判斷自由文字裡哪段話對應到哪個參數，如果你希望某一則問答也套用自動同步，要到「QA症狀編輯」把提到的數字改成對應的變數標記，之後就會自動跟著這裡更新了。</div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-salt"></i>補鹽原則</div><span class="badge" style="background:#D1FAE5;color:#065F46">用 {{g-salt}} 等標記可自動同步</span></div><div class="card-body" style="padding:0 16px">
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">每次補充量</div><div class="gi-desc">補鹽的基本說法，用於所有症狀回答・變數標記：<code>{{g-salt}}</code></div></div><input class="gi-inp" id="g-salt" value="約 1 小匙鹽 + 200cc 水（建議泡在電解質裡一起喝，比較好入口）"></div>
-    <div class="gi-row"><div style="flex:1"><div class="gi-lbl">補充方式與頻率（體感原則）</div><div class="gi-desc">強調由體感決定，不是固定次數・變數標記：<code>{{g-salt-how}}</code></div></div><textarea class="gi-ta" id="g-salt-how">慢慢喝，喝到口不渴、不便秘、不頭暈頭痛為止。這個量由你的體感來決定，不是固定次數。穩定粒腺體的人一天至少需要補充 2–3 次。</textarea></div>
+    <div class="gi-row"><div style="flex:1"><div class="gi-lbl">補充方式與頻率（體感原則）</div><div class="gi-desc">強調由體感決定，不是固定次數・變數標記：<code>{{g-salt-how}}</code></div></div><textarea class="gi-ta" id="g-salt-how">慢慢喝，喝到口不渴、不便秘、不頭暈頭痛為止。這個量由你的體感來決定，不是固定次數。穩定粒線體的人一天至少需要補充 2–3 次。</textarea></div>
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">一直口渴又一直排尿的說明</div><div class="gi-desc">解釋為什麼要先補鹽再喝水・變數標記：<code>{{g-thirst}}</code></div></div><textarea class="gi-ta" id="g-thirst">如果你一直口渴卻一直排尿，是因為缺鹽導致身體留不住水分。先補鹽，再喝水，水分才能被身體吸收。</textarea></div>
-    <div class="gi-row"><div style="flex:1"><div class="gi-lbl">穩定粒腺體每日最低補鹽次數</div><div class="gi-desc">變數標記：<code>{{g-salt-times}}</code></div></div><input class="gi-inp" id="g-salt-times" value="2–3 次" style="width:100px"></div>
+    <div class="gi-row"><div style="flex:1"><div class="gi-lbl">穩定粒線體每日最低補鹽次數</div><div class="gi-desc">變數標記：<code>{{g-salt-times}}</code></div></div><input class="gi-inp" id="g-salt-times" value="2–3 次" style="width:100px"></div>
   </div></div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-pill"></i>補鈣鎂原則</div><span class="badge a">影響抽筋、便秘、頭暈回答</span></div><div class="card-body" style="padding:0 16px">
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">鈣鎂補充原則（體感原則）</div><div class="gi-desc">睡前基本量與調整方式・變數標記：<code>{{g-mag}}</code></div></div><textarea class="gi-ta" id="g-mag">鈣+鎂：睡前 1 顆。如果半夜還是抽筋，再加 1 顆。用你的體感決定，補到不再抽筋為止 😊</textarea></div>
@@ -1245,7 +1258,7 @@ var MX_BUILD = '2026-09-04a';
 <!-- ══ 外食速查管理 ══ -->
 <div class="pg" id="pg-keto-rest-mgmt">
   <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-map-pin"></i>新增粒腺體友善餐廳</div></div>
+    <div class="card-hd"><div class="card-title"><i class="ti ti-map-pin"></i>新增粒線體友善餐廳</div></div>
     <div class="card-body">
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px">依地區逐步累積。客人端會依地區分類顯示，並看到你填的推薦點法。</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -1491,10 +1504,10 @@ var MX_BUILD = '2026-09-04a';
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
             <span style="font-size:11px;color:var(--text2);background:var(--bg);border-radius:20px;padding:2px 9px;border:1px solid var(--border)">🍞 混合飲食</span>
             <span style="font-size:14px;color:var(--g)">→</span>
-            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB;font-weight:600">🥑 粒腺體飲食</span>
+            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB;font-weight:600">🥑 粒線體飲食</span>
             <span class="badge g">大幅改善</span>
           </div>
-          <div style="background:var(--bg);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6">備註：「大部分時間執行粒腺體，週末偶爾外食不忌口」</div>
+          <div style="background:var(--bg);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6">備註：「大部分時間執行粒線體，週末偶爾外食不忌口」</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)">
@@ -1515,9 +1528,9 @@ var MX_BUILD = '2026-09-04a';
         <div style="flex:1">
           <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">黃美華・第 3 次 IRCT</div>
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB">🥑 粒腺體飲食</span>
+            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB">🥑 粒線體飲食</span>
             <span style="font-size:14px;color:var(--g)">→</span>
-            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB;font-weight:600">🥑 粒腺體飲食</span>
+            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB;font-weight:600">🥑 粒線體飲食</span>
             <span class="badge g">持續維持</span>
           </div>
           <div style="background:var(--bg);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6">備註：「固酮期已穩定，偶爾外食會用外食速查確認」</div>
@@ -1529,7 +1542,7 @@ var MX_BUILD = '2026-09-04a';
     <div class="card-hd"><div class="card-title"><i class="ti ti-chart-bar"></i>飲食模式分佈（本季）</div></div>
     <div class="card-body">
       <div style="display:flex;flex-direction:column;gap:9px">
-        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🥑</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">粒腺體飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:56%;background:var(--g);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--g3);width:40px;text-align:right">10 人</div></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🥑</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">粒線體飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:56%;background:var(--g);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--g3);width:40px;text-align:right">10 人</div></div>
         <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🍞</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">混合飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:22%;background:var(--a);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--a3);width:40px;text-align:right">4 人</div></div>
         <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🥗</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">低碳飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:11%;background:var(--b);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--b3);width:40px;text-align:right">2 人</div></div>
         <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🍰</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">高碳水飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:11%;background:var(--r);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--r3);width:40px;text-align:right">2 人</div></div>
@@ -2082,6 +2095,7 @@ function goPg(id,el){
   if(id==='stored-value'){ setTimeout(function(){ svLoadClients(); svLoadPointsToSelect(); svLoadRoleNames(); svLoadPointRules(function(){ svLoadPoints(); }); loadBalanceDeficitList(); svpLoad(); }, 150); }
   if(id==='lab-integrate'){ setTimeout(function(){ liInitRows(); liLoadClients(); liLoadFamClients(); liLoadFamilyList(); }, 150); }
   if(id==='alerts' && typeof loadReportClients==='function') setTimeout(loadReportClients,150);
+  if(id==='alerts' && typeof loadReportReadyList==='function') setTimeout(loadReportReadyList,150);
   if(id==='clinic-slots' && typeof loadClinicSlots==='function') setTimeout(loadClinicSlots,150);
   if(id==='clinic-slots' && typeof loadCsClinicOptions==='function') setTimeout(loadCsClinicOptions,150);
   if(id==='accounts' && typeof loadAdminAccounts==='function') setTimeout(loadAdminAccounts,150);
@@ -2091,7 +2105,7 @@ function goPg(id,el){
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
   if(el)el.classList.add('on');
-  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒腺體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表'};
+  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒線體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表'};
   document.getElementById('page-title').textContent=titles[id]||id;
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
   if (typeof runPageLoader === 'function') runPageLoader(id);
@@ -2912,24 +2926,24 @@ function triggerGardenRewardAdmin(clientId, rewardType, trigger, element) {
 // ── 後台體質矩陣（客人管理用）──
 var ADMIN_MATRIX_DATA = [
   [
-    {name:'自然燃脂型',focus:'維持最佳健康粒腺體之旅、定期IRCT複檢、可討論增肌計畫'},
+    {name:'自然燃脂型',focus:'維持最佳健康粒線體之旅、定期IRCT複檢、可討論增肌計畫'},
     {name:'活躍均衡型',focus:'維持現況、可討論增肌、定期IRCT複檢'},
     {name:'肌肉爆發型',focus:'持續控碳水飲食、運動強度中低即可、定期監測體脂率'},
   ],
   [
-    {name:'隱性警戒型',focus:'開始最佳健康粒腺體之旅、壓力管理和睡眠優先、輕度運動即可'},
-    {name:'代謝轉折型',focus:'立即開始最佳健康粒腺體之旅、減少精緻碳水、中低強度抗阻力運動'},
+    {name:'隱性警戒型',focus:'開始最佳健康粒線體之旅、壓力管理和睡眠優先、輕度運動即可'},
+    {name:'代謝轉折型',focus:'立即開始最佳健康粒線體之旅、減少精緻碳水、中低強度抗阻力運動'},
     {name:'囤積前期型',focus:'控碳水飲食為主、無運動者從輕走路開始、有運動者降低強度'},
   ],
   [
     {name:'疲勞纖細型',focus:'絕勿再節食、壓力和睡眠管理優先、輕度抗阻力恢復肌肉量'},
-    {name:'標準阻抗型',focus:'嚴格執行最佳健康粒腺體之旅、3-6個月積極陪跑、中低強度抗阻力運動'},
+    {name:'標準阻抗型',focus:'嚴格執行最佳健康粒線體之旅、6個月積極陪跑、中低強度抗阻力運動'},
     {name:'脂肌並存型',focus:'控碳水飲食為主軸、先減脂再談增肌、有運動者降低強度勿停'},
   ],
   [
-    {name:'虛寒阻抗型',focus:'最佳健康粒腺體之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
-    {name:'代謝症候群型',focus:'嚴格最佳健康粒腺體之旅+電解質補充、密切追蹤每月回診、大幅降低運動強度'},
-    {name:'重度囤積型',focus:'嚴格最佳健康粒腺體之旅為唯一主軸、最密集陪跑頻率、大幅降低或暫緩運動'},
+    {name:'發炎阻抗型',focus:'最佳健康粒線體之旅循序漸進、絕勿節食、壓力管理第一優先、超輕度運動'},
+    {name:'代謝症候群型',focus:'嚴格最佳健康粒線體之旅+電解質補充、密切追蹤每月回診、大幅降低運動強度'},
+    {name:'重度囤積型',focus:'嚴格最佳健康粒線體之旅為唯一主軸、最密集陪跑頻率、大幅降低或暫緩運動'},
   ]
 ];
 
@@ -2938,7 +2952,7 @@ var ADMIN_ROW_BG=['#E1F5EE','#FAEEDA','#FAECE7','#FCEBEB'];
 var ADMIN_ROW_COLOR=['#085041','#633806','#712B13','#791F1F'];
 var ADMIN_CELL_BG=['#EAF3DE','#FFF8F0','#FEF2EE','#FFF0F0'];
 var ADMIN_CELL_BORDER=['#C0DD97','#FAC775','#F5C4B3','#F7C1C1'];
-var ADMIN_SPEED=['✅ 已達標','⚡ 1-3個月','🕐 3-6個月','🐌 6-12個月'];
+var ADMIN_SPEED=['✅ 已達標','⚡ 3個月','🕐 6個月','🐌 12個月'];
 var ADMIN_COL_NAMES=['天生纖細型','天生中間型','天生囤積型'];
 
 function calcAdminMatrixRow(esi,hba1c,glucose){
@@ -3000,7 +3014,7 @@ function genAIAnswer() {
       max_tokens: 1000,
       messages: [{
         role: 'user',
-        content: TONE_PROMPT + '\n\n請針對以下客人問題，用上述語氣原則生成一個FAQ回答：\n\n問題：' + q + '\n\n背景知識：這是最佳健康粒腺體之旅的健康管理系統，客人正在執行最佳健康粒腺體之旅。常見問題包含電解質補充（鈉鉀鎂鈣）、血酮值、外食選擇、粒腺體副作用等。'
+        content: TONE_PROMPT + '\n\n請針對以下客人問題，用上述語氣原則生成一個FAQ回答：\n\n問題：' + q + '\n\n背景知識：這是最佳健康粒線體之旅的健康管理系統，客人正在執行最佳健康粒線體之旅。常見問題包含電解質補充（鈉鉀鎂鈣）、血酮值、外食選擇、粒線體副作用等。'
       }]
     })
   })
@@ -3064,7 +3078,7 @@ function aiAnswerUnknown(question, rowId) {
       max_tokens: 1000,
       messages: [{
         role: 'user',
-        content: TONE_PROMPT + '\n\n請針對以下客人問題，用上述語氣原則生成一個回答：\n\n問題：' + question + '\n\n背景知識：這是最佳健康粒腺體之旅的健康管理系統，客人正在執行最佳健康粒腺體之旅。'
+        content: TONE_PROMPT + '\n\n請針對以下客人問題，用上述語氣原則生成一個回答：\n\n問題：' + question + '\n\n背景知識：這是最佳健康粒線體之旅的健康管理系統，客人正在執行最佳健康粒線體之旅。'
       }]
     })
   })
@@ -3223,7 +3237,32 @@ function setReportStatus(status) {
   }, function(d) {
     if (d.status === 'ok') {
       toast('✅ 已更新 ' + clientId + ' 的報告狀態：' + statusText[status]);
+      if (typeof loadReportReadyList === 'function') loadReportReadyList();
     }
+  });
+}
+
+// 2026-09-05新增：報告已出但還沒跟客人講解的名單——給行政/秘書/管理人的重要提醒
+function loadReportReadyList() {
+  var body = document.getElementById('report-ready-list-body');
+  if (!body) return;
+  body.innerHTML = '載入中...';
+  adminAPI({action:'getReportReadyList'}, function(d) {
+    if (!d || d.status !== 'ok' || !d.list) { body.innerHTML = '<span style="color:#EF4444">載入失敗</span>'; return; }
+    if (d.list.length === 0) {
+      body.innerHTML = '<div style="color:var(--text3)">目前沒有等待講解的報告 👍</div>';
+      return;
+    }
+    body.innerHTML = d.list.map(function(r) {
+      var urgent = r.days >= 3;
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:'
+        + (urgent ? '#FEF2F2' : 'var(--bg)') + ';border:1px solid ' + (urgent ? '#FCA5A5' : 'var(--border)')
+        + ';border-radius:8px;padding:8px 10px;margin-bottom:6px">'
+        + '<span style="font-size:12px;color:var(--text)">' + escH(r.name) + '（' + escH(r.clientId) + '）</span>'
+        + '<span style="font-size:11px;color:' + (urgent ? '#B91C1C' : 'var(--text3)') + ';font-weight:' + (urgent ? '700' : '400') + '">'
+        + r.sinceDate + ' 出報告・已等 ' + r.days + ' 天</span>'
+        + '</div>';
+    }).join('');
   });
 }
 
@@ -3462,7 +3501,7 @@ var PAGE_CATALOG = [
   {id:'sales-script', label:'銷售話術'}, {id:'faq-mgmt', label:'FAQ管理'}, {id:'food-mgmt', label:'外食速查管理'},
   {id:'clinic-slots', label:'診所時間表'}, {id:'shop-mgmt', label:'好物推薦管理'},
   {id:'lab-integrate', label:'檢測整合'}, {id:'tracking', label:'自訂追蹤模組'}, {id:'remind', label:'複檢提醒警示'},
-  {id:'keto-rest-mgmt', label:'粒腺體友善餐廳'}, {id:'garden-mgmt', label:'代謝花園管理'},
+  {id:'keto-rest-mgmt', label:'粒線體友善餐廳'}, {id:'garden-mgmt', label:'代謝花園管理'},
   {id:'qa-list', label:'QA症狀編輯'}, {id:'upload', label:'上傳外部報告'}, {id:'diet-compare', label:'飲食模式對照'},
   {id:'extra-test', label:'功能醫學加測建議'}, {id:'irct-mgmt', label:'IRCT區間管理'}
 ];
@@ -5026,12 +5065,14 @@ function applyClientPanelReadonlyMode(panelEl){
   panelEl.querySelector('div').insertBefore(tip, panelEl.querySelector('div').firstChild);
   panelEl.querySelectorAll('button, input, select, textarea').forEach(function(el){
     if(el.classList && el.classList.contains('cd-close-btn')) return; // 關閉按鈕不算編輯操作，維持可點
+    if(el.classList && el.classList.contains('cd-dx-el')) return; // 醫師診斷與交辦區塊：唯讀模式下仍可填寫（給醫師本人用）
     el.disabled = true;
     el.style.opacity = '0.5';
     el.style.cursor = 'not-allowed';
   });
   // 有些操作是用span onclick模擬按鈕(例如「標記已發放」「刪除」文字連結)，一併停用
   panelEl.querySelectorAll('span[onclick]').forEach(function(el){
+    if(el.classList && el.classList.contains('cd-dx-el')) return;
     el.onclick = null;
     el.style.opacity = '0.5';
     el.style.pointerEvents = 'none';
@@ -5399,6 +5440,53 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">討論串（含歷史結論）</div>'
     + '<div id="cd-disc-list" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🗺️ 療程地圖（2026-09-04f 新增）</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">依客人目前最新一次檢測資料，往前推算到期末目標，畫出期初→前期→中期→後期→期末五個階段每項指標「應該會落在哪裡」，第一次溹通療程時可以直接秀給客人看，建立信任、設定合理期待。</div>'
+    + '<div id="cd-roadmap" style="font-size:12px;color:var(--text3)">載入中…</div>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🤝 療程承諾清單（2026-09-04g 新增）</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">客人在APP上可以親自按「我承諾」，這裡看得到客人是否已經承諾、什麼時候按的，方便還沒按的客人主動去關心。</div>'
+    + '<div id="cd-pledge" style="font-size:12px;color:var(--text3)">載入中…</div>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🩺 醫師診斷與交辦（寫入 🩺 醫師診斷與交辦）</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">系統會依最新IRCT資料自動算出建議分型與各項指標建議目標值（跟上面的代謝分型同一套系統），醫師只要確認採用、或視情況調整即可；醫師本人或秘書代填皆可，但一定要指定負責醫師。</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:5px">系統建議分型</div>'
+    + '<div id="cd-dx-suggestion-box" style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text2);margin-bottom:6px">載入中…</div>'
+    + '<label class="cd-dx-el" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin-bottom:8px;cursor:pointer"><input type="checkbox" id="cd-dx-adopt-chk" class="cd-dx-el" checked onchange="toggleDxOverride()" style="margin:0">✅ 醫師確認採用系統建議的分型</label>'
+    + '<input id="cd-dx-override-type" class="form-input cd-dx-el" style="font-size:12px;margin-bottom:10px;display:none" placeholder="醫師的判定（與系統建議不同時才填寫）">'
+    + '<div style="margin-bottom:10px">'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:3px">負責醫師（必填，秘書代填時也要指定）</div>'
+    + '<select id="cd-dx-doctor" class="form-select cd-dx-el" style="font-size:12px;width:100%"><option value="">請選擇負責醫師</option></select>'
+    + '</div>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:5px">目標指標（系統已依治療目標值建議，可直接採用或調整）</div>'
+    + '<div style="margin-bottom:2px">'
+    + '<div class="cd-dx-el" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:11.5px;color:var(--text2)">體重</span><input class="form-input cd-dx-el cd-dx-target-val" data-name="體重" data-unit="kg" style="font-size:12px" placeholder="目標值（系統建議值待載入）"><span style="font-size:10.5px;color:var(--text3)">kg</span></div>'
+    + '<div class="cd-dx-el" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:11.5px;color:var(--text2)">腰圍</span><input class="form-input cd-dx-el cd-dx-target-val" data-name="腰圍" data-unit="cm" style="font-size:12px" placeholder="目標值（系統建議值待載入）"><span style="font-size:10.5px;color:var(--text3)">cm</span></div>'
+    + '<div class="cd-dx-el" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:11.5px;color:var(--text2)">體脂率</span><input class="form-input cd-dx-el cd-dx-target-val" data-name="體脂率" data-unit="%" style="font-size:12px" placeholder="目標值（系統建議值待載入）"><span style="font-size:10.5px;color:var(--text3)">%</span></div>'
+    + '<div class="cd-dx-el" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:11.5px;color:var(--text2)">糖化血色素</span><input class="form-input cd-dx-el cd-dx-target-val" data-name="糖化血色素" data-unit="%" style="font-size:12px" placeholder="目標值（系統建議值待載入）"><span style="font-size:10.5px;color:var(--text3)">%</span></div>'
+    + '<div class="cd-dx-el" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:11.5px;color:var(--text2)">空腹胰島素</span><input class="form-input cd-dx-el cd-dx-target-val" data-name="空腹胰島素" data-unit="uIU/mL" style="font-size:12px" placeholder="目標值（系統建議值待載入）"><span style="font-size:10.5px;color:var(--text3)">uIU/mL</span></div>'
+    + '<div class="cd-dx-el" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px"><span style="font-size:11.5px;color:var(--text2)">三酸甘油酯</span><input class="form-input cd-dx-el cd-dx-target-val" data-name="三酸甘油酯" data-unit="mg/dL" style="font-size:12px" placeholder="目標值（系統建議值待載入）"><span style="font-size:10.5px;color:var(--text3)">mg/dL</span></div>'
+    + '</div>'
+    + '<div id="cd-dx-custom-targets" style="margin-bottom:2px"></div>'
+    + '<div class="cd-dx-el" style="font-size:10.5px;color:var(--g3);cursor:pointer;margin-bottom:8px;text-decoration:underline" onclick="addCustomDxTarget()">＋ 新增其他指標</div>'
+    + '<textarea id="cd-dx-note" class="form-input cd-dx-el" style="font-size:12px;margin-bottom:8px;width:100%" rows="2" placeholder="醫囑／備註（選填）"></textarea>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:5px">交辦秘書（選填）</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'
+    + '<select id="cd-dx-assignee" class="form-select cd-dx-el" style="font-size:12px"><option value="">不指定（任何秘書都可以處理）</option></select>'
+    + '<input id="cd-dx-task" class="form-input cd-dx-el" style="font-size:12px" placeholder="交辦內容（例：提醒客人下次複測前3天不要喝酒）">'
+    + '</div>'
+    + '<button class="btn-g cd-dx-el" style="width:100%;padding:9px;font-size:12px" onclick="saveDoctorNoteUI(\'' + escH(id) + '\',\'' + escH(name||'') + '\')">儲存診斷／交辦</button>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">歷史記錄</div>'
+    + '<div id="cd-dx-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">📈 五階段效益驗證（2026-09-04e 新增）</div>'
+    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">依複測次數自動分配進期初/前期/中期/後期/期末，跟上面醫師交辦的2個月階段目標同一套公式回推每個時間點應達成的進度，複測時可以直接拿來跟客人對照解說、建立信任。</div>'
+    + '<div id="cd-eff-report" style="font-size:12px;color:var(--text3)">載入中…</div>'
+    + '</div>'
     + '<div id="client-detail-body" style="font-size:12px;color:var(--text2)">載入中…</div></div>';
   m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
   document.body.appendChild(m);
@@ -5423,6 +5511,27 @@ function openClientDetail(id, name){
       ab.textContent = '🧬 ' + c.type + '（' + c.shortLabel + '・' + (c.nickname || '') + '）';
       ab.title = c.note || '';
     }
+    // 2026-09-04b新增：醫師診斷建議區塊，直接沿用同一支API算出的建議分型與指標目標值，跟代謝分型badge同一份資料來源
+    var dxBox = document.getElementById('cd-dx-suggestion-box');
+    if (dxBox) {
+      if (d && d.status === 'ok' && d.found && d.doctorSuggestion && d.doctorSuggestion.type) {
+        window._dxSuggestedType = d.doctorSuggestion.type;
+        dxBox.innerHTML = '<b style="color:var(--p3)">🔬 ' + escH(d.doctorSuggestion.type) + '</b>'
+          + (d.doctorSuggestion.note ? '<div style="font-size:10.5px;color:var(--text3);margin-top:2px">' + escH(d.doctorSuggestion.note) + '</div>' : '')
+          + '<div style="font-size:9.5px;color:var(--text3);margin-top:3px">依最新IRCT自動判定，跟上面的代謝分型同一套系統</div>';
+        (d.doctorSuggestion.targets || []).forEach(function (t) {
+          var el = document.querySelector('.cd-dx-target-val[data-name="' + t.name + '"]');
+          if (!el) return;
+          if (t.value != null) { if (!el.value) el.value = t.value; el.placeholder = '系統建議：' + t.value + (t.unit || ''); el.title = t.basis || ''; }
+          else { el.placeholder = t.basis || '請手動輸入'; el.title = t.basis || ''; }
+        });
+      } else {
+        window._dxSuggestedType = '';
+        dxBox.innerHTML = '<span style="color:var(--text3)">尚無IRCT資料可供系統建議，請醫師自行判斷並手動輸入分型與目標值</span>';
+        var adoptChk0 = document.getElementById('cd-dx-adopt-chk');
+        if (adoptChk0) { adoptChk0.checked = false; if (typeof toggleDxOverride === 'function') toggleDxOverride(); }
+      }
+    }
   });
   applyClientPanelReadonlyMode(m);
   loadSupplementOptions();
@@ -5442,6 +5551,12 @@ function openClientDetail(id, name){
   loadCarePointsAdmin(id);
   loadMealRecordsAdmin(id);
   loadDiscussions(id);
+  loadDoctorNotes(id);
+  loadDxAssigneeOptions();
+  loadDxDoctorOptions();
+  loadEffectivenessReportUI(id);
+  loadTreatmentRoadmapUI(id);
+  loadTreatmentPledgeUI(id);
   loadClientTestimonials(id);
   loadClientReferrals(id);
   loadClientRewards(id);
@@ -6886,6 +7001,221 @@ function _discBadge(t){
     ? '<span style="background:#EAF2FB;color:#2465A8;border-radius:5px;padding:1px 6px;font-weight:700;font-size:10px">🩺 醫師意見</span>'
     : '<span style="background:var(--mint);color:var(--g3);border-radius:5px;padding:1px 6px;font-weight:700;font-size:10px">💬 秘書</span>';
 }
+
+// ── 醫師診斷與交辦（2026-09-04 新增）──
+function loadDxAssigneeOptions(){
+  var sel = document.getElementById('cd-dx-assignee');
+  if(!sel) return;
+  adminAPI({action:'getAdminAccounts'}, function(d){
+    sel = document.getElementById('cd-dx-assignee');
+    if(!sel || !d || d.status!=='ok' || !d.accounts) return;
+    var opts = d.accounts.filter(function(a){ return a.status !== '停用' && (a.role==='秘書' || a.role==='行政'); })
+      .map(function(a){ return '<option value="'+escH(a.name||a.username)+'">'+escH(a.name||a.username)+'</option>'; }).join('');
+    sel.innerHTML = '<option value="">不指定（任何秘書都可以處理）</option>' + opts;
+  });
+}
+var _dxCustomCount = 0;
+function addCustomDxTarget(){
+  var box = document.getElementById('cd-dx-custom-targets');
+  if(!box) return;
+  var row = document.createElement('div');
+  row.className = 'cd-dx-el';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;margin-bottom:6px';
+  row.innerHTML = '<input class="form-input cd-dx-el cd-dx-custom-name" style="font-size:12px" placeholder="指標名稱（例：收縮壓）">'
+    + '<input class="form-input cd-dx-el cd-dx-custom-val" style="font-size:12px" placeholder="目標值">';
+  box.appendChild(row);
+  _dxCustomCount++;
+}
+function toggleDxOverride(){
+  var chk = document.getElementById('cd-dx-adopt-chk');
+  var ov = document.getElementById('cd-dx-override-type');
+  if(!chk || !ov) return;
+  ov.style.display = chk.checked ? 'none' : '';
+}
+function loadDxDoctorOptions(){
+  var sel = document.getElementById('cd-dx-doctor');
+  if(!sel) return;
+  adminAPI({action:'getAdminAccounts'}, function(d){
+    sel = document.getElementById('cd-dx-doctor');
+    if(!sel || !d || d.status!=='ok' || !d.accounts) return;
+    var opts = d.accounts.filter(function(a){ return a.status !== '停用' && a.role==='醫師'; })
+      .map(function(a){ return '<option value="'+escH(a.name||a.username)+'">'+escH(a.name||a.username)+'</option>'; }).join('');
+    sel.innerHTML = '<option value="">請選擇負責醫師</option>' + opts;
+    if (CURRENT_USER && CURRENT_USER.role === '醫師') {
+      sel.value = CURRENT_USER.name || CURRENT_USER.username || '';
+    }
+  });
+}
+function saveDoctorNoteUI(id, name){
+  var doctorName = (document.getElementById('cd-dx-doctor')||{}).value || '';
+  if(!doctorName){ toast('⚠️ 請先選擇負責醫師'); return; }
+  var adoptChk = document.getElementById('cd-dx-adopt-chk');
+  var adopted = adoptChk ? adoptChk.checked : true;
+  var suggestedType = window._dxSuggestedType || '';
+  var overrideType = (document.getElementById('cd-dx-override-type')||{}).value || '';
+  if(!adopted && !overrideType){ toast('⚠️ 未採用系統建議時，請填寫醫師自己的判定'); return; }
+  var confirmedType = adopted ? suggestedType : overrideType;
+  var targets = [];
+  document.querySelectorAll('.cd-dx-target-val').forEach(function(el){
+    if(el.value){ targets.push({name: el.getAttribute('data-name'), target: el.value, unit: el.getAttribute('data-unit')||''}); }
+  });
+  var customNames = document.querySelectorAll('.cd-dx-custom-name');
+  var customVals = document.querySelectorAll('.cd-dx-custom-val');
+  for(var i=0;i<customNames.length;i++){
+    if(customNames[i].value && customVals[i] && customVals[i].value){
+      targets.push({name: customNames[i].value, target: customVals[i].value, unit: ''});
+    }
+  }
+  var note = (document.getElementById('cd-dx-note')||{}).value || '';
+  var taskContent = (document.getElementById('cd-dx-task')||{}).value || '';
+  var taskAssignee = (document.getElementById('cd-dx-assignee')||{}).value || '';
+  if(!confirmedType && targets.length===0 && !note && !taskContent){ toast('⚠️ 請至少填一項（分型／目標指標／備註／交辦內容）'); return; }
+  adminAPIPost({action:'saveDoctorNote', clientId:id, clientName:name, confirmedType:confirmedType, suggestedType:suggestedType,
+    doctorName:doctorName, targets:targets,
+    note:note, taskContent:taskContent, taskAssignee:taskAssignee,
+    staffUsername:(CURRENT_USER&&CURRENT_USER.username)||'', staffRole:(CURRENT_USER&&CURRENT_USER.role)||''
+  }, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 已儲存');
+      document.querySelectorAll('.cd-dx-target-val').forEach(function(el){ el.value=''; });
+      var cbox = document.getElementById('cd-dx-custom-targets'); if(cbox) cbox.innerHTML='';
+      var noteEl = document.getElementById('cd-dx-note'); if(noteEl) noteEl.value='';
+      var taskEl = document.getElementById('cd-dx-task'); if(taskEl) taskEl.value='';
+      var aEl = document.getElementById('cd-dx-assignee'); if(aEl) aEl.value='';
+      var ovEl = document.getElementById('cd-dx-override-type'); if(ovEl) ovEl.value='';
+      if(adoptChk){ adoptChk.checked = true; toggleDxOverride(); }
+      loadDoctorNotes(id);
+    } else toast(d && d.message ? ('⚠️ '+d.message) : '⚠️ 儲存失敗');
+  });
+}
+function loadDoctorNotes(clientId){
+  var box = document.getElementById('cd-dx-history');
+  if(!box) return;
+  adminAPI({action:'getDoctorNotes', clientId:clientId}, function(d){
+    box = document.getElementById('cd-dx-history');
+    if(!box) return;
+    var items = (d && d.items) || [];
+    if(items.length===0){ box.innerHTML = '<div style="color:var(--text3)">還沒有醫師診斷紀錄</div>'; return; }
+    box.innerHTML = items.map(function(it){
+      var typeHtml = it.caseTypes ? ('<div style="margin-bottom:3px"><span style="background:var(--b2);color:var(--b3);border-radius:5px;padding:1px 6px;font-size:10px;margin-right:4px">'+escH(it.caseTypes)+'</span>'
+        + (it.adopted==='是' ? '<span style="color:var(--text3);font-size:9.5px">（採用系統建議）</span>' : (it.adopted==='否' ? '<span style="color:#B8860B;font-size:9.5px">⚠️ 醫師另有判斷（系統建議：'+escH(it.suggestedType||'')+'）</span>' : ''))
+        + '</div>') : '';
+      var targetHtml = (it.targets&&it.targets.length>0) ? '<div style="font-size:11px;color:var(--text2);margin-bottom:3px">🎯 '+it.targets.map(function(t){ return escH(t.name)+'→'+escH(t.target)+escH(t.unit||''); }).join('・')+'</div>' : '';
+      var noteHtml = it.note ? '<div style="font-size:11px;color:var(--text2);margin-bottom:3px">📝 '+escH(it.note)+'</div>' : '';
+      var taskHtml = it.taskContent ? ('<div style="font-size:11px;padding:5px 7px;background:'+(it.taskStatus==='已完成'?'var(--mint)':'var(--a2)')+';border-radius:6px;margin-top:4px">'
+        + (it.taskStatus==='已完成' ? '✅ 已完成' : '⏳ 待處理') + (it.taskAssignee?'（指派：'+escH(it.taskAssignee)+'）':'（任何秘書）')
+        + '：' + escH(it.taskContent)
+        + (it.taskStatus!=='已完成' ? ' <span class="cd-dx-el" style="color:var(--g3);cursor:pointer;text-decoration:underline" onclick="completeDxTask('+it.row+',\''+escH(clientId)+'\')">標記完成</span>' : '')
+        + '</div>') : '';
+      return '<div style="padding:8px 0;border-bottom:1px dashed var(--border)">'
+        + '<div style="font-size:10px;color:var(--text3);margin-bottom:3px">'+escH(it.time)+'・記錄人：'+escH(it.staffName)+(it.staffRole?'（'+escH(it.staffRole)+'）':'')+'・負責醫師：'+escH(it.doctorName||'未填')+'</div>'
+        + typeHtml + targetHtml + noteHtml + taskHtml
+        + '</div>';
+    }).join('');
+  });
+}
+function loadEffectivenessReportUI(clientId){
+  var box = document.getElementById('cd-eff-report');
+  if(!box) return;
+  adminAPI({action:'getEffectivenessReport', clientId:clientId}, function(d){
+    box = document.getElementById('cd-eff-report');
+    if(!box) return;
+    if(!d || d.status!=='ok' || !d.found || !d.stages || d.stages.length===0){
+      box.innerHTML = '<div style="color:var(--text3)">尚無足夠的複測資料（至少要有第一次檢測紀錄）</div>';
+      return;
+    }
+    box.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">' + d.stages.map(function(st){
+      var hasData = !!st.hasData;
+      var boxBg = hasData ? '#fff' : '#F9FAFB';
+      var titleColor = hasData ? 'var(--text2)' : 'var(--text3)';
+      var head = '<div style="font-size:11.5px;font-weight:700;color:'+titleColor+';margin-bottom:2px">'+escH(st.label)+(st.testDate?'（'+escH(String(st.testDate).slice(0,10))+'）':'')+'</div>';
+      var summary = '<div style="font-size:10px;color:var(--text3);margin-bottom:5px">'+escH(st.summary||'')+'</div>';
+      var rows = '';
+      if(hasData && st.indicators){
+        rows = st.indicators.map(function(ind){
+          var icon = ind.met===true ? '✅' : (ind.met===false ? '⚠️' : '');
+          var valTxt = (ind.value===null||ind.value===undefined) ? '—' : (ind.value+(ind.unit||''));
+          var expTxt = (ind.expected===null||ind.expected===undefined) ? '' : ('（預期'+ind.expected+(ind.unit||'')+'）');
+          return '<div style="font-size:10.5px;color:var(--text2);display:flex;justify-content:space-between;gap:4px;padding:1px 0"><span>'+icon+' '+escH(ind.name)+'</span><span style="text-align:right;white-space:nowrap">'+escH(valTxt)+escH(expTxt)+'</span></div>';
+        }).join('');
+      }
+      return '<div style="background:'+boxBg+';border:1px solid var(--border);border-radius:8px;padding:8px 9px">' + head + summary + rows + '</div>';
+    }).join('') + '</div>';
+  });
+}
+function loadTreatmentRoadmapUI(clientId){
+  var box = document.getElementById('cd-roadmap');
+  if(!box) return;
+  adminAPI({action:'getTreatmentRoadmap', clientId:clientId}, function(d){
+    box = document.getElementById('cd-roadmap');
+    if(!box) return;
+    if(!d || d.status!=='ok' || !d.found || !d.stages || d.stages.length===0){
+      box.innerHTML = '<div style="color:var(--text3)">尚無檢測資料（需要至少一次IRCT檢測紀錄）</div>';
+      return;
+    }
+    box.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">' + d.stages.map(function(st){
+      var isBaseline = st.key==='期初';
+      var head = '<div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:5px">'+escH(st.label)+'</div>';
+      var rows = (st.indicators||[]).map(function(ind){
+        var valTxt;
+        if(isBaseline){
+          valTxt = (ind.value===null||ind.value===undefined) ? '—' : (ind.value+(ind.unit||''));
+        } else {
+          valTxt = (ind.expected===null||ind.expected===undefined) ? '—' : (ind.expected+(ind.unit||''));
+        }
+        return '<div style="font-size:10.5px;color:var(--text2);display:flex;justify-content:space-between;gap:4px;padding:1px 0"><span>'+escH(ind.name)+'</span><span style="text-align:right;white-space:nowrap">'+escH(valTxt)+'</span></div>';
+      }).join('');
+      return '<div style="background:'+(isBaseline?'#EFF6FF':'#fff')+';border:1px solid var(--border);border-radius:8px;padding:8px 9px">' + head + rows + '</div>';
+    }).join('') + '</div>';
+  });
+}
+function loadTreatmentPledgeUI(clientId){
+  var box = document.getElementById('cd-pledge');
+  if(!box) return;
+  adminAPI({action:'getTreatmentPledgeStatus', clientId:clientId}, function(d){
+    box = document.getElementById('cd-pledge');
+    if(!box) return;
+    if(!d || d.status!=='ok' || !d.found){
+      box.innerHTML = '<div style="color:var(--text3)">尚無檢測資料（需要至少一次IRCT檢測紀錄）</div>';
+      return;
+    }
+    var statusHtml = d.committed
+      ? '<div style="font-size:11.5px;font-weight:700;color:var(--g)">✅ 已承諾'+(d.committedAt ? '（'+escH(String(d.committedAt).slice(0,10))+'）' : '')+'</div>'
+      : '<div style="font-size:11.5px;font-weight:700;color:#B45309">⏳ 尚未承諾</div>';
+    var targetsHtml = (d.targets||[]).map(function(t){
+      var valTxt = (t.value===null||t.value===undefined) ? '—' : (t.value+(t.unit||''));
+      return '<div style="font-size:10.5px;color:var(--text2);display:flex;justify-content:space-between;gap:4px;padding:1px 0"><span>'+escH(t.name)+'</span><span>'+escH(valTxt)+'</span></div>';
+    }).join('');
+    box.innerHTML = statusHtml + '<div style="margin-top:6px">' + targetsHtml + '</div>';
+  });
+}
+function completeDxTask(row, clientId){
+  adminAPIPost({action:'completeDoctorTask', row:row, staffName:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已標記完成'); loadDoctorNotes(clientId); if(typeof loadMyDoctorTasks==='function') loadMyDoctorTasks(); }
+    else toast('⚠️ 操作失敗');
+  });
+}
+function loadMyDoctorTasks(){
+  var card = document.getElementById('dxtask-card');
+  var body = document.getElementById('dxtask-body');
+  if(!card || !body) return;
+  adminAPI({action:'getMyDoctorTasks', staffName:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    card = document.getElementById('dxtask-card');
+    body = document.getElementById('dxtask-body');
+    if(!card || !body) return;
+    var items = (d && d.items) || [];
+    if(items.length===0){ card.style.display = 'none'; return; }
+    card.style.display = '';
+    body.innerHTML = items.map(function(t){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
+        + '<b style="color:var(--text)">'+escH(t.clientName||t.clientId)+'</b>'
+        + '<span style="color:var(--text2);flex:1;min-width:150px">'+escH(t.taskContent)+'</span>'
+        + '<span style="color:var(--text3);font-size:10.5px">醫師：'+escH(t.staffName)+'</span>'
+        + '<button class="ai-btn g" style="font-size:11px;padding:5px 11px" onclick="openClientDetail(\''+escH(t.clientId)+'\',\''+escH(t.clientName||'')+'\')">去處理</button>'
+        + '</div>';
+    }).join('');
+  });
+}
 function loadClientTestimonials(clientId){
   var box = document.getElementById('cd-testimonials');
   if(!box) return;
@@ -7315,6 +7645,7 @@ function loadDashboard(){
   if(typeof loadHandover==='function') loadHandover();
   if(typeof loadTodayDuty==='function') loadTodayDuty();
   if(typeof loadOpenDiscussions==='function') loadOpenDiscussions();
+  if(typeof loadMyDoctorTasks==='function') loadMyDoctorTasks();
   if(typeof loadPurchases==='function') loadPurchases();
   if(typeof loadBookings==='function') loadBookings();
   if(typeof loadUnknownQuestions==='function') loadUnknownQuestions();
@@ -9211,7 +9542,7 @@ function loadMedHistory(clientId){
         + '<div style="display:flex;align-items:center;gap:8px">'
         + '<div style="flex:1"><span style="font-weight:700;color:var(--text)">'+escH(name)+'</span>'
         + (latest.dose?' <span style="font-size:10px;color:var(--text3)">'+escH(latest.dose)+'</span>':'') + '</div>'
-        + (sgltWarn?'<span class="badge a" style="font-size:8.5px" title="SGLT2抑制劑與粒腺體併行有酮酸中毒風險">⚠ SGLT2</span>':'')
+        + (sgltWarn?'<span class="badge a" style="font-size:8.5px" title="SGLT2抑制劑與粒線體併行有酮酸中毒風險">⚠ SGLT2</span>':'')
         + '<span class="badge '+badgeCls+'" style="font-size:9px">'+escH(latest.status)+'</span>'
         + (stopped?'':('<button class="ai-btn gray" style="font-size:10px;padding:3px 8px" onclick="medChange(\''+escH(String(_cdCurrentId||''))+'\',\''+escH(name)+'\',\'減量\')">記錄減量</button>'
         + '<button class="ai-btn g" style="font-size:10px;padding:3px 8px" onclick="medChange(\''+escH(String(_cdCurrentId||''))+'\',\''+escH(name)+'\',\'已停藥\')">記錄停藥</button>'))
@@ -9263,7 +9594,7 @@ function handleMedPhoto(input, clientId){
           + '<input class="form-input" style="font-size:11.5px;padding:5px 8px" id="mocr-name-'+i+'" value="'+escH(it.name)+'">'
           + '<input class="form-input" style="font-size:11.5px;padding:5px 8px" id="mocr-dose-'+i+'" value="'+escH(it.dose||'')+'" placeholder="劑量／頻率">'
           + '</div>'
-          + (it.warn ? '<div style="font-size:10px;color:var(--r3);margin:0 0 5px 28px">⚠️ SGLT2 抑制劑與粒腺體飲食併行有酮酸中毒風險，請務必請客人與醫師確認</div>' : '');
+          + (it.warn ? '<div style="font-size:10px;color:var(--r3);margin:0 0 5px 28px">⚠️ SGLT2 抑制劑與粒線體飲食併行有酮酸中毒風險，請務必請客人與醫師確認</div>' : '');
       });
       rows.innerHTML=html;
       box.style.display='block';
@@ -9661,7 +9992,7 @@ function disableWish(wish){
 }
 
 
-// ══════ 粒腺體友善餐廳管理 ══════
+// ══════ 粒線體友善餐廳管理 ══════
 function loadKetoRestAdmin(){
   var box=document.getElementById('kr-admin-list');
   if(box) box.innerHTML='載入中…';
@@ -9739,6 +10070,7 @@ function loadTodayDuty(){
     if(dt.unknownFoodPending>0) items.push({icon:'🍱',text:'<b>'+dt.unknownFoodPending+' 筆</b>客人查不到的外食還沒補充',act:"goPg('food-mgmt')"});
     if(dt.foodRecommendPending>0) items.push({icon:'🥗',text:'<b>'+dt.foodRecommendPending+' 筆</b>客人推薦的食材還沒審核',act:"goPg('food-mgmt')"});
     if(dt.testimonialPending>0) items.push({icon:'💬',text:'<b>'+dt.testimonialPending+' 則</b>客人心得分享還沒審核',act:"goPg('clients')"});
+    if(dt.reportReadyPending>0) items.push({icon:'📋',text:'<b>'+dt.reportReadyPending+' 位</b>客人報告已出，還沒跟他們講解（最久等了 '+dt.reportReadyMaxDays+' 天）',act:"goPg('alerts')",urgent:dt.reportReadyMaxDays>=3});
 
     // 統計數字現在併到頁面最上方的合併快速導覽列（mx-dash-nav）一起顯示，這裡不再重複畫一次
     // （2026-08-26：她覺得原本這裡的統計列跟上面的快速導覽列重複很亂，要求合併成一排）

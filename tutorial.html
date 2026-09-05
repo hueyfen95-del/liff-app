@@ -234,7 +234,7 @@ SCENES.intro = `
 SCENES.fhome = `
 <div class="scene" id="sc-fhome">
   <div class="phone"><div class="screen">
-    <div class="p-head"><div class="hi">嗨，陳小美 🌱</div><div class="sub">粒腺體期・第 32 天｜連續打卡 12 天</div></div>
+    <div class="p-head"><div class="hi">嗨，陳小美 🌱</div><div class="sub">粒線體期・第 32 天｜連續打卡 12 天</div></div>
     <div class="p-body">
       <div class="pcard" id="fh-video"><div class="t">📽 了解這趟旅程的目標</div><div class="s">5 分鐘影片＋「開始試用」按鈕</div></div>
       <div class="pcard"><div class="t">今日花園任務</div>
@@ -548,7 +548,7 @@ SCENES.fmore = `
   </div></div>
   <div class="admin" style="width:250px;height:440px">
     <div class="a-main" style="border-radius:14px">
-      <div class="a-title">🍽 新增粒腺體友善餐廳（後台）</div>
+      <div class="a-title">🍽 新增粒線體友善餐廳（後台）</div>
       <div class="acard" id="kr-form" style="opacity:0;transition:all .5s">
         <div style="font-size:10px;color:var(--mist)">地區</div>
         <div style="background:#fff;border:1px solid var(--line);border-radius:5px;padding:4px 7px;font-size:11px;margin-bottom:4px">新竹</div>
@@ -1190,11 +1190,11 @@ const CHAPTERS = [
   ]},
   { id:'fmore', title:'第 4 章・外食指南（找餐廳＋查食物）', steps:[
     {cap:'客人出門在外，最需要的就是「吃什麼」——前台把它整合成一個入口 <b>🍽 外食指南</b>，點進去 <b>找餐廳、查食物兩區一起看到</b>，不用切來切去', dur:4600},
-    {cap:'上面是 <b>找粒腺體友善餐廳</b>：全台 8 個地區、200 多家。客人先選自己的地區', act:()=>{show('kr-c1');show('kr-rg2')}, dur:4200},
+    {cap:'上面是 <b>找粒線體友善餐廳</b>：全台 8 個地區、200 多家。客人先選自己的地區', act:()=>{show('kr-c1');show('kr-rg2')}, dur:4200},
     {cap:'每家都有 <b>推薦點法</b>（點什麼、避開什麼）、友善度標記、一鍵 <b>導航</b>——鵝肉、羊肉這種原型肉品是綠色「完全友善」', act:()=>{show('kr-c2')}, dur:4600},
     {cap:'往下滑是 <b>查食物怎麼點</b>：不確定某種食物能不能吃，搜尋「沙拉」馬上查到', act:()=>tapThen('fm-search',()=>{fill('fm-search','沙拉');setTimeout(()=>show('fm-r1'),500)}), dur:3800},
     {cap:'每樣食物都有 <b>✅ 可以吃／❌ 避免</b> 的標籤和說明，不用猜', act:()=>show('fm-r2'), dur:3400},
-    {cap:'後台 <b>「粒腺體友善餐廳」</b> 頁可以自己新增餐廳（填地區、店名、推薦點法），<b>客人端該地區立刻多一家</b>。食物速查的內容也一樣由後台管理', act:()=>{show('kr-form');show('kr-added')}, dur:5000},
+    {cap:'後台 <b>「粒線體友善餐廳」</b> 頁可以自己新增餐廳（填地區、店名、推薦點法），<b>客人端該地區立刻多一家</b>。食物速查的內容也一樣由後台管理', act:()=>{show('kr-form');show('kr-added')}, dur:5000},
   ]},
   { id:'adash', title:'第 5 章・秘書儀表板', steps:[
     {cap:'換到 <b>後台</b>。秘書登入第一眼看到的就是儀表板——不用自己記該做什麼，系統把待處理的事一張張排好', act:()=>{show('ad-duty')}, dur:4200},
@@ -1255,7 +1255,7 @@ const CHAPTERS = [
     {cap:'客人回報用藥？<b>登記下來</b>——藥名、劑量，按記錄用藥', act:()=>{tapThen('md-name',()=>{fill('md-name','Metformin');fill('md-dose','500mg 早晚')});setTimeout(()=>tapThen('md-btn',()=>{show('md-card');show('md-sheet')}),1400)}, dur:4600},
     {cap:'醫師調整後按 <b>記錄減量</b>——時間軸自動多一筆，原本的保留', act:()=>tapThen('md-reduce',()=>{const st=g('md-status');if(st){st.textContent='減量';st.className='badge b'}const d2=g('md-dosenow');if(d2)d2.textContent='250mg 早';const t=g('md-timeline');if(t)t.innerHTML='05-10 服用中（500mg 早晚）<br>06-14 減量（250mg 早）';showRow('md-row2')}), dur:4400},
     {cap:'停藥時按 <b>記錄停藥</b>——<b>什麼時候減、什麼時候停，日期全部留存</b>，這就是「慢性用藥減量」成效的證據', act:()=>tapThen('md-stop',()=>{const st=g('md-status');if(st){st.textContent='已停藥';st.className='badge g'}const r=g('md-reduce'),s2=g('md-stop');if(r)r.style.display='none';if(s2)s2.style.display='none';const t=g('md-timeline');if(t)t.innerHTML='05-10 服用中（500mg 早晚）<br>06-14 減量（250mg 早）<br><b style="color:#0F6E56">07-08 已停藥 🎉</b>';showRow('md-row3')}), dur:5200},
-    {cap:'更快的登記法：<b>📷 拍藥袋辨識</b>——拍照自動抓藥名劑量，核對後一鍵登記；遇到 SGLT2 類降糖藥還會 <b>自動警示</b>（與粒腺體併行需醫師評估）', dur:5200},
+    {cap:'更快的登記法：<b>📷 拍藥袋辨識</b>——拍照自動抓藥名劑量，核對後一鍵登記；遇到 SGLT2 類降糖藥還會 <b>自動警示</b>（與粒線體併行需醫師評估）', dur:5200},
     {cap:'提醒：劑量調整都由客人的 <b>醫師決定</b>，我們負責把時間軸忠實記下來。當月的用藥變化也會 <b>自動帶進月報</b>', dur:4600},
     {cap:'用藥調整時，記得填 <b>「醫囑來源」</b>——哪位醫師交代的減藥／停藥，選一下醫師名字。這樣<b>醫療決策有醫師背書、留下紀錄</b>，合規又安全（醫師照常在 LINE 講，不用碰系統）', dur:5200},
   ]},
