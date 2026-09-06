@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-06a';
+var MX_BUILD = '2026-09-06d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -567,7 +567,7 @@ var MX_BUILD = '2026-09-06a';
       <input type="checkbox" id="new-cl-active" style="width:16px;height:16px;accent-color:var(--g);cursor:pointer">
       <label for="new-cl-active" style="font-size:12.5px;color:var(--text2);cursor:pointer">建立時就開通陪跑（不勾的話預設鎖定，之後可以再到客人清單手動開通）</label>
     </div>
-    <div class="btn-row"><button class="btn-g" onclick="saveClientForm()"><i class="ti ti-device-floppy" style="font-size:14px"></i>新增</button><button class="btn-ghost" onclick="toggleClientForm()">取消</button></div>
+    <div class="btn-row"><button class="btn-g" onclick="saveClientForm(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i>新增</button><button class="btn-ghost" onclick="toggleClientForm()">取消</button></div>
   </div>
   <div class="card" data-nav-label="客人清單" data-nav-icon="ti ti-list"><div class="card-body" style="padding:0">
     <table class="dt">
@@ -676,7 +676,7 @@ var MX_BUILD = '2026-09-06a';
         <select id="duty-end" class="form-select" style="font-size:12px"><option value="">下班時間（整點）</option></select>
         <input id="duty-note" class="form-input" style="font-size:12px;grid-column:1/-1" placeholder="備註（選填）">
       </div>
-      <button onclick="submitShift()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增排班</button>
+      <button onclick="submitShift(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增排班</button>
     </div>
   </div>
   <!-- 2026-09-03 新增：秘書自己按「上班/下班打卡」按鈕，系統記錄時間（她確認過的打卡方式）。
@@ -811,7 +811,7 @@ var MX_BUILD = '2026-09-06a';
         <input id="new-award-icon" class="form-input" style="font-size:15px;text-align:center" placeholder="💚" value="💚">
         <input id="new-award-title" class="form-input" style="font-size:12px" placeholder="獎項名稱（例：最愛惜身體的客人）">
         <input id="new-award-desc" class="form-input" style="font-size:12px" placeholder="描述（例：願意好好照顧自己）">
-        <button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="addAward()">新增</button>
+        <button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="addAward(this)">新增</button>
       </div>
       <div id="award-list-admin" style="font-size:12px;color:var(--text3)">載入中…</div>
     </div>
@@ -823,7 +823,7 @@ var MX_BUILD = '2026-09-06a';
       <div style="font-size:11px;color:var(--text3);margin-bottom:9px">生日提醒卡的祝福語庫。都是跟「愛自己、走這趟旅程」有關的話，你可以新增自己的版本。</div>
       <div style="display:grid;grid-template-columns:1fr auto;gap:7px;margin-bottom:9px">
         <textarea id="new-wish" class="form-input" style="font-size:12px;min-height:52px;resize:vertical" placeholder="輸入新的生日祝福語（記得跟愛自己、健康旅程有關）"></textarea>
-        <button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="addWish()">新增</button>
+        <button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="addWish(this)">新增</button>
       </div>
       <div id="wish-list-admin" style="font-size:12px;color:var(--text3)">載入中…</div>
     </div>
@@ -848,7 +848,7 @@ var MX_BUILD = '2026-09-06a';
     <div class="gi-row"><div style="flex:1"><div class="gi-lbl">每餐蛋白質份量</div><div class="gi-desc">變數標記：<code>{{g-protein}}</code></div></div><input class="gi-inp" id="g-protein" value="一個掌心（厚度約 1–1.5 公分）"></div>
   </div></div>
   <div style="display:flex;gap:9px">
-    <button class="btn-g" onclick="saveGlobal()"><i class="ti ti-device-floppy" style="font-size:14px"></i>儲存並同步前台</button>
+    <button class="btn-g" onclick="saveGlobal(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i>儲存並同步前台</button>
     <button class="btn-ghost" onclick="resetGlobalDefaults()">重設預設值</button>
   </div>
 </div>
@@ -897,7 +897,7 @@ var MX_BUILD = '2026-09-06a';
           <input id="role-default-days" type="number" placeholder="這間通常幾天" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12.5px;color:var(--text)">
         </div>
       </div>
-      <button onclick="saveRole()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增角色</button>
+      <button onclick="saveRole(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增角色</button>
       <button onclick="bulkAddIRCTClinics()" style="width:100%;margin-top:8px;background:var(--card);color:var(--b3);border:1px solid var(--b2);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">🏥 同步「診所預約時段」的地點（可持續新增）</button>
       <button onclick="dedupRoles()" style="width:100%;margin-top:8px;background:var(--card);color:#A32D2D;border:1px solid #F2C9C9;border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer">🧹 一鍵清除重複的角色（保留最早那筆）</button>
     </div>
@@ -974,7 +974,7 @@ var MX_BUILD = '2026-09-06a';
           <input id="acc-payrate" type="number" placeholder="例：200" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
       </div>
-      <button onclick="saveAdminAccount()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增帳號</button>
+      <button onclick="saveAdminAccount(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增帳號</button>
     </div>
   </div>
 
@@ -1009,7 +1009,7 @@ var MX_BUILD = '2026-09-06a';
         <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px">
           <input id="inv-new-safety" type="number" class="form-input" style="font-size:12px" placeholder="安全庫存（低於這個數字會標紅）">
           <input id="inv-new-unit" class="form-input" style="font-size:12px" placeholder="單位（盒/份/瓶…）" value="份">
-          <button class="btn-g" style="font-size:12px;padding:8px 14px" onclick="addInvItem()">新增</button>
+          <button class="btn-g" style="font-size:12px;padding:8px 14px" onclick="addInvItem(this)">新增</button>
         </div>
       </div>
       <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px">
@@ -1086,7 +1086,7 @@ var MX_BUILD = '2026-09-06a';
         </div>
       </div>
 
-      <button onclick="saveRule()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">儲存這筆規則（套用於之後的新服務）</button>
+      <button onclick="saveRule(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">儲存這筆規則（套用於之後的新服務）</button>
     </div>
   </div>
 
@@ -1144,7 +1144,7 @@ var MX_BUILD = '2026-09-06a';
         <select id="fin-pay-method" class="form-select" style="font-size:12px"><option value="現金">現金</option><option value="轉帳">轉帳</option><option value="信用卡">信用卡</option><option value="LINE Pay">LINE Pay</option></select>
         <input id="fin-pay-note" placeholder="備註（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
       </div>
-      <button onclick="submitPayment()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄付款</button>
+      <button onclick="submitPayment(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄付款</button>
     </div>
   </div>
 
@@ -1162,7 +1162,7 @@ var MX_BUILD = '2026-09-06a';
         <input id="fin-clinicfee-invdate" type="date" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <select id="fin-clinicfee-invtype" class="form-select" style="font-size:12px"><option value="二聯式">二聯式</option><option value="三聯式">三聯式</option><option value="收據">收據</option></select>
       </div>
-      <button onclick="submitClinicFee()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄診所費用</button>
+      <button onclick="submitClinicFee(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄診所費用</button>
     </div>
   </div>
 
@@ -1180,7 +1180,7 @@ var MX_BUILD = '2026-09-06a';
         <input id="fin-labfee-tax" type="number" placeholder="稅額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <input id="fin-labfee-total" type="number" placeholder="總額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
       </div>
-      <button onclick="submitLabFee()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄檢測中心費用</button>
+      <button onclick="submitLabFee(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄檢測中心費用</button>
     </div>
   </div>
 
@@ -1198,7 +1198,7 @@ var MX_BUILD = '2026-09-06a';
         <input id="fin-inv-invno" placeholder="發票/收據號碼（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
         <textarea id="fin-inv-note" placeholder="備註（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1;height:50px;resize:none;font-family:inherit"></textarea>
       </div>
-      <button onclick="submitInvoiceRequest()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">送出請款申請</button>
+      <button onclick="submitInvoiceRequest(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">送出請款申請</button>
       <div style="height:1px;background:var(--border);margin:12px 0"></div>
       <div style="font-size:10.5px;color:var(--text3);margin-bottom:8px">或者，把這個月全部秘書的排班薪資自動彙總、各自產生一張請款單草稿（讀取 💰 排班記錄，狀態=pending 的部分）</div>
       <div style="display:flex;gap:8px">
@@ -1248,7 +1248,7 @@ var MX_BUILD = '2026-09-06a';
       <div class="form-group"><label class="form-label">問題（客人看到的）</label><input class="form-input" placeholder="例如：頭暈怎麼辦？" id="qa-f-question"></div>
     </div>
     <div class="form-group"><label class="form-label">回答（完整說明）</label><textarea class="form-textarea" rows="4" placeholder="輸入回答內容…" id="qa-f-answer"></textarea></div>
-    <div class="btn-row"><button class="btn-g" onclick="saveQAItem()"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="qa-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleQAForm(false)">取消</button></div>
+    <div class="btn-row"><button class="btn-g" onclick="saveQAItem(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="qa-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleQAForm(false)">取消</button></div>
   </div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-list"></i>症狀 QA 列表（💬 QA設定）</div><div style="display:flex;gap:7px"><button class="tb-btn" onclick="loadQAAdmin()"><i class="ti ti-refresh" style="font-size:14px"></i>重新載入</button><button class="tb-btn g" onclick="toggleQAForm(true)"><i class="ti ti-plus" style="font-size:14px"></i>新增 QA</button></div></div><div class="card-body" style="padding:0 16px" id="qa-list-admin">
     <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>
@@ -1275,7 +1275,7 @@ var MX_BUILD = '2026-09-06a';
       </div>
       <div style="margin-bottom:8px"><label style="font-size:11px;color:var(--text3)">營業時間</label><input id="kr-hours" class="form-input" style="font-size:12px" placeholder="例：每日 11:00–21:00"></div>
       <div style="margin-bottom:10px"><label style="font-size:11px;color:var(--text3)">Google 地圖連結</label><input id="kr-mapurl" class="form-input" style="font-size:12px" placeholder="貼上 Google 地圖分享連結"></div>
-      <button class="btn-g" style="padding:9px 15px;font-size:13px" onclick="addKetoRest()">新增餐廳</button>
+      <button class="btn-g" style="padding:9px 15px;font-size:13px" onclick="addKetoRest(this)">新增餐廳</button>
     </div>
   </div>
   <div class="card" style="margin-top:14px">
@@ -1296,7 +1296,7 @@ var MX_BUILD = '2026-09-06a';
     <div class="form-row"><div class="form-group"><label class="form-label">食物名稱</label><input class="form-input" placeholder="例如：烤雞腿（帶皮）" id="new-food-name"></div><div class="form-group"><label class="form-label">Emoji 圖示</label><input class="form-input" placeholder="例如：🍗" id="new-food-emoji" style="font-size:18px"></div></div>
     <input type="hidden" id="food-edit-row" value=""><div class="form-row"><div class="form-group"><label class="form-label">分類</label><select class="form-select" id="new-food-cat"><option>便利商店</option><option>傳統小吃店</option><option>牛排館</option><option>優質油脂</option><option>堅果食材</option><option>嚴防地雷</option><option>其他</option></select></div><div class="form-group"><label class="form-label">狀態標籤</label><select class="form-select" id="new-food-tag"><option>✅ 可以吃</option><option>⚠️ 小心（少量）</option><option>❌ 避免</option></select></div></div>
     <div class="form-group"><label class="form-label">說明（顯示在前台）</label><input class="form-input" placeholder="例如：以天然油脂為主，蛋白質＋油脂好來源" id="new-food-desc"></div>
-    <div class="btn-row"><button class="btn-g" onclick="saveFoodItem()"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="food-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleAddForm()">取消</button></div>
+    <div class="btn-row"><button class="btn-g" onclick="saveFoodItem(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="food-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleAddForm()">取消</button></div>
   </div>
   <div id="food-list-admin">
     <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>
@@ -1339,7 +1339,7 @@ var MX_BUILD = '2026-09-06a';
     </div>
   </div>
     <input type="hidden" id="faq-edit-row" value=""><div class="form-row"><div class="form-group"><label class="form-label">分類</label><select class="form-select" id="new-faq-cat"><option>血酮相關</option><option>症狀處理</option><option>IRCT</option><option>外食</option><option>飲食比例</option><option>其他</option></select></div><div class="form-group"><label class="form-label">顯示在</label><select class="form-select"><option>前台 LIFF 問答頁</option></select></div></div>
-    <div class="btn-row"><button class="btn-g" onclick="saveFAQItem()"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="faq-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleFaqForm()">取消</button></div>
+    <div class="btn-row"><button class="btn-g" onclick="saveFAQItem(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="faq-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleFaqForm()">取消</button></div>
   </div>
   <div id="faq-list-admin">
     <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>
@@ -1368,7 +1368,7 @@ var MX_BUILD = '2026-09-06a';
     <div class="form-row"><input class="form-input" id="sup-shop2n" placeholder="通路2名稱"><input class="form-input" id="sup-shop2l" placeholder="通路2連結"></div>
     <div class="form-row"><input class="form-input" id="sup-shop3n" placeholder="通路3名稱"><input class="form-input" id="sup-shop3l" placeholder="通路3連結"></div>
     <div class="form-group"><label class="form-label">是否代購</label><select class="form-select" id="sup-ispurchase"><option value="">請選擇</option><option value="是">是</option><option value="否">否</option></select></div>
-    <div class="btn-row"><button class="btn-g" onclick="saveSupplementItem()"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="supplement-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleSupplementForm()">取消</button></div>
+    <div class="btn-row"><button class="btn-g" onclick="saveSupplementItem(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="supplement-form-btn">新增</span></button><button class="btn-ghost" onclick="toggleSupplementForm()">取消</button></div>
   </div>
   <div id="supplement-list-admin"><div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div></div>
   <div style="font-size:11px;color:var(--text3);margin-top:8px">💡 資料儲存在 Google Sheets「💊 補充品資料庫」工作表，新增/修改後秘書推薦補充品時的選單會自動更新。</div>
@@ -1486,7 +1486,7 @@ var MX_BUILD = '2026-09-06a';
         <input type="checkbox" id="extra-oxidative" style="width:16px;height:16px"> ⚡ 氧化壓力檢測(8-OHdG) — 反覆不適/過敏/發炎者
       </label>
     </div>
-    <button onclick="saveExtraTestRecommend()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;cursor:pointer;font-weight:700">儲存加測建議，同步到客人前台</button>
+    <button onclick="saveExtraTestRecommend(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;cursor:pointer;font-weight:700">儲存加測建議，同步到客人前台</button>
   </div>
 </div>
 </div>
@@ -1526,7 +1526,7 @@ var MX_BUILD = '2026-09-06a';
       <div class="form-group"><label class="form-label">複驗週期</label><select class="form-select" id="track-cycle"><option>每 4 週</option><option>每 6 週</option><option selected>每 8 週</option><option>每 12 週</option></select></div>
       <div class="form-group"><label class="form-label">下次複驗日期</label><input class="form-input" type="date" id="track-date"></div>
     </div>
-    <div class="btn-row"><button class="btn-g" onclick="saveTrackForm()"><i class="ti ti-device-floppy" style="font-size:14px"></i>新增追蹤</button><button class="btn-ghost" onclick="document.getElementById('add-track-form').classList.remove('on')">取消</button></div>
+    <div class="btn-row"><button class="btn-g" onclick="saveTrackForm(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i>新增追蹤</button><button class="btn-ghost" onclick="document.getElementById('add-track-form').classList.remove('on')">取消</button></div>
   </div>
   <div class="card">
     <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>客人追蹤模組設定</div><div style="display:flex;gap:7px"><button class="tb-btn" onclick="loadTrackingAdmin()"><i class="ti ti-refresh" style="font-size:14px"></i>重新載入</button><button class="tb-btn g" onclick="openTrackForm()"><i class="ti ti-plus" style="font-size:14px"></i>新增</button></div></div>
@@ -1567,7 +1567,7 @@ var MX_BUILD = '2026-09-06a';
           <input id="plan-discount" placeholder="無" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 8px;font-size:13px;color:var(--text);text-align:center">
         </div>
       </div>
-      <button onclick="savePlanForm()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">建立方案（自動算出到期日）</button>
+      <button onclick="savePlanForm(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">建立方案（自動算出到期日）</button>
     </div>
   </div>
 
@@ -1643,7 +1643,7 @@ var MX_BUILD = '2026-09-06a';
         <div id="ocr-rows"></div>
         <button class="tb-btn" style="margin:8px 0" onclick="addOcrRow('','','')"><i class="ti ti-plus" style="font-size:13px"></i>手動加一項</button>
         <div style="display:flex;gap:9px;align-items:center;margin-top:6px">
-          <button class="btn-g" onclick="saveOcrResults()"><i class="ti ti-database" style="font-size:14px"></i>確認寫入功能醫學記錄</button>
+          <button class="btn-g" onclick="saveOcrResults(this)"><i class="ti ti-database" style="font-size:14px"></i>確認寫入功能醫學記錄</button>
           <span id="ocr-filelink" style="font-size:11px;color:var(--text3)"></span>
         </div>
       </div>
@@ -1671,7 +1671,7 @@ var MX_BUILD = '2026-09-06a';
       <div class="form-group"><label class="form-label">價格 NT$</label><input class="form-input" type="number" placeholder="620" id="prod-f-price"></div>
     </div>
     <div class="form-group"><label class="form-label">商品連結（Wix 商品頁 URL）</label><input class="form-input" placeholder="https://www.isometabolix.com/product-page/..." id="prod-f-link"></div>
-    <div class="btn-row"><button class="btn-g" onclick="saveProductForm()"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="prod-form-btn">新增</span></button><button class="btn-ghost" onclick="closeProdForm()">取消</button></div>
+    <div class="btn-row"><button class="btn-g" onclick="saveProductForm(this)"><i class="ti ti-device-floppy" style="font-size:14px"></i><span id="prod-form-btn">新增</span></button><button class="btn-ghost" onclick="closeProdForm()">取消</button></div>
   </div>
   <div class="card" style="margin-bottom:14px" id="shop-bulk-import-card">
     <div class="card-hd"><div class="card-title"><i class="ti ti-clipboard-list"></i>批次匯入商品</div></div>
@@ -1749,7 +1749,7 @@ var MX_BUILD = '2026-09-06a';
         <div><div class="form-label">地區</div><input id="cs-region" class="form-input" placeholder="例：新竹"></div>
       </div>
       <div style="margin-bottom:10px"><div class="form-label">可預約日期時間</div><input id="cs-datetime" class="form-input" placeholder="例：7/20（六）08:30，或 每週六 08:30"></div>
-      <button class="btn-primary" onclick="addClinicSlot()"><i class="ti ti-plus"></i> 新增時段</button>
+      <button class="btn-primary" onclick="addClinicSlot(this)"><i class="ti ti-plus"></i> 新增時段</button>
     </div>
   </div>
   <div class="card">
@@ -2088,9 +2088,11 @@ function selTime(el){
   document.querySelectorAll('.tg-slot:nth-child(n+2)').forEach(function(t){t.classList.remove('on')});
   el.classList.add('on');
 }
-function saveGlobal(){
+function saveGlobal(btn){
   var fields = collectGlobalFields();
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'setGlobal', key:'全域健康參數', value:JSON.stringify(fields)}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){
       var banner=document.getElementById('sync-banner');
       if(banner){ banner.classList.add('on'); setTimeout(function(){banner.classList.remove('on');},5000); }
@@ -2229,7 +2231,7 @@ function editSupplementItem(row){
     document.getElementById('add-supplement-form').classList.add('on');
   });
 }
-function saveSupplementItem(){
+function saveSupplementItem(btn){
   var name = document.getElementById('sup-name').value.trim();
   if(!name){ toast('請至少填中文名稱'); return; }
   var editRow = document.getElementById('supplement-edit-row').value;
@@ -2245,7 +2247,9 @@ function saveSupplementItem(){
     isPurchase:document.getElementById('sup-ispurchase').value };
   if(editRow){ payload.action = 'updateSupplement'; payload.row = editRow; }
   else { payload.action = 'addSupplement'; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost(payload, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status === 'ok'){
       toast(editRow ? '✅ 已儲存修改' : '✅ 已新增補充品');
       toggleSupplementForm();
@@ -2412,7 +2416,7 @@ function saveClinicFee(clientId, clinicName, item, preTax, tax, total, invoiceNo
 }
 
 // ── 客人方案 ──
-function savePlan(clientId, planName, months, fee, discount) {
+function savePlan(clientId, planName, months, fee, discount, onDone) {
   adminAPI({
     action: 'addPlan', clientId: clientId, planName: planName,
     months: months, fee: fee, discount: discount || ''
@@ -2420,6 +2424,7 @@ function savePlan(clientId, planName, months, fee, discount) {
     if (d.status === 'ok') {
       toast('✅ 方案已建立！到期日：' + new Date(d.endDate).toLocaleDateString('zh-TW'));
     }
+    if (onDone) onDone();
   });
 }
 
@@ -3225,7 +3230,7 @@ function loadReportReadyList() {
 </script>
 <script>
 // ── 功能醫學加測建議（秘書手動勾選）──
-function saveExtraTestRecommend() {
+function saveExtraTestRecommend(btn) {
   var clientId = document.getElementById('extra-test-client') ?
     document.getElementById('extra-test-client').value : '';
   if (!clientId) { toast('請先選擇客人'); return; }
@@ -3247,6 +3252,7 @@ function saveExtraTestRecommend() {
 
   if (items.length === 0) { toast('請至少勾選一項'); return; }
 
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPI({
     action: 'addNote',
     clientId: clientId,
@@ -3254,6 +3260,7 @@ function saveExtraTestRecommend() {
     type: '加測建議',
     secretary: (CURRENT_USER&&CURRENT_USER.name)||'秘書'
   }, function(d) {
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if (d.status === 'ok') {
       toast('✅ 加測建議已儲存，客人複測頁面會同步顯示');
     }
@@ -3289,7 +3296,7 @@ function toggleRoleLabFields(){
   var box = document.getElementById('role-lab-fields');
   if (box) box.style.display = (type === '診所' || type === '實驗室') ? 'grid' : 'none';
 }
-function saveRole() {
+function saveRole(btn) {
   var type = document.getElementById('role-type').value;
   var name = document.getElementById('role-name').value.trim();
   if (!name) { toast('請輸入角色名稱'); return; }
@@ -3300,7 +3307,9 @@ function saveRole() {
     payload.defaultDays = document.getElementById('role-default-days').value.trim();
     if (payload.defaultDays && Number(payload.defaultDays) < 0) { toast('⚠️ 天數不能是負數'); return; }
   }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPI(payload, function(d) {
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if (d.status === 'ok') {
       toast('✅ 角色已新增：' + name);
       document.getElementById('role-name').value = '';
@@ -3366,14 +3375,16 @@ function bulkImportInv(){
     } else toast('⚠️ 匯入失敗');
   });
 }
-function addInvItem(){
+function addInvItem(btn){
   var name = (document.getElementById('inv-new-name').value || '').trim();
   var category = (document.getElementById('inv-new-category').value || '').trim();
   var safety = document.getElementById('inv-new-safety').value;
   var unit = (document.getElementById('inv-new-unit').value || '份').trim();
   if(!name){ toast('請輸入品項名稱'); return; }
   if(safety && Number(safety) < 0){ toast('⚠️ 安全庫存不能是負數'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPI({action:'addInventoryItem', name:name, category:category, safetyStock:safety||0, unit:unit}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status === 'ok'){
       toast('✅ 已新增「'+name+'」，接下來按「進貨」記錄第一批數量');
       document.getElementById('inv-new-name').value='';
@@ -3567,7 +3578,7 @@ function saveExtraPerm(i){
     else toast('⚠️ ' + ((d && d.message) || '更新失敗'));
   });
 }
-function saveAdminAccount(){
+function saveAdminAccount(btn){
   var username = (document.getElementById('acc-username').value||'').trim();
   var password = (document.getElementById('acc-password').value||'').trim();
   var name = (document.getElementById('acc-name').value||'').trim();
@@ -3578,7 +3589,9 @@ function saveAdminAccount(){
   if(!username || !password || !name){ toast('帳號、密碼、姓名都要填'); return; }
   if(password.length < 6){ toast('⚠️ 密碼至少要6碼（英文、數字皆可，不分大小寫）'); return; }
   if(payRate && Number(payRate) < 0){ toast('⚠️ 薪資金額不能是負數'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status === 'ok'){
       toast('✅ 已新增帳號：'+name+'（'+username+'），把帳號密碼給對方，之後可以自己改');
       document.getElementById('acc-username').value='';
@@ -3733,48 +3746,99 @@ function deleteRole(btn) {
 }
 
 // ══ 2026-08-14 新增：深度合作開通設定（推廣行銷型合作夥伴，例如美業集團）══
-// 沿用這頁既有的 prompt() 快速編輯風格，不另外做彈窗介面。
+// 2026-09-06改版：原本沿用prompt()/confirm()一路問到底，她反映不好用、也擔心留空會不會洗掉現有設定
+// ——改成一個正式表單視窗，單位層級/集團總部都是下拉選單、開通項目是勾選框，全部欄位都預先帶入這個
+// 角色目前的現況（從loadRoles()快取的window._cachedRoles查），送出時看得到、改得到，不用再靠對話框
+// 一格一格猜現況。查詢密碼欄位維持「留空＝不變更」的行為，跟原本一樣不會不小心把密碼清空。
 // 提醒：這裡的角色只要用「刪除」鍵刪掉（軟刪除，狀態=deleted），之後所有轉介分潤
 // （一次性獎金＋持續分潤）都會自動停止發放，對應合約談好的「合作終止即停止分潤」規則，
 // 不需要額外的「終止」按鈕。
+function pfToggleGroupWrap(sel) {
+  var w = document.getElementById('pf-group-wrap');
+  if (w) w.style.display = (sel.value === '集團分店') ? '' : 'none';
+}
+function pfToggleReferralWrap(cb) {
+  var w = document.getElementById('pf-referral-wrap');
+  if (w) w.style.display = cb.checked ? '' : 'none';
+}
 function openPartnerFeatures(btn) {
   var roleId = btn.getAttribute('data-id');
   var roleName = btn.getAttribute('data-name');
-  var orgType = prompt('「' + roleName + '」的單位層級？\n請輸入：一般廠商／集團總部／集團分店\n（不確定就先留空白，維持現況）', '');
-  if (orgType === null) return;
-  orgType = orgType.trim();
-  var groupRoleId = '';
-  if (orgType === '集團分店') {
-    groupRoleId = prompt('這家分店屬於哪個集團總部？\n請輸入總部的角色ID（在角色名單裡總部那筆項目的名稱旁邊可以看到，格式如 R20260814153000）：', '') || '';
-    groupRoleId = groupRoleId.trim();
-  }
-  var wantsReferral = confirm('要開通「客戶轉介來源標記＋推廣獎金」給「' + roleName + '」嗎？\n（純推廣行銷型合作夥伴用，例如美業集團——只給機構型合作單位，不涉及照顧、不接觸客人的檢測或健康資料）\n\n這是「元代謝收款、付分潤給合作單位」的模式；如果是合作單位自己跟客人收費、再回報給元代謝的模式，請在下一個問題選擇。');
-  var oneTime = '0', pct = '0';
-  if (wantsReferral) {
-    oneTime = prompt('首次消費一次性獎金（元，沒有就填0）：', '0');
-    if (oneTime === null) return;
-    pct = prompt('後續持續分潤比例（0～100，沒有就填0，例如10代表10%）：', '0');
-    if (pct === null) return;
-  }
-  // 2026-08-14 新增：反過來的模式——合作單位自己跟客人收費，再回報進系統，元代謝核對後算應收帳款
-  // （用同一套 📊分帳規則設定 分帳比例，只是「誰欠誰」的方向相反，跟上面的推廣獎金模式是互斥的兩種用法，
-  // 通常一個合作單位只會用其中一種，但技術上兩個旗標互不影響，需要的話也可以同時開）
-  var wantsSelfCollect = confirm('要開通「合作單位自行收款、回報給元代謝」的模式嗎？\n（例如美業集團直接跟客人收整包套裝費用，再回報進系統，元代謝核對後知道對方欠多少——方向跟上面的推廣獎金相反）');
+  var role = (window._cachedRoles || []).find(function(r){ return String(r.roleId) === String(roleId); }) || {};
+  var old = document.getElementById('partner-features-modal'); if (old) old.remove();
+  var hasReferral = String(role.features || '').indexOf('referral') >= 0;
+  var hasSelfCollect = String(role.features || '').indexOf('selfCollect') >= 0;
+  var groupOptions = (window._cachedRoles || [])
+    .filter(function(r){ return r.orgType === '集團總部' && String(r.roleId) !== String(roleId); })
+    .map(function(r){ return '<option value="' + escH(r.roleId) + '"' + (role.groupRoleId === r.roleId ? ' selected' : '') + '>' + escH(r.roleName) + '</option>'; })
+    .join('');
+  var ov = document.createElement('div');
+  ov.id = 'partner-features-modal';
+  ov.setAttribute('data-role-id', roleId);
+  ov.setAttribute('data-role-name', roleName);
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:420px;padding:18px 20px;max-height:90vh;overflow-y:auto">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text)">🤝「' + escH(roleName) + '」深度合作設定</div>'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">單位層級</div>'
+    + '<select id="pf-orgtype" onchange="pfToggleGroupWrap(this)" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:12px;font-family:inherit">'
+      + '<option value=""' + (!role.orgType ? ' selected' : '') + '>（一般，非集團）</option>'
+      + '<option value="一般廠商"' + (role.orgType === '一般廠商' ? ' selected' : '') + '>一般廠商</option>'
+      + '<option value="集團總部"' + (role.orgType === '集團總部' ? ' selected' : '') + '>集團總部</option>'
+      + '<option value="集團分店"' + (role.orgType === '集團分店' ? ' selected' : '') + '>集團分店</option>'
+    + '</select>'
+    + '<div id="pf-group-wrap" style="display:' + (role.orgType === '集團分店' ? '' : 'none') + '">'
+      + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">所屬集團總部</div>'
+      + '<select id="pf-groupid" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:12px;font-family:inherit">'
+        + '<option value="">（請選擇）</option>' + groupOptions
+      + '</select>'
+    + '</div>'
+    + '<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);margin-bottom:8px;cursor:pointer">'
+      + '<input type="checkbox" id="pf-referral" onchange="pfToggleReferralWrap(this)"' + (hasReferral ? ' checked' : '') + '>'
+      + '開通「客戶轉介來源標記＋推廣獎金」（純推廣行銷型合作，例如美業集團）</label>'
+    + '<div id="pf-referral-wrap" style="display:' + (hasReferral ? '' : 'none') + ';padding-left:22px;margin-bottom:10px">'
+      + '<div style="display:flex;gap:8px">'
+        + '<div style="flex:1"><div style="font-size:11px;color:var(--text2);margin-bottom:3px">首次消費一次性獎金(元)</div><input id="pf-onetime" type="number" value="' + (role.referralOneTime || 0) + '" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:7px 9px;font-size:13px;font-family:inherit"></div>'
+        + '<div style="flex:1"><div style="font-size:11px;color:var(--text2);margin-bottom:3px">持續分潤比例(%)</div><input id="pf-pct" type="number" value="' + (role.referralPercent || 0) + '" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:7px 9px;font-size:13px;font-family:inherit"></div>'
+      + '</div></div>'
+    + '<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);margin-bottom:14px;cursor:pointer">'
+      + '<input type="checkbox" id="pf-selfcollect"' + (hasSelfCollect ? ' checked' : '') + '>'
+      + '開通「合作單位自行收款、回報給元代謝」</label>'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">登入 vendor.html（店家工作台）密碼</div>'
+    + '<input id="pf-password" type="text" placeholder="留空＝不變更目前密碼" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:4px;font-family:inherit">'
+    + '<div style="font-size:10.5px;color:var(--text3);margin-bottom:14px">廠商代碼＝角色名稱本身「' + escH(roleName) + '」，目前' + (role.hasPassword ? '已設定密碼' : '尚未設定密碼') + '</div>'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end">'
+    + '<button onclick="document.getElementById(\'partner-features-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
+    + '<button id="pf-submit" onclick="submitPartnerFeatures()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">儲存</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+}
+function submitPartnerFeatures() {
+  var modal = document.getElementById('partner-features-modal');
+  if (!modal) return;
+  var roleId = modal.getAttribute('data-role-id');
+  var roleName = modal.getAttribute('data-role-name');
+  var orgType = (document.getElementById('pf-orgtype') || {value:''}).value;
+  var groupRoleId = (orgType === '集團分店') ? (document.getElementById('pf-groupid') || {value:''}).value : '';
+  var wantsReferral = (document.getElementById('pf-referral') || {checked:false}).checked;
+  var wantsSelfCollect = (document.getElementById('pf-selfcollect') || {checked:false}).checked;
+  var oneTime = wantsReferral ? (document.getElementById('pf-onetime') || {value:'0'}).value : '0';
+  var pct = wantsReferral ? (document.getElementById('pf-pct') || {value:'0'}).value : '0';
+  var pw = (document.getElementById('pf-password') || {value:''}).value.trim();
+  if (pw && pw.length < 6) { toast('⚠️ 密碼至少6碼'); return; }
   var features = [];
   if (wantsReferral) features.push('referral');
   if (wantsSelfCollect) features.push('selfCollect');
-  // 2026-09-05新增：設定/重設這個角色登入vendor.html（店家工作台）用的查詢密碼——這個密碼欄位之前完全沒有
-  // 任何UI能設定，導致沒有任何合作單位真的能登入自己的工作台；留空＝維持現況不變，不會不小心清空既有密碼
-  var queryPassword = prompt('設定「' + roleName + '」登入 vendor.html（店家工作台）用的查詢密碼？\n（廠商代碼＝角色名稱本身「' + roleName + '」，這裡設定的是搭配的密碼）\n\n留空＝維持現況不變：', '');
-  if (queryPassword === null) return;
-  queryPassword = queryPassword.trim();
   var payload = {
     action: 'setPartnerFeatures', roleId: roleId, orgType: orgType, groupRoleId: groupRoleId,
     features: features.join(','), referralOneTime: oneTime, referralPercent: pct
   };
-  if (queryPassword) payload.queryPassword = queryPassword;
+  // 2026-09-05新增：查詢密碼留空＝不變更目前密碼，不會不小心把既有密碼清空
+  if (pw) payload.queryPassword = pw;
+  var sb = document.getElementById('pf-submit');
+  if (sb) { sb.disabled = true; sb.textContent = '儲存中…'; sb.style.opacity = '.6'; }
   adminAPI(payload, function(d) {
     if (d.status === 'ok') {
+      var m = document.getElementById('partner-features-modal'); if (m) m.remove();
       loadRoles();
       if (wantsReferral && d.referralCode) {
         var link = location.origin + location.pathname.replace(/admin\.html$/, '') + 'index.html?ref=' + d.referralCode;
@@ -3784,6 +3848,7 @@ function openPartnerFeatures(btn) {
         toast('✅ 已設定「' + roleName + '」的合作層級');
       }
     } else {
+      if (sb) { sb.disabled = false; sb.textContent = '儲存'; sb.style.opacity = ''; }
       toast('⚠️ 設定失敗：' + (d.message || '請重試'));
     }
   });
@@ -3936,7 +4001,7 @@ function ruleCollectShares_(rows) {
   return { shares: shares, valid: valid, percentSum: percentSum, fixedSum: fixedSum };
 }
 
-function saveRule() {
+function saveRule(btn) {
   var eventType = document.getElementById('rule-event-type').value;
   var totalPrice = document.getElementById('rule-total-price').value;
   if (!totalPrice) { toast('請輸入服務總價'); return; }
@@ -3971,7 +4036,9 @@ function saveRule() {
     payload.sharesBySource = JSON.stringify({ '自己客人': own.shares });
   }
 
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPI(payload, function(d) {
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if (d.status === 'ok') {
       toast('✅ 分帳規則已儲存！元代謝自動分得剩餘 ' + remainPercent + '%' + (hasOwnVariant ? '（自己客人另外用專屬比例，元代謝分得 ' + ownRemainPercent + '%）' : ''));
       loadRules();
@@ -4220,13 +4287,14 @@ function loadShiftSchedule(){
     }
   });
 }
-function submitShift(){
+function submitShift(btn){
   var secretary = document.getElementById('duty-secretary').value.trim();
   if(!secretary){ toast('請選擇秘書'); return; }
   var date = document.getElementById('duty-date').value;
   if(!date){ toast('請選擇日期'); return; }
   var acc = _dutySecretaryAccounts.find(function(a){ return a.name === secretary; });
   if(!acc || !acc.payType || !acc.payRate){ toast('⚠️ 這位秘書還沒在「帳號管理」設定薪資，請先去設定'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addShift', secretary:secretary, date:date,
     shift:document.getElementById('duty-shift').value,
@@ -4236,6 +4304,7 @@ function submitShift(){
     rate:acc.payRate,
     note:document.getElementById('duty-note').value
   }, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 排班已記錄'+(d.subtotal?'，小計 '+d.subtotal:''));
       ['duty-secretary','duty-shift','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
@@ -4244,15 +4313,17 @@ function submitShift(){
     } else toast('⚠️ 儲存失敗');
   });
 }
-function submitReferral(referrerId, referrerName){
+function submitReferral(referrerId, referrerName, btn){
   var referredId = document.getElementById('cd-ref-referredId').value.trim();
   var referredName = document.getElementById('cd-ref-referredName').value.trim();
   if(!referredName){ toast('請輸入被介紹人姓名'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addReferral', referrerId:referrerId, referrerName:referrerName,
     referredId:referredId, referredName:referredName,
     note:document.getElementById('cd-ref-note').value
   }, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 介紹記錄已儲存');
       ['cd-ref-referredId','cd-ref-referredName','cd-ref-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
@@ -4283,15 +4354,17 @@ function markReferralPaidUI(row, clientId){
     else toast('⚠️ 操作失敗');
   });
 }
-function submitReward(clientId){
+function submitReward(clientId, btn){
   var desc = document.getElementById('cd-rw-desc').value.trim();
   if(!desc){ toast('請輸入獎勵內容說明'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addReward', clientId:clientId,
     rewardType:document.getElementById('cd-rw-type').value,
     desc:desc, trigger:document.getElementById('cd-rw-trigger').value,
     note:document.getElementById('cd-rw-note').value
   }, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 獎勵記錄已儲存');
       ['cd-rw-desc','cd-rw-trigger','cd-rw-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
@@ -4422,25 +4495,27 @@ function renderInternChips(){
   }).join('');
 }
 // 2026-09-05f：移除原本的DOMContentLoaded註冊，改由toggleClientForm()每次開表單時重新呼叫，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
-function submitPayment(){
+function submitPayment(btn){
   var clientId = document.getElementById('fin-pay-client').value;
   if(!clientId){ toast('請先選擇客人'); return; }
   var amount = document.getElementById('fin-pay-amount').value;
   if(!amount){ toast('請輸入金額'); return; }
   if(Number(amount) <= 0){ toast('⚠️ 金額請輸入大於0的數字'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addPayment', clientId:clientId, clientName:clientName(clientId),
     item:document.getElementById('fin-pay-item').value,
     amount:amount, method:document.getElementById('fin-pay-method').value,
     secretary:(CURRENT_USER&&CURRENT_USER.name)||'', note:document.getElementById('fin-pay-note').value
   }, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 付款記錄已儲存');
       ['fin-pay-item','fin-pay-amount','fin-pay-note'].forEach(function(id){ document.getElementById(id).value=''; });
     } else toast('⚠️ 儲存失敗');
   });
 }
-function submitClinicFee(){
+function submitClinicFee(btn){
   var clientId = document.getElementById('fin-clinicfee-client').value;
   if(!clientId){ toast('請先選擇客人'); return; }
   var clinicName = document.getElementById('fin-clinicfee-name').value.trim();
@@ -4455,6 +4530,7 @@ function submitClinicFee(){
       if(!confirm('稅前金額('+preTaxVal+')+稅額('+taxVal+')＝'+expectedTotal+'，跟你填的總額('+total+')對不起來，要繼續送出嗎？')) return;
     }
   }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addClinicFee', clientId:clientId,
     clinicName:clinicName,
@@ -4466,13 +4542,14 @@ function submitClinicFee(){
     invoiceDate:document.getElementById('fin-clinicfee-invdate').value,
     invoiceType:document.getElementById('fin-clinicfee-invtype').value
   }, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 診所費用已記錄');
       ['fin-clinicfee-name','fin-clinicfee-item','fin-clinicfee-pretax','fin-clinicfee-tax','fin-clinicfee-total','fin-clinicfee-invno','fin-clinicfee-invdate'].forEach(function(id){ document.getElementById(id).value=''; });
     } else toast('⚠️ 儲存失敗');
   });
 }
-function submitLabFee(){
+function submitLabFee(btn){
   var clientId = document.getElementById('fin-labfee-client').value;
   if(!clientId){ toast('請先選擇客人'); return; }
   var labName = document.getElementById('fin-labfee-name').value.trim();
@@ -4487,6 +4564,7 @@ function submitLabFee(){
       if(!confirm('稅前金額('+preTaxVal2+')+稅額('+taxVal2+')＝'+expectedTotal2+'，跟你填的總額('+total2+')對不起來，要繼續送出嗎？')) return;
     }
   }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addLabFee', clientId:clientId,
     labName:labName,
@@ -4497,13 +4575,14 @@ function submitLabFee(){
     total:total2,
     invoiceNo:document.getElementById('fin-labfee-invno').value
   }, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 檢測中心費用已記錄');
       ['fin-labfee-name','fin-labfee-item','fin-labfee-invno','fin-labfee-pretax','fin-labfee-tax','fin-labfee-total'].forEach(function(id){ document.getElementById(id).value=''; });
     } else toast('⚠️ 儲存失敗');
   });
 }
-function submitInvoiceRequest(){
+function submitInvoiceRequest(btn){
   var secretary = document.getElementById('fin-inv-secretary').value.trim();
   if(!secretary){ toast('請輸入申請人姓名'); return; }
   var amount = document.getElementById('fin-inv-amount').value;
@@ -4518,6 +4597,7 @@ function submitInvoiceRequest(){
       if(!confirm('稅前金額('+preTaxVal3+')－代扣稅額('+withholdVal3+')＝'+expectedNet3+'，跟你填的實拿金額('+netVal3+')對不起來，要繼續送出嗎？')) return;
     }
   }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addInvoiceRequest', secretary:secretary,
     idType:document.getElementById('fin-inv-idtype').value,
@@ -4528,6 +4608,7 @@ function submitInvoiceRequest(){
     invoiceNo:document.getElementById('fin-inv-invno').value,
     note:document.getElementById('fin-inv-note').value
   }, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 請款申請已送出，單號：'+d.invoiceNo);
       ['fin-inv-secretary','fin-inv-type','fin-inv-amount','fin-inv-pretax','fin-inv-withhold','fin-inv-net','fin-inv-invno','fin-inv-note'].forEach(function(id){ document.getElementById(id).value=''; });
@@ -4569,7 +4650,7 @@ function generateSettlement() {
 }
 
 // ── 建立客人方案表單 ──
-function savePlanForm() {
+function savePlanForm(btn) {
   var clientId = document.getElementById('plan-client').value;
   var planName = document.getElementById('plan-name').value.trim();
   var months = document.getElementById('plan-months').value;
@@ -4581,7 +4662,10 @@ function savePlanForm() {
   if (!fee) { toast('請輸入費用'); return; }
   if (Number(fee) < 0) { toast('⚠️ 費用不能是負數'); return; }
 
-  savePlan(clientId, planName, months, fee, discount);
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
+  savePlan(clientId, planName, months, fee, discount, function(){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
+  });
   document.getElementById('plan-name').value = '';
   document.getElementById('plan-fee').value = '';
   document.getElementById('plan-discount').value = '';
@@ -4728,7 +4812,7 @@ function editQAItem(idx){
   f.classList.add('on');
   if(f.scrollIntoView)f.scrollIntoView({behavior:'smooth'});
 }
-function saveQAItem(){
+function saveQAItem(btn){
   var symptom=document.getElementById('qa-f-symptom').value.trim();
   var question=document.getElementById('qa-f-question').value.trim();
   var answer=document.getElementById('qa-f-answer').value.trim();
@@ -4737,7 +4821,9 @@ function saveQAItem(){
   var params=row?{action:'updateQAItem',row:row,symptom:symptom,question:question,answer:answer}
                :{action:'addQAItem',symptom:symptom,question:question,answer:answer};
   toast('儲存中…');
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost(params, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){toast(row?'✅ 已更新「'+symptom+'」':'✅ 已新增「'+symptom+'」');toggleQAForm(false);loadQAAdmin();}
     else toast('⚠️ 儲存失敗：'+(d.message||'請重試'));
   });
@@ -4794,7 +4880,7 @@ function editFoodItem(idx){
   f.classList.add('on');
   if(f.scrollIntoView)f.scrollIntoView({behavior:'smooth'});
 }
-function saveFoodItem(){
+function saveFoodItem(btn){
   var name=document.getElementById('new-food-name').value.trim();
   if(!name){toast('請輸入食物名稱');return;}
   var row=document.getElementById('food-edit-row').value;
@@ -4808,7 +4894,9 @@ function saveFoodItem(){
   };
   if(row)params.row=row;
   toast('儲存中…');
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost(params, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){
       toast(row?'✅ 已更新「'+name+'」':'✅ 已新增「'+name+'」到外食速查');
       document.getElementById('food-edit-row').value='';
@@ -4866,7 +4954,7 @@ function editFAQItem(idx){
   f.classList.add('on');
   if(f.scrollIntoView)f.scrollIntoView({behavior:'smooth'});
 }
-function saveFAQItem(){
+function saveFAQItem(btn){
   var q=document.getElementById('new-faq-q').value.trim();
   var a=document.getElementById('new-faq-a').value.trim();
   if(!q||!a){toast('請填入問題和回答');return;}
@@ -4878,7 +4966,9 @@ function saveFAQItem(){
   };
   if(row)params.row=row;
   toast('儲存中…');
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost(params, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){
       toast(row?'✅ 已更新 FAQ':'✅ 已新增 FAQ：「'+q+'」');
       document.getElementById('faq-edit-row').value='';
@@ -5336,7 +5426,7 @@ function openClientDetail(id, name){
     + '<option value="75">回補期・每天 75g（5份）</option>'
     + '<option value="90">回補期・每天 90g（6份）</option>'
     + '</select>'
-    + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="saveCarbPlan()">儲存</button>'
+    + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="saveCarbPlan(this)">儲存</button>'
     + '</div>'
     + '<label style="display:flex;align-items:flex-start;gap:6px;margin-top:8px;font-size:11.5px;color:var(--text2);cursor:pointer">'
     + '<input type="checkbox" id="cd-carb-approved" style="margin-top:2px">'
@@ -5365,7 +5455,7 @@ function openClientDetail(id, name){
     + '<input id="cd-ref-referredName" class="form-input" style="font-size:12px" placeholder="被介紹人姓名">'
     + '<input id="cd-ref-note" class="form-input" style="font-size:12px" placeholder="備註（選填）">'
     + '</div>'
-    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReferral(\''+escH(id)+'\',\''+escH(name||'')+'\')">記錄這位客人的介紹</button>'
+    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReferral(\''+escH(id)+'\',\''+escH(name||'')+'\',this)">記錄這位客人的介紹</button>'
     + '<div id="cd-referrals" style="margin-top:8px"></div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
@@ -5376,7 +5466,7 @@ function openClientDetail(id, name){
     + '<input id="cd-rw-trigger" class="form-input" style="font-size:12px" placeholder="觸發原因（選填，例：介紹了3位新客）">'
     + '<input id="cd-rw-note" class="form-input" style="font-size:12px" placeholder="備註（選填）">'
     + '</div>'
-    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReward(\''+escH(id)+'\')">記錄獎勵</button>'
+    + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReward(\''+escH(id)+'\',this)">記錄獎勵</button>'
     + '<div id="cd-rewards" style="margin-top:8px"></div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
@@ -5391,7 +5481,7 @@ function openClientDetail(id, name){
     + '<input id="cd-disc-title" class="form-input" style="font-size:12px" placeholder="討論主題（例：血酮偏高但體重停滯，是否建議回診）">'
     + '<div style="display:grid;grid-template-columns:1fr auto;gap:7px">'
     + '<input id="cd-disc-content" class="form-input" style="font-size:12px" placeholder="說明狀況／你的初步想法（選填）">'
-    + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="addDiscussionUI()">發起討論</button>'
+    + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="addDiscussionUI(this)">發起討論</button>'
     + '</div></div>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">討論串（含歷史結論）</div>'
     + '<div id="cd-disc-list" style="font-size:11px;color:var(--text3)">載入中…</div>'
@@ -6818,12 +6908,14 @@ function startCarbSweetSpotPlan(clientId){
     } else toast('⚠️ ' + ((d && d.message) || '設定失敗'));
   });
 }
-function saveCarbPlan(){
+function saveCarbPlan(btn){
   var sel = document.getElementById('cd-carb-sel');
   if(!sel) return;
   var chk = document.getElementById('cd-carb-approved');
   var approved = !!(chk && chk.checked);
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'setCarbPlan', clientId:_cdCurrentId, plan:sel.value, approved:approved}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status === 'ok') toast(approved ? '✅ 碳水計畫已更新，客人前台馬上看得到' : '✅ 已儲存（尚未核准，客人前台還看不到——勾選「醫師已核准」後再存一次才會顯示）');
     else toast('⚠️ ' + ((d && d.message) || '儲存失敗'));
   });
@@ -7243,12 +7335,14 @@ function loadDiscussions(clientId){
     box.innerHTML = html;
   });
 }
-function addDiscussionUI(){
+function addDiscussionUI(btn){
   var title = (document.getElementById('cd-disc-title').value || '').trim();
   var content = (document.getElementById('cd-disc-content').value || '').trim();
   if(!title){ toast('⚠️ 請先填討論主題'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'addDiscussion', clientId:_cdCurrentId, title:title, content:content,
     secretary:(CURRENT_USER && CURRENT_USER.name) || '秘書'}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status === 'ok'){
       toast('✅ 已發起討論，其他秘書都看得到了');
       document.getElementById('cd-disc-title').value = '';
@@ -7570,7 +7664,7 @@ function openVoiceModal(){
     + '</div>'
     + '<textarea id="vm-content" style="width:100%;border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-size:13px;min-height:90px;resize:vertical;box-sizing:border-box" placeholder="想說什麼都可以，寫具體一點創辦人比較好處理…"></textarea>'
     + '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);margin:8px 0 12px;cursor:pointer"><input type="checkbox" id="vm-anon" style="width:15px;height:15px"> 🙈 匿名送出（不留名字）</label>'
-    + '<button class="btn-g" style="width:100%;padding:11px;font-size:13.5px" onclick="submitVoice()">送出給創辦人</button>'
+    + '<button class="btn-g" style="width:100%;padding:11px;font-size:13.5px" onclick="submitVoice(this)">送出給創辦人</button>'
     + '</div>';
   document.body.appendChild(m);
   window._vmType = '建議';
@@ -7583,13 +7677,15 @@ function vmPickType(t){
     i.style.background = t==='建議' ? '#0F6E56' : ''; i.style.color = t==='建議' ? '#fff' : '';
   }
 }
-function submitVoice(){
+function submitVoice(btn){
   var ta = document.getElementById('vm-content');
   var content = ta ? ta.value.trim() : '';
   if(!content){ toast('⚠️ 先寫點內容再送出'); if(ta) ta.focus(); return; }
   var anon = !!(document.getElementById('vm-anon')||{}).checked;
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'addSecretaryVoice', voiceType: window._vmType||'建議', content: content,
     anonymous: anon ? 1 : 0, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       var vm = document.getElementById('voice-modal'); if(vm) vm.remove();
       toast('💌 已送給創辦人，謝謝你說真話');
@@ -7799,11 +7895,12 @@ function populateReferralDropdown(){
     sel.innerHTML = opts;
   });
 }
-function saveClientForm(){
+function saveClientForm(btn){
   var id=document.getElementById('new-cl-id').value.trim();
   var name=document.getElementById('new-cl-name').value.trim();
   if(!id||!name){toast('請填客人ID和遮蔽姓名');return;}
   var openActive = document.getElementById('new-cl-active').checked;
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'addClient', clientId:id, name:name,
     stage:document.getElementById('new-cl-stage').value.trim(),
     phone:document.getElementById('new-cl-phone').value.trim(),
@@ -7814,6 +7911,7 @@ function saveClientForm(){
     note:document.getElementById('new-cl-note').value.trim(),
     referralRoleId:document.getElementById('new-cl-referral') ? document.getElementById('new-cl-referral').value : '',
     runStatus: openActive ? '陪跑中' : '一般客人'}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){
       toast('✅ 已新增客人「'+name+'」（陪跑狀態：'+(openActive?'已開通':'尚未開通，鎖定中')+'）');
       ['new-cl-id','new-cl-name','new-cl-stage','new-cl-phone','new-cl-note'].forEach(function(x){document.getElementById(x).value='';});
@@ -8145,15 +8243,19 @@ function openTrackForm(){
   f.classList.add('on');
   if(f.scrollIntoView)f.scrollIntoView({behavior:'smooth'});
 }
-function saveTrackForm(){
+function saveTrackForm(btn){
   var cid=document.getElementById('track-client').value;
   if(!cid){toast('請選擇客人');return;}
   var date=document.getElementById('track-date').value;
   if(!date){toast('請選擇下次複驗日期');return;}
+  // 防連點：API回來前先鎖住按鈕，避免同一筆追蹤設定重複寫入好幾筆
+  // （2026-09-06巡檢時發現C001測試客人底下有6筆一模一樣的IRCT複檢提醒，判斷是同一種雙重送出問題，比照submitShiftWish的修法）
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'addTracking', clientId:cid,
     type:document.getElementById('track-type').value,
     cycle:document.getElementById('track-cycle').value,
     remindDate:date}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){
       toast('✅ 追蹤設定已新增');
       document.getElementById('add-track-form').classList.remove('on');
@@ -8376,7 +8478,7 @@ function editProduct(idx){
   f.classList.add('on');
   if(f.scrollIntoView)f.scrollIntoView({behavior:'smooth'});
 }
-function saveProductForm(){
+function saveProductForm(btn){
   var name=document.getElementById('prod-f-name').value.trim();
   if(!name){toast('請填商品名稱');return;}
   var row=document.getElementById('prod-edit-row').value;
@@ -8387,7 +8489,9 @@ function saveProductForm(){
     link:document.getElementById('prod-f-link').value.trim()};
   if(row)params.row=row;
   toast('儲存中…');
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost(params, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){toast(row?'✅ 已更新「'+name+'」':'✅ 已上架「'+name+'」，前台好物頁自動更新');closeProdForm();loadProductsAdmin();}
     else toast('⚠️ 儲存失敗，請重試');
   });
@@ -9361,7 +9465,7 @@ function addOcrRow(n,v,r){
   _ocrItems.push({name:n||'', value:v||'', ref:r||'', checked:true});
   renderOcrRows();
 }
-function saveOcrResults(){
+function saveOcrResults(btn){
   var cid = document.getElementById('upload-client').value;
   if(!cid){ toast('請先選擇客人'); return; }
   var rows=[];
@@ -9374,7 +9478,9 @@ function saveOcrResults(){
     rows.push({name:name, value:val, ref:document.getElementById('ocr-ref-'+i).value.trim()});
   });
   if(rows.length===0){ toast('沒有可寫入的項目（勾選且項目/結果都要有值）'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'saveLabResults', clientId:cid, items:JSON.stringify(rows)}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){
       toast('✅ 已寫入 '+rows.length+' 筆到 💉 功能醫學記錄');
       _ocrItems=[]; renderOcrRows();
@@ -10006,12 +10112,14 @@ function loadAwardAdmin(){
     }).join('');
   });
 }
-function addAward(){
+function addAward(btn){
   var icon=document.getElementById('new-award-icon').value.trim()||'💚';
   var title=document.getElementById('new-award-title').value.trim();
   var desc=document.getElementById('new-award-desc').value.trim();
   if(!title){ toast('請輸入獎項名稱'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'addCustomAward', icon:icon, title:title, desc:desc}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){ toast('✅ 已新增獎項「'+title+'」'); document.getElementById('new-award-title').value=''; document.getElementById('new-award-desc').value=''; loadAwardAdmin(); }
     else toast('新增失敗');
   });
@@ -10037,10 +10145,12 @@ function loadWishAdmin(){
     }).join('');
   });
 }
-function addWish(){
+function addWish(btn){
   var wish=document.getElementById('new-wish').value.trim();
   if(!wish){ toast('請輸入祝福語'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'addBirthdayWish', wish:wish}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){ toast('✅ 已新增祝福語'); document.getElementById('new-wish').value=''; loadWishAdmin(); }
     else toast('新增失敗');
   });
@@ -10079,10 +10189,11 @@ function loadKetoRestAdmin(){
     box.innerHTML=html;
   });
 }
-function addKetoRest(){
+function addKetoRest(btn){
   var region=document.getElementById('kr-region').value.trim();
   var name=document.getElementById('kr-name').value.trim();
   if(!region || !name){ toast('請至少填地區和店名'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({action:'addKetoRestaurant', region:region, name:name,
     address:document.getElementById('kr-address').value.trim(),
     tip:document.getElementById('kr-tip').value.trim(),
@@ -10090,6 +10201,7 @@ function addKetoRest(){
     price:document.getElementById('kr-price').value,
     hours:document.getElementById('kr-hours').value.trim(),
     mapUrl:document.getElementById('kr-mapurl').value.trim()}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){
       toast('✅ 已新增「'+name+'」（'+region+'）');
       ['kr-name','kr-address','kr-tip','kr-hours','kr-mapurl'].forEach(function(id){document.getElementById(id).value='';});
@@ -10222,13 +10334,15 @@ function csClinicSelChange(){
   if (sel.value === '__manual__') { manual.style.display = ''; manual.value = ''; manual.focus(); }
   else { manual.style.display = 'none'; manual.value = ''; }
 }
-function addClinicSlot(){
+function addClinicSlot(btn){
   var sel = document.getElementById('cs-clinic-sel');
   var clinic = (sel && sel.value === '__manual__') ? (document.getElementById('cs-clinic')||{}).value || '' : ((sel||{}).value || '');
   var region = (document.getElementById('cs-region')||{}).value || '';
   var datetime = (document.getElementById('cs-datetime')||{}).value || '';
   if(!clinic || !datetime){ toast('請選擇診所（或手動輸入）並填時間'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPI({action:'addClinicSlot', clinic:clinic, region:region, datetime:datetime}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 已新增時段');
       if(sel) sel.selectedIndex=0;
