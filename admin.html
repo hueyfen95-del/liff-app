@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-05e';
+var MX_BUILD = '2026-09-06a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -700,7 +700,7 @@ var MX_BUILD = '2026-09-05e';
         <tr><td colspan="3" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
       </tbody></table>
     </div></div>
-    <script>document.addEventListener('DOMContentLoaded', function(){ if(document.getElementById('pg-duty')) setTimeout(function(){ if(typeof loadShiftSchedule==='function') loadShiftSchedule(); }, 200); });</script>
+    <!-- 2026-09-05f：移除，改由runPageLoader('duty')統一負責（見下方），避免登入前CURRENT_USER還是null時就呼叫adminAPI，觸發「登入逾時」誤報 -->
     <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-notes"></i>今日交接備註</div><button class="tb-btn" onclick="focusHandover()"><i class="ti ti-plus" style="font-size:14px"></i>新增</button></div><div class="card-body">
       <div id="handover-recent" style="display:flex;flex-direction:column;gap:9px;margin-bottom:10px"></div>
       <div style="margin-bottom:9px">
@@ -727,7 +727,7 @@ var MX_BUILD = '2026-09-05e';
     <textarea id="handover-note" placeholder="其他想交接的事…" style="width:100%;height:65px;resize:none;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit;line-height:1.6"></textarea>
       <button onclick="saveHandoverNote()" style="margin-top:8px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px;font-size:13px;cursor:pointer;width:100%;font-weight:600">儲存交接</button>
     </div></div>
-    <script>document.addEventListener('DOMContentLoaded', function(){ if(document.getElementById('pg-duty')) setTimeout(function(){ if(typeof loadRecentHandovers==='function') loadRecentHandovers(); if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions(); if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags'); if(typeof loadShiftWishSummary==='function') loadShiftWishSummary(); if(typeof loadMyShiftTable==='function') loadMyShiftTable(); if(typeof loadClockStatus==='function') loadClockStatus(); }, 200); });</script>
+    <!-- 2026-09-05f：移除，改由runPageLoader('duty')統一負責（見下方），避免登入前CURRENT_USER還是null時就呼叫adminAPI，觸發「登入逾時」誤報 -->
   </div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-calendar-event"></i>下月排班意願</div></div><div class="card-body">
     <div style="font-size:12px;color:var(--text2);margin-bottom:11px">選擇可輪值的週次（可複選）和偏好時段（單選）</div>
@@ -1493,61 +1493,17 @@ var MX_BUILD = '2026-09-05e';
 
 <!-- ══ 飲食模式對照 ══ -->
 <div class="pg" id="pg-diet-compare">
-  <div style="background:var(--b2);border:1px solid #93C5FD;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--b3);line-height:1.7"><strong>說明：</strong>每位客人在預約 IRCT 複檢時填寫的飲食模式問卷，自動記錄在這裡，方便秘書和醫師分析代謝改善原因。</div>
+  <div style="background:var(--b2);border:1px solid #93C5FD;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--b3);line-height:1.7"><strong>說明：</strong>每位客人在預約 IRCT 複檢時填寫的飲食型態問卷，對照最近兩次檢測的胰島素阻抗嚴重度分數是否真的改善，方便秘書和醫師分析代謝改善原因。(2026-09-06新增：原本是展示用假資料，現在是真實資料)</div>
   <div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-salad"></i>客人飲食模式對照</div><span class="badge b">IRCT 前問卷</span></div>
-    <div class="card-body" style="padding:0 16px">
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)">
-        <div class="cr-av" style="background:var(--g);width:32px;height:32px;font-size:12px">美</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">陳小美・第 2 次 IRCT</div>
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-            <span style="font-size:11px;color:var(--text2);background:var(--bg);border-radius:20px;padding:2px 9px;border:1px solid var(--border)">🍞 混合飲食</span>
-            <span style="font-size:14px;color:var(--g)">→</span>
-            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB;font-weight:600">🥑 粒線體飲食</span>
-            <span class="badge g">大幅改善</span>
-          </div>
-          <div style="background:var(--bg);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6">備註：「大部分時間執行粒線體，週末偶爾外食不忌口」</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border)">
-        <div class="cr-av" style="background:var(--b);width:32px;height:32px;font-size:12px">國</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">張建國・第 2 次 IRCT</div>
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-            <span style="font-size:11px;color:var(--text2);background:var(--bg);border-radius:20px;padding:2px 9px;border:1px solid var(--border)">🍰 高碳水飲食</span>
-            <span style="font-size:14px;color:var(--a)">→</span>
-            <span style="font-size:11px;color:var(--a3);background:var(--a2);border-radius:20px;padding:2px 9px;border:1px solid #FCD34D;font-weight:600">🥗 低碳飲食</span>
-            <span class="badge a">部分改善</span>
-          </div>
-          <div style="background:var(--bg);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6">備註：「工作壓力大，只能做到減少主食，還無法完全斷碳」</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:11px;padding:11px 0">
-        <div class="cr-av" style="background:var(--p);width:32px;height:32px;font-size:12px">華</div>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">黃美華・第 3 次 IRCT</div>
-          <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB">🥑 粒線體飲食</span>
-            <span style="font-size:14px;color:var(--g)">→</span>
-            <span style="font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB;font-weight:600">🥑 粒線體飲食</span>
-            <span class="badge g">持續維持</span>
-          </div>
-          <div style="background:var(--bg);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6">備註：「固酮期已穩定，偶爾外食會用外食速查確認」</div>
-        </div>
-      </div>
+    <div class="card-hd"><div class="card-title"><i class="ti ti-salad"></i>客人飲食模式對照</div><span class="badge b">最近兩次 IRCT</span></div>
+    <div class="card-body" style="padding:0 16px" id="diet-compare-list">
+      <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>
     </div>
   </div>
   <div class="card">
     <div class="card-hd"><div class="card-title"><i class="ti ti-chart-bar"></i>飲食模式分佈（本季）</div></div>
-    <div class="card-body">
-      <div style="display:flex;flex-direction:column;gap:9px">
-        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🥑</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">粒線體飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:56%;background:var(--g);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--g3);width:40px;text-align:right">10 人</div></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🍞</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">混合飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:22%;background:var(--a);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--a3);width:40px;text-align:right">4 人</div></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🥗</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">低碳飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:11%;background:var(--b);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--b3);width:40px;text-align:right">2 人</div></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">🍰</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">高碳水飲食</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:11%;background:var(--r);border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--r3);width:40px;text-align:right">2 人</div></div>
-      </div>
-      <div style="font-size:11px;color:var(--text2);margin-top:11px">共 18 位客人・本季 IRCT 前問卷填寫率：100%</div>
+    <div class="card-body" id="diet-compare-dist">
+      <div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>
     </div>
   </div>
 </div>
@@ -3888,9 +3844,7 @@ function openAddServiceType(){
     else toast('⚠️ 新增失敗');
   });
 }
-document.addEventListener('DOMContentLoaded', function(){
-  if(document.getElementById('rule-event-type')) setTimeout(loadServiceTypes, 300);
-});
+// 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('rules')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
 function ruleOnEventChange() {
   // 切換服務類型時清空已加的角色列（含「自己客人」專屬那組）
   document.getElementById('rule-role-rows').innerHTML = '';
@@ -4181,14 +4135,7 @@ function exportAllTestsCSV(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-document.addEventListener('DOMContentLoaded', function(){
-  if(document.getElementById('pg-all-tests')){
-    setTimeout(function(){
-      if(typeof loadAllClientsIRCTTable==='function') loadAllClientsIRCTTable();
-      if(typeof loadAllClientsInBodyTable==='function') loadAllClientsInBodyTable();
-    }, 300);
-  }
-});
+// 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('all-tests')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
 // 排班時間改成整點選擇，不用選到分鐘，值班頁面載入時就先填好選項
 // 值班頁面載入時，把帳號清單填進秘書下拉選單，選了之後自動帶出後台設定好的薪資(不用秘書自己打)
 var _dutySecretaryAccounts = [];
@@ -4217,9 +4164,7 @@ function loadSecretaryPayInfo(){
   if(!acc || !acc.payType || !acc.payRate){ disp.textContent = acc ? '⚠️ 這位秘書還沒在「帳號管理」設定薪資' : '先選秘書才會帶出薪資設定'; return; }
   disp.innerHTML = '💰 '+escH(acc.payType)+'　$'+escH(acc.payRate);
 }
-document.addEventListener('DOMContentLoaded', function(){
-  if(document.getElementById('pg-duty')) setTimeout(loadDutySecretaryOptions, 100);
-});
+// 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('duty')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
 function fillDutyHourSelects(){
   var startSel = document.getElementById('duty-start');
   var endSel = document.getElementById('duty-end');
@@ -4388,9 +4333,7 @@ function loadFinClinicLabList(){
     dl.innerHTML = names.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
   });
 }
-document.addEventListener('DOMContentLoaded', function(){
-  if(document.getElementById('pg-finance-entry')) setTimeout(loadFinClinicLabList, 300);
-});
+// 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('finance-entry')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
 // ══════ 新增客人表單：方案選項 + 專業/服務/實習秘書 ══════
 var _internSecretaries = [];
 function loadPlanOptions(){
@@ -4478,9 +4421,7 @@ function renderInternChips(){
     return '<span style="background:var(--g2);color:var(--g3);border-radius:14px;padding:3px 10px;font-size:11px;display:flex;align-items:center;gap:5px">'+escH(n)+'<span onclick="removeInternChip(\''+escH(n)+'\')" style="cursor:pointer;font-weight:700">×</span></span>';
   }).join('');
 }
-document.addEventListener('DOMContentLoaded', function(){
-  if(document.getElementById('new-cl-plan')) setTimeout(function(){ loadPlanOptions(); loadSecretaryDropdownsForClient(); }, 300);
-});
+// 2026-09-05f：移除原本的DOMContentLoaded註冊，改由toggleClientForm()每次開表單時重新呼叫，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
 function submitPayment(){
   var clientId = document.getElementById('fin-pay-client').value;
   if(!clientId){ toast('請先選擇客人'); return; }
@@ -4661,9 +4602,7 @@ function loadServiceEventTypeDropdown(){
     else { var defOpt = Array.prototype.find.call(sel.options, function(o){ return o.value === '陪跑服務費'; }); if (defOpt) sel.value = '陪跑服務費'; }
   });
 }
-document.addEventListener('DOMContentLoaded', function(){
-  if (document.getElementById('service-event-type')) setTimeout(loadServiceEventTypeDropdown, 300);
-});
+// 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('remind')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
 function recordServicePayment() {
   var clientId = document.getElementById('service-client').value;
   var amount = document.getElementById('service-amount').value;
@@ -8397,9 +8336,7 @@ function deleteDiscountTierUI(row){
     else toast('⚠️ 刪除失敗');
   });
 }
-document.addEventListener('DOMContentLoaded', function(){
-  if(document.getElementById('pg-shop-mgmt')) setTimeout(loadDiscountList, 300);
-});
+// 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('shop-mgmt')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
 function bulkImportProducts(){
   var text = (document.getElementById('prod-bulk-text').value||'').trim();
   if(!text){ toast('請先貼上要匯入的內容'); return; }
@@ -8661,6 +8598,72 @@ function refreshCurrentPage(){
   runPageLoader(id);
   toast('🔄 已重新載入本頁資料（前台讀取同一份 Google Sheets，隨時同步）');
 }
+// 2026-09-06新增：飲食模式對照頁真實資料串接（原本是假資料展示）——
+// 圖示/顯示文字對照表跟著客人預約時實際會填到的7種飲食型態問卷選項(見index.html bkSelDiet)，
+// 未來若問卷選項增加，未列在這裡的值仍會用預設圖示正常顯示，不會壞掉。
+var DIET_PATTERN_META = {
+  '低碳/生酮': {icon:'🥑'}, '全飯麵+勞動': {icon:'🍚'}, '均衡原型': {icon:'🥗'},
+  '全飯麵+久坐': {icon:'🍞'}, '素食為主': {icon:'🥦'}, '甜食零食頻繁': {icon:'🍰'}, '交際油糖混合': {icon:'🍖'}
+};
+var DIET_LABEL_COLOR = {'大幅改善':'g', '部分改善':'a', '持續維持':'b', '需留意':'r'};
+function dietPatternChip(pattern, strong){
+  var meta = DIET_PATTERN_META[pattern] || {icon:'🍽️'};
+  var base = strong
+    ? 'font-size:11px;color:var(--g3);background:var(--g2);border-radius:20px;padding:2px 9px;border:1px solid #9FE1CB;font-weight:600'
+    : 'font-size:11px;color:var(--text2);background:var(--bg);border-radius:20px;padding:2px 9px;border:1px solid var(--border)';
+  return '<span style="'+base+'">'+meta.icon+' '+escH(pattern)+'</span>';
+}
+function loadDietPatternCompare(){
+  var listBox = document.getElementById('diet-compare-list');
+  var distBox = document.getElementById('diet-compare-dist');
+  if(listBox) listBox.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>';
+  if(distBox) distBox.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>';
+  adminAPI({action:'getDietPatternCompare'}, function(d){
+    if(!d || d.status !== 'ok'){
+      if(listBox) listBox.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入失敗，請重新整理</div>';
+      if(distBox) distBox.innerHTML = '';
+      return;
+    }
+    var compares = d.compares || [];
+    if(listBox){
+      var html = '';
+      compares.forEach(function(c, idx){
+        var color = DIET_LABEL_COLOR[c.label] || 'b';
+        var lastRow = idx === compares.length - 1;
+        html += '<div style="display:flex;align-items:center;gap:11px;padding:11px 0;'+(lastRow?'':'border-bottom:1px solid var(--border)')+'">'
+          + '<div class="cr-av" style="background:var(--'+color+');width:32px;height:32px;font-size:12px">'+escH(String(c.name||c.clientId).slice(-1))+'</div>'
+          + '<div style="flex:1">'
+          + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">'+escH(c.name)+'・第 '+escH(c.currentCount||'?')+' 次 IRCT（'+escH(c.currentDate)+'）</div>'
+          + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap">'
+          + dietPatternChip(c.previousDiet, false)
+          + '<span style="font-size:14px;color:var(--'+color+')">→</span>'
+          + dietPatternChip(c.currentDiet, true)
+          + (c.label ? '<span class="badge '+color+'">'+escH(c.label)+'</span>' : '')
+          + '</div>'
+          + '<div style="background:var(--bg);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--text2);line-height:1.6">上次檢測（第'+escH(c.previousCount||'?')+'次，'+escH(c.previousDate)+'）：'+escH(c.previousClassification||'-')
+            + (c.previousSeverity!=null ? '（嚴重度 '+c.previousSeverity+'）':'') + '　→　這次：'+escH(c.currentClassification||'-') + (c.currentSeverity!=null ? '（嚴重度 '+c.currentSeverity+'）':'')
+            + (c.currentNote ? '<br>備註：「'+escH(c.currentNote)+'」' : '') + '</div>'
+          + '</div></div>';
+      });
+      if(!html) html = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">目前還沒有客人同時符合「至少兩次IRCT檢測」且「兩次都有填飲食型態問卷」，之後資料累積夠了會自動顯示</div>';
+      listBox.innerHTML = html;
+    }
+    if(distBox){
+      var dist = d.distribution || {total:0, items:[]};
+      var colors = ['g','a','b','r','p'];
+      var html2 = '<div style="display:flex;flex-direction:column;gap:9px">';
+      (dist.items||[]).forEach(function(it, i){
+        var meta = DIET_PATTERN_META[it.pattern] || {icon:'🍽️'};
+        var c = colors[i % colors.length];
+        html2 += '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:14px">'+meta.icon+'</span><div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">'+escH(it.pattern)+'</div><div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;border:1px solid var(--border)"><div style="height:100%;width:'+it.pct+'%;background:var(--'+c+');border-radius:5px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--'+c+'3);width:40px;text-align:right">'+it.count+' 人</div></div>';
+      });
+      html2 += '</div>';
+      if(!dist.items || !dist.items.length) html2 += '<div style="text-align:center;padding:12px;color:var(--text3);font-size:12px">本季還沒有客人填寫飲食型態問卷</div>';
+      html2 += '<div style="font-size:11px;color:var(--text2);margin-top:11px">共 '+dist.total+' 位客人本季填寫了飲食型態問卷</div>';
+      distBox.innerHTML = html2;
+    }
+  });
+}
 function runPageLoader(id){
   if (id === 'dashboard') loadDashboard();
   if (id === 'clients') {
@@ -8722,6 +8725,7 @@ function runPageLoader(id){
     // 2026-09-05e新增：這頁客人下拉之前沒有wiring；本輪也剛開放醫師角色可看這頁，一併修復
     if(typeof loadClientsList==='function') loadClientsList(function(){});
   }
+  if (id === 'diet-compare' && typeof loadDietPatternCompare === 'function') loadDietPatternCompare();
 }
 
 // 2026-08-16：側邊欄「警示看板」「複檢提醒」旁邊的數字原本是寫死的假數字，跟頁面實際內容對不上；
@@ -10981,6 +10985,17 @@ var ROLE_PAGES = {
   // 方便醫師橫向比對數據、勾選加測建議；後端這些action本來就只檢查有無登入，不限定角色，這裡純粹是前端頁面顯示範圍的調整
   '醫師': ['dashboard','clients','all-tests','lab-integrate','extra-test','irct-mgmt','irt-models']
 };
+// 2026-09-05f 新增：每個角色登入後，左上角（側欄logo下方使用者資訊那一行）顯示一段簡短說明，
+// 讓剛登入、還不熟悉系統的人一眼知道自己這個身分大概能做什麼、該從哪裡開始，不用自己摸索側邊欄。
+// 純顯示用的說明文字，不影響任何實際權限判斷（權限一律看ROLE_PAGES／後端）。
+var ROLE_DESC = {
+  '管理人': '全系統管理者，可使用全部功能與帳號設定',
+  '秘書': '客人日常照護：排班交接、每日記錄、提醒與客人互動',
+  '行政': '後勤與內容管理：排班、庫存、好物與診所時段、衛教內容維護',
+  '會計': '帳務核對查看：儲值消費、月結算、分帳名單與規則（僅查看，異動請找財務主管）',
+  '財務主管': '財務與分帳管理：合作單位設定、分帳規則、月結算',
+  '醫師': '臨床診斷：客戶資料、IRCT檢測整合、診斷交辦秘書'
+};
 // 舊帳號顯示「老闆」時，畫面一律改顯示「管理人」（權限判斷不受影響）
 function roleDisplayName(r){ return r === '老闆' ? '管理人' : r; }
 // 2026-08-16 新增：判斷目前登入的帳號是不是「財務主管」層級（設定重要資訊），還是只是「會計」層級（核對日常帳務）。
@@ -11073,6 +11088,15 @@ function applyPermissions(){
       +'<span onclick="changeMyPasswordUI()" style="cursor:pointer;text-decoration:underline;margin-left:6px">改密碼</span>'
       +'<span onclick="doLogout()" style="cursor:pointer;text-decoration:underline;margin-left:6px">登出</span>';
     logo.appendChild(ui);
+    // 2026-09-05f新增：角色簡介，讓剛登入的人知道這個身分大概能做什麼
+    var roleDescText = ROLE_DESC[roleDisplayName(CURRENT_USER.role)];
+    if (roleDescText) {
+      var rd = document.createElement('div');
+      rd.id = 'role-desc-note';
+      rd.style.cssText = 'font-size:10.5px;color:rgba(255,255,255,.65);margin-top:4px;line-height:1.5';
+      rd.textContent = 'ℹ️ ' + roleDescText;
+      logo.appendChild(rd);
+    }
   }
   // 2026-08-16 新增：會計＝核對日常帳務，可以「看」分帳規則／角色名單頁面，但不該看到新增/編輯/刪除
   // 這類設定型按鈕（點了也會被後端擋下來，畫面上乾脆先不放，避免會計以為卡bug）。財務主管／管理人／
