@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-06d';
+var MX_BUILD = '2026-09-08c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1386,25 +1386,27 @@ var MX_BUILD = '2026-09-06d';
       <div id="lab-import-preview"></div>
     </div>
   </div>
-  <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:#085041;line-height:1.7"><strong>✅ 已串接：</strong>修改下方數值並按「儲存並同步到前台」，現在會真正影響系統判斷血糖/血脂/胰島素/體組成「正常/需留意」的邏輯，客人的 IRCT 報告會即時反映新標準。<strong>唯一不受影響的是「胰島素阻抗評分」（輕度/中度/重度阻抗的分類）</strong>——那是另一套獨立的機密加權公式，這裡的調整不會動到那個計分邏輯，避免影響其穩定性。</div>
+  <div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:#085041;line-height:1.7"><strong>✅ 已串接：</strong>修改下方數值並按「儲存並同步到前台」，現在會真正影響系統判斷血糖/血脂/胰島素/體組成「正常/需留意」的邏輯，客人的 IRCT 報告會即時反映新標準。<strong>唯一不受影響的是「胰島素阻抗評分」（輕度/中度/重度阻抗的分類）</strong>——那是另一套獨立的機密加權公式，這裡的調整不會動到那個計分邏輯，避免影響其穩定性。這裡的數字也是「醫師診斷與交辦」卡片裡系統建議目標值的計算來源（客戶管理→點進客人→醫師診斷與交辦區塊），數字不合理會直接影響那邊算出來的建議。</div>
   <div style="background:var(--b2);border:1px solid #93C5FD;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--b3);line-height:1.7"><strong>說明：</strong>修改下方數值後，前台客人 IRCT 報告頁面的「最佳健康」與「現行正常」區間會同步更新。請修改後點「儲存並同步」。</div>
+  <div style="background:#FFF8E6;border:1px solid #F0DEA0;border-radius:11px;padding:11px 14px;margin-bottom:14px;font-size:12px;color:#7A5A00;line-height:1.7"><strong>⚠️ 這些數字的來源，請醫師務必自行判斷：</strong>下面每個欄位旁邊灰字是這個數字當初設定時的參考依據——是2026-09-04做這個功能時，依常見的代謝健康／功能醫學「最佳（非只是正常）」概念抓的概略門檻，<b>不是逐項對照特定文獻算出來的精確數字</b>，也不是根據任何一位真實客人的個案反推的。這裡本來就設計成醫師可以直接改，覺得不合理的數字請直接調整後按「儲存並同步」，之後所有客人報告與建議目標值都會用新數字。<b>2026-09-08起醫師角色可以直接在這裡存檔</b>（跟創始人/老闆一樣），但只要真的改動了某一項數值，畫面會在那一列下方跳出「調整依據」欄位，需要先填寫臨床判斷依據才能存檔——如果覺得沒有現成的門檻適合，就直接改成你認為對的數字，再把理由寫在依據欄位，等於是醫院病歷系統裡「有選項就選，沒有就留白讓醫師自己寫」的做法；填過的依據，之後任何人打開這頁都看得到是誰、什麼時候、為什麼調整的。</div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-droplet"></i>血糖胰島素・最佳健康區間</div></div><div class="card-body" style="padding:0 16px">
-    <div class="irct-edit-row"><div><div class="ier-name">空腹血糖</div><div class="ier-sub">AC Blood Glucose mg/dL</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="glucoseAC.therapeutic.max" value="87" type="number"><div class="ier-unit">mg/dL</div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">空腹胰島素</div><div class="ier-sub">AC Insulin IU/ml</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="insulinAC.therapeutic.max" value="6" type="number"><div class="ier-unit">IU/ml</div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">HOMA-IR 指數</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="homaIR.therapeutic.max" value="2.0" type="number" step="0.1"><div class="ier-unit"></div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">空腹血酮</div><div class="ier-sub">AC β-Ketone mmol/L</div></div><span style="font-size:12px;color:var(--text2)">範圍</span><input class="ier-inp" data-key="ketone.therapeutic.min" value="0.5" type="number" step="0.1" style="width:70px"><span style="font-size:12px;color:var(--text2)">–</span><input class="ier-inp" data-key="ketone.therapeutic.max" value="3.0" type="number" step="0.1" style="width:70px"><div class="ier-unit">mmol</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">空腹血糖</div><div class="ier-sub">AC Blood Glucose mg/dL</div><div class="ier-rationale">參考依據：低於學會「正常空腹血糖&lt;100」門檻，抓在多數功能醫學文獻認為的最佳區間上緣</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="glucoseAC.therapeutic.max" value="87" type="number"><div class="ier-unit">mg/dL</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">空腹胰島素</div><div class="ier-sub">AC Insulin IU/ml</div><div class="ier-rationale">參考依據：一般檢驗正常上限多在20-25，但胰島素敏感度佳者常落在個位數，這裡抓較嚴格的「最佳」門檻而非「正常」門檻</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="insulinAC.therapeutic.max" value="6" type="number"><div class="ier-unit">IU/ml</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">動態胰島素總和</div><div class="ier-sub">飯後1+2+3小時胰島素相加，療程地圖／五階段效益驗證用</div><div class="ier-rationale">參考依據：管理人（VV）2026-09-07直接提供的門檻，不是逐項對照文獻精算的數字，可自行調整。2026-09-08更新：這項不是單獨用這個上限判斷——斷碳的客人做糖水測試本來就會暫時性偏高，所以系統會先看這次的ESI是否已達標，ESI已達標時胰島素總和一律視為維持現況，只有ESI也還沒達標時這個上限才會被拿來判定「需要加強」</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="insulinSum3.therapeutic.max" value="100" type="number"><div class="ier-unit">IU/ml</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">HOMA-IR 指數</div><div class="ier-rationale">算式：空腹血糖(mg/dL)×空腹胰島素(uIU/mL)÷405。參考依據：常見文獻把&lt;1.0視為理想、1.0-2.0視為尚可，這裡抓2.0當上限</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="homaIR.therapeutic.max" value="2.0" type="number" step="0.1"><div class="ier-unit"></div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">空腹血酮</div><div class="ier-sub">AC β-Ketone mmol/L</div><div class="ier-rationale">參考依據：一般認為的「營養性生酮」常見血酮濃度範圍（跟糖尿病酮酸中毒的病理性高血酮是不同機轉，那通常是合併高血糖且數值遠高於此）</div></div><span style="font-size:12px;color:var(--text2)">範圍</span><input class="ier-inp" data-key="ketone.therapeutic.min" value="0.5" type="number" step="0.1" style="width:70px"><span style="font-size:12px;color:var(--text2)">–</span><input class="ier-inp" data-key="ketone.therapeutic.max" value="3.0" type="number" step="0.1" style="width:70px"><div class="ier-unit">mmol</div></div>
   </div></div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-heart"></i>血液生化・最佳健康區間</div></div><div class="card-body" style="padding:0 16px">
-    <div class="irct-edit-row"><div><div class="ier-name">三酸甘油脂 TG</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="tg.therapeutic.max" value="80" type="number"><div class="ier-unit">mg/dL</div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">HDL 高密度膽固醇（女）</div></div><span style="font-size:12px;color:var(--text2)">下限</span><input class="ier-inp" data-key="hdl.therapeutic.femaleMin" value="60" type="number"><div class="ier-unit">mg/dL</div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">ESI 指數（TG/HDL）</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="esi.therapeutic.max" value="1.3" type="number" step="0.1"><div class="ier-unit"></div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">HbA1c 糖化血色素</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="hba1c.therapeutic.max" value="5.8" type="number" step="0.1"><div class="ier-unit">%</div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">GPT（肝臟酵素）</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="gpt.therapeutic.max" value="25" type="number"><div class="ier-unit">U/L</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">三酸甘油脂 TG</div><div class="ier-rationale">參考依據：低於一般檢驗正常值150，抓在文獻上認為代謝較佳族群常見的門檻</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="tg.therapeutic.max" value="80" type="number"><div class="ier-unit">mg/dL</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">HDL 高密度膽固醇（女）</div><div class="ier-rationale">參考依據：高於一般正常下限50，抓在心血管保護效果較好的範圍</div></div><span style="font-size:12px;color:var(--text2)">下限</span><input class="ier-inp" data-key="hdl.therapeutic.femaleMin" value="60" type="number"><div class="ier-unit">mg/dL</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">ESI 指數（TG/HDL）</div><div class="ier-rationale">算式：TG÷HDL。參考依據：這個比值是常用的胰島素阻抗風險指標，比值越低代表風險越低，這裡抓1.3當門檻</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="esi.therapeutic.max" value="1.3" type="number" step="0.1"><div class="ier-unit"></div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">HbA1c 糖化血色素</div><div class="ier-rationale">參考依據：學會定義的糖尿病前期門檻是5.7%，這裡抓5.8作為保守的「最佳」上限（貼近但略高於前期門檻）</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="hba1c.therapeutic.max" value="5.8" type="number" step="0.1"><div class="ier-unit">%</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">GPT（肝臟酵素）</div><div class="ier-rationale">參考依據：低於一般檢驗正常上限40，抓在文獻上認為肝臟代謝較佳的門檻</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="gpt.therapeutic.max" value="25" type="number"><div class="ier-unit">U/L</div></div>
   </div></div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-body"></i>體組成・最佳健康區間</div></div><div class="card-body" style="padding:0 16px">
-    <div class="irct-edit-row"><div><div class="ier-name">體脂肪率（女性）</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="bodyFatPct.therapeutic.femaleMax" value="25" type="number"><div class="ier-unit">%</div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">腰圍（女性）</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="waist.therapeutic.femaleMax" value="74" type="number"><div class="ier-unit">cm</div></div>
-    <div class="irct-edit-row"><div><div class="ier-name">內臟脂肪指數</div></div><span style="font-size:12px;color:var(--text2)">範圍</span><input class="ier-inp" data-key="visceralFat.therapeutic.min" value="6" type="number" style="width:70px"><span style="font-size:12px;color:var(--text2)">–</span><input class="ier-inp" data-key="visceralFat.therapeutic.max" value="8" type="number" style="width:70px"><div class="ier-unit"></div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">體脂肪率（女性）</div><div class="ier-rationale">參考依據：一般認為健康體脂率的上限區間</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="bodyFatPct.therapeutic.femaleMax" value="25" type="number"><div class="ier-unit">%</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">腰圍（女性）</div><div class="ier-rationale">參考依據：低於衛福部建議的80cm切點，抓更保守的最佳值</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="waist.therapeutic.femaleMax" value="74" type="number"><div class="ier-unit">cm</div></div>
+    <div class="irct-edit-row"><div><div class="ier-name">內臟脂肪指數</div><div class="ier-rationale">參考依據：多數體組成儀器（如InBody）以1-9列為正常範圍，這裡抓中段偏低的6-8當作最佳</div></div><span style="font-size:12px;color:var(--text2)">範圍</span><input class="ier-inp" data-key="visceralFat.therapeutic.min" value="6" type="number" style="width:70px"><span style="font-size:12px;color:var(--text2)">–</span><input class="ier-inp" data-key="visceralFat.therapeutic.max" value="8" type="number" style="width:70px"><div class="ier-unit"></div></div>
   </div></div>
   <div style="display:flex;gap:9px;margin-top:3px">
     <button onclick="saveIRCTRanges(true)" style="flex:1;border:1px solid var(--border2);border-radius:9px;padding:10px;font-size:12px;cursor:pointer;background:none;color:var(--text2);font-weight:500">儲存草稿</button>
@@ -5618,7 +5620,7 @@ function openClientDetail(id, name){
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border)">'+escH(r.waist||'–')+'</td>'
           + '<td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(r.feeling||'')+'</td>'
           + '<td style="padding:7px;border-bottom:1px solid var(--border);font-size:11px">'
-          + (r.meal?'<span style="background:var(--mint);border-radius:5px;padding:1px 5px;font-weight:700;margin-right:4px">'+escH(r.meal)+'</span>':'')
+          + (r.meal?'<span style="background:'+(String(r.meal).indexOf('需要另外補充點心')>=0?'#FDE9CE':'var(--mint)')+';color:'+(String(r.meal).indexOf('需要另外補充點心')>=0?'#92400E':'inherit')+';border-radius:5px;padding:1px 5px;font-weight:700;margin-right:4px">'+(String(r.meal).indexOf('需要另外補充點心')>=0?'🍪 ':'')+escH(r.meal)+'</span>':'')
           + (r.oil?'🫒'+escH(r.oil)+' ':'')
           + (r.protein?'🍖'+escH(r.protein)+' ':'')
           + (r.starch?(r.starch==='沒有'?'🍚沒有':'<span style="color:var(--r3);font-weight:700">🍚'+escH(r.starch)+'</span>'):'')
@@ -6056,10 +6058,15 @@ function loadMealRecordsAdmin(id){
       if(it.oil) judge.push('🫒 油脂' + it.oil);
       if(it.protein) judge.push('🍖 蛋白質' + it.protein);
       if(it.starch) judge.push('🍚 碳水' + it.starch);
+      // 2026-09-08新增：客人若標記「這餐吃完還是會餓，需要另外補充點心」，這裡特別用醒目的橘色標籤
+      // 突顯出來（不是跟其他餐別備註一樣的純文字），方便秘書判斷這位客人目前的份量／熱量攝取是否足夠
+      var isSnackFlag = it.meal && String(it.meal).indexOf('需要另外補充點心') >= 0;
       var h = '<div style="padding:8px 0;border-bottom:1px dashed var(--border)">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
         + '<span style="font-size:11px;color:var(--text3)">' + escH(it.time) + '</span>'
-        + (it.meal ? '<b style="font-size:12px">' + escH(it.meal) + '</b>' : '')
+        + (it.meal ? (isSnackFlag
+            ? '<span style="font-size:11.5px;font-weight:700;color:#92400E;background:#FDE9CE;border-radius:6px;padding:2px 8px">🍪 ' + escH(it.meal) + '</span>'
+            : '<b style="font-size:12px">' + escH(it.meal) + '</b>') : '')
         + (judge.length ? '<span style="font-size:11.5px;color:var(--text2)">' + judge.join('・') + '</span>' : '')
         + '</div>';
       if(it.photoUrl){
@@ -7185,7 +7192,10 @@ function loadEffectivenessReportUI(clientId){
           var icon = ind.met===true ? '✅' : (ind.met===false ? '⚠️' : '');
           var valTxt = (ind.value===null||ind.value===undefined) ? '—' : (ind.value+(ind.unit||''));
           var expTxt = (ind.expected===null||ind.expected===undefined) ? '' : ('（預期'+ind.expected+(ind.unit||'')+'）');
-          return '<div style="font-size:10.5px;color:var(--text2);display:flex;justify-content:space-between;gap:4px;padding:1px 0"><span>'+icon+' '+escH(ind.name)+'</span><span style="text-align:right;white-space:nowrap">'+escH(valTxt)+escH(expTxt)+'</span></div>';
+          // 2026-09-08新增：胰島素總和跟ESI合併判斷時後端會附上note說明，滑鼠移上去顯示原因，
+          // 避免醫師/秘書看到數字偏高卻顯示✅而困惑
+          var titleAttr = ind.note ? ' title="'+escH(ind.note)+'"' : '';
+          return '<div'+titleAttr+' style="font-size:10.5px;color:var(--text2);display:flex;justify-content:space-between;gap:4px;padding:1px 0"><span>'+icon+' '+escH(ind.name)+(ind.note?' 💬':'')+'</span><span style="text-align:right;white-space:nowrap">'+escH(valTxt)+escH(expTxt)+'</span></div>';
         }).join('');
       }
       return '<div style="background:'+boxBg+';border:1px solid var(--border);border-radius:8px;padding:8px 9px">' + head + summary + rows + '</div>';
@@ -7212,7 +7222,9 @@ function loadTreatmentRoadmapUI(clientId){
         } else {
           valTxt = (ind.expected===null||ind.expected===undefined) ? '—' : (ind.expected+(ind.unit||''));
         }
-        return '<div style="font-size:10.5px;color:var(--text2);display:flex;justify-content:space-between;gap:4px;padding:1px 0"><span>'+escH(ind.name)+'</span><span style="text-align:right;white-space:nowrap">'+escH(valTxt)+'</span></div>';
+        // 2026-09-08新增：胰島素總和跟ESI合併判斷時後端會附上note說明，滑鼠移上去顯示原因
+        var titleAttr = ind.note ? ' title="'+escH(ind.note)+'"' : '';
+        return '<div'+titleAttr+' style="font-size:10.5px;color:var(--text2);display:flex;justify-content:space-between;gap:4px;padding:1px 0"><span>'+escH(ind.name)+(ind.note?' 💬':'')+'</span><span style="text-align:right;white-space:nowrap">'+escH(valTxt)+'</span></div>';
       }).join('');
       return '<div style="background:'+(isBaseline?'#EFF6FF':'#fff')+';border:1px solid var(--border);border-radius:8px;padding:8px 9px">' + head + rows + '</div>';
     }).join('') + '</div>';
@@ -8616,6 +8628,51 @@ function confirmLabImport(){
     } else toast('⚠️ 匯入失敗，請重試');
   });
 }
+// 2026-09-08新增：開放「醫師」角色調整IRCT區間管理的數值後，管理人要求要有「跟醫院病歷系統一樣」的
+// 把關——系統先給建議（目前設定的數值），醫師如果要改，就要留白讓他自己填調整依據，不能默默改掉。
+// 這裡用JS動態在每一列後面插入一個「調整依據」區塊（不改動原本13列寫死的HTML），用data-orig記錄
+// 載入時的數值，只要醫師把數字改到跟data-orig不同，就顯示依據欄位並要求填寫才能儲存；創始人/老闆
+// 不受這層限制，維持原本可以直接改的彈性。任何人都看得到過去已經留下的調整依據紀錄。
+function ensureIRCTNoteBlocks_(){
+  document.querySelectorAll('#pg-irct-mgmt .irct-edit-row').forEach(function(row){
+    if(row.dataset.noteReady) return;
+    var firstInp = row.querySelector('.ier-inp');
+    if(!firstInp) return;
+    var fieldKey = (firstInp.getAttribute('data-key')||'').split('.')[0];
+    if(!fieldKey) return;
+    row.dataset.fieldKey = fieldKey;
+    row.dataset.noteReady = '1';
+    var block = document.createElement('div');
+    block.className = 'ier-note-block';
+    block.style.cssText = 'margin:-3px 0 11px;padding:8px 10px;background:var(--bg);border-radius:8px;border:1px dashed var(--border2);display:none';
+    block.innerHTML = '<div class="ier-note-history" style="font-size:10.5px;color:var(--text3);margin-bottom:4px;display:none"></div>'
+      + '<textarea class="ier-note-input" placeholder="這項數值有調整，請填寫臨床依據（例如：這類客群的情況、參考文獻、臨床判斷…）" style="width:100%;height:44px;resize:none;font-size:11.5px;border:1px solid var(--border2);border-radius:7px;padding:6px 9px;outline:none;background:var(--card);font-family:inherit;box-sizing:border-box;display:none"></textarea>';
+    row.parentNode.insertBefore(block, row.nextSibling);
+    row.querySelectorAll('.ier-inp').forEach(function(inp){
+      inp.setAttribute('data-orig', inp.value);
+      inp.addEventListener('input', function(){ refreshIRCTNoteVisibility_(row); });
+    });
+  });
+}
+function irctRowChanged_(row){
+  var changed = false;
+  row.querySelectorAll('.ier-inp').forEach(function(inp){
+    if(String(inp.value) !== String(inp.getAttribute('data-orig')||'')) changed = true;
+  });
+  return changed;
+}
+function refreshIRCTNoteVisibility_(row){
+  var block = row.nextElementSibling;
+  if(!block || !block.classList || !block.classList.contains('ier-note-block')) return;
+  var isDoctor = CURRENT_USER && CURRENT_USER.role === '醫師';
+  var showInput = isDoctor && irctRowChanged_(row);
+  var ta = block.querySelector('.ier-note-input');
+  var hist = block.querySelector('.ier-note-history');
+  if(ta) ta.style.display = showInput ? '' : 'none';
+  var histVisible = !!(hist && hist.textContent.trim() !== '');
+  if(hist) hist.style.display = histVisible ? '' : 'none';
+  block.style.display = (showInput || histVisible) ? '' : 'none';
+}
 function saveIRCTRanges(isDraft){
   var overrides = {};
   document.querySelectorAll('#pg-irct-mgmt .ier-inp').forEach(function(el){
@@ -8623,9 +8680,32 @@ function saveIRCTRanges(isDraft){
     if(!key || el.value === '') return;
     overrides[key] = Number(el.value);
   });
-  adminAPIPost({action:'setIRCTStandardsOverride', overrides:JSON.stringify(overrides), isDraft:!!isDraft}, function(d){
-    if(d.status==='ok') toast(isDraft ? '✅ 已儲存草稿（⚙️ 全域設定）' : '✅ IRCT 區間已儲存，並已真正生效到判斷邏輯');
-    else toast('⚠️ 儲存失敗，請重試');
+  var isDoctor = CURRENT_USER && CURRENT_USER.role === '醫師';
+  var notes = {};
+  var blockedRow = null;
+  document.querySelectorAll('#pg-irct-mgmt .irct-edit-row').forEach(function(row){
+    if(blockedRow) return;
+    var fieldKey = row.dataset.fieldKey;
+    if(!fieldKey) return;
+    var changed = irctRowChanged_(row);
+    var block = row.nextElementSibling;
+    var ta = (block && block.classList && block.classList.contains('ier-note-block')) ? block.querySelector('.ier-note-input') : null;
+    if(changed && isDoctor){
+      var noteText = ta ? ta.value.trim() : '';
+      if(!noteText){ blockedRow = row; return; }
+      notes[fieldKey] = noteText;
+    } else if(changed && ta && ta.value.trim()){
+      notes[fieldKey] = ta.value.trim(); // 創始人/老闆不強制，但順手寫了也一併存起來
+    }
+  });
+  if(blockedRow){
+    var nameEl = blockedRow.querySelector('.ier-name');
+    toast('⚠️ 「'+(nameEl?nameEl.textContent:'這項')+'」有調整，請先在下方填寫調整依據再儲存');
+    return;
+  }
+  adminAPIPost({action:'setIRCTStandardsOverride', overrides:JSON.stringify(overrides), notes:JSON.stringify(notes), isDraft:!!isDraft, editorName:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(d.status==='ok'){ toast(isDraft ? '✅ 已儲存草稿（⚙️ 全域設定）' : '✅ IRCT 區間已儲存，並已真正生效到判斷邏輯'); loadIRCTRangesOverride(); }
+    else toast('⚠️ '+(d.message||'儲存失敗，請重試'));
   });
 }
 function loadIRCTRangesOverride(){
@@ -8634,6 +8714,20 @@ function loadIRCTRangesOverride(){
     document.querySelectorAll('#pg-irct-mgmt .ier-inp').forEach(function(el){
       var key = el.getAttribute('data-key');
       if(key && d.overrides[key] !== undefined) el.value = d.overrides[key];
+    });
+    ensureIRCTNoteBlocks_();
+    var notes = d.notes || {};
+    document.querySelectorAll('#pg-irct-mgmt .irct-edit-row').forEach(function(row){
+      row.querySelectorAll('.ier-inp').forEach(function(inp){ inp.setAttribute('data-orig', inp.value); });
+      var fieldKey = row.dataset.fieldKey;
+      var block = row.nextElementSibling;
+      if(!block || !block.classList || !block.classList.contains('ier-note-block')) return;
+      var hist = block.querySelector('.ier-note-history');
+      var ta = block.querySelector('.ier-note-input');
+      var n = fieldKey && notes[fieldKey];
+      if(hist) hist.innerHTML = n ? ('🩺 <b>'+escH(n.by||'')+'</b>　'+escH(n.at||'')+'　調整依據：'+escH(n.note||'')) : '';
+      if(ta) ta.value = '';
+      refreshIRCTNoteVisibility_(row);
     });
   });
 }
@@ -9494,11 +9588,9 @@ function saveOcrResults(btn){
 function copyQAAnswer(idx){
   var it = _qaAdminData[idx]; if(!it) return;
   var text = it.answer || '';
-  var ta = document.createElement('textarea');
-  ta.value = text; document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); toast('✅ 已複製回覆，貼到 LINE 後記得加上自己的話'); }
-  catch(e){ toast('⚠️ 複製失敗，請手動選取'); }
-  document.body.removeChild(ta);
+  // 2026-09-07修復：跟copyAward/copyBirthdayWish同一個問題——原本用execCommand直接複製、只跳toast沒有預覽卡，
+  // 統一改用共用的copyText()，跟其他複製功能一樣顯示複製的完整內容
+  copyText(text, 'QA回覆');
 }
 
 // ══════ 用藥記錄（時間軸式，追蹤減藥/停藥時間）══════
@@ -10059,9 +10151,9 @@ function copyBirthdayWish(bi, name){
   if(!wsel || !_birthdayWishes.length) { toast('沒有祝福語可用'); return; }
   var wish = _birthdayWishes[parseInt(wsel.value)||0];
   var text = name + '，' + wish;
-  var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select();
-  try{ document.execCommand('copy'); toast('✅ 已複製生日祝福，貼到 LINE 給客人'); }catch(e){ toast('複製失敗'); }
-  document.body.removeChild(ta);
+  // 2026-09-07修復：原本用舊式execCommand直接複製、沒有跟其他複製功能一樣跳出「複製了什麼」的預覽卡，
+  // 秘書反映看不到複製了什麼內容——統一改用共用的copyText()（跟其他14處複製功能同一套showCopyPreview）
+  copyText(text, '生日祝福');
 }
 // ══════ 溫和鼓勵獎項 ══════
 function loadCareAwards(){
@@ -10087,9 +10179,9 @@ function loadCareAwards(){
 }
 function copyAward(name, title, desc){
   var text = name + '，恭喜你獲得「' + title + '」🎉\n' + desc + '。繼續為自己加油，我們一直都在 💚';
-  var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select();
-  try{ document.execCommand('copy'); toast('✅ 已複製祝賀語，貼到 LINE 給客人'); }catch(e){ toast('複製失敗'); }
-  document.body.removeChild(ta);
+  // 2026-09-07修復：原本用舊式execCommand直接複製、沒有跳出「複製了什麼」的預覽卡（管理人實測回報「複製了什麼祝賀？我看不到」）——
+  // 統一改用共用的copyText()，跟其他複製功能一樣會秀出複製的完整內容+下一步指示
+  copyText(text, '祝賀語');
 }
 
 
@@ -10412,7 +10504,9 @@ function liSave(){
     var val = r.querySelector('.li-val').value.trim();
     if(name && val!==''){ items.push({name:name, value:val, unit:r.querySelector('.li-unit').value.trim(), ideal:r.querySelector('.li-ideal').value.trim()}); }
   });
-  if(items.length===0){ toast('請至少填一項檢測'); return; }
+  // 2026-09-07：訊息從「請至少填一項檢測」改清楚——之前有人只打了項目名稱、數值欄位空著，
+  // 送出後看到這句話會誤以為自己明明有填卻被擋，其實是「數值」欄位也要填才算數
+  if(items.length===0){ toast('請至少填一項檢測的「數值」——只打項目名稱、數值空白不算喔'); return; }
   // 收集用藥更新
   var medRows = document.querySelectorAll('#li-meds-list > div');
   var meds = [];
@@ -11102,13 +11196,15 @@ var ROLE_PAGES = {
 // 2026-09-05f 新增：每個角色登入後，左上角（側欄logo下方使用者資訊那一行）顯示一段簡短說明，
 // 讓剛登入、還不熟悉系統的人一眼知道自己這個身分大概能做什麼、該從哪裡開始，不用自己摸索側邊欄。
 // 純顯示用的說明文字，不影響任何實際權限判斷（權限一律看ROLE_PAGES／後端）。
+// 2026-09-08d改成陣列（管理人反映一整句話擠在側欄很昏，看不清楚）——每個身分列出幾個短短的
+// 能力關鍵字，前端會拆成一個一個色塊小標籤呈現，取代原本一大串逗號分隔的長句子
 var ROLE_DESC = {
-  '管理人': '全系統管理者，可使用全部功能與帳號設定',
-  '秘書': '客人日常照護：排班交接、每日記錄、提醒與客人互動',
-  '行政': '後勤與內容管理：排班、庫存、好物與診所時段、衛教內容維護',
-  '會計': '帳務核對查看：儲值消費、月結算、分帳名單與規則（僅查看，異動請找財務主管）',
-  '財務主管': '財務與分帳管理：合作單位設定、分帳規則、月結算',
-  '醫師': '臨床診斷：客戶資料、IRCT檢測整合、診斷交辦秘書'
+  '管理人': ['全系統管理', '帳號與權限設定'],
+  '秘書': ['排班交接', '每日記錄', '提醒與客人互動'],
+  '行政': ['排班', '庫存', '好物與診所時段', '衛教內容維護'],
+  '會計': ['儲值消費查看', '月結算查看', '分帳名單查看（異動找財務主管）'],
+  '財務主管': ['合作單位設定', '分帳規則', '月結算'],
+  '醫師': ['客戶資料', 'IRCT檢測整合', '診斷交辦秘書', '調整IRCT區間（需附依據）']
 };
 // 舊帳號顯示「老闆」時，畫面一律改顯示「管理人」（權限判斷不受影響）
 function roleDisplayName(r){ return r === '老闆' ? '管理人' : r; }
@@ -11202,13 +11298,20 @@ function applyPermissions(){
       +'<span onclick="changeMyPasswordUI()" style="cursor:pointer;text-decoration:underline;margin-left:6px">改密碼</span>'
       +'<span onclick="doLogout()" style="cursor:pointer;text-decoration:underline;margin-left:6px">登出</span>';
     logo.appendChild(ui);
-    // 2026-09-05f新增：角色簡介，讓剛登入的人知道這個身分大概能做什麼
-    var roleDescText = ROLE_DESC[roleDisplayName(CURRENT_USER.role)];
-    if (roleDescText) {
+    // 2026-09-05f新增、2026-09-08d改版：角色簡介，讓剛登入的人知道這個身分大概能做什麼——
+    // 原本是一整句逗號分隔的長文字，管理人反映擠在側欄很昏、看不清楚，改成一個一個色塊小標籤，
+    // 一眼就能掃過去，不用讀完整句話
+    var roleDescArr = ROLE_DESC[roleDisplayName(CURRENT_USER.role)];
+    if (roleDescArr && roleDescArr.length) {
       var rd = document.createElement('div');
       rd.id = 'role-desc-note';
-      rd.style.cssText = 'font-size:10.5px;color:rgba(255,255,255,.65);margin-top:4px;line-height:1.5';
-      rd.textContent = 'ℹ️ ' + roleDescText;
+      rd.style.cssText = 'margin-top:6px';
+      rd.innerHTML = '<div style="font-size:9.5px;color:rgba(255,255,255,.5);margin-bottom:4px">ℹ️ 這個身分可以做</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:4px">'
+        + roleDescArr.map(function(t){
+            return '<span style="font-size:10px;font-weight:600;color:#fff;background:rgba(255,255,255,.16);border-radius:10px;padding:2px 8px;line-height:1.5">'+escH(t)+'</span>';
+          }).join('')
+        + '</div>';
       logo.appendChild(rd);
     }
   }

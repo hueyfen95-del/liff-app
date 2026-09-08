@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-05c';
+var MX_BUILD = '2026-09-08b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -748,6 +748,7 @@ window.openHealthForm = function() {
       <div style="padding-left:28px">
         <div style="display:flex;gap:6px;padding-bottom:8px;flex-wrap:wrap">
           <button onclick="mealFasting('l')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #6B7280;background:#F3F4F6;font-size:11px;font-weight:600;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px">🚫 沒有吃（斷食）</button>
+          <button id="snack-l" onclick="mealNeedSnack('l')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #B45309;background:#FFF7ED;font-size:11px;font-weight:600;cursor:pointer;color:#92400E;display:flex;align-items:center;gap:4px">🍪 這餐吃完還是會餓，需要點心</button>
         </div>
         <div class="meal-body" style="display:none" id="l-content">
           <div class="pt-grid" id="l-grid"></div>
@@ -774,6 +775,7 @@ window.openHealthForm = function() {
       <div style="padding-left:28px">
         <div style="display:flex;gap:6px;padding-bottom:8px;flex-wrap:wrap">
           <button onclick="mealFasting('d')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #6B7280;background:#F3F4F6;font-size:11px;font-weight:600;cursor:pointer;color:#374151;display:flex;align-items:center;gap:4px">🚫 沒有吃（斷食）</button>
+          <button id="snack-d" onclick="mealNeedSnack('d')" style="padding:5px 12px;border-radius:20px;border:1.5px solid #B45309;background:#FFF7ED;font-size:11px;font-weight:600;cursor:pointer;color:#92400E;display:flex;align-items:center;gap:4px">🍪 這餐吃完還是會餓，需要點心</button>
         </div>
         <div class="meal-body">
           <div class="pz" id="dz" onclick="uploadMeal('d')">
@@ -1864,6 +1866,7 @@ window.openHealthForm = function() {
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">🤝 元代謝承諾</div>
         <div id="pledge-company-items"></div>
       </div>
+      <div id="pledge-closing-line" style="display:none;text-align:center;padding:6px 10px 14px;font-size:12px;color:var(--text2);font-style:italic;line-height:1.6"></div>
       <div id="pledge-committed-note" style="display:none;text-align:center;padding:10px;color:var(--g);font-size:12px;font-weight:700;margin-bottom:8px">✅ 你已經承諾了，我們會一起努力！</div>
       <button id="pledge-commit-btn" onclick="doCommitPledge()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer">我承諾 🤝</button>
     </div>
@@ -3896,10 +3899,16 @@ function loadTreatmentPledgeClientUI(){
         return '<div style="font-size:12px;color:var(--text2);display:flex;justify-content:space-between;gap:6px;padding:3px 0;border-bottom:1px dashed var(--border)"><span>'+escHtml(t.name)+'</span><span style="font-weight:600">'+escHtml(valTxt)+'</span></div>';
       }).join('');
     }
+    // 2026-09-08：改成可複選的勾選題（管理人的原話是「讓客人選擇他要承諾什麼」），
+    // 不是全有全無的單一按鈕——客人自己勾真心願意做到的項目，已經送出過的話用disabled呈現當時勾了哪些
     var clientItems = document.getElementById('pledge-client-items');
+    var selectedIdx = (d.selectedItems||[]).map(function(i){ return String(i); });
     if(clientItems){
-      clientItems.innerHTML = (d.clientItems||[]).map(function(txt){
-        return '<div style="font-size:12px;color:var(--text2);padding:3px 0;line-height:1.5">• '+escHtml(txt)+'</div>';
+      clientItems.innerHTML = (d.clientItems||[]).map(function(txt, i){
+        var checked = d.committed ? (selectedIdx.indexOf(String(i))>=0) : false;
+        return '<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:12px;color:var(--text2);line-height:1.5;cursor:'+(d.committed?'default':'pointer')+'">'
+          + '<input type="checkbox" class="pledge-item-cb" data-idx="'+i+'" '+(checked?'checked':'')+' '+(d.committed?'disabled':'')+' style="margin-top:3px;flex-shrink:0">'
+          + '<span>'+escHtml(txt)+'</span></label>';
       }).join('');
     }
     var companyItems = document.getElementById('pledge-company-items');
@@ -3907,6 +3916,11 @@ function loadTreatmentPledgeClientUI(){
       companyItems.innerHTML = (d.companyItems||[]).map(function(txt){
         return '<div style="font-size:12px;color:var(--text2);padding:3px 0;line-height:1.5">• '+escHtml(txt)+'</div>';
       }).join('');
+    }
+    var closing = document.getElementById('pledge-closing-line');
+    if(closing){
+      if(d.closingLine){ closing.textContent = d.closingLine; closing.style.display=''; }
+      else closing.style.display='none';
     }
     var note = document.getElementById('pledge-committed-note');
     var btn = document.getElementById('pledge-commit-btn');
@@ -3920,15 +3934,18 @@ function loadTreatmentPledgeClientUI(){
   });
 }
 function doCommitPledge(){
+  var checked = Array.prototype.slice.call(document.querySelectorAll('.pledge-item-cb:checked'));
+  if(checked.length === 0){ toast('請至少勾選一項你願意做到的承諾'); return; }
+  var selected = checked.map(function(el){ return parseInt(el.getAttribute('data-idx'), 10); });
   var btn = document.getElementById('pledge-commit-btn');
   if(btn){ btn.disabled = true; btn.textContent = '送出中…'; }
-  callAPI({action:'commitTreatmentPledge', clientId:CLIENT_ID}, function(d){
+  callAPI({action:'commitTreatmentPledge', clientId:CLIENT_ID, selectedItems:JSON.stringify(selected)}, function(d){
     if(!d || d.status!=='ok'){
       if(btn){ btn.disabled = false; btn.textContent = '我承諾 🤝'; }
       if(d && d.code === 'not_active'){
         toast('請先聯繫秘書開通陪跑方案，才能送出承諾喔');
       } else {
-        toast('❌ 送出失敗，請稍後再試');
+        toast('❌ '+((d&&d.message)||'送出失敗，請稍後再試'));
       }
       return;
     }
@@ -6027,6 +6044,24 @@ function mealFasting(mealCode) {
   var statusEl = document.getElementById(mealCode + 's');
   if (statusEl) { statusEl.textContent = '斷食 ✅'; statusEl.className = 'meal-st ok'; }
   toast('🚫 ' + name + '斷食沒有吃，已記錄！');
+}
+
+// ── 這餐吃完還是會餓，需要另外補點心（2026-09-08新增，管理人指示：中餐、晚餐都要加，讓秘書多一個
+// 線索判斷這餐吃的量／熱量夠不夠）。這是「額外補充資訊」不是取代整個記錄流程——跟「斷食沒有吃」不同，
+// 這餐本來就有正常吃、要繼續走拍照/文字/換你來判斷的流程，這裡只是多加一筆標記，讓秘書在後台看得到。
+// 每餐只需要點一次（避免重複寫入很多筆一樣的記錄），點過後按鈕會鎖住顯示「已記錄」。
+var mealNeedSnackFlag = {l:false, d:false};
+function mealNeedSnack(mealCode) {
+  if (mealNeedSnackFlag[mealCode]) return;
+  mealNeedSnackFlag[mealCode] = true;
+  var mealNames = {l:'午餐', d:'晚餐'};
+  var name = mealNames[mealCode] || '餐食';
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：吃完還是會餓，需要另外補充點心'}, function(d){
+    if (!(d && d.status === 'ok')) toast('⚠️ 記錄沒有傳出去，請再點一次');
+  });
+  var btn = document.getElementById('snack-' + mealCode);
+  if (btn) { btn.style.background = '#92400E'; btn.style.color = '#fff'; btn.style.borderColor = '#92400E'; btn.textContent = '🍪 已記錄，這餐還是會餓'; btn.disabled = true; btn.style.cursor = 'default'; }
+  toast('🍪 已記錄！秘書會看到你這餐吃完還是容易餓');
 }
 
 function quickSaveMeal(mealCode) {
