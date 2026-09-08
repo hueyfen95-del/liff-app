@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-08b';
+var MX_BUILD = '2026-09-08d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1327,7 +1327,12 @@ window.openHealthForm = function() {
     <div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">依照你每次複測的資料，把整個療程分成期初/前期/中期/後期/期末五個階段，跟你目前的數值做對照，讓你清楚看到自己的進步。</div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">💡 這裡的「期初/前期/中期/後期/期末」是依你的複測次數計算的療程進度，跟「健康旅程」頁面依身體代謝適應狀況判斷的階段，是兩件不同的事哦</div>
     <div id="progress-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
-    <div id="progress-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有足夠的複測資料，先去完成第一次檢測，之後這裡就能看到你的進度 🌱</div>
+    <div id="progress-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--text3);font-size:12px">
+      <div style="margin-bottom:16px">還沒有足夠的複測資料，先去完成第一次檢測，之後這裡就能看到你的進度 🌱</div>
+      <button onclick="goPage('booking','預約 IRCT 複檢')" style="background:var(--g);color:#fff;border:none;border-radius:12px;padding:11px 24px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-calendar-plus" style="font-size:14px"></i>立即預約 IRCT
+      </button>
+    </div>
     <div id="progress-stages-wrap" style="display:none"></div>
     <button onclick="goPage('progress-share','分享我的進度')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:6px">
       <i class="ti ti-share" style="font-size:16px"></i>
@@ -1842,7 +1847,12 @@ window.openHealthForm = function() {
     <div style="font-size:12px;color:var(--text2);margin-bottom:4px;line-height:1.6">依照你最新一次的檢測資料，往回推算到期末目標，幫你畫出期初到期末，每個階段大概會落在哪裡，讓你對整個療程有清楚的預期。</div>
     <div style="font-size:11px;color:var(--text3);margin-bottom:12px;line-height:1.5">💡 這裡的階段是依複測次數推算的療程進度，跟「健康旅程」頁面看到的階段是兩件不同的事哦</div>
     <div id="roadmap-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
-    <div id="roadmap-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有檢測資料，先去完成第一次檢測，之後這裡就能看到你的療程地圖 🌱</div>
+    <div id="roadmap-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--text3);font-size:12px">
+      <div style="margin-bottom:16px">還沒有檢測資料，先去完成第一次檢測，之後這裡就能看到你的療程地圖 🌱</div>
+      <button onclick="goPage('booking','預約 IRCT 複檢')" style="background:var(--g);color:#fff;border:none;border-radius:12px;padding:11px 24px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-calendar-plus" style="font-size:14px"></i>立即預約 IRCT
+      </button>
+    </div>
     <div id="roadmap-stages-wrap" style="display:none"></div>
     <button onclick="goPage('pledge','我的療程承諾')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px">查看我的療程承諾 →</button>
   </div>
@@ -1852,7 +1862,12 @@ window.openHealthForm = function() {
   <div style="padding:12px 14px">
     <div style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.6">這是我們一起要做到的事，不是單方面要求你——你做你的部分，元代謝也會做到我們的承諾。</div>
     <div id="pledge-loading" style="text-align:center;padding:30px;color:var(--text3);font-size:12px">載入中…</div>
-    <div id="pledge-empty" style="display:none;text-align:center;padding:30px;color:var(--text3);font-size:12px">還沒有檢測資料，先去完成第一次檢測 🌱</div>
+    <div id="pledge-empty" style="display:none;text-align:center;padding:30px 20px;color:var(--text3);font-size:12px">
+      <div style="margin-bottom:16px">還沒有檢測資料，先去完成第一次檢測 🌱</div>
+      <button onclick="goPage('booking','預約 IRCT 複檢')" style="background:var(--g);color:#fff;border:none;border-radius:12px;padding:11px 24px;font-size:12.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+        <i class="ti ti-calendar-plus" style="font-size:14px"></i>立即預約 IRCT
+      </button>
+    </div>
     <div id="pledge-content-wrap" style="display:none">
       <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px">
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">🎯 我們一起要達到的目標</div>
