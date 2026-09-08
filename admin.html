@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-08c';
+var MX_BUILD = '2026-09-08d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -874,14 +874,19 @@ var MX_BUILD = '2026-09-08c';
             <option value="秘書">💁 秘書</option>
             <option value="行政">📋 行政</option>
             <option value="講師">🎤 講師</option>
+            <option value="供應商">📦 供應商</option>
             <option value="內部">🌱 元代謝內部</option>
-            <option value="其他">其他</option>
+            <option value="其他">➕ 其他（自訂類型）</option>
           </select>
         </div>
         <div>
           <div class="gi-lbl" style="margin-bottom:5px">角色名稱</div>
           <input id="role-name" placeholder="例如：瑞絲得診所 / 王醫師 / 服務秘書-小美" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
+      </div>
+      <div id="role-type-custom-wrap" style="display:none;margin-bottom:12px">
+        <div class="gi-lbl" style="margin-bottom:5px">自訂角色類型名稱（打完之後這個類型就會存進去，下次會直接出現在上面的下拉選單裡，不用重打）</div>
+        <input id="role-type-custom" placeholder="例如：供應商-耗材、房東、水電行" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
       </div>
       <div id="role-lab-fields" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;background:var(--bg);border-radius:9px;padding:10px">
         <div>
@@ -3297,11 +3302,18 @@ function toggleRoleLabFields(){
   var type = document.getElementById('role-type').value;
   var box = document.getElementById('role-lab-fields');
   if (box) box.style.display = (type === '診所' || type === '實驗室') ? 'grid' : 'none';
+  var customWrap = document.getElementById('role-type-custom-wrap');
+  if (customWrap) customWrap.style.display = (type === '其他') ? 'block' : 'none';
 }
 function saveRole(btn) {
   var type = document.getElementById('role-type').value;
   var name = document.getElementById('role-name').value.trim();
   if (!name) { toast('請輸入角色名稱'); return; }
+  if (type === '其他') {
+    var customType = document.getElementById('role-type-custom').value.trim();
+    if (!customType) { toast('請輸入自訂角色類型名稱'); return; }
+    type = customType;
+  }
   var payload = {action: 'addRole', roleType: type, roleName: name};
   if (type === '診所' || type === '實驗室') {
     payload.contactPerson = document.getElementById('role-contact-person').value.trim();
@@ -3318,6 +3330,8 @@ function saveRole(btn) {
       document.getElementById('role-contact-person').value = '';
       document.getElementById('role-contact-info').value = '';
       document.getElementById('role-default-days').value = '';
+      var customEl = document.getElementById('role-type-custom');
+      if (customEl) customEl.value = '';
       loadRoles();
     } else {
       toast('⚠️ 新增失敗，請重試');
@@ -3658,14 +3672,38 @@ function dedupRoles(){
     } else toast('⚠️ 操作失敗');
   });
 }
+// 2026-09-08新增：把之前用「其他」自訂過的角色類型，記回下拉選單裡讓VV下次可以直接選，不用重打
+var ROLE_TYPE_PRESETS = ['診所','實驗室','醫師','秘書','行政','講師','供應商','內部','其他'];
+function refreshRoleTypeOptions(roles){
+  var sel = document.getElementById('role-type');
+  if (!sel) return;
+  var existing = Array.prototype.slice.call(sel.querySelectorAll('option[data-dyn="1"]'));
+  existing.forEach(function(o){ o.remove(); });
+  var seen = {};
+  var extraTypes = [];
+  (roles || []).forEach(function(r){
+    var t = r.roleType;
+    if (t && ROLE_TYPE_PRESETS.indexOf(t) < 0 && !seen[t]) { seen[t] = true; extraTypes.push(t); }
+  });
+  if (!extraTypes.length) return;
+  var otherOpt = sel.querySelector('option[value="其他"]');
+  extraTypes.sort().forEach(function(t){
+    var opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = '🏷 ' + t;
+    opt.setAttribute('data-dyn', '1');
+    sel.insertBefore(opt, otherOpt);
+  });
+}
 function loadRoles() {
   var listEl = document.getElementById('roles-list');
   if (!listEl) return;
   listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中...</div>';
 
   adminAPI({action: 'getRoles'}, function(d) {
+    refreshRoleTypeOptions(d.roles || []);
     if (d.status === 'ok' && d.roles && d.roles.length > 0) {
-      var typeIcons = {'診所':'🏥','實驗室':'🧪','醫師':'👨‍⚕️','秘書':'💁','行政':'📋','講師':'🎤','內部':'🌱','其他':'•'};
+      var typeIcons = {'診所':'🏥','實驗室':'🧪','醫師':'👨‍⚕️','秘書':'💁','行政':'📋','講師':'🎤','供應商':'📦','內部':'🌱','其他':'•'};
       listEl.innerHTML = d.roles.map(function(r) {
         var isLab = (r.roleType === '診所' || r.roleType === '實驗室');
         var labInfo = isLab && (r.contactPerson || r.defaultDays)
@@ -3684,7 +3722,7 @@ function loadRoles() {
             '<button onclick="deleteRole(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:var(--r2);color:var(--r);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">刪除</button>'
           : '<span style="font-size:10px;color:var(--text3)">僅查看</span>';
         return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px">' +
-          '<span style="font-size:16px">' + (typeIcons[r.roleType] || '•') + '</span>' +
+          '<span style="font-size:16px">' + (typeIcons[r.roleType] || '🏷') + '</span>' +
           '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">' + r.roleName + '</div>' +
           '<div style="font-size:10px;color:var(--text3)">' + r.roleType + '・' + r.roleId + '</div>' + labInfo + partnerInfo + pwBadge + '</div>' +
           roleActionBtns +
