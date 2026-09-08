@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-08d';
+var MX_BUILD = '2026-09-08f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1007,14 +1007,26 @@ var MX_BUILD = '2026-09-08d';
     </div>
     <div class="card-body">
       <div id="inv-add-form" style="display:none;background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px">
+        <div id="inv-form-title" style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:8px">新增品項</div>
+        <input type="hidden" id="inv-edit-name" value="">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <input id="inv-new-name" class="form-input" style="font-size:12px" placeholder="品項名稱（例：血酮試紙）">
           <input id="inv-new-category" class="form-input" style="font-size:12px" placeholder="分類（例：檢測用品）">
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <input id="inv-new-safety" type="number" class="form-input" style="font-size:12px" placeholder="安全庫存（低於這個數字會標紅）">
           <input id="inv-new-unit" class="form-input" style="font-size:12px" placeholder="單位（盒/份/瓶…）" value="份">
-          <button class="btn-g" style="font-size:12px;padding:8px 14px" onclick="addInvItem(this)">新增</button>
+        </div>
+        <div style="font-size:10.5px;color:var(--text3);margin-bottom:4px">📦 進貨廠商（選填——填了之後「進貨」時會預設帶入，方便算欠款）</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <select id="inv-new-supplier-sel" class="form-input" style="font-size:12px" onchange="invSupplierSelChange()">
+            <option value="">（不指定供應商）</option>
+          </select>
+          <input id="inv-new-supplier-manual" class="form-input" style="font-size:12px;display:none" placeholder="手動輸入供應商名稱">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+          <input id="inv-new-cost" type="number" class="form-input" style="font-size:12px" placeholder="採購單價（每份/每台多少錢，選填）">
+          <button class="btn-g" id="inv-form-btn" style="font-size:12px;padding:8px 14px" onclick="addInvItem(this)">新增</button>
         </div>
       </div>
       <div style="background:var(--bg);border-radius:10px;padding:12px;margin-bottom:12px">
@@ -1035,6 +1047,19 @@ var MX_BUILD = '2026-09-08d';
     </div>
     <div class="card-body">
       <div id="proxy-demand-list" style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">點「重新載入」查看統計</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <div class="card-hd">
+      <div class="card-title"><i class="ti ti-truck"></i>供應商對帳（欠款統計）</div>
+      <button class="btn-ghost" style="font-size:12px" onclick="loadSupplierPayables()"><i class="ti ti-refresh"></i> 重新載入</button>
+    </div>
+    <div class="card-body">
+      <div class="hint-box" style="margin-bottom:10px">統計每個供應商「進貨」的總金額（單價×數量），是元代謝目前欠這個供應商多少錢的估算，不包含已經另外用其他方式付清的款項。要記到這裡，記得在「進貨」時填上供應商跟單價。</div>
+      <div id="supplier-payables-list" style="display:flex;flex-direction:column;gap:8px">
         <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">點「重新載入」查看統計</div>
       </div>
     </div>
@@ -2064,6 +2089,8 @@ function goPg(id,el){
   if(id==='accounts' && typeof loadAdminAccounts==='function') setTimeout(loadAdminAccounts,150);
   if(id==='inventory' && typeof loadInventoryList==='function') setTimeout(loadInventoryList,150);
   if(id==='inventory' && typeof loadProxyDemand==='function') setTimeout(loadProxyDemand,150);
+  if(id==='inventory' && typeof loadInvSupplierOptions==='function') setTimeout(loadInvSupplierOptions,150);
+  if(id==='inventory' && typeof loadSupplierPayables==='function') setTimeout(loadSupplierPayables,150);
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on')});
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
@@ -3334,7 +3361,7 @@ function saveRole(btn) {
       if (customEl) customEl.value = '';
       loadRoles();
     } else {
-      toast('⚠️ 新增失敗，請重試');
+      toast('⚠️ ' + ((d && d.message) || '新增失敗，請重試'));
     }
   });
 }
@@ -3342,6 +3369,33 @@ document.addEventListener('DOMContentLoaded', toggleRoleLabFields);
 
 // ── 貨品進銷存 ──
 var _invCache = [];
+var _invSupplierRoles = [];
+function loadInvSupplierOptions(){
+  adminAPI({action:'getRoles'}, function(d){
+    _invSupplierRoles = ((d && d.roles) || []).filter(function(r){ return r.roleType === '供應商'; });
+    var sel = document.getElementById('inv-new-supplier-sel');
+    if(!sel) return;
+    var cur = sel.value;
+    var html = '<option value="">（不指定供應商）</option>';
+    _invSupplierRoles.forEach(function(r){ html += '<option value="'+escH(r.roleName)+'">📦 '+escH(r.roleName)+'</option>'; });
+    html += '<option value="__manual__">✏️ 手動輸入（尚未登錄的供應商）</option>';
+    sel.innerHTML = html;
+    if(cur) sel.value = cur;
+  });
+}
+function invSupplierSelChange(){
+  var sel = document.getElementById('inv-new-supplier-sel');
+  var manual = document.getElementById('inv-new-supplier-manual');
+  if(!sel || !manual) return;
+  if(sel.value === '__manual__'){ manual.style.display = ''; manual.value=''; manual.focus(); }
+  else { manual.style.display = 'none'; manual.value = ''; }
+}
+function invCurrentSupplierValue(){
+  var sel = document.getElementById('inv-new-supplier-sel');
+  var manual = document.getElementById('inv-new-supplier-manual');
+  if(!sel) return '';
+  return sel.value === '__manual__' ? ((manual && manual.value) || '').trim() : sel.value;
+}
 function loadInventoryList(){
   var box = document.getElementById('inv-list');
   if(!box) return;
@@ -3360,10 +3414,12 @@ function loadInventoryList(){
         + '<span style="margin-left:auto;font-size:15px;font-weight:800;color:'+(it.low?'#A32D2D':'var(--g)')+'">'+it.stock+'</span>'
         + '<span style="font-size:11px;color:var(--text3)">'+escH(it.unit)+'（安全值 '+it.safetyStock+'）</span>'
         + '</div>'
-        + '<div style="display:flex;gap:6px">'
+        + (it.supplier ? '<div style="font-size:10.5px;color:var(--text3);margin-bottom:6px">📦 供應商：'+escH(it.supplier)+(it.unitCost?'（單價 $'+it.unitCost+'）':'')+'</div>' : '')
+        + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
         + '<button class="ai-btn g" style="font-size:11px;padding:5px 11px" onclick="invStockAction('+i+',\'進貨\')">📥 進貨</button>'
         + '<button class="ai-btn b" style="font-size:11px;padding:5px 11px" onclick="invStockAction('+i+',\'出貨\')">📤 出貨</button>'
         + '<button class="ai-btn gray" style="font-size:11px;padding:5px 11px" onclick="invStockAction('+i+',\'調整\')">📋 盤點調整</button>'
+        + '<button class="ai-btn gray" style="font-size:11px;padding:5px 11px" onclick="invEditItem('+i+')">✏️ 編輯</button>'
         + '<button class="ai-btn gray" style="font-size:11px;padding:5px 11px;margin-left:auto" onclick="invShowLedger('+i+')">歷史記錄</button>'
         + '</div>'
         + '<div id="inv-ledger-'+i+'" style="display:none;margin-top:8px;border-top:1px dashed var(--border);padding-top:8px;font-size:11px"></div>'
@@ -3371,9 +3427,45 @@ function loadInventoryList(){
     }).join('');
   });
 }
+function resetInvForm(){
+  document.getElementById('inv-edit-name').value = '';
+  document.getElementById('inv-form-title').textContent = '新增品項';
+  document.getElementById('inv-form-btn').textContent = '新增';
+  document.getElementById('inv-new-name').disabled = false;
+  document.getElementById('inv-new-name').value='';
+  document.getElementById('inv-new-category').value='';
+  document.getElementById('inv-new-safety').value='';
+  document.getElementById('inv-new-unit').value='份';
+  document.getElementById('inv-new-cost').value='';
+  var sel = document.getElementById('inv-new-supplier-sel'); if(sel) sel.value='';
+  invSupplierSelChange();
+}
 function showInvAddForm(){
   var f = document.getElementById('inv-add-form');
-  if(f) f.style.display = f.style.display === 'none' ? '' : 'none';
+  if(!f) return;
+  if(f.style.display === 'none'){ resetInvForm(); f.style.display = ''; }
+  else f.style.display = 'none';
+}
+function invEditItem(i){
+  var it = _invCache[i]; if(!it) return;
+  var f = document.getElementById('inv-add-form');
+  document.getElementById('inv-edit-name').value = it.name;
+  document.getElementById('inv-form-title').textContent = '編輯：'+it.name;
+  document.getElementById('inv-form-btn').textContent = '儲存修改';
+  document.getElementById('inv-new-name').value = it.name;
+  document.getElementById('inv-new-name').disabled = true;
+  document.getElementById('inv-new-category').value = it.category || '';
+  document.getElementById('inv-new-safety').value = it.safetyStock || '';
+  document.getElementById('inv-new-unit').value = it.unit || '份';
+  document.getElementById('inv-new-cost').value = it.unitCost || '';
+  var sel = document.getElementById('inv-new-supplier-sel');
+  if(sel){
+    var found = it.supplier && _invSupplierRoles.some(function(r){ return r.roleName === it.supplier; });
+    if(it.supplier && !found){ sel.value = '__manual__'; invSupplierSelChange(); document.getElementById('inv-new-supplier-manual').value = it.supplier; }
+    else { sel.value = it.supplier || ''; invSupplierSelChange(); }
+  }
+  f.style.display = '';
+  if(f.scrollIntoView) f.scrollIntoView({behavior:'smooth'});
 }
 function bulkImportInv(){
   var text = (document.getElementById('inv-bulk-text').value||'').trim();
@@ -3392,23 +3484,28 @@ function bulkImportInv(){
   });
 }
 function addInvItem(btn){
-  var name = (document.getElementById('inv-new-name').value || '').trim();
+  var editName = (document.getElementById('inv-edit-name').value || '').trim();
+  var name = editName || (document.getElementById('inv-new-name').value || '').trim();
   var category = (document.getElementById('inv-new-category').value || '').trim();
   var safety = document.getElementById('inv-new-safety').value;
   var unit = (document.getElementById('inv-new-unit').value || '份').trim();
+  var supplier = invCurrentSupplierValue();
+  var unitCost = document.getElementById('inv-new-cost').value;
   if(!name){ toast('請輸入品項名稱'); return; }
   if(safety && Number(safety) < 0){ toast('⚠️ 安全庫存不能是負數'); return; }
+  if(unitCost && Number(unitCost) < 0){ toast('⚠️ 採購單價不能是負數'); return; }
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
-  adminAPI({action:'addInventoryItem', name:name, category:category, safetyStock:safety||0, unit:unit}, function(d){
+  var params = editName
+    ? {action:'updateInventoryItem', name:name, category:category, safetyStock:safety||0, unit:unit, supplier:supplier, unitCost:unitCost||0}
+    : {action:'addInventoryItem', name:name, category:category, safetyStock:safety||0, unit:unit, supplier:supplier, unitCost:unitCost||0};
+  adminAPI(params, function(d){
     if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status === 'ok'){
-      toast('✅ 已新增「'+name+'」，接下來按「進貨」記錄第一批數量');
-      document.getElementById('inv-new-name').value='';
-      document.getElementById('inv-new-category').value='';
-      document.getElementById('inv-new-safety').value='';
+      toast(editName ? ('✅ 已更新「'+name+'」') : ('✅ 已新增「'+name+'」，接下來按「進貨」記錄第一批數量'));
+      resetInvForm();
       showInvAddForm();
       loadInventoryList();
-    } else toast('⚠️ ' + ((d && d.message) || '新增失敗'));
+    } else toast('⚠️ ' + ((d && d.message) || (editName?'儲存失敗，請重試':'新增失敗，請重試')));
   });
 }
 function invStockAction(i, type){
@@ -3422,9 +3519,15 @@ function invStockAction(i, type){
   if(qty === null) return;
   qty = parseInt(qty, 10);
   if(!(qty >= 0)){ toast('⚠️ 請輸入正確的數字'); return; }
-  var clientId = '';
+  var clientId = '', supplier = '', unitCost = '';
   if(type === '出貨') clientId = prompt('如果是賣給特定客人，填客人編號（沒有就留空）：', '') || '';
+  if(type === '進貨'){
+    supplier = prompt('這批貨的供應商是誰？（沒有就留空，之後還是可以在「編輯」補上）', it.supplier || '') || '';
+    var costInput = prompt('這批「'+it.name+'」每'+it.unit+'的採購單價是多少？（用來算欠供應商多少錢，沒有就留空）', it.unitCost ? String(it.unitCost) : '');
+    if(costInput !== null && costInput !== '') unitCost = costInput;
+  }
   adminAPI({action:'addStockTransaction', itemName:it.name, type:type, qty:qty, clientId:clientId,
+    supplier:supplier, unitCost:unitCost,
     secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
     if(d && d.status === 'ok'){ toast('✅ 已更新，目前庫存 '+d.newStock+' '+it.unit); loadInventoryList(); }
     else toast('⚠️ ' + ((d && d.message) || '操作失敗'));
@@ -3444,13 +3547,61 @@ function invShowLedger(i){
     if(items.length === 0){ box.innerHTML = '<span style="color:var(--text3)">還沒有任何進出貨記錄</span>'; return; }
     var actColor = {'進貨':'var(--g)','出貨':'var(--b3)','調整':'var(--text3)'};
     box.innerHTML = items.map(function(l){
-      return '<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed var(--border)">'
+      return '<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed var(--border);flex-wrap:wrap">'
         + '<span style="color:var(--text3);flex-shrink:0">'+escH(l.date)+'</span>'
         + '<span style="font-weight:700;color:'+(actColor[l.action]||'var(--text)')+'">'+escH(l.action)+'</span>'
         + '<span>'+(l.action==='出貨'?'-':l.action==='進貨'?'+':'')+l.qty+'</span>'
         + '<span style="color:var(--text3)">→ 剩 '+l.afterStock+'</span>'
         + (l.clientId ? '<span style="color:var(--b3)">'+escH(l.clientId)+'</span>' : '')
+        + (l.action==='進貨' && l.supplier ? '<span style="color:var(--text3)">📦 '+escH(l.supplier)+'</span>' : '')
+        + (l.action==='進貨' && l.amount ? '<span style="color:var(--text2);font-weight:700">$'+l.amount+'</span>' : '')
         + '<span style="margin-left:auto;color:var(--text3)">'+escH(l.secretary)+'</span>'
+        + '</div>';
+    }).join('');
+  });
+}
+function loadSupplierPayables(){
+  var box = document.getElementById('supplier-payables-list');
+  if(!box) return;
+  box.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中…</div>';
+  adminAPI({action:'getSupplierPayables'}, function(d){
+    box = document.getElementById('supplier-payables-list');
+    if(!box) return;
+    var list = (d && d.suppliers) || [];
+    if(list.length === 0){ box.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有供應商進貨記錄，也還沒有登錄「供應商」角色</div>'; return; }
+    box.innerHTML = list.map(function(s, i){
+      return '<div style="background:var(--bg);border-radius:10px;padding:10px 12px">'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        + '<b style="color:var(--text)">📦 '+escH(s.supplier)+'</b>'
+        + '<span style="margin-left:auto;font-size:15px;font-weight:800;color:'+(s.totalAmount>0?'#A32D2D':'var(--text3)')+'">$'+s.totalAmount+'</span>'
+        + '</div>'
+        + '<div style="font-size:10.5px;color:var(--text3);margin-top:3px">進貨 '+s.count+' 筆'+(s.lastDate?'・最近 '+escH(s.lastDate):'')+'</div>'
+        + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 10px;margin-top:6px" onclick="invShowSupplierLedger('+i+',this)">查看明細</button>'
+        + '<div id="sp-ledger-'+i+'" style="display:none;margin-top:6px;border-top:1px dashed var(--border);padding-top:6px;font-size:11px"></div>'
+        + '</div>';
+    }).join('');
+    _supplierPayablesCache = list;
+  });
+}
+var _supplierPayablesCache = [];
+function invShowSupplierLedger(i){
+  var s = _supplierPayablesCache[i]; if(!s) return;
+  var box = document.getElementById('sp-ledger-'+i);
+  if(!box) return;
+  if(box.style.display !== 'none'){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  box.innerHTML = '載入中…';
+  adminAPI({action:'getStockLedger', supplier:s.supplier}, function(d){
+    box = document.getElementById('sp-ledger-'+i);
+    if(!box) return;
+    var items = (d && d.items) || [];
+    if(items.length === 0){ box.innerHTML = '<span style="color:var(--text3)">還沒有進貨記錄</span>'; return; }
+    box.innerHTML = items.map(function(l){
+      return '<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed var(--border);flex-wrap:wrap">'
+        + '<span style="color:var(--text3);flex-shrink:0">'+escH(l.date)+'</span>'
+        + '<b>'+escH(l.name)+'</b>'
+        + '<span style="color:var(--text3)">×'+l.qty+'</span>'
+        + '<span style="margin-left:auto;font-weight:700;color:var(--text2)">$'+l.amount+'</span>'
         + '</div>';
     }).join('');
   });
