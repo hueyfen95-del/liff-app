@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-08f';
+var MX_BUILD = '2026-09-08g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -3570,13 +3570,17 @@ function loadSupplierPayables(){
     var list = (d && d.suppliers) || [];
     if(list.length === 0){ box.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有供應商進貨記錄，也還沒有登錄「供應商」角色</div>'; return; }
     box.innerHTML = list.map(function(s, i){
+      var owed = (s.owed !== undefined) ? s.owed : s.totalAmount;
       return '<div style="background:var(--bg);border-radius:10px;padding:10px 12px">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
         + '<b style="color:var(--text)">📦 '+escH(s.supplier)+'</b>'
-        + '<span style="margin-left:auto;font-size:15px;font-weight:800;color:'+(s.totalAmount>0?'#A32D2D':'var(--text3)')+'">$'+s.totalAmount+'</span>'
+        + '<span style="margin-left:auto;font-size:15px;font-weight:800;color:'+(owed>0?'#A32D2D':'var(--text3)')+'">$'+owed+'</span>'
         + '</div>'
-        + '<div style="font-size:10.5px;color:var(--text3);margin-top:3px">進貨 '+s.count+' 筆'+(s.lastDate?'・最近 '+escH(s.lastDate):'')+'</div>'
-        + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 10px;margin-top:6px" onclick="invShowSupplierLedger('+i+',this)">查看明細</button>'
+        + '<div style="font-size:10.5px;color:var(--text3);margin-top:3px">累計進貨 $'+s.totalAmount+(s.paidAmount?'・已付款 $'+s.paidAmount:'')+'・共 '+s.count+' 筆'+(s.lastDate?'・最近 '+escH(s.lastDate):'')+'</div>'
+        + '<div style="display:flex;gap:6px;margin-top:6px">'
+        + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 10px" onclick="invShowSupplierLedger('+i+',this)">查看明細</button>'
+        + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 10px" onclick="invRegisterSupplierPayment('+i+')">登記已付款</button>'
+        + '</div>'
         + '<div id="sp-ledger-'+i+'" style="display:none;margin-top:6px;border-top:1px dashed var(--border);padding-top:6px;font-size:11px"></div>'
         + '</div>';
     }).join('');
@@ -3584,6 +3588,25 @@ function loadSupplierPayables(){
   });
 }
 var _supplierPayablesCache = [];
+// 2026-09-08j新增：登記一筆已付款給供應商的金額，從「累計欠款」扣掉——之前這裡完全沒有付款動作，
+// 欠款金額只會一直往上累加，就算管理人已經真的匯錢給供應商，畫面上也不會反映，等於「欠款」數字
+// 跟現實脫節；管理人確認要補上後，改成獨立記一張「供應商付款記錄」，欠款＝累計進貨－累計付款
+function invRegisterSupplierPayment(i){
+  var s = _supplierPayablesCache[i]; if(!s) return;
+  var owed = (s.owed !== undefined) ? s.owed : s.totalAmount;
+  var amtStr = prompt('登記付給「'+s.supplier+'」多少錢？（目前欠款 $'+owed+'，付款後會從欠款扣掉）', owed > 0 ? String(owed) : '');
+  if (amtStr === null) return;
+  var amt = Number(amtStr);
+  if (!amt || isNaN(amt)) { toast('請輸入有效的金額數字'); return; }
+  var note = prompt('備註（選填，例如匯款日期/方式，留空可跳過）', '') || '';
+  adminAPIPost({action:'addSupplierPayment', supplier:s.supplier, amount:amt, note:note,
+    secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ 已登記付款 $'+amt+'，欠款金額已更新');
+      loadSupplierPayables();
+    } else toast('⚠️ ' + ((d && d.message) || '登記失敗，請重試'));
+  });
+}
 function invShowSupplierLedger(i){
   var s = _supplierPayablesCache[i]; if(!s) return;
   var box = document.getElementById('sp-ledger-'+i);
@@ -3595,15 +3618,35 @@ function invShowSupplierLedger(i){
     box = document.getElementById('sp-ledger-'+i);
     if(!box) return;
     var items = (d && d.items) || [];
-    if(items.length === 0){ box.innerHTML = '<span style="color:var(--text3)">還沒有進貨記錄</span>'; return; }
-    box.innerHTML = items.map(function(l){
-      return '<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed var(--border);flex-wrap:wrap">'
-        + '<span style="color:var(--text3);flex-shrink:0">'+escH(l.date)+'</span>'
-        + '<b>'+escH(l.name)+'</b>'
-        + '<span style="color:var(--text3)">×'+l.qty+'</span>'
-        + '<span style="margin-left:auto;font-weight:700;color:var(--text2)">$'+l.amount+'</span>'
-        + '</div>';
-    }).join('');
+    var html = '';
+    if(items.length === 0){ html += '<span style="color:var(--text3)">還沒有進貨記錄</span>'; }
+    else {
+      html += items.map(function(l){
+        return '<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed var(--border);flex-wrap:wrap">'
+          + '<span style="color:var(--text3);flex-shrink:0">'+escH(l.date)+'</span>'
+          + '<b>'+escH(l.name)+'</b>'
+          + '<span style="color:var(--text3)">×'+l.qty+'</span>'
+          + '<span style="margin-left:auto;font-weight:700;color:var(--text2)">$'+l.amount+'</span>'
+          + '</div>';
+      }).join('');
+    }
+    box.innerHTML = html;
+    // 付款記錄另外抓、附加在進貨明細下面，跟進貨用不同顏色區分，一眼看出哪些是「欠」哪些是「還」
+    adminAPI({action:'getSupplierPaymentHistory', supplier:s.supplier}, function(pd){
+      box = document.getElementById('sp-ledger-'+i);
+      if(!box) return;
+      var pItems = (pd && pd.items) || [];
+      if(pItems.length === 0) return;
+      box.innerHTML += '<div style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--border)"></div>'
+        + pItems.map(function(p){
+          return '<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px dashed var(--border);flex-wrap:wrap">'
+            + '<span style="color:var(--text3);flex-shrink:0">'+escH(p.date)+'</span>'
+            + '<b style="color:var(--g)">💰 已付款</b>'
+            + (p.note ? '<span style="color:var(--text3)">'+escH(p.note)+'</span>' : '')
+            + '<span style="margin-left:auto;font-weight:700;color:var(--g)">-$'+p.amount+'</span>'
+            + '</div>';
+        }).join('');
+    });
   });
 }
 function loadProxyDemand(){
