@@ -58,7 +58,11 @@
 <div class="card" id="login-card">
   <div style="font-size:13px;color:#667;margin-bottom:10px">請輸入元代謝提供給您的<b>廠商代碼</b>與<b>查詢密碼</b><br><span style="font-size:11px;color:#aaa">尚未申請認證的店家請先聯絡元代謝</span></div>
   <input id="vcode" placeholder="廠商代碼（例：診所、美業師）" style="margin-bottom:8px">
-  <input id="vpw" type="password" placeholder="查詢密碼" style="margin-bottom:10px" onkeydown="if(event.key==='Enter')vLogin()">
+  <!-- 2026-09-10新增：比照後台登入頁，密碼欄旁加眼睛圖示可切換顯示/隱藏，方便自己核對打的字對不對 -->
+  <div style="position:relative;margin-bottom:10px">
+    <input id="vpw" type="password" placeholder="查詢密碼" style="padding-right:40px" onkeydown="if(event.key==='Enter')vLogin()">
+    <span onclick="toggleVendorPassVisible()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:15px;user-select:none" title="顯示/隱藏密碼">👁️</span>
+  </div>
   <button style="width:100%" onclick="vLogin()">登入（這台裝置會記住，之後打開直接用）</button>
   <div style="text-align:center;margin-top:10px"><a href="manual_vendor.html" target="_blank" style="font-size:12px;color:#0F6E56;text-decoration:underline">📖 合作單位使用說明</a></div>
   <div class="err" id="login-err"></div>
@@ -328,6 +332,12 @@ function showWorkspace(skipAutoSwitch){
   else if(hasReferral) switchTab('referral'); // 純推廣型合作單位（例如美業集團）打開直接看推廣成效，比扣款更常用
   else if(hasCharge) switchTab('charge'); // 2026-09-09補：一般扣款型合作單位打開就會看到扣款頁，順便帶出loadChargeHistory()把即時扣款紀錄load出來
   else switchTab('stmt'); // 沒有開通任何一種上述功能的合作單位（例如被取消「客人消費扣款」又不是推廣/自行收款型），改看對帳單分頁，避免打開後畫面卡在一個已被隱藏的分頁
+}
+// 2026-09-10新增：密碼欄旁的眼睛圖示，點一下切換「星號／明碼」，純前端切換，不影響vLogin()送出的內容
+function toggleVendorPassVisible(){
+  var el = document.getElementById('vpw');
+  if(!el) return;
+  el.type = (el.type === 'password') ? 'text' : 'password';
 }
 function vLogin(){
   var code=document.getElementById('vcode').value.trim();
