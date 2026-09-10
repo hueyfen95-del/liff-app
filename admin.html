@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-10c';
+var MX_BUILD = '2026-09-10e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -236,7 +236,11 @@ var MX_BUILD = '2026-09-10c';
       <div style="font-size:12px;color:#999;margin-top:4px">請登入</div>
     </div>
     <div style="margin-bottom:12px"><input id="lg-user" placeholder="帳號" style="width:100%;padding:11px 13px;border:1px solid #ddd;border-radius:9px;font-size:14px;box-sizing:border-box"></div>
-    <div style="margin-bottom:16px"><input id="lg-pass" type="password" placeholder="密碼" style="width:100%;padding:11px 13px;border:1px solid #ddd;border-radius:9px;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <!-- 2026-09-10新增：密碼輸入框旁加「眼睛」圖示，可以切換顯示/隱藏，方便打錯字時自己核對 -->
+    <div style="margin-bottom:16px;position:relative">
+      <input id="lg-pass" type="password" placeholder="密碼" style="width:100%;padding:11px 40px 11px 13px;border:1px solid #ddd;border-radius:9px;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
+      <span onclick="toggleLoginPassVisible()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:15px;user-select:none" title="顯示/隱藏密碼">👁️</span>
+    </div>
     <button onclick="doLogin()" style="width:100%;padding:12px;background:#0F6E56;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer">登入</button>
     <div id="lg-error" style="color:#D6455D;font-size:12px;text-align:center;margin-top:10px;min-height:16px"></div>
   </div>
@@ -5630,13 +5634,22 @@ function openClientDetail(id, name){
     + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="recMedication(\''+escH(id)+'\')">記錄用藥</button>'
     + '<button class="ai-btn b" style="font-size:11px;padding:8px 10px" onclick="document.getElementById(\'cd-med-file\').click()">📷 拍藥袋辨識</button>'
     + '</div>'
+    // 2026-09-10 新增：成份／用途（選填，供醫師整合用藥判斷時參考——秘書/醫師手動填寫，
+    // 系統不會自動從藥典查詢帶入，避免自動比對錯誤成份/用途誤導臨床判斷）
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px">'
+    + '<input id="cd-med-ingredient" class="form-input" style="font-size:12px" placeholder="成份（選填，供醫師整合用藥表參考）">'
+    + '<input id="cd-med-purpose" class="form-input" style="font-size:12px" placeholder="用途（選填，供醫師整合用藥表參考）">'
+    + '</div>'
     + '<input type="file" id="cd-med-file" accept="image/*" style="display:none" onchange="handleMedPhoto(this,\''+escH(id)+'\')">'
     + '<div id="cd-med-ocr" style="display:none;margin-top:8px;background:var(--b2);border-radius:9px;padding:9px 11px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--b3);margin-bottom:6px">📷 辨識結果（核對後登記，取消勾選＝不登記）</div>'
     + '<div id="cd-med-ocr-rows"></div>'
     + '<button class="btn-g" style="margin-top:6px;padding:7px 12px;font-size:11.5px" onclick="saveMedOcr(\''+escH(id)+'\')">確認登記為「服用中」</button>'
     + '</div>'
-    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">用藥時間軸（減藥／停藥的日期自動留存）</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 5px">'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3)">用藥時間軸（減藥／停藥的日期自動留存）</div>'
+    + '<span style="font-size:10.5px;color:var(--b3);text-decoration:underline;cursor:pointer" onclick="exportMedicationTable(\''+escH(id)+'\',\''+escH(name||'')+'\')">匯出整合用藥表</span>'
+    + '</div>'
     + '<div id="cd-med-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
@@ -5992,10 +6005,17 @@ function openClientDetail(id, name){
   adminAPI({action:'getRecords', clientId:id}, function(d){
     var body = document.getElementById('client-detail-body');
     if(!body) return;
+    // 2026-09-10新增：老闆要求能把客人的每日記錄匯出成表、也能自己補標籤標註屬於哪個活動——
+    // 這排放在表格上方，即使還沒有任何記錄也看得到（匯出按鈕會提示「還沒有記錄」，不會壞掉）
+    var hdHtml = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--text3)">📋 每日記錄（最近14筆；標籤欄可點✏️補標）</div>'
+      + '<button class="ai-btn gray" style="font-size:11px;padding:5px 10px" onclick="exportDailyRecordTable(\''+escH(id)+'\',\''+escH(name||'')+'\')"><i class="ti ti-download" style="font-size:12px"></i> 匯出Excel</button>'
+      + '</div>';
     if(d.records && d.records.length > 0){
-      var html='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:7px;border-bottom:1px solid var(--border)">血酮</th><th style="padding:7px;border-bottom:1px solid var(--border)">體重</th><th style="padding:7px;border-bottom:1px solid var(--border)">腰圍</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">感受</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">餐盤快記</th></tr>';
+      var html='<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:7px;border-bottom:1px solid var(--border)">血酮</th><th style="padding:7px;border-bottom:1px solid var(--border)">體重</th><th style="padding:7px;border-bottom:1px solid var(--border)">腰圍</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">感受</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">餐盤快記</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">標籤</th></tr>';
       d.records.slice(-14).reverse().forEach(function(r){
-        html += '<tr><td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(String(r.date||r.time||'').slice(0,10))+'</td>'
+        var rDate = String(r.date||r.time||'').slice(0,10);
+        html += '<tr><td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(rDate)+'</td>'
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border);font-weight:700;color:var(--g3)">'+escH(r.ketone||'–')+'</td>'
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border)">'+escH(r.weight||'–')+'</td>'
           + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border)">'+escH(r.waist||'–')+'</td>'
@@ -6005,11 +6025,107 @@ function openClientDetail(id, name){
           + (r.oil?'🫒'+escH(r.oil)+' ':'')
           + (r.protein?'🍖'+escH(r.protein)+' ':'')
           + (r.starch?(r.starch==='沒有'?'🍚沒有':'<span style="color:var(--r3);font-weight:700">🍚'+escH(r.starch)+'</span>'):'')
+          + '</td>'
+          + '<td style="padding:7px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2)">'
+          + '<span onclick="editDailyRecordTag(\''+escH(id)+'\',\''+escH(rDate)+'\',\''+escH(r.tag||'')+'\')" style="cursor:pointer">'+(r.tag?escH(r.tag):'<span style="color:var(--text3)">✏️ 加標籤</span>')+'</span>'
+          + '</td></tr>';
+      });
+      body.innerHTML = hdHtml + html + '</table>';
+    } else {
+      body.innerHTML = hdHtml + '<div style="text-align:center;padding:18px;color:var(--text3)">這位客人還沒有每日記錄</div>';
+    }
+  });
+}
+// 2026-09-10新增：補標籤——秘書自由打字標註某一天的記錄屬於哪個活動/專案（例如「中秋挑戰」），
+// 同一天有多筆提交也只需要補一次，匯出時會自動合併同一天所有標籤一起顯示
+function editDailyRecordTag(clientId, dateStr, oldTag){
+  var tag = prompt('這天（'+dateStr+'）的記錄要標註什麼活動/標籤？（留空＝清除）', oldTag||'');
+  if(tag===null) return;
+  adminAPI({action:'setDailyRecordTag', clientId:clientId, date:dateStr, tag:tag.trim()}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已更新標籤'); var cd = _cdOpenGen; loadClientDetailRecordsOnly(clientId); }
+    else toast('⚠️ ' + ((d && d.message) || '更新失敗，這天可能還沒有記錄'));
+  });
+}
+// 只重新載入每日記錄那一段（補標籤後不用整個客戶詳情面板重跑一次）
+// 簡化作法：直接重新整個面板的每日記錄表格（呼叫跟openClientDetail同一支API、同一段渲染）
+function loadClientDetailRecordsOnly(clientId){
+  adminAPI({action:'getRecords', clientId:clientId}, function(d){
+    var body = document.getElementById('client-detail-body');
+    if(!body) return;
+    if(d.records && d.records.length > 0){
+      var name = (_cdCurrentName || '');
+      var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+        + '<div style="font-size:11px;font-weight:700;color:var(--text3)">📋 每日記錄（最近14筆；標籤欄可點✏️補標）</div>'
+        + '<button class="ai-btn gray" style="font-size:11px;padding:5px 10px" onclick="exportDailyRecordTable(\''+escH(clientId)+'\',\''+escH(name)+'\')"><i class="ti ti-download" style="font-size:12px"></i> 匯出Excel</button>'
+        + '</div>'
+        + '<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">日期</th><th style="padding:7px;border-bottom:1px solid var(--border)">血酮</th><th style="padding:7px;border-bottom:1px solid var(--border)">體重</th><th style="padding:7px;border-bottom:1px solid var(--border)">腰圍</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">感受</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">餐盤快記</th><th style="padding:7px;text-align:left;border-bottom:1px solid var(--border)">標籤</th></tr>';
+      d.records.slice(-14).reverse().forEach(function(r){
+        var rDate = String(r.date||r.time||'').slice(0,10);
+        html += '<tr><td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(rDate)+'</td>'
+          + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border);font-weight:700;color:var(--g3)">'+escH(r.ketone||'–')+'</td>'
+          + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border)">'+escH(r.weight||'–')+'</td>'
+          + '<td style="padding:7px;text-align:center;border-bottom:1px solid var(--border)">'+escH(r.waist||'–')+'</td>'
+          + '<td style="padding:7px;border-bottom:1px solid var(--border)">'+escH(r.feeling||'')+'</td>'
+          + '<td style="padding:7px;border-bottom:1px solid var(--border);font-size:11px">'
+          + (r.meal?'<span style="background:'+(String(r.meal).indexOf('需要另外補充點心')>=0?'#FDE9CE':'var(--mint)')+';color:'+(String(r.meal).indexOf('需要另外補充點心')>=0?'#92400E':'inherit')+';border-radius:5px;padding:1px 5px;font-weight:700;margin-right:4px">'+(String(r.meal).indexOf('需要另外補充點心')>=0?'🍪 ':'')+escH(r.meal)+'</span>':'')
+          + (r.oil?'🫒'+escH(r.oil)+' ':'')
+          + (r.protein?'🍖'+escH(r.protein)+' ':'')
+          + (r.starch?(r.starch==='沒有'?'🍚沒有':'<span style="color:var(--r3);font-weight:700">🍚'+escH(r.starch)+'</span>'):'')
+          + '</td>'
+          + '<td style="padding:7px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2)">'
+          + '<span onclick="editDailyRecordTag(\''+escH(clientId)+'\',\''+escH(rDate)+'\',\''+escH(r.tag||'')+'\')" style="cursor:pointer">'+(r.tag?escH(r.tag):'<span style="color:var(--text3)">✏️ 加標籤</span>')+'</span>'
           + '</td></tr>';
       });
       body.innerHTML = html + '</table>';
-    } else {
-      body.innerHTML = '<div style="text-align:center;padding:18px;color:var(--text3)">這位客人還沒有每日記錄</div>';
+    }
+  });
+}
+// 匯出單一客人每日記錄成CSV（可用Excel開啟）——2026-09-10新增，資料來源是後端getDailyRecordExport
+// （依日期彙整成一天一列，體脂只有對到同一天InBody記錄才會帶出，系統目前沒有每天量體脂的欄位）
+function exportDailyRecordTable(clientId, clientName){
+  adminAPI({action:'getDailyRecordExport', clientId:clientId}, function(d){
+    if(!d || d.status!=='ok'){ toast('⚠️ 匯出失敗，請重試'); return; }
+    var rows = d.records || [];
+    if(rows.length===0){ toast('這位客人還沒有每日記錄可以匯出'); return; }
+    var q=function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';};
+    var csv='﻿日期,體重,體脂,碳水,酮體,腰圍,排便,運動,標籤\n';
+    rows.forEach(function(r){
+      csv += [q(r.date),q(r.weight),q(r.bodyFat),q(r.carbs),q(r.ketone),q(r.waist),q(r.bowel),q(r.exercise),q(r.tag)].join(',')+'\n';
+    });
+    try {
+      var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=(clientName||clientId)+'_每日記錄_'+new Date().toISOString().slice(0,10)+'.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast('📥 已匯出 CSV（可用 Excel 開啟；體脂只有對到InBody記錄的那幾天才會有數字，其餘天數目前系統沒有每日量測的資料來源）');
+    } catch(e) {
+      copyText(csv, 'CSV 內容（此瀏覽器不支援下載，已改為複製）');
+    }
+  });
+}
+// 匯出單一客人「整合用藥表」給醫師參考——2026-09-10新增，比照VV提供的戴大哥用藥清單格式
+// （序號/藥物名稱/成份/用法用量/用途/狀態/開藥醫師），只列目前非「已停藥」的每種藥最新一筆狀態。
+// 成份/用途是秘書/醫師手動登記的欄位，系統不會自動從藥典查詢帶入（可能填空白，需要秘書/醫師補登記後再匯出）。
+function exportMedicationTable(clientId, clientName){
+  adminAPI({action:'getMedicationTable', clientId:clientId}, function(d){
+    if(!d || d.status!=='ok'){ toast('⚠️ 匯出失敗，請重試'); return; }
+    var items = d.items || [];
+    if(items.length===0){ toast('這位客人目前沒有服用中的用藥登記'); return; }
+    var q=function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';};
+    var csv='﻿序號,藥物名稱,成份,用法用量,用途,狀態,開藥醫師\n';
+    items.forEach(function(m,i){
+      csv += [q(i+1),q(m.name),q(m.ingredient),q(m.dose),q(m.purpose),q(m.status),q(m.doctorOrder)].join(',')+'\n';
+    });
+    try {
+      var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download=(clientName||clientId)+'_整合用藥表_'+new Date().toISOString().slice(0,10)+'.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      toast('📥 已匯出 CSV（可用 Excel 開啟；成份/用途欄如果空白，代表登記用藥時還沒有補這兩欄，請秘書/醫師補登記後再重新匯出）');
+    } catch(e) {
+      copyText(csv, 'CSV 內容（此瀏覽器不支援下載，已改為複製）');
     }
   });
 }
@@ -10220,13 +10336,18 @@ function loadInBodyHistory(clientId){
 function recMedication(clientId){
   var name=document.getElementById('cd-med-name').value.trim();
   var dose=document.getElementById('cd-med-dose').value.trim();
+  var ingredient=(document.getElementById('cd-med-ingredient')||{}).value||'';
+  var purpose=(document.getElementById('cd-med-purpose')||{}).value||'';
   if(!name){toast('請輸入藥物名稱');return;}
   adminAPIPost({action:'addMedication', clientId:clientId, medName:name, doctorOrder: (document.getElementById('cd-med-doctor')||{}).value || '', dose:dose,
+    ingredient:ingredient.trim(), purpose:purpose.trim(),
     status:'服用中', note:'', secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
     if(d.status==='ok'){
       toast('✅ 已登記「'+name+'」');
       document.getElementById('cd-med-name').value='';
       document.getElementById('cd-med-dose').value='';
+      document.getElementById('cd-med-ingredient').value='';
+      document.getElementById('cd-med-purpose').value='';
       loadMedHistory(clientId);
     } else toast('⚠️ ' + ((d && d.message) || '登記失敗，請重試')); // 2026-09-09補：改顯示後端實際訊息
   });
@@ -11732,6 +11853,13 @@ function isPricingTier(){
 //     沒有任何回饋，看起來像壞掉，使用者就狂按；現在按鈕會鎖住並倒數提示，等太久會說明是後端喚醒中。
 // (2) 連按會同時發出好幾個登入請求互相打架——加 busy 旗標，一次只送一個。
 // (3) 改用 POST，帳密不再放在網址列（跟前台 callAPI 同一個安全修正）。
+// 2026-09-10新增：密碼欄旁的眼睛圖示，點一下在「星號」跟「明碼」之間切換，方便使用者自己核對打的字對不對
+// （純前端切換input的type，不會把密碼傳到任何地方，也不影響doLogin()送出的內容）
+function toggleLoginPassVisible(){
+  var el = document.getElementById('lg-pass');
+  if(!el) return;
+  el.type = (el.type === 'password') ? 'text' : 'password';
+}
 var _loginBusy = false;
 function doLogin(){
   if (_loginBusy) return;
