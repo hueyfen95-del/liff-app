@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-08g';
+var MX_BUILD = '2026-09-10c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -958,7 +958,7 @@ var MX_BUILD = '2026-09-08g';
         </div>
       </div>
       <div style="margin-bottom:12px">
-        <div class="gi-lbl" style="margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，例如設定合作單位收費模式跟分帳比例，其餘職務純顯示參考用）</div>
+        <div class="gi-lbl" style="margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，例如設定合作單位收費模式跟分帳比例；勾選「行政」會額外取得好物商城/補充品售價與優惠折扣的維護權限；其餘職務純顯示參考用）</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="秘書">💁 秘書</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="會計">🧾 會計</label>
@@ -1317,8 +1317,8 @@ var MX_BUILD = '2026-09-08g';
 
 <div class="pg" id="pg-food-mgmt">
   <div style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <input placeholder="搜尋食物名稱…" style="flex:1;max-width:220px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
-    <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部分類</option><option>便利商店</option><option>傳統小吃</option><option>牛排館</option><option>優質油脂</option><option>堅果食材</option><option>嚴防地雷</option></select>
+    <input id="food-search-kw" placeholder="搜尋食物名稱…" oninput="renderFoodAdminList()" style="flex:1;max-width:220px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
+    <select id="food-search-cat" class="form-select" style="width:auto;flex:none;font-size:12px" onchange="renderFoodAdminList()"><option value="">全部分類</option><option>便利商店</option><option>傳統小吃店</option><option>牛排館</option><option>優質油脂</option><option>堅果食材</option><option>嚴防地雷</option><option>其他</option></select>
     <button class="tb-btn g" onclick="toggleAddForm()" style="margin-left:auto"><i class="ti ti-plus" style="font-size:14px"></i>新增食物</button>
   </div>
   <div class="add-form" id="add-food-form">
@@ -1347,7 +1347,7 @@ var MX_BUILD = '2026-09-08g';
 <!-- ══ FAQ 問答管理 ══ -->
 <div class="pg" id="pg-faq-mgmt">
   <div style="display:flex;gap:9px;margin-bottom:14px;align-items:center">
-    <input placeholder="搜尋問題關鍵字…" style="flex:1;max-width:220px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
+    <input id="faq-search-kw" placeholder="搜尋問題關鍵字…" oninput="renderFAQAdminList()" style="flex:1;max-width:220px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
     <button class="tb-btn g" style="margin-left:auto" onclick="toggleFaqForm()"><i class="ti ti-plus" style="font-size:14px"></i>新增 FAQ</button>
   </div>
   <div class="add-form" id="add-faq-form">
@@ -1438,10 +1438,14 @@ var MX_BUILD = '2026-09-08g';
     <div class="irct-edit-row"><div><div class="ier-name">腰圍（女性）</div><div class="ier-rationale">參考依據：低於衛福部建議的80cm切點，抓更保守的最佳值</div></div><span style="font-size:12px;color:var(--text2)">上限</span><input class="ier-inp" data-key="waist.therapeutic.femaleMax" value="74" type="number"><div class="ier-unit">cm</div></div>
     <div class="irct-edit-row"><div><div class="ier-name">內臟脂肪指數</div><div class="ier-rationale">參考依據：多數體組成儀器（如InBody）以1-9列為正常範圍，這裡抓中段偏低的6-8當作最佳</div></div><span style="font-size:12px;color:var(--text2)">範圍</span><input class="ier-inp" data-key="visceralFat.therapeutic.min" value="6" type="number" style="width:70px"><span style="font-size:12px;color:var(--text2)">–</span><input class="ier-inp" data-key="visceralFat.therapeutic.max" value="8" type="number" style="width:70px"><div class="ier-unit"></div></div>
   </div></div>
-  <div style="display:flex;gap:9px;margin-top:3px">
+  <div id="irct-mgmt-btn-row" style="display:flex;gap:9px;margin-top:3px">
     <button onclick="saveIRCTRanges(true)" style="flex:1;border:1px solid var(--border2);border-radius:9px;padding:10px;font-size:12px;cursor:pointer;background:none;color:var(--text2);font-weight:500">儲存草稿</button>
     <button onclick="saveIRCTRanges(false)" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;cursor:pointer;font-weight:700">儲存並同步到前台</button>
   </div>
+  <div id="irct-mgmt-readonly-note" style="display:none;margin-top:3px;font-size:11.5px;color:var(--text3);text-align:center;padding:10px;background:var(--bg);border-radius:9px">🔒 這頁數值只有醫師或創始人/老闆能調整，這裡開放給你查看目前設定的參考值</div>
+  <!-- 2026-09-10補：草稿(尚未按「儲存並同步到前台」)跟正式生效值分不出來的話，唯讀查看的人（例如秘書）
+       可能把還沒生效的草稿數值當成目前真正在用的設定，跟客人講解或回答問題時講錯 -->
+  <div id="irct-mgmt-draft-warn" style="display:none;margin-top:6px;font-size:11.5px;color:#92400E;text-align:center;padding:10px;background:#FFFBEB;border:1px solid #FCD34D;border-radius:9px">⚠️ 目前畫面顯示的是「尚未儲存並同步到前台」的草稿數值，不是實際生效中的設定，請找醫師或創始人確認是否要正式儲存</div>
 </div>
 
 
@@ -1578,6 +1582,7 @@ var MX_BUILD = '2026-09-08g';
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
         <select id="plan-client" class="form-select">
+          <option value="">請選擇客人…</option>
           <option value="C001">陳小美</option>
           <option value="C002">張建國</option>
           <option value="C003">黃美華</option>
@@ -1619,6 +1624,7 @@ var MX_BUILD = '2026-09-08g';
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px">
         <select id="service-client" class="form-select">
+          <option value="">請選擇客人…</option>
           <option value="C001">陳小美</option>
           <option value="C002">張建國</option>
           <option value="C003">黃美華</option>
@@ -1810,7 +1816,7 @@ var MX_BUILD = '2026-09-08g';
       <div class="form-label" style="margin-bottom:6px">檢測項目（可自由增加，加測新項目直接填）</div>
       <div id="li-items"></div>
       <button class="btn-ghost" onclick="liAddRow()" style="font-size:12px;margin:6px 0"><i class="ti ti-plus"></i> 再加一項</button>
-      <button class="btn-primary" onclick="liSave()" style="width:100%;margin-top:8px"><i class="ti ti-device-floppy"></i> 儲存這次檢測</button>
+      <button id="li-save-btn" class="btn-primary" onclick="liSave()" style="width:100%;margin-top:8px"><i class="ti ti-device-floppy"></i> 儲存這次檢測</button>
     </div>
   </div>
 
@@ -2324,9 +2330,11 @@ function adminAPI(params, callback) {
   var query = Object.keys(params).map(function(k) {
     return k + '=' + encodeURIComponent(params[k]);
   }).join('&');
+  var _acCalled = false; // 防止callback內丟例外時被catch再呼叫一次
   fetch(ADMIN_API + '?' + query)
     .then(function(r) { return r.json(); })
     .then(function(d) {
+      _acCalled = true;
       if (d && d.code === 'auth') { if (typeof forceRelogin === 'function') forceRelogin(d.message); return; }
       if (callback) callback(d);
     })
@@ -2336,6 +2344,13 @@ function adminAPI(params, callback) {
       if (now - _apiErrToastAt > 5000) {
         _apiErrToastAt = now;
         toast('⚠️ 連線失敗，請檢查網路後點「重新整理」');
+      }
+      // 2026-09-09補：這裡之前連線失敗（斷網、後端冷啟動逾時）完全不會呼叫callback，
+      // 畫面上任何先顯示「載入中…」的區塊就會永遠卡在那裡，使用者只能看到偶爾跳出的
+      // toast、卻不知道是哪個區塊壞了。現在固定回傳一個error物件給callback，
+      // 讓每個呼叫端有機會把「載入中…」換成明確的失敗訊息。
+      if (!_acCalled && callback) {
+        try { callback({ status: 'error', code: 'network', message: '連線失敗，請檢查網路後重試' }); } catch (e) {}
       }
     });
 }
@@ -2630,14 +2645,18 @@ function renderIRCTMedCategoriesFromCache(){
 function loadIRCTMedsHint(clientId){
   var hintEl = document.getElementById('irct-f-meds-hint');
   if(!hintEl) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getCurrentMeds', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     var meds = ((d && d.meds) || []).filter(function(m){ return m.status === '服用中' || m.status === '減量'; });
     if(meds.length === 0){ hintEl.innerHTML = '💊 這位客人目前沒有服用中的藥物記錄'; return; }
     hintEl.innerHTML = '💊 目前服用中：'+meds.map(function(m){ return escH(m.medName)+(m.dose?'（'+escH(m.dose)+'）':''); }).join('、')+'　<span style="color:var(--text2)">— 是否符合特殊情境（瘦瘦針/GLP-1用藥等）請自行判斷</span>';
   });
 }
 function loadIRCTBookingSuggestion(clientId){
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來，把上一位客人的建議資料（診所/飲食/運動習慣/身心狀態問卷）填進新客人的預約表單裡
   adminAPI({action:'getClientBookingSuggestion', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     if(!d || d.status !== 'ok') return;
     if(d.info){
       var clinicEl = document.getElementById('irct-f-clinic');
@@ -2669,7 +2688,9 @@ function loadIRCTAnalysisFull(clientId){
   var box = document.getElementById('irct-f-analysis');
   if(!box) return;
   box.innerHTML = '載入中…';
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getIRCTAnalysisFull', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('irct-f-analysis');
     if(!box) return;
     if(!d || d.status!=='ok' || !d.found){ box.innerHTML = '還沒有可分析的完整記錄'; return; }
@@ -2725,7 +2746,7 @@ function loadIRCTAnalysisFull(clientId){
       + (a.insulin.peakValue!==null ? '　峰值:'+a.insulin.peakValue : '')
       + '<div style="margin-top:4px;padding:8px 10px;background:var(--g2);border-radius:8px">'
       + '<b style="color:var(--g3)">整體判定：'+(a.insulin.overall.classification||'—')+'</b><br>'
-      + '<span style="font-size:10.5px;color:var(--text2)">'+(a.insulin.overall.note||'')+'</span>'
+      + '<span style="font-size:10.5px;color:var(--text2)">'+escH(a.insulin.overall.note||'')+'</span>'
       + (function(od){ if(!od) return '';
           var parts = [];
           if(od.functionType) parts.push('機能型態：'+od.functionType+(od.suppressCond1?'（條件1：空腹胰島素<0.5）':'')+(od.suppressCond2?'（條件2：三點總和'+od.insSum3+'<60且糖化/空腹血糖正常）':''));
@@ -2792,7 +2813,7 @@ function loadIRCTAnalysisFull(clientId){
           return h; })()
       + '<div><b style="color:var(--g3)">📏 體組成：</b>'+renderItems(a.bodyComp.items)
       + '　BMI:'+(a.bodyComp.bmi||'—')+'('+(a.bodyComp.bmiCategory||'—')+')<br>'
-      + '<span style="font-size:10.5px;color:var(--text2)">'+(a.bodyComp.note||'')+'</span>'
+      + '<span style="font-size:10.5px;color:var(--text2)">'+escH(a.bodyComp.note||'')+'</span>'
       + (a.inBodyFilledFields && a.inBodyFilledFields.length > 0 ?
         '<div style="margin-top:5px;font-size:10px;color:var(--b3)">💪 '+a.inBodyFilledFields.map(function(f){
           var lbl={height:'身高',weight:'體重',bmi:'BMI',bodyFatPct:'體脂肪率',bodyFat:'體脂肪量',visceralFat:'內臟脂肪'};
@@ -2845,7 +2866,11 @@ function saveIRCTFull(clientId){
   adminAPIPost(payload, function(d){
     if(d && d.status === 'ok'){
       toast('✅ IRCT完整記錄已儲存，前台報告已同步更新');
-      adminAPI({action:'addNote', clientId:clientId, content:'reportStatus:ready', type:'報告狀態', secretary:(CURRENT_USER&&CURRENT_USER.name)||'系統'}, function(){});
+      // 2026-09-09補：原本空callback，「報告狀態」這個note如果沒寫成功，客人前台報告解鎖會對不上，
+      // 但祕書畫面上完全看不出來——失敗時補一個提示，不擋住主流程。
+      adminAPI({action:'addNote', clientId:clientId, content:'reportStatus:ready', type:'報告狀態', secretary:(CURRENT_USER&&CURRENT_USER.name)||'系統'}, function(nd){
+        if(!nd || nd.status!=='ok'){ toast('⚠️ 報告狀態更新失敗，客人前台可能還沒解鎖，請稍後重新儲存一次'); }
+      });
       loadIRCTFullHistory(clientId);
       loadIRCTAnalysisFull(clientId);
     } else toast('⚠️ ' + ((d && d.message) || '儲存失敗'));
@@ -2855,7 +2880,9 @@ function loadIRCTFullHistory(clientId){
   var box = document.getElementById('irct-f-history');
   if(!box) return;
   box.innerHTML = '載入中…';
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getIRCTFullHistory', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('irct-f-history');
     if(!box) return;
     var items = (d && d.items) || [];
@@ -3285,6 +3312,11 @@ function saveExtraTestRecommend(btn) {
   });
 
   if (items.length === 0) { toast('請至少勾選一項'); return; }
+  // 2026-09-10補：這個功能會寫入客人資料，唯讀模式（例如創始人收回編輯權後）不應該還能存──
+  // 但2026-09-10再補：老闆指示「醫師可以建議功能醫學加測建議」，這屬於醫師的臨床判斷，
+  // 醫師不受此唯讀限制（後端也已同步放行，比照 cd-dx-el／醫師診斷卡片的既有邏輯）。
+  var _isDoctorFE = CURRENT_USER && CURRENT_USER.role === '醫師';
+  if (!_isDoctorFE && !canEditClientsNow()) { toast('⚠️ 目前只有查看權限，無法編輯客人資料，如需要請跟創始人申請開放'); return; }
 
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPI({
@@ -3295,8 +3327,10 @@ function saveExtraTestRecommend(btn) {
     secretary: (CURRENT_USER&&CURRENT_USER.name)||'秘書'
   }, function(d) {
     if(btn){ btn.disabled=false; btn.style.opacity=''; }
-    if (d.status === 'ok') {
+    if (d && d.status === 'ok') {
       toast('✅ 加測建議已儲存，客人複測頁面會同步顯示');
+    } else {
+      toast('⚠️ ' + ((d && d.message) || '儲存失敗，請重試'));
     }
   });
 }
@@ -3312,9 +3346,9 @@ function loadSkippedQuestionnaire() {
     if (d.status === 'ok' && d.skippedList && d.skippedList.length > 0) {
       listEl.innerHTML = d.skippedList.map(function(item) {
         return '<div style="display:flex;align-items:center;justify-content:space-between;background:#FFFBEB;border:1px solid #FCD34D;border-radius:10px;padding:10px 12px">' +
-          '<div><div style="font-size:12px;font-weight:700;color:#92400E">' + item.clientId + '</div>' +
-          '<div style="font-size:10px;color:#B45309">' + item.note + '・' + item.time + '</div></div>' +
-          '<button onclick="document.getElementById(\'client-select\').value=\'' + item.clientId + '\';goPg(\'clients\')" style="background:var(--g);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer">查看客人</button>' +
+          '<div><div style="font-size:12px;font-weight:700;color:#92400E">' + escH(item.clientId) + '</div>' +
+          '<div style="font-size:10px;color:#B45309">' + escH(item.note) + '・' + escH(item.time) + '</div></div>' +
+          '<button onclick="document.getElementById(\'client-select\').value=\'' + escH(item.clientId).replace(/'/g,"\\'") + '\';goPg(\'clients\')" style="background:var(--g);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;cursor:pointer">查看客人</button>' +
           '</div>';
       }).join('');
     } else {
@@ -3594,7 +3628,9 @@ var _supplierPayablesCache = [];
 function invRegisterSupplierPayment(i){
   var s = _supplierPayablesCache[i]; if(!s) return;
   var owed = (s.owed !== undefined) ? s.owed : s.totalAmount;
-  var amtStr = prompt('登記付給「'+s.supplier+'」多少錢？（目前欠款 $'+owed+'，付款後會從欠款扣掉）', owed > 0 ? String(owed) : '');
+  // 2026-09-09補：這個欄位其實可以打負數（例如登記錯了要沖銷、或供應商退款），但畫面上完全沒說明，
+  // 只能靠口耳相傳知道這個用法——這裡在提示文字裡直接講清楚
+  var amtStr = prompt('登記付給「'+s.supplier+'」多少錢？（目前欠款 $'+owed+'，付款後會從欠款扣掉。如果是要沖銷剛剛登記錯的金額，可以輸入負數）', owed > 0 ? String(owed) : '');
   if (amtStr === null) return;
   var amt = Number(amtStr);
   if (!amt || isNaN(amt)) { toast('請輸入有效的金額數字'); return; }
@@ -3697,7 +3733,7 @@ function loadAdminAccounts(){
     listEl.innerHTML = d.accounts.map(function(a, i){
       var isMe = CURRENT_USER && CURRENT_USER.username === a.username;
       var isActive = a.status !== '停用';
-      var isFounder = (a.role === '管理人' || a.role === '老闆');
+      var isFounder = (a.role === '管理人' || a.role === '老闆' || a.role === '創始人');
       var extraCount = (a.extraPages || []).length;
       var isClientRestrictedRole = (a.role === '行政' || a.role === '會計' || a.role === '財務主管' || a.role === '醫師');
       return '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px'+(isActive?'':';opacity:.55')+'">'+
@@ -3716,7 +3752,7 @@ function loadAdminAccounts(){
         '<select id="edit-role-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
         ['秘書','會計','行政','財務主管','醫師','管理人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
         '</select></div>'+
-        '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，其餘純顯示參考用）</div>'+
+        '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限；勾選「行政」會額外取得好物/補充品定價維護權限；其餘純顯示參考用）</div>'+
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
         ['秘書','會計','行政','財務主管'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'')+' '+r+'</label>'; }).join('')+
         '</div>'+
@@ -3725,6 +3761,7 @@ function loadAdminAccounts(){
         '<input id="edit-payrate-'+i+'" type="number" value="'+escH(a.payRate||'')+'" placeholder="薪資金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
         '</div>'+
         '<button onclick="saveEditAccount('+i+','+a.row+')" style="background:var(--g);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">儲存修改</button>'+
+        (isMe ? '' : ' <button onclick="resetAcctPasswordUI('+a.row+',\''+escH(a.name||a.username)+'\')" style="background:var(--a2);color:var(--a);border:none;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">重設密碼</button>')+
         '</div>'+
         '<div id="extra-panel-'+i+'" style="display:none;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border)">'+
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">'+
@@ -3765,6 +3802,18 @@ function saveEditAccount(i, row){
   adminAPIPost({action:'editAdminAccount', row:row, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
     if(d && d.status === 'ok'){ toast('✅ 已更新'); loadAdminAccounts(); }
     else { toast('⚠️ 更新失敗'); }
+  });
+}
+// 2026-09-09補：忘記密碼的人自己沒辦法用「改密碼」功能找回（那個需要先輸入舊密碼），
+// 秘書手冊一直寫管理人可以在這裡「重設密碼」，但這顆按鈕之前其實不存在——這次補上
+function resetAcctPasswordUI(row, name){
+  var pw = prompt('幫「'+name+'」設定一組新密碼（至少6碼，英文、數字皆可），設定後請把新密碼告訴對方，建議對方登入後自己再改一次：');
+  if(pw === null) return;
+  pw = pw.trim();
+  if(pw.length < 6){ toast('⚠️ 密碼至少6碼'); return; }
+  adminAPIPost({action:'resetAdminAccountPassword', row:row, newPassword:pw}, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 已重設「'+name+'」的密碼'); }
+    else { toast('⚠️ ' + ((d && d.message) || '重設失敗')); }
   });
 }
 function toggleClientEditPerm(row, newVal){
@@ -4002,6 +4051,11 @@ function openPartnerFeatures(btn) {
   var old = document.getElementById('partner-features-modal'); if (old) old.remove();
   var hasReferral = String(role.features || '').indexOf('referral') >= 0;
   var hasSelfCollect = String(role.features || '').indexOf('selfCollect') >= 0;
+  // 2026-09-10新增：老闆指示「客人消費扣款」要綁定各廠商實際談好的合作項目，不是所有廠商都能扣款──
+  // 這裡用「noCharge」反向旗標（預設可以扣款，取消勾選才會停用），而不是像轉介/自行收款那樣正向開通，
+  // 是為了不影響現有已經在用的廠商帳號：舊帳號的「開通項目」欄位本來就不會有這個字，維持能扣款，
+  // 之後管理人要限制某個合作單位（例如純推廣型的美業集團）才需要主動來這裡取消勾選。
+  var hasNoCharge = String(role.features || '').indexOf('noCharge') >= 0;
   var groupOptions = (window._cachedRoles || [])
     .filter(function(r){ return r.orgType === '集團總部' && String(r.roleId) !== String(roleId); })
     .map(function(r){ return '<option value="' + escH(r.roleId) + '"' + (role.groupRoleId === r.roleId ? ' selected' : '') + '>' + escH(r.roleName) + '</option>'; })
@@ -4037,6 +4091,9 @@ function openPartnerFeatures(btn) {
     + '<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);margin-bottom:14px;cursor:pointer">'
       + '<input type="checkbox" id="pf-selfcollect"' + (hasSelfCollect ? ' checked' : '') + '>'
       + '開通「合作單位自行收款、回報給元代謝」</label>'
+    + '<label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);margin-bottom:14px;cursor:pointer">'
+      + '<input type="checkbox" id="pf-cancharge"' + (!hasNoCharge ? ' checked' : '') + '>'
+      + '開通「客人消費扣款」（可直接幫客人扣儲值卡；預設開通，純推廣型合作單位若不該有這個能力請取消勾選）</label>'
     + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">登入 vendor.html（店家工作台）密碼</div>'
     + '<input id="pf-password" type="text" placeholder="留空＝不變更目前密碼" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:4px;font-family:inherit">'
     + '<div style="font-size:10.5px;color:var(--text3);margin-bottom:14px">廠商代碼＝角色名稱本身「' + escH(roleName) + '」，目前' + (role.hasPassword ? '已設定密碼' : '尚未設定密碼') + '</div>'
@@ -4055,13 +4112,17 @@ function submitPartnerFeatures() {
   var groupRoleId = (orgType === '集團分店') ? (document.getElementById('pf-groupid') || {value:''}).value : '';
   var wantsReferral = (document.getElementById('pf-referral') || {checked:false}).checked;
   var wantsSelfCollect = (document.getElementById('pf-selfcollect') || {checked:false}).checked;
+  var wantsCharge = (document.getElementById('pf-cancharge') || {checked:true}).checked;
   var oneTime = wantsReferral ? (document.getElementById('pf-onetime') || {value:'0'}).value : '0';
   var pct = wantsReferral ? (document.getElementById('pf-pct') || {value:'0'}).value : '0';
   var pw = (document.getElementById('pf-password') || {value:''}).value.trim();
   if (pw && pw.length < 6) { toast('⚠️ 密碼至少6碼'); return; }
+  // 2026-09-09補：持續分潤比例沒有上下限檢查，多打一個0（例如打成1000而不是10）會讓每一筆消費都付出10倍分潤
+  if (wantsReferral && (isNaN(Number(pct)) || Number(pct) < 0 || Number(pct) > 100)) { toast('⚠️ 持續分潤比例必須介於0～100之間'); return; }
   var features = [];
   if (wantsReferral) features.push('referral');
   if (wantsSelfCollect) features.push('selfCollect');
+  if (!wantsCharge) features.push('noCharge');
   var payload = {
     action: 'setPartnerFeatures', roleId: roleId, orgType: orgType, groupRoleId: groupRoleId,
     features: features.join(','), referralOneTime: oneTime, referralPercent: pct
@@ -4169,7 +4230,7 @@ function ruleAddRoleRow(containerId) {
 
   var roles = window._cachedRoles || [];
   var optionsHtml = '<option value="">選擇角色</option>' + roles.map(function(r) {
-    return '<option value="' + r.roleId + '|' + r.roleName + '">' + r.roleName + '（' + r.roleType + '）</option>';
+    return '<option value="' + escH(r.roleId + '|' + r.roleName) + '">' + escH(r.roleName) + '（' + escH(r.roleType) + '）</option>';
   }).join('');
 
   var rowHtml = '<div id="' + rowId + '" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;align-items:center">' +
@@ -4239,6 +4300,7 @@ function saveRule(btn) {
   var eventType = document.getElementById('rule-event-type').value;
   var totalPrice = document.getElementById('rule-total-price').value;
   if (!totalPrice) { toast('請輸入服務總價'); return; }
+  if (Number(totalPrice) <= 0) { toast('服務總價要大於0，麻煩再確認一下'); return; } // 2026-09-09補：之前只檢查有沒有填，沒檢查是不是正數，手滑打成負數也會被存進去
 
   var rows = document.querySelectorAll('#rule-role-rows > div');
   if (rows.length === 0) { toast('請至少新增一個分帳角色'); return; }
@@ -4309,7 +4371,7 @@ function loadRules() {
         }
         return '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:11px 13px">' +
           '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
-          '<div style="font-size:13px;font-weight:700;color:var(--text)">' + r.eventType + '</div>' +
+          '<div style="font-size:13px;font-weight:700;color:var(--text)">' + escH(r.eventType) + '</div>' +
           '<div style="font-size:12px;color:var(--g3);font-weight:700">NT$' + r.totalPrice + '</div></div>' +
           '<div style="font-size:11px;color:var(--text2)">' + sharesHtml + '</div>' +
           ownVariantHtml +
@@ -4462,7 +4524,12 @@ function loadSecretaryPayInfo(){
   var disp = document.getElementById('duty-pay-display');
   if(!sel || !disp) return;
   var acc = _dutySecretaryAccounts.find(function(a){ return a.name === sel.value; });
-  if(!acc || !acc.payType || !acc.payRate){ disp.textContent = acc ? '⚠️ 這位秘書還沒在「帳號管理」設定薪資' : '先選秘書才會帶出薪資設定'; return; }
+  if(!acc){ disp.textContent = '先選秘書才會帶出薪資設定'; return; }
+  // 2026-09-09補：'payType' in acc 用來分辨這筆資料是不是真的查得到薪資（來自getAdminAccounts，
+  // 創始人限定）——一般秘書/行政帳號查到的是輕量版（getStaffAccounts），根本沒有payType這個欄位，
+  // 不代表「還沒設定薪資」，只是「這個帳號沒有權限看薪資」，兩種情況要分開講，不要嚇到人
+  if(!('payType' in acc)){ disp.textContent = '💡 薪資設定僅創始人可查看，排班照存不受影響'; return; }
+  if(!acc.payType || !acc.payRate){ disp.textContent = '⚠️ 這位秘書還沒在「帳號管理」設定薪資（排班仍可照存，小計會先記0）'; return; }
   disp.innerHTML = '💰 '+escH(acc.payType)+'　$'+escH(acc.payRate);
 }
 // 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('duty')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
@@ -4526,21 +4593,22 @@ function submitShift(btn){
   if(!secretary){ toast('請選擇秘書'); return; }
   var date = document.getElementById('duty-date').value;
   if(!date){ toast('請選擇日期'); return; }
-  var acc = _dutySecretaryAccounts.find(function(a){ return a.name === secretary; });
-  if(!acc || !acc.payType || !acc.payRate){ toast('⚠️ 這位秘書還沒在「帳號管理」設定薪資，請先去設定'); return; }
+  // 2026-09-09補：薪資類型/金額改由後端直接查帳號表，不用前端先查得到才能送出——
+  // 之前這裡要求acc.payType/acc.payRate才能繼續，但一般秘書/行政帳號沒有權限查到薪資設定
+  // （查詢會被後端拒絕），導致這顆「新增排班」按鈕對非創始人帳號永遠是擋住的，就算薪資其實已經設定好了
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addShift', secretary:secretary, date:date,
     shift:document.getElementById('duty-shift').value,
     startTime:document.getElementById('duty-start').value,
     endTime:document.getElementById('duty-end').value,
-    salaryType:acc.payType,
-    rate:acc.payRate,
     note:document.getElementById('duty-note').value
   }, function(d){
     if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
-      toast('✅ 排班已記錄'+(d.subtotal?'，小計 '+d.subtotal:''));
+      // 2026-09-09補：後端沒查到薪資設定時payType會是空字串——排班本身還是照存，只是提醒一下
+      // 薪資小計還沒算（等創始人去帳號管理補設定），不擋住排班這個動作本身
+      toast(d.payType ? ('✅ 排班已記錄，小計 '+d.subtotal) : '✅ 排班已記錄（這位帳號還沒設定薪資，小計暫記0，補設定後之後結算會抓得到）');
       ['duty-secretary','duty-shift','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
       document.getElementById('duty-pay-display').textContent = '先選秘書才會帶出薪資設定';
       if(typeof loadShiftSchedule==='function') loadShiftSchedule();
@@ -4568,7 +4636,9 @@ function submitReferral(referrerId, referrerName, btn){
 function loadClientReferrals(clientId){
   var box = document.getElementById('cd-referrals');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getReferrals', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-referrals');
     if(!box) return;
     var items = (d && d.items) || [];
@@ -4609,7 +4679,9 @@ function submitReward(clientId, btn){
 function loadClientRewards(clientId){
   var box = document.getElementById('cd-rewards');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getRewards', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-rewards');
     if(!box) return;
     var items = (d && d.items) || [];
@@ -4895,6 +4967,8 @@ function savePlanForm(btn) {
   if (!planName) { toast('請輸入方案名稱'); return; }
   if (!fee) { toast('請輸入費用'); return; }
   if (Number(fee) < 0) { toast('⚠️ 費用不能是負數'); return; }
+  // 2026-09-09補：方案月數之前沒有驗證，打負數會讓到期日設在過去（方案一建立就已過期），打非數字會讓到期日變成Invalid Date寫進表格
+  if (months !== '' && (isNaN(parseInt(months,10)) || parseInt(months,10) <= 0)) { toast('⚠️ 方案月數必須是大於0的數字'); return; }
 
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   savePlan(clientId, planName, months, fee, discount, function(){
@@ -4927,8 +5001,13 @@ function recordServicePayment() {
   var eventTypeSel = document.getElementById('service-event-type');
   var eventType = eventTypeSel ? eventTypeSel.value : '陪跑服務費';
 
+  // 2026-09-09補：原本這裡沒檢查clientId有沒有選——下拉選單預設第一個選項本來是寫死的假資料
+  // 「C001 陳小美」，現在已改成一開始是空白選項，但客人名單載入後仍可能停在清單第一位客人，
+  // 沒特別注意就按下去，這筆真實收款會記到錯的客人身上，這裡補上跟建立客人方案表單一樣的檢查
+  if (!clientId) { toast('請先選擇客人'); return; }
   if (!eventType) { toast('請選擇服務類型'); return; }
   if (!amount) { toast('請輸入收款金額'); return; }
+  if (Number(amount) <= 0) { toast('⚠️ 金額請輸入大於0的數字'); return; }
 
   adminAPI({
     action: 'addServiceRecord',
@@ -4968,8 +5047,8 @@ function loadExpiringPlans() {
         var badgeBg = overdue ? 'var(--r2)' : (urgent ? 'var(--r2)' : 'var(--a2)');
         var badgeText = overdue ? '已逾期 ' + Math.abs(p.daysLeft) + ' 天' : '還有 ' + p.daysLeft + ' 天';
         return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:10px 13px">' +
-          '<div><div style="font-size:13px;font-weight:700;color:var(--text)">' + (p.clientName || p.clientId) + '</div>' +
-          '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + (p.planName || '') + '</div></div>' +
+          '<div><div style="font-size:13px;font-weight:700;color:var(--text)">' + escH(p.clientName || p.clientId) + '</div>' +
+          '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + escH(p.planName || '') + '</div></div>' +
           '<div style="background:' + badgeBg + ';color:' + badgeColor + ';border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700">' + badgeText + '</div>' +
           '</div>';
       }).join('');
@@ -4983,13 +5062,23 @@ function loadExpiringPlans() {
 // ══════════════ 內容管理：QA / 外食 / FAQ（真實連動 Google Sheets）══════════════
 function adminAPIPost(params, callback){
   if (typeof ADMIN_TOKEN !== 'undefined' && ADMIN_TOKEN && !params.token) params.token = ADMIN_TOKEN;
+  var _apCalled = false; // 防止callback內丟例外時被catch再呼叫一次
   fetch(ADMIN_API, {method:'POST', body: JSON.stringify(params)})
     .then(function(r){return r.json();})
     .then(function(d){
+      _apCalled = true;
       if (d && d.code === 'auth') { if (typeof forceRelogin === 'function') forceRelogin(d.message); return; }
       if(callback)callback(d);
     })
-    .catch(function(err){console.error('API錯誤：',err);toast('⚠️ 連線失敗，請重試');});
+    .catch(function(err){
+      console.error('API錯誤：',err);
+      toast('⚠️ 連線失敗，請重試');
+      // 2026-09-09補：同adminAPI——連線失敗時一定要呼叫callback帶一個error物件，
+      // 不然按鈕/表單會停在「送出中…」，看起來像當機，使用者只能被迫重新整理整個頁面。
+      if (!_apCalled && callback) {
+        try { callback({ status: 'error', code: 'network', message: '連線失敗，請檢查網路後重試' }); } catch (e) {}
+      }
+    });
 }
 function escH(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
@@ -5078,24 +5167,37 @@ function loadFoodAdmin(){
   document.getElementById('food-list-admin').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>';
   adminAPI({action:'getFoodAdmin'}, function(d){
     _foodAdminData = d.items || [];
-    var html='';
-    _foodAdminData.forEach(function(it,idx){
-      var tag = it.tag||'';
-      var badgeCls = tag.indexOf('可以')>=0?'g':tag.indexOf('小心')>=0?'a':tag.indexOf('避免')>=0?'r':'b';
-      html += '<div class="food-item-row">'
-        + '<div class="fir-em">'+escH(it.emoji||'🍽')+'</div>'
-        + '<div class="fir-body"><div class="fir-name">'+escH(it.name)
-        + (tag?' <span class="badge '+badgeCls+'" style="margin-left:8px">'+escH(tag)+'</span>':'')
-        + '</div><div class="fir-desc">'+escH(it.desc||'（無說明）')+'</div></div>'
-        + '<div style="font-size:11px;color:var(--text2);flex-shrink:0">'+escH(it.category)+'</div>'
-        + '<div class="fir-actions">'
-        + '<button class="icon-btn" title="編輯" onclick="editFoodItem('+idx+')"><i class="ti ti-edit"></i></button>'
-        + '<button class="icon-btn del" title="刪除" onclick="deleteFoodItemUI('+idx+')"><i class="ti ti-trash"></i></button>'
-        + '</div></div>';
-    });
-    if(!html) html='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">目前沒有外食資料，點右上「新增食物」開始建立</div>';
-    document.getElementById('food-list-admin').innerHTML = html;
+    renderFoodAdminList();
   });
+}
+// 2026-09-09補：搜尋框/分類下拉原本只是擺著、沒有接任何事件也沒有過濾邏輯，輸入什麼都不會篩選。
+// 拆出這個render函式，搜尋框/分類下拉改用editIdx（在_foodAdminData裡的真實索引，不是過濾後的順位）
+// 呼叫編輯/刪除，這樣篩選後按鈕還是對得到正確的項目。
+function renderFoodAdminList(){
+  var kw = (document.getElementById('food-search-kw')||{}).value || '';
+  kw = kw.trim().toLowerCase();
+  var cat = (document.getElementById('food-search-cat')||{}).value || '';
+  var html='';
+  var shown = 0;
+  _foodAdminData.forEach(function(it,idx){
+    if(cat && it.category !== cat) return;
+    if(kw && (it.name||'').toLowerCase().indexOf(kw) < 0) return;
+    shown++;
+    var tag = it.tag||'';
+    var badgeCls = tag.indexOf('可以')>=0?'g':tag.indexOf('小心')>=0?'a':tag.indexOf('避免')>=0?'r':'b';
+    html += '<div class="food-item-row">'
+      + '<div class="fir-em">'+escH(it.emoji||'🍽')+'</div>'
+      + '<div class="fir-body"><div class="fir-name">'+escH(it.name)
+      + (tag?' <span class="badge '+badgeCls+'" style="margin-left:8px">'+escH(tag)+'</span>':'')
+      + '</div><div class="fir-desc">'+escH(it.desc||'（無說明）')+'</div></div>'
+      + '<div style="font-size:11px;color:var(--text2);flex-shrink:0">'+escH(it.category)+'</div>'
+      + '<div class="fir-actions">'
+      + '<button class="icon-btn" title="編輯" onclick="editFoodItem('+idx+')"><i class="ti ti-edit"></i></button>'
+      + '<button class="icon-btn del" title="刪除" onclick="deleteFoodItemUI('+idx+')"><i class="ti ti-trash"></i></button>'
+      + '</div></div>';
+  });
+  if(!html) html='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">'+(_foodAdminData.length===0?'目前沒有外食資料，點右上「新增食物」開始建立':'沒有符合搜尋條件的食物')+'</div>';
+  document.getElementById('food-list-admin').innerHTML = html;
 }
 function editFoodItem(idx){
   var it=_foodAdminData[idx]; if(!it)return;
@@ -5158,23 +5260,31 @@ function loadFAQAdmin(){
   document.getElementById('faq-list-admin').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>';
   adminAPI({action:'getFAQAdmin'}, function(d){
     _faqAdminData = d.items || [];
-    var html='';
-    _faqAdminData.forEach(function(it,idx){
-      var active = it.status !== '停用';
-      html += '<div class="faq-item" style="'+(active?'':'opacity:.5')+'"><div class="faq-row"><div style="flex:1;min-width:0">'
-        + '<div class="faq-q">'+escH(it.question)
-        + (it.category?' <span class="badge b" style="margin-left:8px">'+escH(it.category)+'</span>':'')
-        + (active?'':' <span class="badge a" style="margin-left:4px">停用</span>')
-        + '</div><div class="faq-a">'+escH(it.answer)+'</div></div>'
-        + '<div class="fir-actions">'
-        + '<button class="icon-btn" title="編輯" onclick="editFAQItem('+idx+')"><i class="ti ti-edit"></i></button>'
-        + '<button class="icon-btn" title="'+(active?'停用':'重新上線')+'" onclick="toggleFAQStatus('+idx+')"><i class="ti ti-'+(active?'eye-off':'eye')+'"></i></button>'
-        + '<button class="icon-btn del" title="刪除" onclick="deleteFAQItemUI('+idx+')"><i class="ti ti-trash"></i></button>'
-        + '</div></div></div>';
-    });
-    if(!html) html='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">目前沒有 FAQ。請先到 Google Sheets 建立「💬 FAQ設定」工作表（欄位：問題/答案/分類/狀態/更新日期），再點「新增 FAQ」。</div>';
-    document.getElementById('faq-list-admin').innerHTML = html;
+    renderFAQAdminList();
   });
+}
+// 2026-09-09補：搜尋框原本沒接任何事件/過濾邏輯，打字完全沒反應。拆出render函式，同時比對問題跟答案
+// 的關鍵字（秘書有時記得的是答案內容不是問題本身），editIdx維持對應_faqAdminData裡的真實索引。
+function renderFAQAdminList(){
+  var kw = (document.getElementById('faq-search-kw')||{}).value || '';
+  kw = kw.trim().toLowerCase();
+  var html='';
+  _faqAdminData.forEach(function(it,idx){
+    if(kw && (it.question||'').toLowerCase().indexOf(kw) < 0 && (it.answer||'').toLowerCase().indexOf(kw) < 0) return;
+    var active = it.status !== '停用';
+    html += '<div class="faq-item" style="'+(active?'':'opacity:.5')+'"><div class="faq-row"><div style="flex:1;min-width:0">'
+      + '<div class="faq-q">'+escH(it.question)
+      + (it.category?' <span class="badge b" style="margin-left:8px">'+escH(it.category)+'</span>':'')
+      + (active?'':' <span class="badge a" style="margin-left:4px">停用</span>')
+      + '</div><div class="faq-a">'+escH(it.answer)+'</div></div>'
+      + '<div class="fir-actions">'
+      + '<button class="icon-btn" title="編輯" onclick="editFAQItem('+idx+')"><i class="ti ti-edit"></i></button>'
+      + '<button class="icon-btn" title="'+(active?'停用':'重新上線')+'" onclick="toggleFAQStatus('+idx+')"><i class="ti ti-'+(active?'eye-off':'eye')+'"></i></button>'
+      + '<button class="icon-btn del" title="刪除" onclick="deleteFAQItemUI('+idx+')"><i class="ti ti-trash"></i></button>'
+      + '</div></div></div>';
+  });
+  if(!html) html='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">'+(_faqAdminData.length===0?'目前沒有 FAQ。請先到 Google Sheets 建立「💬 FAQ設定」工作表（欄位：問題/答案/分類/狀態/更新日期），再點「新增 FAQ」。':'沒有符合搜尋條件的 FAQ')+'</div>';
+  document.getElementById('faq-list-admin').innerHTML = html;
 }
 function editFAQItem(idx){
   var it=_faqAdminData[idx]; if(!it)return;
@@ -5303,6 +5413,13 @@ function clientName(id){
 
 // ── 共用：客人詳細面板 ──
 var _cdCurrentId='';
+// 2026-09-09補：秘書快速切換不同客人（例如點錯人、立刻關掉換點下一個）時，上一位客人面板還在跑的
+// 十幾個背景查詢（用藥/加測/補充品/討論/醫師筆記/心得/成效報告…）可能在新客人的面板已經打開後才回來，
+// 而好幾個載入函式會在callback裡「重新」document.getElementById找同一個id的區塊來畫——但新客人的面板
+// 用的是同一組id，等於上一位客人的資料被畫進了新客人的畫面裡，秘書完全看不出來、也可能對著錯的人按
+// 「記錄停藥」之類的按鈕。用一個世代編號擋住：每次開啟客人面板編號+1，所有背景查詢回來時先比對編號，
+// 編號對不上（代表面板已經換成別的客人）就直接不畫、不寫入任何全域快取。
+var _cdOpenGen = 0;
 // 客人詳細面板裡的快速切換(跟客人清單頁的unlockClient/lockClient邏輯一致，只是改成直接接收id，成功後重新整理面板本身)
 var _cdCurrentName = '';
 function setClientSpecialCaseUI(id){
@@ -5369,10 +5486,29 @@ function _cdSetBadge(id, filled, yesText, noText){
   el.style.background = filled ? 'var(--g2)' : 'var(--bg2)';
   el.style.color = filled ? 'var(--g3)' : 'var(--text3)';
 }
+// 2026-09-09補：VV要求——秘書快速切換不同客人時，客戶詳情頁裡十幾個背景資料區塊長得都一樣（同一種底色），
+// 不容易一眼看出「現在是哪位客人」，希望換客人時區塊顏色能跟著換，方便秘書快速切換時看得清楚。
+// 用客人編號算出一個固定的顏色（同一個客人每次打開都是同一個顏色，不同客人顏色通常會不一樣），
+// 讓整個面板（區塊左邊的色條＋姓名旁邊的色點）套用這個顏色，換客人時顏色會明顯跟著換掉。
+function _cdClientColor(id){
+  var s = String(id || '');
+  var h = 0;
+  for (var i = 0; i < s.length; i++) { h = (Math.imul(h, 31) + s.charCodeAt(i)) >>> 0; }
+  // murmur3風格的混色步驟：客編通常是連號（C001、C002…），單純的多項式雜湊在最後一位數字
+  // 不同時，算出來的色相會只差1度左右（肉眼根本分不出來）——這裡多做幾步讓小差異被放大，
+  // 相鄰客編的顏色才會真的看起來不一樣。
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h ^= h >>> 16;
+  var hue = ((h % 360) + 360) % 360;
+  return 'hsl(' + hue + ',62%,45%)';
+}
 function openClientDetail(id, name){
   _cdCurrentName = name || id;
   setTimeout(function(){ if(typeof loadDoctorsToSelects==='function') loadDoctorsToSelects(); }, 300);
   _cdCurrentId=id;
+  _cdOpenGen++; // 2026-09-09補：每次開面板換一個世代編號，見上方var _cdOpenGen宣告處的說明
+  var cdColor = _cdClientColor(id);
   var old = document.getElementById('client-detail-modal');
   if(old) old.remove();
   // 從既有的客人清單快取裡直接找陪跑狀態，不用額外呼叫API——秘書點進客人資料時，
@@ -5385,7 +5521,7 @@ function openClientDetail(id, name){
   m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px';
   m.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:18px 20px">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
-    + '<div style="display:flex;align-items:center;gap:8px"><div style="font-size:15px;font-weight:700">'+escH(name||id)+'・近期記錄</div>'
+    + '<div style="display:flex;align-items:center;gap:8px"><span title="這個顏色代表目前這位客人，切換客人會換顏色" style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+cdColor+';flex-shrink:0"></span><div style="font-size:15px;font-weight:700">'+escH(name||id)+'・近期記錄</div>'
     + '<span onclick="'+(cdIsActive?'lockClientQuick':'unlockClientQuick')+'(\''+escH(id)+'\')" style="cursor:pointer;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;background:'+(cdIsActive?'var(--g2)':'var(--a2)')+';color:'+(cdIsActive?'var(--g3)':'#B26A00')+'">'+(cdIsActive?'✅ 陪跑中':'🔒 未開通')+'</span></div>'
     + '<button class="cd-close-btn" onclick="document.getElementById(\'client-detail-modal\').remove()" style="border:none;background:none;cursor:pointer;font-size:18px;color:var(--text2)">✕</button></div>'
     + '<div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">'
@@ -5401,7 +5537,7 @@ function openClientDetail(id, name){
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '<span id="cd-abc-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;font-weight:700"></span>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid #F5D9A8;border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid #F5D9A8;border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:#8A5A0A;margin-bottom:3px">🍽 飲食記錄與照片（近3天）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">客人的餐盤照片、自我判斷（油脂/蛋白質/碳水）都在這裡，回覆「飲食判斷求助」前先看這區。點照片可以放大看原圖。照片檔保留30天後自動清理，文字記錄永久保留。</div>'
     + '<div id="cd-meal-records" style="font-size:12px;color:var(--text3)">載入中…</div>'
@@ -5409,7 +5545,7 @@ function openClientDetail(id, name){
     + _mealReplyUI('cd' + escH(id))
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px;margin-top:6px" onclick="sendMealReply(\'cd' + escH(id) + '\',\'' + escH(id) + '\',0,this)">💌 送出建議（客人打開前台就會看到）</button>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💊 推薦補充品（寫入 💊 補充品推薦記錄）<span id="cd-badge-supp" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
     + '<select id="cd-supp-doctor" class="form-select" style="font-size:12px;grid-column:1/-1;margin-bottom:6px"><option value="">建議醫師／藥師・誰建議的？…</option></select>'
@@ -5436,8 +5572,13 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">推薦歷史（點「再次推薦」一鍵重複，不用重打）</div>'
     + '<div id="cd-supp-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
-    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💉 加測檢測（IRCT 套組／單項→💉 檢體記錄；功能醫學→💉 功能醫學記錄） <span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTPricing()">改IRCT價格</span><span id="cd-badge-lab" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💉 加測檢測（IRCT 套組／單項→💉 檢體記錄；功能醫學→💉 功能醫學記錄） '
+      // 2026-09-10補：這顆「改IRCT價格」之前沒有角色判斷，所有角色（含秘書）都看得到、點得到，
+      // 後端setIRCTPricing雖然有擋（只有創始人能存），但前端失敗訊息原本吞掉真正原因只顯示「更新失敗，請重試」，
+      // 非創始人的人會一直以為是網路問題、找不出到底為什麼存不了——這裡比照其他創始人專屬功能，直接不顯示這顆連結
+      + (isFounderRoleFE_() ? '<span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTPricing()">改IRCT價格</span>' : '')
+      + '<span id="cd-badge-lab" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
     + '<select id="cd-lab-sel" class="form-select" style="font-size:12px" onchange="onLabSelChange()"><option value="">載入檢測項目…</option></select>'
     + '<select id="cd-lab-sendto" class="form-select" style="font-size:12px;margin-bottom:6px"><option value="">送往哪個診所/實驗室？（選填，會影響逾期提醒的門檻與催收對象）</option></select>'
@@ -5474,7 +5615,7 @@ function openClientDetail(id, name){
     + '<div id="cd-labimg-result" style="display:none;font-size:11px;color:var(--g3);margin-top:6px"></div>'
     + '</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💊 用藥記錄（寫入 💊 用藥記錄）<span id="cd-badge-med" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">客人回報的用藥登記在這裡；劑量調整由客人的醫師決定，我們負責記下時間軸。</div>'
     + '<div style="display:grid;grid-template-columns:1.2fr 1fr auto auto;gap:7px">'
@@ -5498,7 +5639,7 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">用藥時間軸（減藥／停藥的日期自動留存）</div>'
     + '<div id="cd-med-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🎯 目標體重（設定後，客人前台和月報都會顯示「距離目標」）<span id="cd-badge-goal" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:flex;gap:8px;align-items:center">'
     + '<input id="cd-goal-weight" type="number" step="0.1" class="form-input" style="font-size:12px;flex:1" placeholder="公斤，例：60">'
@@ -5506,7 +5647,7 @@ function openClientDetail(id, name){
     + '</div>'
     + '<div id="cd-goal-current" style="font-size:10.5px;color:var(--text3);margin-top:6px"></div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💪 InBody 記錄（寫入 💪 InBody記錄，會自動整合進月報）<span id="cd-badge-ib" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">檢測時拍InBody報告單直接辨識，或手動輸入數字。身高只要量過一次通常不太會變，之後可以留空沿用。</div>'
     + '<button class="ai-btn b" style="font-size:11px;padding:8px 10px;margin-bottom:8px" onclick="document.getElementById(\'cd-ib-file\').click()">📷 拍InBody報告單辨識</button>'
@@ -5522,17 +5663,25 @@ function openClientDetail(id, name){
     + '<input id="cd-ib-fatpct" class="form-input" style="font-size:12px" placeholder="體脂肪率%">'
     + '<input id="cd-ib-fatmass" class="form-input" style="font-size:12px" placeholder="體脂肪量kg">'
     + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">'
     + '<input id="cd-ib-muscle" class="form-input" style="font-size:12px" placeholder="骨骼肌重kg">'
     + '<input id="cd-ib-visceral" class="form-input" style="font-size:12px" placeholder="內臟脂肪等級">'
     + '<input id="cd-ib-bmr" class="form-input" style="font-size:12px" placeholder="基礎代謝率kcal">'
     + '</div>'
+    // 2026-09-09新增：體水分／蛋白質／腰圍——後端表格早就有這三欄位置（含OCR辨識也認得到），
+    // 但畫面表單一直沒開放填寫，機器有印這三個數字的話等於白白漏接
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">'
+    + '<input id="cd-ib-bodywater" class="form-input" style="font-size:12px" placeholder="體水分L">'
+    + '<input id="cd-ib-protein" class="form-input" style="font-size:12px" placeholder="蛋白質kg">'
+    + '<input id="cd-ib-waist" class="form-input" style="font-size:12px" placeholder="腰圍cm">'
+    + '</div>'
+    + '<textarea id="cd-ib-note" class="form-input" style="font-size:12px;width:100%;height:36px;resize:vertical;margin-bottom:8px" placeholder="備註（選填，例如量測狀況、跟上次落差大的原因）"></textarea>'
     + '<button class="btn-g" style="padding:8px 13px;font-size:12px" onclick="saveInBody(\''+escH(id)+'\')">儲存 InBody 記錄</button>'
     + '<div id="cd-ib-filehint" style="display:none;font-size:10.5px;color:var(--g);margin-top:6px">📎 已附上報告圖片，儲存時會一起存進記錄</div>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">InBody 歷史記錄</div>'
     + '<div id="cd-ib-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:13.5px;font-weight:800;color:var(--text);margin-bottom:3px">🔬 新增／登記 IRCT 完整檢測記錄<span id="cd-badge-irct" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:6px">下面欄位依血糖／血脂／胰島素／體組成分類，各有顏色區塊方便辨識——檢測時拍檢驗報告表格直接辨識，或手動輸入數字，存檔後前台報告分析頁會自動更新。</div>'
     + '<div id="irct-f-meds-hint" style="font-size:10.5px;color:var(--text3);margin-bottom:8px;padding:6px 8px;background:var(--bg2);border-radius:7px">載入用藥記錄中…</div>'
@@ -5646,7 +5795,7 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">完整分析（依血糖／血脂／胰島素／體組成四大分類，僅醫師/秘書可見）</div>'
     + '<div id="irct-f-analysis" style="font-size:11.5px;color:var(--text2);line-height:1.8">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍚 碳水計畫（寫入 👤 客人名單）<span id="cd-badge-carb" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">代謝靈活性調整期間分兩段：嚴格期（內部：治療性生酮）不建議吃碳水；碳水回補期（內部：營養性生酮）以 15g 為單位往上加，找客人的碳水甜蜜點。客人前台只會看到中性用語（嚴格期／碳水回補期），不會出現「治療」或「生酮」。</div>'
     + '<div style="display:grid;grid-template-columns:1fr auto;gap:7px">'
@@ -5667,22 +5816,22 @@ function openClientDetail(id, name){
     + '<span>醫師已核准，開放客人在前台看到這個碳水計畫（沒勾選的話，這裡的設定只有秘書/醫師看得到，客人前台不會顯示）</span>'
     + '</label>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🎫 陪跑點數（寫入 🎫 陪跑點數帳本）<span id="cd-badge-cps" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">1點=100元。年費陪跑內含100點：開卡禮4點＋每月8點×12（系統每月1號起自動發放，不用手動按）。點數可換秘書/醫師諮詢（隨時），每月最後7天可折抵好物商城（系統會自動提醒還有餘額的客人），沒用完自動累積，合約到期後60天內要用完。代購結帳時秘書也可以直接選「用陪跑點數折抵」。</div>'
     + '<div id="cd-cps-body" style="font-size:12px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍯 代謝甜蜜點分析</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">從這位客人自己的每日記錄＋IRCT複測結果，找出真的適合他的碳水回補／運動節奏（不是套公版建議）。算出來的結果不會自動給客人看，你確認/編輯文字後按「顯示給客人」才會真正曝光。</div>'
     + '<button class="ai-btn b" style="font-size:11.5px;padding:7px 12px" onclick="loadSweetSpotAnalysis(\''+escH(id)+'\')">🔍 分析這位客人的甜蜜點</button>'
     + '<div id="cd-sweetspot-body" style="margin-top:9px"></div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💬 客人心得分享（客人在前台自己送出）<span id="cd-badge-testi" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div id="cd-testimonials">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🤝 介紹記錄（寫入 👤 介紹記錄）<span id="cd-badge-ref" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px">'
     + '<input id="cd-ref-referredId" class="form-input" style="font-size:12px" placeholder="被介紹人ID（如果已經是客人）">'
@@ -5692,7 +5841,7 @@ function openClientDetail(id, name){
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReferral(\''+escH(id)+'\',\''+escH(name||'')+'\',this)">記錄這位客人的介紹</button>'
     + '<div id="cd-referrals" style="margin-top:8px"></div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🎁 客人獎勵記錄（寫入 👤 客人獎勵記錄）</div>'
     + '<div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px">'
     + '<select id="cd-rw-type" class="form-select" style="font-size:12px"><option value="介紹獎勵">介紹獎勵</option><option value="生日禮">生日禮</option><option value="達標獎勵">達標獎勵</option><option value="其他">其他</option></select>'
@@ -5703,7 +5852,7 @@ function openClientDetail(id, name){
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="submitReward(\''+escH(id)+'\',this)">記錄獎勵</button>'
     + '<div id="cd-rewards" style="margin-top:8px"></div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">💬 個案討論（寫入 💬 個案討論）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">特殊情況在這裡發起討論，全部秘書都看得到；問過醫師後把意見貼回來選「醫師意見」，結論會永久留存給下次參考。</div>'
     + '<div style="display:grid;grid-template-columns:1fr auto;gap:7px;margin-bottom:8px">'
@@ -5720,17 +5869,17 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">討論串（含歷史結論）</div>'
     + '<div id="cd-disc-list" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🗺️ 療程地圖（2026-09-04f 新增）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">依客人目前最新一次檢測資料，往前推算到期末目標，畫出期初→前期→中期→後期→期末五個階段每項指標「應該會落在哪裡」，第一次溹通療程時可以直接秀給客人看，建立信任、設定合理期待。</div>'
     + '<div id="cd-roadmap" style="font-size:12px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🤝 療程承諾清單（2026-09-04g 新增）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">客人在APP上可以親自按「我承諾」，這裡看得到客人是否已經承諾、什麼時候按的，方便還沒按的客人主動去關心。</div>'
     + '<div id="cd-pledge" style="font-size:12px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🩺 醫師診斷與交辦（寫入 🩺 醫師診斷與交辦）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">系統會依最新IRCT資料自動算出建議分型與各項指標建議目標值（跟上面的代謝分型同一套系統），醫師只要確認採用、或視情況調整即可；醫師本人或秘書代填皆可，但一定要指定負責醫師。</div>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:5px">系統建議分型</div>'
@@ -5762,7 +5911,7 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">歷史記錄</div>'
     + '<div id="cd-dx-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '</div>'
-    + '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">📈 五階段效益驗證（2026-09-04e 新增）</div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">依複測次數自動分配進期初/前期/中期/後期/期末，跟上面醫師交辦的2個月階段目標同一套公式回推每個時間點應達成的進度，複測時可以直接拿來跟客人對照解說、建立信任。</div>'
     + '<div id="cd-eff-report" style="font-size:12px;color:var(--text3)">載入中…</div>'
@@ -5871,7 +6020,7 @@ var _handoverCache = [];
 function canSeeHandoverItem(h){
   if(String(h.important||'') !== '排班意願') return true;
   if(!CURRENT_USER) return false;
-  return CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆' || h.fromSecretary === CURRENT_USER.name;
+  return CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆' || CURRENT_USER.role === '創始人' || h.fromSecretary === CURRENT_USER.name;
 }
 // 2026-09-03 新增：交接留言「跟誰有關」標籤——純標示用，不限制誰看得到（她的決定：資訊越透明，
 // 越不用互相問來問去；只有上面「排班意願」那種本來就設計成私密的例外不受影響）。顏色沿用帳號管理
@@ -6044,7 +6193,7 @@ function countShiftWishGaps(matrix){
 function loadShiftWishSummary(){
   var card = document.getElementById('shift-wish-summary-card');
   if(!card) return;
-  var isFounder = CURRENT_USER && (CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆');
+  var isFounder = CURRENT_USER && (CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆' || CURRENT_USER.role === '創始人');
   if(!isFounder){ card.style.display = 'none'; return; }
   card.style.display = '';
   var body = document.getElementById('shift-wish-summary-body');
@@ -6279,7 +6428,9 @@ function loadMealRecordsAdmin(id){
   var box = document.getElementById('cd-meal-records');
   if(!box) return;
   box.innerHTML = '載入中…';
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getMealRecords', clientId:id}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-meal-records');
     if(!box) return;
     if(!d || d.status !== 'ok'){ box.innerHTML = '<span style="color:var(--r3)">讀取失敗（Apps Script 需部署含 getMealRecords 的新版）</span>'; return; }
@@ -7048,7 +7199,9 @@ function loadCarePointsAdmin(id){
   var box = document.getElementById('cd-cps-body');
   if(!box) return;
   box.innerHTML = '載入中…';
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡（點數是財務相關，多一層保護）
   adminAPI({action:'getCarePoints', clientId:id}, function(d){
+    if(_cdOpenGen !== _gen) return;
     if(!d || d.status!=='ok'){ box.innerHTML='<span style="color:var(--r3)">讀取失敗（Apps Script 需要部署含陪跑點數的新版）</span>'; return; }
     _cdSetBadge('cd-badge-cps', !!d.opened, '✅ 已開通', '－ 未開通');
     if(!d.opened){
@@ -7120,7 +7273,9 @@ function cpsGrantMonthly(){
   });
 }
 function loadCarbPlanAdmin(id){
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來，把上一位客人的碳水計畫設定畫進新客人的表單裡
   adminAPI({action:'getCarbPlan', clientId:id}, function(d){
+    if(_cdOpenGen !== _gen) return;
     var sel = document.getElementById('cd-carb-sel');
     if(!sel || !d || d.status !== 'ok') return;
     var v = String(d.plan || '').trim();
@@ -7379,7 +7534,9 @@ function saveDoctorNoteUI(id, name){
 function loadDoctorNotes(clientId){
   var box = document.getElementById('cd-dx-history');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getDoctorNotes', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-dx-history');
     if(!box) return;
     var items = (d && d.items) || [];
@@ -7405,7 +7562,9 @@ function loadDoctorNotes(clientId){
 function loadEffectivenessReportUI(clientId){
   var box = document.getElementById('cd-eff-report');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getEffectivenessReport', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-eff-report');
     if(!box) return;
     if(!d || d.status!=='ok' || !d.found || !d.stages || d.stages.length===0){
@@ -7437,7 +7596,9 @@ function loadEffectivenessReportUI(clientId){
 function loadTreatmentRoadmapUI(clientId){
   var box = document.getElementById('cd-roadmap');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getTreatmentRoadmap', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-roadmap');
     if(!box) return;
     if(!d || d.status!=='ok' || !d.found || !d.stages || d.stages.length===0){
@@ -7465,7 +7626,9 @@ function loadTreatmentRoadmapUI(clientId){
 function loadTreatmentPledgeUI(clientId){
   var box = document.getElementById('cd-pledge');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getTreatmentPledgeStatus', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-pledge');
     if(!box) return;
     if(!d || d.status!=='ok' || !d.found){
@@ -7512,7 +7675,9 @@ function loadMyDoctorTasks(){
 function loadClientTestimonials(clientId){
   var box = document.getElementById('cd-testimonials');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getTestimonials'}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-testimonials');
     if(!box) return;
     var items = ((d && d.items) || []).filter(function(t){ return t.clientId === clientId; });
@@ -7534,10 +7699,12 @@ function reviewTestimonialUI(row, clientId){
     else toast('⚠️ 操作失敗');
   });
 }
-function loadDiscussions(clientId){
+function loadDiscussions(clientId, focusIdx){
   var box = document.getElementById('cd-disc-list');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getDiscussions', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-disc-list');
     if(!box) return;
     _discCache = (d && d.items) || [];
@@ -7577,6 +7744,13 @@ function loadDiscussions(clientId){
       html += '</div>';
     });
     box.innerHTML = html;
+    // 2026-09-09補：回覆送出後loadDiscussions()會整個重畫#cd-disc-list（含輸入框在內都是重新建立的新DOM節點），
+    // 之前每回覆一次焦點就跑掉一次，秘書要連續回覆好幾則要一直重新點回輸入框才能打字。
+    // 這裡在重畫完後，把焦點還給同一則討論（focusIdx）剛剛用的那個輸入框。
+    if(focusIdx !== undefined && focusIdx !== null){
+      var reInp = document.getElementById('cd-dr-inp-' + focusIdx);
+      if(reInp) reInp.focus();
+    }
   });
 }
 function addDiscussionUI(btn){
@@ -7604,7 +7778,7 @@ function addDiscReply(i){
   adminAPIPost({action:'addDiscussionReply', discussionId:t.id, content:content,
     type:(typ && typ.value) || '秘書意見',
     secretary:(CURRENT_USER && CURRENT_USER.name) || '秘書'}, function(d){
-    if(d && d.status === 'ok'){ loadDiscussions(_cdCurrentId); }
+    if(d && d.status === 'ok'){ loadDiscussions(_cdCurrentId, i); } // 2026-09-09補：帶入i，重畫完後把焦點還給同一則討論的輸入框
     else toast('⚠️ 回覆失敗，請重試');
   });
 }
@@ -7762,7 +7936,9 @@ function loadFounderMetrics(){
   var body = document.getElementById('founder-metrics-body');
   if(!card || !body) return;
   var fmR = CURRENT_USER && CURRENT_USER.role;
-  if(fmR !== '管理人' && fmR !== '老闆'){ card.style.display='none'; return; }
+  // 2026-09-09補：漏了「創始人」這個角色——系統裡其他地方判斷管理層都是管理人/老闆/創始人三個一起比，
+  // 只有這裡漏掉創始人，導致創始人角色的帳號登入看不到經營指標卡片。
+  if(fmR !== '管理人' && fmR !== '老闆' && fmR !== '創始人'){ card.style.display='none'; return; }
   card.style.display='';
   adminAPI({action:'getFounderMetrics'}, function(d){
     body = document.getElementById('founder-metrics-body');
@@ -8101,7 +8277,9 @@ function loadClientsPage(){
         + '<td>'+escH(c.secretary||'–')+subHtml+'</td><td>'+rsBadge+'</td>'
         + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">查看記錄</button>'
         // 2026-08-26修正：跟「新增客人」按鈕一樣，行政/會計等只有查看權限的帳號不該看到這顆刪除按鈕
-        + (canEditClientsNow() ? ('<button class="ai-btn" style="background:#FDEDEC;color:#C0392B;margin-left:6px" onclick="deleteClientUI('+c.row+',\''+escH(c.id)+'\',\''+escH(c.name)+'\')">🗑 刪除</button>') : '')
+        // 2026-09-09補：刪除客人後台已限定只有創始人層級能執行，前端這裡跟著只給管理人/老闆看到這顆按鈕，
+        // 一般秘書/醫師即使有客人編輯權限，也不該看到（點了也會被後端擋下來，這裡只是不要讓畫面顯示誤導）
+        + ((canEditClientsNow() && CURRENT_USER && (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆'||CURRENT_USER.role==='創始人')) ? ('<button class="ai-btn" style="background:#FDEDEC;color:#C0392B;margin-left:6px" onclick="deleteClientUI('+c.row+',\''+escH(c.id)+'\',\''+escH(c.name)+'\')">🗑 刪除</button>') : '')
         + '</td></tr>';
     });
     tb.innerHTML = html;
@@ -8134,7 +8312,7 @@ function populateReferralDropdown(){
     var opts = '<option value="">沒有／不是合作單位介紹的</option>';
     d.roles.forEach(function(r){
       if (!r.features || r.features.indexOf('referral') < 0) return;
-      opts += '<option value="' + r.roleId + '">' + r.roleName + (r.orgType ? '（' + r.orgType + '）' : '') + '</option>';
+      opts += '<option value="' + escH(r.roleId) + '">' + escH(r.roleName) + (r.orgType ? '（' + escH(r.orgType) + '）' : '') + '</option>';
     });
     sel.innerHTML = opts;
   });
@@ -8344,7 +8522,7 @@ function genMonthlyReport(){
     _reportCtx={clientId:cid, name:name, month:month, data:d};
     document.getElementById('report-draft-title').textContent='月報草稿・'+name+'・'+month;
     var lines='';
-    lines += name+' 您好，這是您 '+month.replace('-',' 年 ')+' 月的健康月報 🌱<br><br>';
+    lines += escH(name)+' 您好，這是您 '+month.replace('-',' 年 ')+' 月的健康月報 🌱<br><br>';
     lines += '<strong style="color:var(--text)">本月數據摘要：</strong><br>';
     lines += '記錄天數：'+d.recordCount+' 天<br>';
     if(d.avgKetone!=='') lines += '平均血酮：'+d.avgKetone+' mmol/L<br>';
@@ -8725,6 +8903,10 @@ function editProduct(idx){
 function saveProductForm(btn){
   var name=document.getElementById('prod-f-name').value.trim();
   if(!name){toast('請填商品名稱');return;}
+  var priceVal=document.getElementById('prod-f-price').value;
+  // 2026-09-09補：價格欄位之前完全沒驗證，打錯字（例如混進英文字母）或負數會直接存進去，
+  // 客人端商城會顯示「NT$NaN」或負數價格
+  if(priceVal!=='' && (isNaN(Number(priceVal)) || Number(priceVal)<0)){ toast('⚠️ 價格請輸入正確的數字（不能是負數）'); return; }
   var row=document.getElementById('prod-edit-row').value;
   var params={action: row?'updateProduct':'addProduct',
     name:name,
@@ -8837,7 +9019,9 @@ function renderLabImportPreview(){
     if(row.suggestedPlanType){ var pel = document.getElementById('lab-imp-plan-'+idx); if(pel) pel.value = row.suggestedPlanType; }
   });
 }
+var _labImportSaving = false;
 function confirmLabImport(){
+  if(_labImportSaving) return; // 2026-09-09補：防止連點兩下（或confirm()對話框關掉後手滑再點一次）重複匯入
   var toSend = [];
   _labImportPreview.forEach(function(row, idx){
     var inc = document.getElementById('lab-imp-inc-'+idx);
@@ -8850,7 +9034,9 @@ function confirmLabImport(){
   });
   if(toSend.length === 0){ toast('請至少選好一筆要匯入的客人對應'); return; }
   if(!confirm('確定要匯入這 '+toSend.length+' 筆檢測記錄嗎？')) return;
+  _labImportSaving = true;
   adminAPIPost({action:'confirmLabReportBatchImport', rows: JSON.stringify(toSend)}, function(d){
+    _labImportSaving = false;
     if(d && d.status === 'ok'){
       var okCount = d.results.filter(function(r){return r.ok;}).length;
       toast('✅ 已匯入 '+okCount+' 筆檢測記錄');
@@ -8940,9 +9126,26 @@ function saveIRCTRanges(isDraft){
     else toast('⚠️ '+(d.message||'儲存失敗，請重試'));
   });
 }
+// 2026-09-09補：這頁「秘書」角色的導覽選單裡也看得到（方便查閱目前的醫學參考值），但後端
+// setIRCTStandardsOverride 只允許醫師/創始人/老闆存檔——秘書之前會把整頁填完、按下「儲存並同步到前台」
+// 才收到「只有創始人或醫師可以調整醫學參考值」的錯誤，白填一輪。這裡改成秘書進來就直接鎖住輸入框、
+// 藏起存檔按鈕，變成唯讀查閱模式，不用等按下去才被後端擋。
+function applyIRCTEditPermission_(){
+  var btnRow = document.getElementById('irct-mgmt-btn-row');
+  var note = document.getElementById('irct-mgmt-readonly-note');
+  if(!btnRow || !note) return;
+  var r = CURRENT_USER && CURRENT_USER.role;
+  var canEdit = (r === '醫師' || r === '創始人' || r === '老闆' || r === '管理人');
+  btnRow.style.display = canEdit ? '' : 'none';
+  note.style.display = canEdit ? 'none' : '';
+  document.querySelectorAll('#pg-irct-mgmt .ier-inp').forEach(function(el){ el.disabled = !canEdit; });
+}
 function loadIRCTRangesOverride(){
+  applyIRCTEditPermission_();
   adminAPI({action:'getIRCTStandardsOverride'}, function(d){
     if(!d || d.status !== 'ok' || !d.overrides) return;
+    var draftWarn = document.getElementById('irct-mgmt-draft-warn');
+    if(draftWarn) draftWarn.style.display = d.isDraft ? '' : 'none';
     document.querySelectorAll('#pg-irct-mgmt .ier-inp').forEach(function(el){
       var key = el.getAttribute('data-key');
       if(key && d.overrides[key] !== undefined) el.value = d.overrides[key];
@@ -8980,16 +9183,18 @@ function copySalesSegment(segNum){
 
 // ── 月結算確認 ──
 function confirmSettlementUI(btn){
+  if(btn.disabled) return; // 2026-09-09補：防止confirm()對話框跳出時手滑連點兩下，按鈕原本要等成功回應才鎖住
   var role=btn.getAttribute('data-role');
   var amount=btn.getAttribute('data-amt');
   var month=document.getElementById('st-month') ? document.getElementById('st-month').value : '';
   var amtFormatted = (Number(amount)||0).toLocaleString();
   if(!confirm('確定要確認「'+role+'」'+month+'月結算金額 NT$'+amtFormatted+' 嗎？\n\n確認後會寫入正式結算記錄，請先核對清楚再送出。')) return;
+  btn.disabled=true; btn.style.opacity='.6';
   adminAPIPost({action:'confirmSettlement', month:month, role:role, amount:amount}, function(d){
     if(d.status==='ok'){
       toast('✅ 已確認 '+role+' 本月結算 NT$'+amtFormatted+'（寫入 💰 月底結算）');
       btn.textContent='已確認 ✓'; btn.disabled=true; btn.style.opacity='.6';
-    } else toast('⚠️ 確認失敗，請重試');
+    } else { toast('⚠️ 確認失敗，請重試'); btn.disabled=false; btn.style.opacity=''; }
   });
 }
 
@@ -9108,6 +9313,11 @@ function runPageLoader(id){
   if (id === 'remind') {
     loadRemindList();
     if(typeof loadServiceEventTypeDropdown==='function') loadServiceEventTypeDropdown();
+    // 2026-09-10補：這頁的「建立客人方案」「記錄服務收款」下拉選單原本沒有叫loadClientsList()，
+    // 如果秘書這次登入session還沒去過其他有叫這個函式的頁面（例如月報/上傳報告），下拉選單只會停在
+    // HTML寫死的4個假客人（陳小美/張建國等），沒有真客人可選——這是儀表板「N位客人方案即將到期」
+    // 提醒按下去就直接跳到的頁面，很容易變成一天第一個打開的頁面，補上真的客人清單
+    loadClientsList(function(){});
   }
   if (id === 'upload') loadClientsList(function(){});
   if (id === 'shop-mgmt') {
@@ -9183,7 +9393,7 @@ function refreshSidebarBadges(){
   // 2026-09-03 新增：排班意願缺人時段警示——只有管理人/老闆需要主動知道，登入就先算一次，
   // 不用她自己點進「排班交接」頁才看得到（loadShiftWishSummary 在該頁載入時也會算一次更完整的表格）。
   var _fmR = CURRENT_USER && CURRENT_USER.role;
-  if(_fmR === '管理人' || _fmR === '老闆'){
+  if(_fmR === '管理人' || _fmR === '老闆' || _fmR === '創始人'){
     adminAPI({action:'getHandoverHistory'}, function(d){
       var el = document.getElementById('sb-badge-shiftgap');
       if(!el || !d || d.status!=='ok') return;
@@ -9378,7 +9588,7 @@ function recSupplement(clientId){
       sel.selectedIndex=0;
       if(freqSel) freqSel.selectedIndex=0;
       // 建議醫師常常同一位客人維持不變，特意不清空，方便連續記錄同一位醫師的多項建議
-    } else toast('⚠️ 記錄失敗，請重試');
+    } else toast('⚠️ ' + ((d && d.message) || '記錄失敗，請重試')); // 2026-09-09補：改顯示後端實際訊息（例如唯讀權限的說明），不要蓋掉真正的失敗原因
   });
 }
 
@@ -9388,7 +9598,9 @@ var _suppHist = [];
 function loadSuppHistory(clientId){
   var box=document.getElementById('cd-supp-history');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getSupplementRecs', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     _suppHist = d.items||[];
     _cdSetBadge('cd-badge-supp', _suppHist.length > 0);
     if(_suppHist.length===0){
@@ -9402,7 +9614,7 @@ function loadSuppHistory(clientId){
         + '<div style="flex:1"><span style="font-weight:700;color:var(--text)">'+escH(h.supplementName)+'</span>'
         + (h.level?' <span class="badge b" style="font-size:9px">'+escH(h.level)+'</span>':'')
         + '<div style="font-size:10px;color:var(--text3);margin-top:1px">'+escH(h.date)+(meta?'・'+escH(meta):'')+'</div></div>'
-        + '<button class="ai-btn g" style="font-size:10px;padding:4px 10px" onclick="reRecSupplement('+i+',\''+escH(String(_cdCurrentId||''))+'\')">再次推薦</button>'
+        + '<button class="ai-btn g" style="font-size:10px;padding:4px 10px" onclick="reRecSupplement('+i+',\''+escH(String(clientId||''))+'\')">再次推薦</button>'
         + '</div>';
     });
     box.innerHTML=html;
@@ -9457,7 +9669,7 @@ function editIRCTPricing(){
       toast('✅ 已更新價格，客人前台預約頁也會看到新價格');
       _irctPricing = null; _labItems = null;
       loadLabOptions();
-    } else toast('⚠️ 更新失敗，請重試');
+    } else toast('⚠️ ' + ((d && d.message) || '更新失敗，請重試'));
   });
 }
 function loadLabOptions(){
@@ -9681,13 +9893,15 @@ function recLabOrder(clientId){
       sel.selectedIndex=0;
       onLabSelChange();
       loadLabHistory(clientId);
-    } else toast('⚠️ 記錄失敗，請重試');
+    } else toast('⚠️ ' + ((d && d.message) || '記錄失敗，請重試')); // 2026-09-09補：改顯示後端實際訊息
   });
 }
 function loadLabHistory(clientId){
   var box=document.getElementById('cd-lab-history');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getLabOrders', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     _labHist = d.items||[];
     _cdSetBadge('cd-badge-lab', _labHist.length > 0);
     if(_labHist.length===0){
@@ -9706,8 +9920,8 @@ function loadLabHistory(clientId){
         + (h.result&&h.result!=='已完成'?'・<span style="color:var(--g3);font-weight:700">結果 '+escH(h.result)+'</span>':'')
         + (h.abnormal?'・<span style="color:var(--r3);font-weight:700">⚠ '+escH(h.abnormal)+'</span>':'') + '</div></div>'
         + '<span class="badge '+(done?'g':'a')+'" style="font-size:9px">'+(done?'✅ 已完成':'⏳ 已安排')+'</span>'
-        + (done ? '' : '<button class="ai-btn gray" style="font-size:10px;padding:4px 8px" onclick="completeLab('+i+',\''+escH(String(_cdCurrentId||''))+'\')">'+(h.src==='fm'?'填結果':'標記完成')+'</button>')
-        + '<button class="ai-btn g" style="font-size:10px;padding:4px 8px" onclick="reLabOrder('+i+',\''+escH(String(_cdCurrentId||''))+'\')">再次加測</button>'
+        + (done ? '' : '<button class="ai-btn gray" style="font-size:10px;padding:4px 8px" onclick="completeLab('+i+',\''+escH(String(clientId||''))+'\')">'+(h.src==='fm'?'填結果':'標記完成')+'</button>')
+        + '<button class="ai-btn g" style="font-size:10px;padding:4px 8px" onclick="reLabOrder('+i+',\''+escH(String(clientId||''))+'\')">再次加測</button>'
         + '</div>';
     });
     box.innerHTML=html;
@@ -9731,7 +9945,7 @@ function reLabOrder(idx, clientId){
   adminAPIPost({action:'addLabOrder', clientId:clientId, category:h.category,
     itemName:h.itemName, note:h.note||'', secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
     if(d.status==='ok'){ toast('✅ 已再次加測「'+h.itemName+'」'); loadLabHistory(clientId); }
-    else toast('⚠️ 加測失敗，請重試');
+    else toast('⚠️ ' + ((d && d.message) || '加測失敗，請重試')); // 2026-09-09補：改顯示後端實際訊息
   });
 }
 
@@ -9913,8 +10127,11 @@ function handleInBodyPhoto(input, clientId){
       }
       _ibFileUrl = d.fileUrl || '';
       var fields = d.fields || {};
+      // 2026-09-09補：後端OCR其實一直都認得到體水分／蛋白質／腰圍這三個欄位（parseInBodyText早就有寫），
+      // 但這裡的map一直沒有對應到任何畫面欄位，等於機器辨識到了也會被直接丟掉、從來沒有機會存進記錄
       var map = {height:'cd-ib-height', weight:'cd-ib-weight', bmi:'cd-ib-bmi', bodyFatPercent:'cd-ib-fatpct',
-        bodyFatMass:'cd-ib-fatmass', skeletalMuscle:'cd-ib-muscle', visceralFat:'cd-ib-visceral', bmr:'cd-ib-bmr'};
+        bodyFatMass:'cd-ib-fatmass', skeletalMuscle:'cd-ib-muscle', visceralFat:'cd-ib-visceral', bmr:'cd-ib-bmr',
+        bodyWater:'cd-ib-bodywater', protein:'cd-ib-protein', waist:'cd-ib-waist'};
       var hitCount = 0;
       Object.keys(map).forEach(function(k){
         if(fields[k] !== undefined){ var el=document.getElementById(map[k]); if(el){ el.value = fields[k]; hitCount++; } }
@@ -9935,10 +10152,11 @@ function saveInBody(clientId){
   adminAPIPost({action:'saveInBodyRecord', clientId:clientId, testDate:g('cd-ib-date'),
     height:height, weight:weight, bmi:g('cd-ib-bmi'), bodyFatPercent:g('cd-ib-fatpct'),
     bodyFatMass:g('cd-ib-fatmass'), skeletalMuscle:g('cd-ib-muscle'), visceralFat:g('cd-ib-visceral'),
-    bmr:g('cd-ib-bmr'), fileUrl:_ibFileUrl, deviceBrand:g('cd-ib-device'), secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
+    bmr:g('cd-ib-bmr'), bodyWater:g('cd-ib-bodywater'), protein:g('cd-ib-protein'), waist:g('cd-ib-waist'),
+    note:g('cd-ib-note'), fileUrl:_ibFileUrl, deviceBrand:g('cd-ib-device'), secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
     if(d && d.status === 'ok'){
       toast('✅ InBody 記錄已儲存，月報會自動抓最新一筆');
-      ['cd-ib-height','cd-ib-weight','cd-ib-bmi','cd-ib-fatpct','cd-ib-fatmass','cd-ib-muscle','cd-ib-visceral','cd-ib-bmr'].forEach(function(id){
+      ['cd-ib-height','cd-ib-weight','cd-ib-bmi','cd-ib-fatpct','cd-ib-fatmass','cd-ib-muscle','cd-ib-visceral','cd-ib-bmr','cd-ib-bodywater','cd-ib-protein','cd-ib-waist','cd-ib-note'].forEach(function(id){
         var el=document.getElementById(id); if(el) el.value='';
       });
       _ibFileUrl='';
@@ -9950,7 +10168,9 @@ function saveInBody(clientId){
 function loadClientGoalWeight(clientId){
   var el = document.getElementById('cd-goal-current');
   if(!el) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getMonthlyStats', clientId:clientId, month:new Date().toISOString().slice(0,7)}, function(d){
+    if(_cdOpenGen !== _gen) return;
     el = document.getElementById('cd-goal-current');
     if(!el) return;
     var input = document.getElementById('cd-goal-weight');
@@ -9976,7 +10196,9 @@ function loadInBodyHistory(clientId){
   var box = document.getElementById('cd-ib-history');
   if(!box) return;
   box.innerHTML = '載入中…';
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getInBodyHistory', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     box = document.getElementById('cd-ib-history');
     if(!box) return;
     var items = (d && d.items) || [];
@@ -10006,13 +10228,15 @@ function recMedication(clientId){
       document.getElementById('cd-med-name').value='';
       document.getElementById('cd-med-dose').value='';
       loadMedHistory(clientId);
-    } else toast('⚠️ 登記失敗，請重試');
+    } else toast('⚠️ ' + ((d && d.message) || '登記失敗，請重試')); // 2026-09-09補：改顯示後端實際訊息
   });
 }
 function loadMedHistory(clientId){
   var box=document.getElementById('cd-med-history');
   if(!box) return;
+  var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來、畫進新客人的畫面裡
   adminAPI({action:'getMedications', clientId:clientId}, function(d){
+    if(_cdOpenGen !== _gen) return;
     _medHist = d.items||[];
     _cdSetBadge('cd-badge-med', _medHist.length > 0);
     if(_medHist.length===0){
@@ -10035,8 +10259,8 @@ function loadMedHistory(clientId){
         + (latest.dose?' <span style="font-size:10px;color:var(--text3)">'+escH(latest.dose)+'</span>':'') + '</div>'
         + (sgltWarn?'<span class="badge a" style="font-size:8.5px" title="SGLT2抑制劑與粒線體併行有酮酸中毒風險">⚠ SGLT2</span>':'')
         + '<span class="badge '+badgeCls+'" style="font-size:9px">'+escH(latest.status)+'</span>'
-        + (stopped?'':('<button class="ai-btn gray" style="font-size:10px;padding:3px 8px" onclick="medChange(\''+escH(String(_cdCurrentId||''))+'\',\''+escH(name)+'\',\'減量\')">記錄減量</button>'
-        + '<button class="ai-btn g" style="font-size:10px;padding:3px 8px" onclick="medChange(\''+escH(String(_cdCurrentId||''))+'\',\''+escH(name)+'\',\'已停藥\')">記錄停藥</button>'))
+        + (stopped?'':('<button class="ai-btn gray" style="font-size:10px;padding:3px 8px" onclick="medChange(\''+escH(String(clientId||''))+'\',\''+escH(name)+'\',\'減量\')">記錄減量</button>'
+        + '<button class="ai-btn g" style="font-size:10px;padding:3px 8px" onclick="medChange(\''+escH(String(clientId||''))+'\',\''+escH(name)+'\',\'已停藥\')">記錄停藥</button>'))
         + '</div>'
         + '<div style="font-size:9.5px;color:var(--text3);margin-top:3px;line-height:1.7">'
         + logs.map(function(l){return escH(l.date)+' '+escH(l.status)+(l.dose?'（'+escH(l.dose)+'）':'')+(l.note?'・'+escH(l.note):'');}).join('<br>')
@@ -10624,18 +10848,30 @@ function loadDoctorsToSelects(){
 
 // ══════ 診所預約時間表管理 ══════
 function loadClinicSlots(){
-  adminAPI({action:'getClinicSlots'}, function(d){
+  // 2026-09-09補：這裡原本一直呼叫getClinicSlots，那是給客人預約下拉選單用的版本，故意濾掉已停用
+  // 的時段、也不含列號，導致這個管理頁面從來沒辦法真的做「刪除/停用」——按鈕都沒地方放。改呼叫
+  // 專門給管理頁用的getClinicSlotsAdmin（含全部時段跟列號），並補上停用/啟用按鈕。
+  adminAPI({action:'getClinicSlotsAdmin'}, function(d){
     var box = document.getElementById('cs-list');
     if(!box) return;
     if(!d || d.status!=='ok' || !d.slots || d.slots.length===0){
       box.innerHTML = '<div style="color:var(--text3);font-size:13px">還沒有時段，請在上面新增</div>'; return;
     }
-    box.innerHTML = d.slots.map(function(s, idx){
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px">'
-        + '<div style="flex:1"><div style="font-weight:700;font-size:13px">'+escH(s.clinic)+'　<span style="color:var(--text3);font-weight:400">'+escH(s.region)+'</span></div>'
+    box.innerHTML = d.slots.map(function(s){
+      var disabled = s.status === '停用';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px'+(disabled?';opacity:.55':'')+'">'
+        + '<div style="flex:1"><div style="font-weight:700;font-size:13px">'+escH(s.clinic)+'　<span style="color:var(--text3);font-weight:400">'+escH(s.region)+'</span>'+(disabled?'　<span style="color:var(--r,#C0392B)">（已停用）</span>':'')+'</div>'
         + '<div style="font-size:12px;color:var(--text2);margin-top:2px">🕐 '+escH(s.datetime)+'</div></div>'
+        + '<button class="btn-ghost" onclick="toggleClinicSlotUI('+s.row+','+(disabled?'true':'false')+')" style="font-size:11px;white-space:nowrap">'+(disabled?'重新啟用':'停用')+'</button>'
         + '</div>';
     }).join('');
+  });
+}
+function toggleClinicSlotUI(row, reEnable){
+  if(!reEnable && !confirm('確定要停用這個時段嗎？停用後客人預約時就不會再看到這個選項（不會刪除資料，之後可以重新啟用）。')) return;
+  adminAPI({action:'toggleClinicSlot', row:row}, function(d){
+    if(d && d.status==='ok'){ toast(reEnable?'✅ 已重新啟用':'✅ 已停用'); loadClinicSlots(); }
+    else { toast('⚠️ 操作失敗'); }
   });
 }
 function loadCsClinicOptions(){
@@ -10725,7 +10961,9 @@ function liLoadClients(){
   });
 }
 
+var _liSaving=false;
 function liSave(){
+  if(_liSaving) return; // 2026-09-09補：這裡原本沒有防連點兩下，跟排班/交接記錄同一種問題——連點或網路重試會把同一次檢測重複寫入
   var clientId = (document.getElementById('li-client')||{}).value;
   var date = (document.getElementById('li-date')||{}).value;
   if(!clientId || !date){ toast('請選客人和檢測日期'); return; }
@@ -10746,12 +10984,19 @@ function liSave(){
     var nm = r.querySelector('.li-med-name'); var st = r.querySelector('.li-med-status'); var ds = r.querySelector('.li-med-dose');
     if(nm && nm.value.trim() && st && st.value){ meds.push({medName:nm.value.trim(), status:st.value, dose:ds?ds.value.trim():''}); }
   });
+  var _liBtn = document.getElementById('li-save-btn');
+  _liSaving = true; if(_liBtn){ _liBtn.disabled=true; _liBtn.style.opacity='.5'; }
   // 先存檢測
   adminAPI({action:'saveFlexTest', clientId:clientId, testDate:date, items:JSON.stringify(items)}, function(d){
+    _liSaving = false; if(_liBtn){ _liBtn.disabled=false; _liBtn.style.opacity=''; }
     if(d && d.status==='ok'){
       // 再更新用藥（如果有填）
       if(meds.length>0){
-        adminAPI({action:'updateMedsAtTest', clientId:clientId, testDate:date, secretary:(CURRENT_USER&&CURRENT_USER.name)||'', meds:JSON.stringify(meds)}, function(){});
+        // 2026-09-09補：這裡原本是空callback，用藥更新失敗會完全沒提示——祕書以為已經更新了，
+        // 但其實只有檢測數值存進去、用藥狀態沒有跟著更新。跟recMedication等處理方式一致，失敗要跳提示。
+        adminAPI({action:'updateMedsAtTest', clientId:clientId, testDate:date, secretary:(CURRENT_USER&&CURRENT_USER.name)||'', meds:JSON.stringify(meds)}, function(md){
+          if(!md || md.status!=='ok'){ toast('⚠️ 檢測已存，但用藥更新失敗：'+((md&&md.message)||'請重新至用藥頁面手動更新')); }
+        });
       }
       toast('✅ 已儲存 '+d.saved+' 項檢測'+(meds.length?'，並更新 '+meds.length+' 種用藥':''));
       document.getElementById('li-items').innerHTML=''; liInitRows();
@@ -11070,6 +11315,10 @@ function svEditPointRule(pointName){
         shares.push({role:m[0].trim(), percent:Number(m[1])});
       }
     });
+    // 2026-09-09補：單一角色比例不能是負的或超過100%，之前只軟性提醒「加總不是100%」，
+    // 兩個角色一正一負剛好加總=100的話完全不會被擋下來，會讓某個角色被算出負分潤
+    var badShare = shares.filter(function(x){ return x.percent < 0 || x.percent > 100; });
+    if(badShare.length){ toast('⚠️ 「'+badShare.map(function(x){return x.role;}).join('、')+'」的比例必須介於0～100之間，請重新設定'); return; }
     var totalPct = shares.reduce(function(s,x){return s+x.percent;},0);
     if(totalPct!==100){ if(!confirm('分潤比例加起來是 '+totalPct+'%（不是100%），確定要這樣設定嗎？')) return; }
   } else {
@@ -11282,6 +11531,11 @@ function svLoadMerged(){
 
 // ══════ 會計核查 ══════
 function rvLoad(){
+  // 2026-09-09補：「核查人姓名」原本是空白自由輸入，核查人有可能忘記填、填錯、甚至打別人的名字，
+  // 這是留痕用的核查紀錄卻沒有真的綁定登入身份——改成自動帶入目前登入帳號的姓名並鎖住不能改，
+  // 要核查一定是用自己登入的身份
+  var rvReviewerEl = document.getElementById('rv-reviewer');
+  if(rvReviewerEl && CURRENT_USER && CURRENT_USER.name){ rvReviewerEl.value = CURRENT_USER.name; rvReviewerEl.readOnly = true; rvReviewerEl.style.background = 'var(--bg2, #F3F6F5)'; }
   var box = document.getElementById('rv-list');
   box.innerHTML = '<div style="color:var(--text3);font-size:13px">載入中…</div>';
   adminAPI({action:'getPendingReviews'}, function(d){
@@ -11317,7 +11571,13 @@ function rvDecide(type, row, decision){
   var reviewer = (document.getElementById('rv-reviewer')||{}).value.trim();
   if(!reviewer){ toast('請先填「核查人姓名」'); return; }
   var reason = '';
-  if(decision==='退回'){ reason = prompt('退回原因：',''); if(reason===null) return; }
+  if(decision==='退回'){
+    reason = prompt('退回原因：（會記錄下來，之後查核查記錄看得到）','');
+    if(reason===null) return;
+    reason = reason.trim();
+    // 2026-09-10補：之前這裡沒有要求一定要填，空白退回會讓核查記錄完全看不出當初為什麼退回
+    if(!reason){ toast('⚠️ 請填寫退回原因'); return; }
+  }
   else { if(!confirm('確認核查通過這筆'+type+'？通過後才會生效（算餘額/分潤）。')) return; }
   adminAPI({action:'reviewRecord', type:type, row:row, decision:decision, reviewer:reviewer, reason:reason}, function(d){
     if(d && d.status==='ok'){
@@ -11414,6 +11674,10 @@ function forceRelogin(msg){
 var ROLE_PAGES = {
   '管理人': null, // null = 全部
   '老闆': null, // 舊帳號相容用，效果同管理人
+  // 2026-09-09補：跟'管理人'/'老闆'同一層級的創始人層級角色名稱，之前這裡沒有這個key——因為判斷邏輯是
+  // 「查不到key就當成沒有限制（全部頁面都能看）」所以沒有真的鎖住創始人帳號，但沒有明講很容易讓人誤以為
+  // 創始人被漏掉、頁面權限沒開好，這裡明講出來，跟其他幾處同名判斷（isFinanceTier等）一起補齊
+  '創始人': null,
   '秘書': ['dashboard','clients','alerts','duty','lab-integrate','stored-value','tracking','remind','keto-rest-mgmt','garden-mgmt','qa-list','upload','diet-compare','extra-test','irct-mgmt','report','irt-models','sales-script','faq-mgmt','food-mgmt','supplement-mgmt','all-tests'],
   '會計': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
   '行政': ['dashboard','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','supplement-mgmt','inventory'],
@@ -11434,7 +11698,7 @@ var ROLE_DESC = {
   '管理人': ['全系統管理', '帳號與權限設定'],
   '秘書': ['排班交接', '每日記錄', '提醒與客人互動'],
   '行政': ['排班', '庫存', '好物與診所時段', '衛教內容維護'],
-  '會計': ['儲值消費查看', '月結算查看', '分帳名單查看（異動找財務主管）'],
+  '會計': ['儲值消費核查（通過/退回）', '月結算查看', '分帳名單查看（異動找財務主管）'],
   '財務主管': ['合作單位設定', '分帳規則', '月結算'],
   '醫師': ['客戶資料', 'IRCT檢測整合', '診斷交辦秘書', '調整IRCT區間（需附依據）']
 };
@@ -11448,7 +11712,12 @@ function isFinanceTier(){
   if (!CURRENT_USER) return false;
   var r = CURRENT_USER.role;
   var other = CURRENT_USER.otherRoles || [];
-  return r === '管理人' || r === '老闆' || r === '財務主管' || other.indexOf('財務主管') >= 0;
+  return r === '管理人' || r === '老闆' || r === '創始人' || r === '財務主管' || other.indexOf('財務主管') >= 0;
+}
+// 2026-09-10補：抽出共用判斷式——之前好幾處各自寫「CURRENT_USER.role==='管理人'||...==='老闆'||...==='創始人」，
+// 「改IRCT價格」那顆連結就是漏寫這個判斷的其中一處，統一改叫這個函式比較不會漏
+function isFounderRoleFE_(){
+  return !!(CURRENT_USER && (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆'||CURRENT_USER.role==='創始人'));
 }
 // 2026-08-16 新增：好物商城/補充品售價、數量優惠折扣的維護權限——比 isFinanceTier() 多開放「行政」，
 // 跟後端 PRICING_TIER_ACTIONS 的判斷邏輯一致
@@ -11456,7 +11725,7 @@ function isPricingTier(){
   if (!CURRENT_USER) return false;
   var r = CURRENT_USER.role;
   var other = CURRENT_USER.otherRoles || [];
-  return r === '管理人' || r === '老闆' || r === '財務主管' || r === '行政' || other.indexOf('財務主管') >= 0 || other.indexOf('行政') >= 0;
+  return r === '管理人' || r === '老闆' || r === '創始人' || r === '財務主管' || r === '行政' || other.indexOf('財務主管') >= 0 || other.indexOf('行政') >= 0;
 }
 // 2026-08-28 登入強化（她回報「要按很多次都登入不進去」）：
 // (1) Apps Script 剛部署完或閒置後第一次連線要「喚醒」，可能等 5~20 秒——以前畫面只停在「登入中…」
@@ -11507,7 +11776,7 @@ function applyPermissions(){
   var allowed = ROLE_PAGES[CURRENT_USER.role];
   // 👑 創辦人手冊入口只給管理人/老闆看（2026-08-30：功能太多，給經營者一頁看懂的地圖）
   var fmlLink = document.getElementById('founder-manual-link');
-  if(fmlLink) fmlLink.style.display = (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆') ? '' : 'none';
+  if(fmlLink) fmlLink.style.display = (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆'||CURRENT_USER.role==='創始人') ? '' : 'none';
   // 角色主題色＋頂欄角色徽章：一眼看出目前用哪個身分登入
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');

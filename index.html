@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-08d';
+var MX_BUILD = '2026-09-10a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -295,8 +295,10 @@ var MX_BUILD = '2026-09-08d';
 </script>
 <script>
 window.openHealthForm = function() {
+  // 2026-09-09補：這個版本會在頁面稍後被同名的function openHealthForm()（見下方）蓋掉，
+  // 實際上不會被呼叫到，但萬一真的執行到，把原本給工程師看的原始除錯字串換成客人看得懂的訊息
   var o = document.getElementById('health-form-overlay');
-  if (!o) { alert('找不到: health-form-overlay\n頁面共有' + document.querySelectorAll('[id]').length + '個有id的元素'); return; }
+  if (!o) { alert('頁面還在載入中，請稍等一下再試一次'); return; }
   o.style.position = 'fixed';
   o.style.top = '0';
   o.style.left = '0';
@@ -819,7 +821,7 @@ window.openHealthForm = function() {
     <div class="chips"><div class="chip" onclick="this.classList.toggle('on')">精神好</div><div class="chip" onclick="this.classList.toggle('on')">頭腦清晰</div><div class="chip" onclick="this.classList.toggle('on')">不容易餓</div><div class="chip bad" onclick="this.classList.toggle('on')">頭暈</div><div class="chip bad" onclick="this.classList.toggle('on')">便秘</div><div class="chip bad" onclick="this.classList.toggle('on')">抽筋</div><div class="chip bad" onclick="this.classList.toggle('on')">疲勞</div><div class="chip bad" onclick="this.classList.toggle('on')">皮膚癢</div></div>
     <button onclick="quickSave('feeling')" style="width:100%;background:var(--g2);color:var(--g3);border:1px solid var(--g);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px">✅ 今日體感完成・儲存</button>
     
-<button class="submit-btn" onclick="submitDailyRecord()">儲存今日記錄</button>
+<button class="submit-btn" id="submit-daily-btn" onclick="submitDailyRecord()">儲存今日記錄</button>
   </div>
 </div>
 
@@ -1619,14 +1621,14 @@ window.openHealthForm = function() {
     <!-- Step 4：選時間 -->
     <div id="bk-step4" style="display:none;padding:13px 16px;padding-bottom:20px">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測時間</div>
-      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・需空腹 4 小時</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・空腹8-10小時</div>
       <div id="bk-time-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/18（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div onclick="bkSelTime(this)" style="border:1.5px solid var(--g);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--g2)"><div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:2px">06/21（六）</div><div style="font-size:11px;color:var(--g3)">08:30–10:30</div></div>
         <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/25（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
         <div style="border:1px solid var(--border);border-radius:10px;padding:10px 11px;text-align:center;background:var(--bg);opacity:.5"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px">06/28（六）</div><div style="font-size:11px;color:var(--r3)">已滿</div></div>
       </div>
-      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測當天需空腹至少 4 小時，白開水可以喝。</div>
+      <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測前請空腹 8-10 小時（建議不超過12小時），空腹期間可喝水但總量勿超過200cc，詳見上一步「檢測前注意事項」。</div>
       <div style="display:flex;gap:8px">
         <button onclick="bkGoStep3()" style="flex:1;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">← 上一步</button>
         <button onclick="bkGoStep5()" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:11px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">確認預約</button>
@@ -1642,7 +1644,10 @@ window.openHealthForm = function() {
       </div>
       <div style="padding:13px 16px;padding-bottom:20px">
         <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--g3);line-height:1.9"><div style="font-weight:700;margin-bottom:4px">預約確認 ✓</div><span id="bk-confirm-summary">IRCT 動態胰島素檢測・NT$6,800</span><br><span id="bk-confirm-location">瑞絲得診所・新竹・06/21 08:30</span><br><strong>飲食模式：</strong><span id="bk-confirm-diet">🥑 粒線體飲食（碳水 5%，脂肪 70%）</span></div>
-        <div style="background:var(--b2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--b3);line-height:1.7;margin-bottom:11px">📩 預約已送出給健康秘書<br>💬 已幫你傳訊息給秘書，秘書會在 LINE 回覆你，確認實際檢測日期<br>🌙 確認日期後，記得檢測前一晚要空腹唷</div>
+        <!-- 2026-09-09新增：畫面上的「預約成功」是先顯示、資料才在背景送出，如果背景送出其實失敗
+             （斷網/後端錯誤），這個區塊會顯示出來取代下面那個藍色的「已送出」提示，不讓客人誤以為真的約到了 -->
+        <div id="bk-confirm-error" style="display:none;background:#FDEDEC;border:1px solid #F5B7B1;border-radius:9px;padding:9px 11px;font-size:11.5px;color:#A93226;line-height:1.7;margin-bottom:11px">⚠️ 剛剛這筆預約資料在傳送時發生問題，秘書那邊可能沒有收到，麻煩你直接用 LINE 跟秘書確認一下，或按下面按鈕再試一次<br><button onclick="bkRetrySubmit()" style="margin-top:6px;width:100%;background:#A93226;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">🔁 再送一次</button></div>
+        <div id="bk-confirm-ok-hint" style="background:var(--b2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--b3);line-height:1.7;margin-bottom:11px">📩 預約已送出給健康秘書<br>💬 已幫你傳訊息給秘書，秘書會在 LINE 回覆你，確認實際檢測日期<br>🌙 確認日期後，記得檢測前一晚要空腹唷</div>
         <a href="https://youtu.be/hOEKfWTbOp4" target="_blank" style="display:block;background:var(--g);color:#fff;border-radius:11px;padding:11px;text-align:center;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:11px">▶️ 檢測前必看：IRCT 檢前說明影片</a>
         <button onclick="goPage('irct','IRCT 報告')" style="width:100%;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">返回報告頁</button>
       </div>
@@ -2574,7 +2579,9 @@ function bkGoStep4(){
       locText4 = locEl4.textContent.trim().replace(/上次去過/,'').replace(/[›〉>]/g,'').trim();
     }
     var planText4 = _bkType==='t2' ? 'IRCT-t2' : 'IRCT-t1';
-    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・需空腹 4 小時';
+    // 2026-09-09補：這裡原本寫死「需空腹4小時」，跟上一步「檢測前注意事項」卡片裡的正確版本（空腹8-10小時，建議不超過12小時）互相矛盾，
+    // 客人可能看到這裡就以為只要餓4小時，實際空腹時間不夠會影響IRCT檢測結果準確度，改成跟上一步一致
+    sumEl.textContent = (locText4?locText4+'・':'')+planText4+'・空腹8-10小時';
   }
   if(typeof bkRenderTimes==='function') bkRenderTimes();
 }
@@ -2630,22 +2637,45 @@ function bkGoStep5(){
   if (_bkType === 't2') {
     medications = (medNoneEl && medNoneEl.checked) ? '（無慢性病用藥・自選加測完整項目）' : (medInputEl ? medInputEl.value.trim() : '');
   }
-  callAPI({
+  // 2026-09-09補：把送出用的參數存起來，失敗時「再送一次」不用叫客人重填一次表單
+  _bkLastSubmitParams = {
     action: 'addBooking', clientId: CLIENT_ID,
     clinic: locText, time: timeText, diet: dietSummary, medications: medications, planType: _bkType, exerciseFreq: _bkExercise,
     fatigueLevel: _bkState.fatigue, stressLevel: _bkState.stress, longTermDiet: _bkState.ltdiet, smokingHabit: _bkState.smoke,
     dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || '',
     birthDate: _bkBirthDate || ''
-  }, function(d) {
-    if (d.status === 'ok') {
+  };
+  bkSubmitBooking();
+}
+var _bkLastSubmitParams = null;
+var _bkSubmitSaving = false; // 2026-09-09補：防止「再送一次」被連點兩下，產生重複的預約記錄
+function bkSubmitBooking(){
+  if (!_bkLastSubmitParams) return;
+  if (_bkSubmitSaving) return;
+  _bkSubmitSaving = true;
+  callAPI(_bkLastSubmitParams, function(d) {
+    _bkSubmitSaving = false;
+    if (d && d.status === 'ok') {
+      var errEl = document.getElementById('bk-confirm-error'), okEl = document.getElementById('bk-confirm-ok-hint');
+      if (errEl) errEl.style.display = 'none';
+      if (okEl) okEl.style.display = '';
       callAPI({
         action: 'addNote', clientId: CLIENT_ID,
         content: 'reportStatus:booked',
         type: '報告狀態', secretary: CLIENT_ID
       }, function(){});
+    } else {
+      // 2026-09-09補：畫面上的「預約成功」在這之前就已經顯示出來了（本地端立即記住狀態，避免API時間差
+      // 讓客人等），但如果背景這通API真的失敗，客人不能什麼提示都沒有、以為約到了——改成秘書那邊
+      // 收不到、又不能整段撤銷已經看到的「成功」畫面（撤銷反而更confusing），所以用一個明顯的紅色錯誤
+      // 區塊蓋掉原本「已送出」的藍色提示，附一顆「再送一次」按鈕，並且不寫入本地報告狀態的既定事實
+      var errEl2 = document.getElementById('bk-confirm-error'), okEl2 = document.getElementById('bk-confirm-ok-hint');
+      if (errEl2) errEl2.style.display = '';
+      if (okEl2) okEl2.style.display = 'none';
     }
   });
 }
+function bkRetrySubmit(){ bkSubmitBooking(); }
 function bkSetStep(n){
   var labels=['','飲食模式','選方案','選診所','選時間','完成'];
   for(var i=1;i<=5;i++){
@@ -2930,10 +2960,19 @@ function judgeConfirm(){
     if (d && d.status === 'ok') return; // 成功就不吵
     // 2026-08-30修正：以前失敗完全沉默、按鈕還顯示「已完成 ✅」——記錄其實沒傳出去。
     // 現在把按鈕還原成可以再按，明確告訴客人再按一次
-    toast('⚠️ 這一餐沒有傳出去（連線不穩或需要重新登入）——請再按一次「儲存後完成」');
+    // 2026-09-09再補：發現「請再按一次」是個死路——按鈕原本被重新綁回quickSaveMeal(m)，但這時
+    // _mealJudge[m]已經記下來了，quickSaveMeal會直接跳過整個流程去呼叫_finishMeal()把畫面標記完成，
+    // 完全不會重新呼叫addDailyRecord，等於「再按一次」按了也是白按，記錄還是沒有傳出去。
+    // 這裡改成把按鈕暫時接到_retryMealSave()，讓「再按一次」真的重送剛剛失敗的那筆記錄。
     if (m !== 's') {
+      mealDone[m] = false; // 讓_finishMeal之後能再次正常標記完成（它自己也有防重複guard）
       var jrBtn = document.getElementById('meal-btn-' + m);
-      if (jrBtn) { jrBtn.disabled = false; jrBtn.textContent = '儲存後完成'; jrBtn.style.background = 'var(--g)'; jrBtn.style.cursor = 'pointer'; }
+      if (jrBtn) {
+        jrBtn.disabled = false; jrBtn.textContent = '儲存後完成'; jrBtn.style.background = 'var(--g)'; jrBtn.style.cursor = 'pointer';
+        jrBtn.onclick = function(){ _retryMealSave(m, sel, jNote, jMealNames); };
+      }
+      var jrStatusEl = document.getElementById(m + 's');
+      if (jrStatusEl) { jrStatusEl.textContent = '未記錄'; jrStatusEl.className = 'meal-st pend'; }
       var jrAsk = document.getElementById('ask-sec-' + m);
       if (jrAsk) jrAsk.style.display = 'none';
     }
@@ -2948,6 +2987,27 @@ function judgeConfirm(){
     if (askRow) askRow.style.display = 'block';
   }
   else toast('🍩 點心已記錄，傳給秘書了');
+}
+// 2026-09-09新增：judgeConfirm()送出失敗時，把「儲存後完成」按鈕接到這裡，真正重送剛剛失敗的那筆記錄
+// （而不是重新綁回quickSaveMeal——那個函式一看到_mealJudge[m]已經有值，就會直接當作完成、不會再打API）
+function _retryMealSave(m, sel, jNote, jMealNames){
+  var btn = document.getElementById('meal-btn-' + m);
+  if (btn) { btn.disabled = true; btn.textContent = '儲存中…'; btn.style.cursor = 'not-allowed'; }
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal:jMealNames[m]+'（自我判斷）'+jNote, oil:sel.oil, protein:sel.prot, starch:sel.carb}, function(d){
+    if (d && d.status === 'ok') {
+      mealDone[m] = false; // 讓_finishMeal真正把這一餐標記完成（它自己有防重複guard，不會重複發送）
+      _finishMeal(m);
+      var askRow = document.getElementById('ask-sec-' + m);
+      if (askRow) askRow.style.display = 'block';
+      toast('✅ 這一餐補送成功了！');
+      return;
+    }
+    toast('⚠️ 還是沒有傳出去，請確認網路連線後再試一次');
+    if (btn) {
+      btn.disabled = false; btn.textContent = '儲存後完成'; btn.style.background = 'var(--g)'; btn.style.cursor = 'pointer';
+      btn.onclick = function(){ _retryMealSave(m, sel, jNote, jMealNames); };
+    }
+  });
 }
 // 存完之後隨時可按：把這一餐的自我判斷＋備註打包成求助訊息發給秘書
 function askSecretaryMeal(m){
@@ -3186,7 +3246,8 @@ var _answeredSymptoms = {}; // 這次對話session裡，已經回答過的症狀
 function sendMsg(){
   var inp=document.getElementById('chat-inp'),msg=inp.value.trim();if(!msg)return;
   var area=document.getElementById('chat-area');
-  area.innerHTML+='<div style="margin-bottom:8px"><div class="cm-b user">'+msg+'</div></div><div class="cf"></div>';
+  // 2026-09-09補：客人自己打的訊息之前是直接塞進innerHTML沒有跳脫，補上escHtml跟其他地方一致
+  area.innerHTML+='<div style="margin-bottom:8px"><div class="cm-b user">'+escHtml(msg)+'</div></div><div class="cf"></div>';
   inp.value='';
   // 優先查真正的QA資料庫（症狀/問題/答案都比對），找不到才退回寫死的六條保底，最後才是請秘書回覆
   var reply='謝謝你告訴我 😊 這個問題我幫你記下來了，秘書看到之後會親自來陪你一起找答案。週一至週六上線時間內會回覆你，不用擔心！';
@@ -3224,7 +3285,10 @@ function sendMsg(){
     if (!hitDefault && typeof logUnknown === 'function') logUnknown(msg);
   }
   setTimeout(function(){
-    area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+reply+'</div></div><div class="cf"></div>';
+    // 2026-09-09補：reply如果比對到QA資料庫（秘書/管理人在後台維護的內容）就沒有跳脫直接塞進innerHTML，
+    // 跟這個檔案其他82處都會呼叫escHtml不一致——內容如果剛好包含「<」「>」這類符號（例如「血糖<100」）
+    // 畫面會顯示不完整甚至跑版，補上跳脫跟其他地方一致。
+    area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+escHtml(reply)+'</div></div><div class="cf"></div>';
     area.scrollTop=area.scrollHeight;
     // 轉真人的情況不用再搜相關內容了（已經不是在找資料，是要秘書介入），其他情況照常搜
     if (!escalated && typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(contentSearchKeyword);
@@ -4354,7 +4418,9 @@ function toggleCarbBowel(el){
   el.textContent = on ? '已排便' : '尚未';
 }
 var _carbRefeedActive = false;
+var _submitDailySaving = false; // 2026-09-09補：防止手滑連點兩下「儲存今日記錄」，後端目前對這個動作沒有防重複機制，連點會產生兩筆一模一樣的記錄，影響月平均/趨勢圖
 function submitDailyRecord() {
+  if (_submitDailySaving) return;
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
   if(!k && !w){ toast('至少填血酮或體重其中一項，才能記錄喔'); return; }
@@ -4377,11 +4443,16 @@ function submitDailyRecord() {
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
     if(carbsVal && (Number(carbsVal) < 0 || Number(carbsVal) > 500)){ toast('碳水克數看起來不太合理，麻煩再確認一下'); return; }
   }
+  _submitDailySaving = true;
+  var _sdBtn = document.getElementById('submit-daily-btn');
+  if (_sdBtn) { _sdBtn.disabled = true; _sdBtn.style.opacity = '.6'; _sdBtn.style.cursor = 'not-allowed'; }
   callAPI({
     action: 'addDailyRecord', clientId: CLIENT_ID,
     ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(','),
     exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal
   }, function(d) {
+    _submitDailySaving = false;
+    if (_sdBtn) { _sdBtn.disabled = false; _sdBtn.style.opacity = ''; _sdBtn.style.cursor = 'pointer'; }
     if (d.status === 'ok') {
       toast('✅ 已同步到秘書後台！');
       // 自動完成血酮任務
@@ -4494,8 +4565,10 @@ function openFoodHelpPrompt(){
 // ── 問答：記錄未知問題 ──
 function logUnknown(question) {
   callAPI({ action: 'addUnknown', clientId: CLIENT_ID, question: question }, function(d) {
-    if (d.status === 'ok') {
+    if (d && d.status === 'ok') {
       toast('📝 已記錄你的問題，秘書會盡快回覆！');
+    } else {
+      toast('⚠️ 沒有送出成功，麻煩再試一次');
     }
   });
 }
@@ -4506,8 +4579,10 @@ function logUnknownFood(foodName) {
     action: 'addUnknownFood', clientId: CLIENT_ID,
     foodName: foodName, category: '待分類', desc: '客人詢問'
   }, function(d) {
-    if (d.status === 'ok') {
+    if (d && d.status === 'ok') {
       toast('📝 已記錄！秘書會補充這個食物的資訊 😊');
+    } else {
+      toast('⚠️ 沒有送出成功，麻煩再試一次');
     }
   });
 }
@@ -4519,8 +4594,10 @@ function submitFoodRecommend(name, category, desc, reason) {
     submitterType: '客人', name: name, category: category,
     desc: desc, reason: reason
   }, function(d) {
-    if (d.status === 'ok') {
+    if (d && d.status === 'ok') {
       toast('✅ 感謝推薦！秘書審核後會加入食材庫 🥗');
+    } else {
+      toast('⚠️ 沒有送出成功，麻煩再試一次');
     }
   });
 }
@@ -4537,8 +4614,10 @@ function submitTestimonial(content) {
   callAPI({
     action: 'addTestimonial', clientId: CLIENT_ID, content: content
   }, function(d) {
-    if (d.status === 'ok') {
+    if (d && d.status === 'ok') {
       toast('✅ 感謝分享你的心得！😊');
+    } else {
+      toast('⚠️ 沒有送出成功，麻煩再試一次');
     }
   });
 }
@@ -4550,8 +4629,10 @@ function submitPurchase(productName, qty, source, price, note) {
     productName: productName, qty: qty,
     source: source, price: price, note: note
   }, function(d) {
-    if (d.status === 'ok') {
+    if (d && d.status === 'ok') {
       toast('✅ 代購需求已送出！秘書會盡快回覆 🛒');
+    } else {
+      toast('⚠️ 沒有送出成功，麻煩再試一次');
     }
   });
 }
@@ -4977,18 +5058,13 @@ function showMatrixTab(){
   if(_matrixLoaded){ renderMatrix(); return; } // 這次進報告頁只需要抓一次真實數值
   renderMatrix(); // 先用預設值畫一次避免空白，等真實資料回來再重畫
   callAPI({action:'getIRCTFullTable', clientId:CLIENT_ID}, function(d){
-    if(!d || d.status!=='ok' || !d.found || !d.rows) return;
-    // 2026-08-19創始人更正：從既有的getIRCTFullTable（客人本來就看得到的原始數值對照表）取這位客人
-    // 「最新一次」的esi/hba1c/glucoseAC，取代原本寫死的假數值——每個key對應的values陣列已經依count排序，
-    // 最後一筆就是最新一次檢測
-    function latestVal(key){
-      var rowDef = d.rows.filter(function(x){ return x.key===key; })[0];
-      if(!rowDef || !rowDef.values || !rowDef.values.length) return NaN;
-      var last = rowDef.values[rowDef.values.length-1];
-      var n = parseFloat(last && last.value);
-      return isNaN(n) ? NaN : n;
-    }
-    var esiV = latestVal('esi'), hba1cV = latestVal('hba1c'), glucoseV = latestVal('glucoseAC');
+    if(!d || d.status!=='ok' || !d.found) return;
+    // 2026-08-19創始人更正：從getIRCTFullTable取這位客人「最新一次」的esi/hba1c/glucoseAC，
+    // 取代原本寫死的假數值。2026-09-09補：改讀專門給矩陣定位用的matrixCoords（不是rows裡的表格顯示值）——
+    // rows裡的esi這欄已經因為「不外傳原始數值給客人」的規則被換成文字說明，parseFloat會拿到NaN，
+    // 矩陣定位會失效、永遠停在預設值；matrixCoords帶的是同一份原始數字，只是拿來算矩陣位置，不會顯示出來
+    if(!d.matrixCoords) return;
+    var esiV = parseFloat(d.matrixCoords.esi), hba1cV = parseFloat(d.matrixCoords.hba1c), glucoseV = parseFloat(d.matrixCoords.glucoseAC);
     if(!isNaN(esiV)) IRCT_MATRIX_VALUES.esi = esiV;
     if(!isNaN(hba1cV)) IRCT_MATRIX_VALUES.hba1c = hba1cV;
     if(!isNaN(glucoseV)) IRCT_MATRIX_VALUES.glucose = glucoseV;
@@ -5082,18 +5158,22 @@ function qaSearchCore(val) {
   });
   
   if (matched.length === 0) {
-   results.innerHTML = '<div style="padding:12px 14px"><div style="font-size:12px;color:var(--text2);margin-bottom:8px">找不到相關問題 😊</div><button class="btn-g" style="font-size:11px;width:100%" onclick="askSecretary(\'\'+val+\'\')">讓秘書來幫你回答</button></div>';
+    // 2026-09-09補：原本把客人打的搜尋字直接接進onclick的JS字串裡，如果字裡有單引號會直接把整個
+    // onclick語法弄壞（輕則按鈕失效，重則被拿來構造非預期的JS）。改成先存到一個變數，onclick直接讀變數，
+    // 不把使用者輸入的文字接進HTML屬性/JS字串裡。
+    window._qaAskVal = val;
+    results.innerHTML = '<div style="padding:12px 14px"><div style="font-size:12px;color:var(--text2);margin-bottom:8px">找不到相關問題 😊</div><button class="btn-g" style="font-size:11px;width:100%" onclick="askSecretary(window._qaAskVal)">讓秘書來幫你回答</button></div>';
     results.style.display = 'block';
     return;
   }
-  
+
   var html = '';
   matched.slice(0,5).forEach(function(item) {
     var q = item.q || item.question || '';
     var a = item.a || item.answer || '';
-    html += '<div style="padding:11px 14px;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="showSearchResult(this.getAttribute(&quot;data-q&quot;))" data-q="'+q.replace(/"/g,'&quot;')+'">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px">'+q+'</div>';
-    html += '<div style="font-size:11px;color:var(--text2);line-height:1.4">'+a.substring(0,60)+'...</div>';
+    html += '<div style="padding:11px 14px;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="showSearchResult(this.getAttribute(&quot;data-q&quot;))" data-q="'+escHtml(q)+'">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px">'+escHtml(q)+'</div>';
+    html += '<div style="font-size:11px;color:var(--text2);line-height:1.4">'+escHtml(a.substring(0,60))+'...</div>';
     html += '</div>';
   });
   
@@ -5124,8 +5204,9 @@ function showSearchResult(question) {
     if (typeof logQA === 'function') logQA(matchKey);
   }
 
-  chatArea.innerHTML += '<div style="margin-bottom:10px;text-align:right"><div style="display:inline-block;background:var(--g);color:#fff;border-radius:16px 16px 4px 16px;padding:8px 12px;font-size:12px;max-width:80%;text-align:left">'+question+'</div></div>';
-  chatArea.innerHTML += '<div style="margin-bottom:10px"><div style="display:inline-block;background:var(--p2);border-radius:16px 16px 16px 4px;padding:8px 12px;font-size:12px;max-width:85%;color:var(--text)">'+answer+'</div></div>';
+  // 2026-09-09補：question/answer之前直接塞進innerHTML沒有跳脫，補上escHtml跟loadMyQuestions()一致
+  chatArea.innerHTML += '<div style="margin-bottom:10px;text-align:right"><div style="display:inline-block;background:var(--g);color:#fff;border-radius:16px 16px 4px 16px;padding:8px 12px;font-size:12px;max-width:80%;text-align:left">'+escHtml(question)+'</div></div>';
+  chatArea.innerHTML += '<div style="margin-bottom:10px"><div style="display:inline-block;background:var(--p2);border-radius:16px 16px 16px 4px;padding:8px 12px;font-size:12px;max-width:85%;color:var(--text)">'+escHtml(answer)+'</div></div>';
   chatArea.scrollTop = chatArea.scrollHeight;
   // 顯示完真正的QA答案後，一併搜尋相關文章/影片/podcast，這是QA跟部落格/YT/FB/podcast串起來的關鍵一步，之前漏接了
   if (typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(item.symptom || question);
@@ -5517,43 +5598,52 @@ function toggleThanksOption(btn, text) {
 
 // 不順的選項清單：選到任何一個，記錄會加上關心標記讓秘書注意到
 var THANKS_NEG_OPTIONS = ['今天有點累','嘴饞好想吃澱粉','心情悶悶的','身體不太舒服','太忙差點沒空記錄'];
+var _thanksSaving = false;
 function submitThanks() {
+  if (_thanksSaving) return; // 2026-09-09補：防止連點兩下重複送出
   var extraText = document.getElementById('thanks-inp').value.trim();
   var allParts = thanksSelectedOptions.slice();
   if (extraText) allParts.push(extraText);
   var content = allParts.join('、');
   if (!content) { toast('選一個最接近的，或寫一句話都可以 😊'); return; }
   var hasNeg = thanksSelectedOptions.some(function(t){ return THANKS_NEG_OPTIONS.indexOf(t) >= 0; });
-  
-  // 儲存到Sheets（不順的日子加上標記，秘書一眼看到就能隔天主動關心）
+
+  // 2026-09-09補：這裡原本是空callback，不管有沒有真的存進去，畫面都會直接顯示「秘書會看到的」
+  // 並關閉視窗——這個表單是客人唯一能主動標記「今天不太舒服/心情不好」讓秘書關心的地方，
+  // 如果剛好網路不穩送失敗，客人會誤以為秘書已經知道了，其實完全沒有人收到通知。
+  // 改成等後端真的回應成功，才顯示完成、關視窗、跳轉；失敗的話留在原地讓客人可以重按一次。
+  _thanksSaving = true;
   callAPI({
     action: 'addTestimonial',
     clientId: CLIENT_ID,
     content: (hasNeg ? '【今日心情⚠️需要關心】' : '【今日心情】') + content
-  }, function(d) {});
-  
-  // 完成任務
-  gsTasks[6] = true;
-  var gt6 = document.getElementById('gt6');
-  if (gt6) gt6.className = 'gs-task done';
-  updateHomeTask(6);
-  syncGardenTask('今日心情', true);
-  updateGardenProgress();
-  
-  // 關閉視窗並重置選項
-  closeThanksModal();
-  document.getElementById('thanks-inp').value = '';
-  thanksSelectedOptions = [];
-  document.querySelectorAll('.thanks-opt').forEach(function(b) {
-    b.style.background = 'var(--bg)';
-    b.style.color = 'var(--text2)';
-    b.style.borderColor = 'var(--border)';
+  }, function(d) {
+    _thanksSaving = false;
+    if (!d || d.status !== 'ok') { toast('⚠️ 送出失敗，請檢查網路後再按一次'); return; }
+
+    // 完成任務
+    gsTasks[6] = true;
+    var gt6 = document.getElementById('gt6');
+    if (gt6) gt6.className = 'gs-task done';
+    updateHomeTask(6);
+    syncGardenTask('今日心情', true);
+    updateGardenProgress();
+
+    // 關閉視窗並重置選項
+    closeThanksModal();
+    document.getElementById('thanks-inp').value = '';
+    thanksSelectedOptions = [];
+    document.querySelectorAll('.thanks-opt').forEach(function(b) {
+      b.style.background = 'var(--bg)';
+      b.style.color = 'var(--text2)';
+      b.style.borderColor = 'var(--border)';
+    });
+
+    toast(hasNeg ? '🌿 謝謝你願意說，秘書會看到的' : '😊 心情已記錄，明天見！');
+
+    // 跳回花園（延遲讓慶祝動畫播完）
+    setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
   });
-  
-  toast(hasNeg ? '🌿 謝謝你願意說，秘書會看到的' : '😊 心情已記錄，明天見！');
-  
-  // 跳回花園（延遲讓慶祝動畫播完）
-  setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
 }
 </script>
 <script>
@@ -5649,11 +5739,16 @@ function quickSave(type) {
     if (!_mealSel.meal) { toast('先選一下這是哪一餐喔 🕐'); return; }
     if (!_mealSel.oil && !_mealSel.protein && !_mealSel.starch) { toast('點選至少一項再送出喔'); return; }
     toast('🍽 餐盤快記已傳給秘書！');
-    fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+    // 2026-09-09補：這裡原本是用一個完全不檢查結果、也不處理失敗的fetch().catch(function(){})，
+    // 畫面已經顯示「已傳給秘書」，但如果連線失敗，這筆餐盤記錄其實根本沒有存進去、秘書永遠看不到，
+    // 客人卻以為已經記錄了。改用callAPI（一定會呼叫callback），失敗時另外補一個提醒。
+    callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone:'', weight:'', waist:'', feeling:'',
-      meal: _mealSel.meal||'', oil: _mealSel.oil||'', protein: _mealSel.protein||'', starch: _mealSel.starch||'' })
-    }).then(function(r){return r.json();}).catch(function(){});
+      meal: _mealSel.meal||'', oil: _mealSel.oil||'', protein: _mealSel.protein||'', starch: _mealSel.starch||''
+    }, function(d){
+      if (!d || d.status !== 'ok') toast('⚠️ 餐盤紀錄剛剛沒有存成功，麻煩重新選擇一次再送出');
+    });
     _mealSel = {};
     document.querySelectorAll('.meal-chip').forEach(function(c){ c.classList.remove('on'); });
     return;
@@ -5669,10 +5764,21 @@ function quickSave(type) {
     toast('🩸 血酮 ' + k + ' mmol/L 已儲存！');
     setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
     // 背景儲存到Sheets
+    // 2026-09-09補：這裡畫面立刻顯示「已儲存」、任務也立刻打勾，但原本背景callAPI的callback是空的，
+    // 完全沒檢查有沒有真的存成功——連線失敗的話，客人以為記錄了，其實血酮值根本沒進到秘書看得到的表格。
+    // 失敗時把剛剛的樂觀更新（打勾）復原，並另外提醒補記。
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone: k, weight: '', waist: '', feeling: '', electrolyte: ''
-    }, function(){});
+    }, function(d){
+      if (!d || d.status !== 'ok') {
+        gsTasks[0] = false;
+        var gt0f = document.getElementById('gt0');
+        if (gt0f) gt0f.className = 'gs-task pending';
+        updateHomeTask(0); updateGardenProgress();
+        toast('⚠️ 血酮數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
+      }
+    });
 
   } else if (type === 'weight') {
     if (!w || parseFloat(w) <= 0) { toast('請先輸入體重數值'); return; }
@@ -5685,10 +5791,19 @@ function quickSave(type) {
     toast('📏 體重 ' + w + ' kg 已儲存！');
     setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
     // 背景儲存
+    // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone: '', weight: w, waist: waist, feeling: '', electrolyte: ''
-    }, function(){});
+    }, function(d){
+      if (!d || d.status !== 'ok') {
+        gsTasks[1] = false;
+        var gt1f = document.getElementById('gt1');
+        if (gt1f) gt1f.className = 'gs-task pending';
+        updateHomeTask(1); updateGardenProgress();
+        toast('⚠️ 體重數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
+      }
+    });
 
   } else if (type === 'waist') {
     if (!waist || parseFloat(waist) <= 0) { toast('請先輸入腰圍數值'); return; }
@@ -5701,10 +5816,19 @@ function quickSave(type) {
     toast('📏 腰圍 ' + waist + ' cm 已儲存！');
     setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
     // 背景儲存
+    // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone: '', weight: w, waist: waist, feeling: '', electrolyte: ''
-    }, function(){});
+    }, function(d){
+      if (!d || d.status !== 'ok') {
+        gsTasks[1] = false;
+        var gt1wf = document.getElementById('gt1');
+        if (gt1wf) gt1wf.className = 'gs-task pending';
+        updateHomeTask(1); updateGardenProgress();
+        toast('⚠️ 腰圍數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
+      }
+    });
 
   } else if (type === 'electrolyte') {
     if (e.length === 0) { toast('請先選擇補充的電解質'); return; }
@@ -5717,10 +5841,19 @@ function quickSave(type) {
     toast('💦 電解質補充已記錄！');
     setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
     // 背景儲存
+    // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone: '', weight: '', waist: '', feeling: '', electrolyte: e.join(',')
-    }, function(){});
+    }, function(d){
+      if (!d || d.status !== 'ok') {
+        gsTasks[3] = false;
+        var gt3f = document.getElementById('gt3');
+        if (gt3f) gt3f.className = 'gs-task pending';
+        updateHomeTask(3); updateGardenProgress();
+        toast('⚠️ 電解質補充剛剛沒有存成功，請重新選擇一次');
+      }
+    });
 
   } else if (type === 'feeling') {
     var feelingChips = [];
@@ -5735,10 +5868,19 @@ function quickSave(type) {
     toast('😊 今日體感已記錄！');
     setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
     // 背景儲存
+    // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone: '', weight: '', waist: '', feeling: feelingChips.join(','), electrolyte: ''
-    }, function(){});
+    }, function(d){
+      if (!d || d.status !== 'ok') {
+        gsTasks[4] = false;
+        var gt4f = document.getElementById('gt4');
+        if (gt4f) gt4f.className = 'gs-task pending';
+        updateHomeTask(4); updateGardenProgress();
+        toast('⚠️ 今日體感剛剛沒有存成功，請重新選擇一次');
+      }
+    });
 
   } else if (type === 'diet') {
     gsTasks[2] = true;
@@ -5997,7 +6139,19 @@ function selectFasting(mode) {
     toast('⏰ ' + label + ' 斷食模式已選擇！');
   }
   // 儲存到記錄
-  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'斷食模式:'+mode, electrolyte:''}, function(){});
+  // 2026-09-09補：原本callback是空的，完全不檢查有沒有存成功——連線失敗的話，畫面上按鈕已經變綠、
+  // 步驟進度也顯示完成，但斷食模式其實沒有真的存進秘書看得到的表格。失敗時把選擇復原、提醒重選。
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'斷食模式:'+mode, electrolyte:''}, function(d){
+    if (d && d.status === 'ok') return;
+    _fastingMode = '';
+    ['168','186','204','none'].forEach(function(m) {
+      var btn = document.getElementById('fast-' + m);
+      if (!btn) return;
+      btn.style.background = 'var(--card)'; btn.style.color = 'var(--text2)'; btn.style.borderColor = 'var(--border)';
+    });
+    updateDietProgress();
+    toast('⚠️ 斷食模式剛剛沒有存成功，請重新選擇一次');
+  });
   updateDietProgress();
 }
 
@@ -6027,6 +6181,11 @@ function updateDietProgress() {
 }
 
 // ── 早餐快速選項 ──
+// 2026-09-09補：這裡跟同一批已修好的斷食沒有吃/需要點心是同一種問題——quickSaveMeal('b')是同步執行的，
+// 不管下面這通addDailyRecord最後成不成功，畫面都會馬上把早餐標記成「已完成 ✅」；而且這通API本身
+// 就是這個早餐類型唯一會被寫進去的記錄（quickSaveMeal本身不會另外存資料），如果失敗，秘書後台完全
+// 看不到這筆早餐記錄，但客人畫面上卻顯示已完成。這裡失敗時把mealDone、按鈕、狀態文字都復原，
+// 跟其他幾處保持一致，且「已記錄」的成功提示改成等API真的回應成功才顯示。
 function quickBreakfast(type) {
   _mealJudgeBypass['b'] = true; // 防彈咖啡/雞湯是標準合規選項，不用再判斷比例
   // 用quickSaveMeal處理早餐
@@ -6034,9 +6193,14 @@ function quickBreakfast(type) {
   quickSaveMeal('b');
   // 額外儲存早餐類型
   callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', breakfast:type}, function(d){
-    if (!(d && d.status === 'ok')) toast('⚠️ 早餐記錄沒有傳出去，請再選一次');
+    if (d && d.status === 'ok') { toast('☕ ' + type + ' 已記錄！'); return; }
+    mealDone['b'] = false;
+    var frBtn = document.querySelector('[onclick="quickSaveMeal(\'b\')"]');
+    if (frBtn) { frBtn.disabled = false; frBtn.textContent = '儲存後完成'; frBtn.style.background = 'var(--g)'; frBtn.style.cursor = 'pointer'; }
+    var frStatusEl = document.getElementById('bs');
+    if (frStatusEl) { frStatusEl.textContent = '未記錄'; frStatusEl.className = 'meal-st pend'; }
+    toast('⚠️ 早餐記錄沒有傳出去，請再選一次「' + type + '」');
   });
-  toast('☕ ' + type + ' 已記錄！');
 }
 
 // ── 每餐記錄完成按鈕 ──
@@ -6053,7 +6217,17 @@ function mealFasting(mealCode) {
   var mealNames = {b:'早餐', l:'午餐', d:'晚餐'};
   var name = mealNames[mealCode] || '餐食';
   callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：斷食沒有吃'}, function(d){
-    if (!(d && d.status === 'ok')) toast('⚠️ 斷食記錄沒有傳出去，請再點一次「沒有吃（斷食）」');
+    if (d && d.status === 'ok') return;
+    // 2026-09-09補：這裡下面的quickSaveMeal(mealCode)是同步執行的，不管API最後成不成功都會馬上把
+    // mealDone[mealCode]設成true、按鈕鎖住——原本失敗時只丟一個「請再點一次」的toast，但mealDone
+    // 已經是true了，再點同一個按鈕會被最上面的guard擋掉，等於叫客人做一件按了也沒用的事。
+    // 這裡失敗時把mealDone、按鈕、狀態文字都復原，讓「再點一次」真的能重新整個流程再送一次。
+    mealDone[mealCode] = false;
+    var frBtn = document.querySelector('[onclick="quickSaveMeal(\'' + mealCode + '\')"]');
+    if (frBtn) { frBtn.disabled = false; frBtn.textContent = '儲存後完成'; frBtn.style.background = 'var(--g)'; frBtn.style.cursor = 'pointer'; }
+    var frStatusEl = document.getElementById(mealCode + 's');
+    if (frStatusEl) { frStatusEl.textContent = '未記錄'; frStatusEl.className = 'meal-st pend'; }
+    toast('⚠️ 斷食記錄沒有傳出去，請再點一次「沒有吃（斷食）」');
   });
   quickSaveMeal(mealCode);
   var statusEl = document.getElementById(mealCode + 's');
@@ -6071,10 +6245,16 @@ function mealNeedSnack(mealCode) {
   mealNeedSnackFlag[mealCode] = true;
   var mealNames = {l:'午餐', d:'晚餐'};
   var name = mealNames[mealCode] || '餐食';
-  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：吃完還是會餓，需要另外補充點心'}, function(d){
-    if (!(d && d.status === 'ok')) toast('⚠️ 記錄沒有傳出去，請再點一次');
-  });
   var btn = document.getElementById('snack-' + mealCode);
+  callAPI({action:'addDailyRecord', clientId:CLIENT_ID, ketone:'', weight:'', waist:'', feeling:'', electrolyte:'', meal: name + '：吃完還是會餓，需要另外補充點心'}, function(d){
+    if (d && d.status === 'ok') return;
+    // 2026-09-09補：原本失敗時只丟toast叫「再點一次」，但上面已經把mealNeedSnackFlag設成true、
+    // 按鈕外觀也還沒鎖（鎖按鈕的程式碼在下面同步執行），如果不把flag復原，「再點一次」會被最上面
+    // 的guard擋掉，等於叫客人做沒有用的事。這裡失敗時把flag復原、按鈕還原成可以再按的樣子。
+    mealNeedSnackFlag[mealCode] = false;
+    if (btn) { btn.style.background = '#FFF7ED'; btn.style.color = '#92400E'; btn.style.borderColor = '#B45309'; btn.textContent = '🍪 這餐吃完還是會餓，需要點心'; btn.disabled = false; btn.style.cursor = 'pointer'; }
+    toast('⚠️ 記錄沒有傳出去，請再點一次');
+  });
   if (btn) { btn.style.background = '#92400E'; btn.style.color = '#fff'; btn.style.borderColor = '#92400E'; btn.textContent = '🍪 已記錄，這餐還是會餓'; btn.disabled = true; btn.style.cursor = 'default'; }
   toast('🍪 已記錄！秘書會看到你這餐吃完還是容易餓');
 }
@@ -6284,6 +6464,9 @@ function maybeAskSatisfaction(){
   try {
     if (!localStorage.getItem('mx_client_id')) return;
     if (!localStorage.getItem('ob_done')) return;
+    // 2026-09-10補：這個彈窗問的是「這個月的陪跑服務還滿意嗎」，之前沒有檢查陪跑開通狀態，
+    // 還沒開通陪跑的客人也會被問到一個他們根本沒有的服務，答案對業務也沒有意義
+    if (USER_STATUS !== 'active') return;
     var satNow = new Date();
     var satKey = 'mx_sat_' + satNow.getFullYear() + '-' + ('0' + (satNow.getMonth() + 1)).slice(-2);
     if (localStorage.getItem(satKey)) return;
@@ -6323,21 +6506,26 @@ function showSatCard(satKey){
   document.body.appendChild(m);
   window._satKey = satKey;
 }
+// 2026-09-09補：原本不管API有沒有真的存成功，都直接把localStorage標記成「這個月已回答」並跳到感謝畫面——
+// 網路不穩送失敗的話，分數就這樣不見了，而且因為localStorage已經標記過，這個月都不會再問一次，
+// 沒有任何補救機會。改成等API真的回應成功才標記、才跳到感謝畫面；失敗的話留在原地讓客人可以再點一次。
 function satPick(score){
   window._satScore = score;
-  try {
-    callAPI({ action: 'addSatisfaction', clientId: CLIENT_ID, score: score }, function(){});
-    localStorage.setItem(window._satKey || 'mx_sat_x', '1');
-  } catch(e) {}
-  var s1 = document.getElementById('sat-step1'), s2 = document.getElementById('sat-step2');
-  if (s1) s1.style.display = 'none';
-  if (s2) s2.style.display = 'block';
+  callAPI({ action: 'addSatisfaction', clientId: CLIENT_ID, score: score }, function(d){
+    if (!(d && d.status === 'ok')) { toast('⚠️ 送出失敗，請再點一次'); return; }
+    try { localStorage.setItem(window._satKey || 'mx_sat_x', '1'); } catch(e) {}
+    var s1 = document.getElementById('sat-step1'), s2 = document.getElementById('sat-step2');
+    if (s1) s1.style.display = 'none';
+    if (s2) s2.style.display = 'block';
+  });
 }
 function satComment(){
   var inp = document.getElementById('sat-comment');
   var c = inp ? inp.value.trim() : '';
   if (c) {
-    callAPI({ action: 'addSatisfaction', clientId: CLIENT_ID, score: window._satScore || 2, comment: c }, function(){});
+    callAPI({ action: 'addSatisfaction', clientId: CLIENT_ID, score: window._satScore || 2, comment: c }, function(d){
+      if (!(d && d.status === 'ok')) toast('💚 分數收到了，但這句話沒有傳成功，沒關係～');
+    });
   }
   satClose();
   toast('💚 收到了，謝謝你！');
@@ -6755,15 +6943,18 @@ function submitHealthForm() {
   }
 
   // 儲存到Sheets
+  // 2026-09-09補：原本toast('已儲存')是寫在callAPI外面、不管成功失敗都會顯示——
+  // 斷網或後端出錯時，客人會看到「已儲存」但秘書其實完全收不到這份問卷。改成看真正的回傳結果決定要顯示哪種提示。
   callAPI({
     action: 'addNote',
     clientId: CLIENT_ID,
     content: '入會健康問卷：' + selected.join('；'),
     type: '健康問卷',
     secretary: CLIENT_ID
-  }, function(d) {});
-
-  toast('✅ 健康問卷已儲存！秘書會根據你的背景調整陪跑計畫 😊');
+  }, function(d) {
+    if (d && d.status === 'ok') toast('✅ 健康問卷已儲存！秘書會根據你的背景調整陪跑計畫 😊');
+    else toast('⚠️ 問卷儲存失敗，請檢查網路後再試一次');
+  });
 }
 </script>
 <script>
@@ -6792,13 +6983,43 @@ function applyLockStatus() {
     }
     var cta = document.createElement('div');
     cta.className = 'lock-cta';
-    cta.style.cssText = 'background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;padding:13px 16px;display:flex;align-items:center;gap:11px;margin:12px;border-radius:14px;box-shadow:0 4px 16px rgba(8,80,65,.2)';
-    cta.innerHTML = '<div style="font-size:22px;flex-shrink:0">🔒</div><div><div style="font-size:13px;font-weight:700;margin-bottom:2px">陪跑解鎖後使用</div><div style="font-size:11px;opacity:.85;line-height:1.4">加入陪跑方案後，健康秘書會為你解鎖</div></div>';
+    cta.style.cssText = 'background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;padding:13px 16px;display:flex;align-items:center;gap:11px;margin:12px;border-radius:14px;box-shadow:0 4px 16px rgba(8,80,65,.2);cursor:pointer';
+    // 2026-09-10補：這個提示之前只是一段純文字，沒有任何可以點的動作，想解鎖的客人得自己想到要去哪裡問——
+    // 改成整塊可以點，點下去直接通知秘書「這位客人想了解/開通陪跑」，不用客人自己摸索
+    cta.setAttribute('onclick', 'askUnlockCoaching(this)');
+    cta.innerHTML = '<div style="font-size:22px;flex-shrink:0">🔒</div><div style="flex:1"><div style="font-size:13px;font-weight:700;margin-bottom:2px">陪跑解鎖後使用</div><div style="font-size:11px;opacity:.85;line-height:1.4">加入陪跑方案後，健康秘書會為你解鎖，點這裡讓秘書主動聯繫你</div></div>';
     page.appendChild(cta);
     page.appendChild(wrap);
   }
   previewPages.forEach(function(pid) { lockPage(pid, 'preview'); });
   simpleLockPages.forEach(function(pid) { lockPage(pid, 'hide'); });
+  // 2026-09-10補：代謝花園（p-garden）本身故意不鎖（可以先逛逛當作誘因），但花園任務進度來自「今日記錄」
+  // (p-record，本來就鎖住)，還沒解鎖陪跑的人不管怎麼點，花園永遠是「新的一天」的初始畫面，卻沒有任何說明
+  // 為什麼——這裡加一個小提示，而不是把整個花園也鎖起來（保留原本讓人逛逛的設計）
+  var gp = document.getElementById('p-garden');
+  if (gp && !document.getElementById('garden-locked-tip')) {
+    var gtip = document.createElement('div');
+    gtip.id = 'garden-locked-tip';
+    gtip.style.cssText = 'background:#FFFBEB;border:1px solid #FCD34D;color:#92400E;font-size:11px;padding:9px 13px;text-align:center;line-height:1.6';
+    gtip.textContent = '🔒 花園任務要從「每日記錄」同步進度，陪跑解鎖後才能真的種出東西喔';
+    gp.insertBefore(gtip, gp.firstChild);
+  }
+}
+// 2026-09-10補：讓「陪跑解鎖後使用」的提示真的能點——一次session只會通知一次秘書，避免客人在好幾個
+// 鎖住的頁面各點一次、秘書收到好幾則一模一樣的通知
+var _unlockAsked = false;
+function askUnlockCoaching(el){
+  if (_unlockAsked) { toast('已經通知過秘書囉，等等看訊息 😊'); return; }
+  _unlockAsked = true;
+  if (el) {
+    el.style.opacity = '.7';
+    var titleEl = el.querySelector('div > div');
+    if (titleEl) titleEl.textContent = '通知中…';
+  }
+  callAPI({ action: 'addNote', clientId: CLIENT_ID, content: '客人點了「陪跑解鎖後使用」的鎖定畫面，想了解／開通陪跑方案，請主動聯繫', type: '陪跑諮詢', secretary: '系統' }, function(d){
+    if (d && d.status === 'ok') toast('💬 已通知秘書，會盡快跟你聯繫！');
+    else { toast('⚠️ 送出失敗，請直接 LINE 秘書'); _unlockAsked = false; }
+  });
 }
 function removeLockBanners() {
   document.querySelectorAll('.lock-cta').forEach(function(el){ el.remove(); });
@@ -6807,10 +7028,20 @@ function removeLockBanners() {
     var page = wrap.parentNode;
     if (page) { while (wrap.firstChild) page.insertBefore(wrap.firstChild, wrap); page.removeChild(wrap); }
   });
+  var gtipEl = document.getElementById('garden-locked-tip');
+  if (gtipEl) gtipEl.remove();
 }
-function loadClientAccess() {
+function loadClientAccess(isRetry) {
   if (!CLIENT_ID) { setTimeout(loadClientAccess, 500); return; }
   callAPI({ action: 'getClientAccess', clientId: CLIENT_ID }, function(d) {
+    // 2026-09-09補：這裡原本只要沒拿到active:true就一律鎖住整個APP，連「純粹連線失敗、根本沒查到
+    // 真正的開通狀態」也會鎖——客人剛打開APP網路不穩，會看到整個功能被鎖住、以為自己陪跑到期了，
+    // 其實只是查詢失敗。純網路失敗（callAPI的code==='network'）先自動重試一次，只有重試後還是
+    // 失敗，或後端明確回覆「沒有開通」，才顯示鎖定畫面。
+    if (d && d.code === 'network' && !isRetry) {
+      setTimeout(function(){ loadClientAccess(true); }, 1500);
+      return;
+    }
     USER_STATUS = (d && d.status === 'ok' && d.active) ? 'active' : 'locked';
     if (USER_STATUS === 'active') removeLockBanners(); else applyLockStatus();
   });
@@ -7020,7 +7251,9 @@ function showKetoGuide() {
 // ══ 入會健康問卷 Overlay ══
 function openHealthForm() {
   var overlay = document.getElementById('health-form-overlay');
-  if (!overlay) { alert('找不到問卷'); return; }
+  // 2026-09-09補：原本用會擋住整個畫面的alert()，且沒有下一步指引；改用跟其他地方一致的toast，
+  // 並補上具體建議（重新整理），碰到這種極少見狀況時不會讓客人卡在一個原生彈窗前不知道怎麼辦
+  if (!overlay) { toast('問卷載入失敗，請重新整理頁面後再試一次'); return; }
   overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);z-index:999999;display:flex;align-items:flex-end;justify-content:center';
   var s1 = document.getElementById('hf-step-1');
   var s2 = document.getElementById('hf-step-2');
@@ -7053,6 +7286,14 @@ function closeHealthForm() {
   }, function(){});
 
   toast('已跳過問卷，秘書之後會主動了解你的狀況 😊');
+}
+// 2026-09-09補：純粹把問卷覆蓋層關掉，不觸發上面closeHealthForm()裡「記錄客人跳過問卷」那個動作——
+// submitAndClose()（真的填完、按下「儲存並預約IRCT」）之前直接呼叫closeHealthForm()來關視窗，
+// 但hqData這時候一定有內容，會被誤判成「已填部分項目」，在秘書那邊留下一筆「問卷未填完即跳過」
+// 的假記錄，剛好接在submitAndClose()自己寫的「入會健康問卷：...」正常記錄後面，兩筆互相矛盾。
+function closeHealthFormOverlayOnly() {
+  var overlay = document.getElementById('health-form-overlay');
+  if (overlay) overlay.style.display = 'none';
 }
 
 // 各步驟必填的單選題key
@@ -7201,7 +7442,9 @@ function hfCalcResult() {
   if (factorsEl) factorsEl.innerHTML = html;
 }
 
+var _hqSubmitSaving = false;
 function submitAndClose() {
+  if (_hqSubmitSaving) return; // 2026-09-09補：防連點兩下重複送出
   // 收集問卷資料
   var overlay = document.getElementById('health-form-overlay');
   var selected = [];
@@ -7213,22 +7456,32 @@ function submitAndClose() {
     });
   }
 
-  // 儲存到Sheets
+  // 2026-09-09補：這裡原本是空callback，不管有沒有存成功都直接顯示「已儲存」並關掉問卷視窗、
+  // 跳到預約頁——這份入會問卷（飲食史/睡眠/壓力/年齡/家族史等）是後續陪跑計畫跟IRCT分析的依據，
+  // 如果剛好送失敗，秘書後台完全收不到任何一項答案，客人卻已經被導去預約頁、視窗也關了，
+  // 填的內容(hqData)沒有留下重新送出的機會。改成等真的存成功才關視窗、跳頁；失敗時留在原地讓客人重按。
+  // 另外這裡原本用共用的closeHealthForm()關視窗，但那個函式只要看到hqData有內容，就會「順便」
+  // 多寫一筆「問卷未填完即跳過」的記錄，會跟這裡剛存的正常問卷記錄互相矛盾——改用只關視窗、
+  // 不觸發那筆多餘記錄的closeHealthFormOverlayOnly()。
+  _hqSubmitSaving = true;
   callAPI({
     action: 'addNote',
     clientId: CLIENT_ID,
     content: '入會健康問卷：' + selected.join('；'),
     type: '健康問卷',
     secretary: CLIENT_ID
-  }, function(){});
+  }, function(d){
+    _hqSubmitSaving = false;
+    if (!d || d.status !== 'ok') { toast('⚠️ 問卷送出失敗，請檢查網路後再按一次'); return; }
 
-  toast('✅ 問卷已儲存！秘書會根據你的背景調整陪跑計畫 😊');
-  closeHealthForm();
-  
-  // 跳到預約頁
-  setTimeout(function() {
-    goPage('booking', '預約 IRCT');
-  }, 500);
+    toast('✅ 問卷已儲存！秘書會根據你的背景調整陪跑計畫 😊');
+    closeHealthFormOverlayOnly();
+
+    // 跳到預約頁
+    setTimeout(function() {
+      goPage('booking', '預約 IRCT');
+    }, 500);
+  });
 }
 
 // 修改「開始試用」按鈕的行為
@@ -7301,9 +7554,11 @@ function loadIrctContext(){
     var dateEl = document.getElementById('irct-context-date');
     if(dateEl) dateEl.textContent = d.date ? d.date+' ' : '';
     var lines = [];
-    if(d.diet) lines.push('🍽 飲食模式：'+d.diet);
-    if(d.exerciseFreq) lines.push('🏃 每週運動：'+d.exerciseFreq);
-    if(d.medications) lines.push('💊 用藥狀況：'+d.medications);
+    // 2026-09-09補：用藥狀況是客人自己打的自由文字欄位，跟檔案其他地方顯示客人自打內容一樣要跳脫，
+    // 補上escHtml跟其他地方一致
+    if(d.diet) lines.push('🍽 飲食模式：'+escHtml(d.diet));
+    if(d.exerciseFreq) lines.push('🏃 每週運動：'+escHtml(d.exerciseFreq));
+    if(d.medications) lines.push('💊 用藥狀況：'+escHtml(d.medications));
     var body = document.getElementById('irct-context-body');
     if(body) body.innerHTML = lines.join('<br>');
   });
@@ -7871,6 +8126,28 @@ function drawSimpleTrendChart(containerId, dates, values, color){
     + '</svg>';
   el.innerHTML = svg;
 }
+// 2026-09-09新增：ESI／GPT不外傳原始數值給客人（見後端CLIENT_HIDDEN_INDICATOR_KEYS），這兩項的
+// getIRCTFullTable.rows[].values[].value會是文字說明而不是數字，drawSimpleTrendChart的parseFloat
+// 會全部NaN、永遠卡在「還需要更多次檢測」——改用這個專門的版本，不畫數字走勢線，只用每次檢測的
+// watch（達標與否，本來就允許客人看到）畫一排達標/加油的小圖示，維持「有東西可以看」但不洩漏原始數值。
+function drawWatchTrendDots(containerId, dates, watchFlags){
+  var el = document.getElementById(containerId);
+  if(!el) return;
+  var pts = [];
+  for(var i=0;i<watchFlags.length;i++){
+    if(watchFlags[i] === null || watchFlags[i] === undefined) continue;
+    pts.push({watch: !!watchFlags[i], date: dates[i]});
+  }
+  if(pts.length < 1){ el.innerHTML = '<div style="font-size:11px;color:var(--text3);padding:10px 0">還需要更多次檢測才能看到走勢</div>'; return; }
+  var html = '<div style="display:flex;align-items:flex-end;gap:7px;flex-wrap:wrap;padding:6px 0 2px">' + pts.map(function(p){
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px">'
+      + '<div style="font-size:15px">'+(p.watch?'💪':'✅')+'</div>'
+      + '<div style="font-size:8.5px;color:var(--text3)">'+escHtml(p.date)+'</div>'
+      + '</div>';
+  }).join('') + '</div>'
+    + '<div style="font-size:9.5px;color:var(--text3)">✅ 達標　💪 尚待加強（實際數值由醫師／秘書為你追蹤）</div>';
+  el.innerHTML = html;
+}
 // 2026-08-16 新增：「完整檢測數據對照表」原本是一長串37+個項目攤平列出，客人很難掃視；
 // 創始人要求不用再標紅色（不做逐值的「正常/需留意」顏色判斷），改成依血糖/血脂/胰島素/體態/特殊因子
 // 分成有顏色區隔的色塊，比較容易看懂、也比較好看。顏色沿用系統既有的5個語意色，跟其他頁面一致。
@@ -7972,17 +8249,22 @@ function loadKeyIndicatorsTrend(){
     var dates = d.tests.map(function(t){ return t.date; });
     function rowByKey(key){ return d.rows.find(function(r){ return r.key===key; }); }
     var simpleKeys = [
-      {key:'esi', el:'kit-trend-esi', color:'#B8460E'},
       {key:'waist', el:'kit-trend-waist', color:'#2465A8'},
       {key:'visceralFat', el:'kit-trend-visceralFat', color:'#8A5A00'},
       {key:'bodyFatPct', el:'kit-trend-bodyFatPct', color:'#7A3E9D'},
-      {key:'gpt', el:'kit-trend-gpt', color:'#C0392B'},
       {key:'ketone', el:'kit-trend-ketone', color:'#1D9E75'}
     ];
     simpleKeys.forEach(function(sk){
       var row = rowByKey(sk.key);
       var vals = row ? row.values.map(function(v){ return v.value; }) : [];
       drawSimpleTrendChart(sk.el, dates, vals, sk.color);
+    });
+    // ESI／GPT不外傳原始數值給客人，這兩項改畫「達標與否」的小圖示走勢（見drawWatchTrendDots定義處說明）
+    ['esi', 'gpt'].forEach(function(hk){
+      var elId = hk === 'esi' ? 'kit-trend-esi' : 'kit-trend-gpt';
+      var row = rowByKey(hk);
+      var watches = row ? row.values.map(function(v){ return v.watch; }) : [];
+      drawWatchTrendDots(elId, dates, watches);
     });
     // 動態胰島素總和＝飯後1+2+3小時胰島素相加，IRCT完整表沒有現成的合計欄位，這裡跟GAS後端_dxIndVal_同一套算法用前端算出來
     var i1 = rowByKey('insulin1h'), i2 = rowByKey('insulin2h'), i3 = rowByKey('insulin3h');

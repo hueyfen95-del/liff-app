@@ -143,6 +143,14 @@
       <div style="font-size:13px;color:#788;margin-bottom:16px">客人剩餘可用餘額：<b style="color:#1D9E75;font-size:17px" id="done-bal"></b><br><span style="font-size:11px;color:#aaa">可以把這個畫面拿給客人看 😊</span></div>
       <button style="width:100%" onclick="resetCharge()">完成，扣下一位</button>
     </div>
+    <!-- 2026-09-09新增：即時扣款紀錄——之前扣款成功後只能等月底對帳單才看得到彙總數字，扣錯/扣多少心裡沒底 -->
+    <div class="card" style="margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="lbl" style="margin:0">🧾 我最近的扣款紀錄</div>
+        <button onclick="loadChargeHistory()" style="width:auto;padding:5px 12px;font-size:12px">重新整理</button>
+      </div>
+      <div id="charge-history-list" class="muted">載入中…</div>
+    </div>
   </div>
 
   <!-- 對帳單 -->
@@ -269,6 +277,12 @@ function updateAmountPreview(inputId,previewId,label){
   box.textContent = (v>0) ? ((label||'金額')+'：$'+v.toLocaleString()) : '';
 }
 function vConfirm(msg,onYes){
+  // 2026-09-09補：如果畫面上已經有一個確認框開著，就不要再疊一個新的——
+  // 手殘連點兩下「回報/確認/扣款」按鈕時，原本會疊出兩個確認框，
+  // 使用者連點兩次「確認」就可能讓 reportSale/confirmMyStatement/doCharge 的
+  // _xSaving 防重複送出旗標完全失效（因為旗標是進了 onYes 之後才設true，兩個
+  // 疊起來的確認框各自的 onYes 都會在旗標生效前執行到），造成同一筆重複送出。
+  if(document.querySelector('.v-modal-mask')) return;
   var mask=document.createElement('div');
   mask.className='v-modal-mask';
   mask.innerHTML='<div class="v-modal-box"><div class="v-modal-msg"></div><div class="v-modal-btns"><button class="v-modal-cancel">取消</button><button class="v-modal-ok">確認</button></div></div>';
@@ -293,14 +307,27 @@ function showWorkspace(skipAutoSwitch){
   var isLab = (V_ROLETYPE === '診所' || V_ROLETYPE === '實驗室');
   document.getElementById('tab-upload').style.display = isLab ? '' : 'none';
   document.getElementById('tab-slots').style.display = isLab ? '' : 'none';
+  var isHqOrg = (V_ORGTYPE === '集團總部');
   var hasReferral = (V_FEATURES||'').indexOf('referral') >= 0;
-  document.getElementById('tab-referral').style.display = hasReferral ? '' : 'none';
+  // 2026-09-10補：「我的推廣」分頁裡其實塞了兩種功能——一般轉介成效（要看features有沒有開通referral）
+  // 跟「跨店總覽」（集團總部視角，只看組織類型，不看features）。之前只用hasReferral判斷分頁看不看得到，
+  // 導致集團總部如果沒有另外勾選開通referral，整個分頁連同「跨店總覽」按鈕都消失，完全打不開這個功能
+  document.getElementById('tab-referral').style.display = (hasReferral || isHqOrg) ? '' : 'none';
   var hasSelfCollect = (V_FEATURES||'').indexOf('selfCollect') >= 0;
-  document.getElementById('tab-report-sale').style.display = hasSelfCollect ? '' : 'none';
+  // 同樣道理：「回報收款」分頁裡的「跨店應收總覽」只看組織類型是不是集團總部，跟selfCollect無關
+  document.getElementById('tab-report-sale').style.display = (hasSelfCollect || isHqOrg) ? '' : 'none';
+  // 2026-09-10新增：老闆指示「客人消費扣款」要綁定各廠商實際談好的合作項目，不是所有廠商都能直接
+  // 扣客人的儲值——用「noCharge」反向旗標判斷（features沒有這個字＝可以扣款），現有已經在用的
+  // 廠商帳號features本來就不會有這個字，預設維持能扣款，不會突然被擋；管理人之後在「深度合作」設定
+  // 裡幫某個純推廣型合作單位取消勾選「客人消費扣款」，這個分頁才會消失、後端也會一併擋下來。
+  var hasCharge = (V_FEATURES||'').indexOf('noCharge') < 0;
+  document.getElementById('tab-charge').style.display = hasCharge ? '' : 'none';
   if(skipAutoSwitch) return; // 背景重新整理開通項目用，不要打斷使用者目前正在看的分頁
   if(isLab) switchTab('upload'); // 診所/實驗室帳號打開直接看待回報清單，比消費扣款更常用
   else if(hasSelfCollect) switchTab('report-sale'); // 自行收款回報型合作單位打開直接看回報收款，比扣款更常用
   else if(hasReferral) switchTab('referral'); // 純推廣型合作單位（例如美業集團）打開直接看推廣成效，比扣款更常用
+  else if(hasCharge) switchTab('charge'); // 2026-09-09補：一般扣款型合作單位打開就會看到扣款頁，順便帶出loadChargeHistory()把即時扣款紀錄load出來
+  else switchTab('stmt'); // 沒有開通任何一種上述功能的合作單位（例如被取消「客人消費扣款」又不是推廣/自行收款型），改看對帳單分頁，避免打開後畫面卡在一個已被隱藏的分頁
 }
 function vLogin(){
   var code=document.getElementById('vcode').value.trim();
@@ -341,6 +368,7 @@ function switchTab(t){
   document.getElementById('pane-stmt').style.display=t==='stmt'?'':'none';
   document.getElementById('pane-referral').style.display=t==='referral'?'':'none';
   document.getElementById('pane-report-sale').style.display=t==='report-sale'?'':'none';
+  if(t==='charge') loadChargeHistory();
   if(t==='upload') loadPendingTests();
   if(t==='slots') loadMySlots();
   if(t==='referral') loadReferralInfo();
@@ -442,7 +470,11 @@ function loadReportSaleEventTypes(){
   var sel=document.getElementById('rs-event-type');
   if(!sel) return;
   api({action:'vendorGetServiceTypes'},function(d){
-    var types=(d&&d.types)||[];
+    // 2026-09-09補：連線失敗或後端回錯誤時，不要跟「真的沒設定服務類型」混在一起顯示同一句話，
+    // 不然合作單位會誤以為要去聯絡元代謝設定，其實只是網路問題、重新整理就好。
+    if(!d){ sel.innerHTML='<option value="">連線失敗，請重新整理再試一次</option>'; return; }
+    if(d.status && d.status!=='ok'){ sel.innerHTML='<option value="">'+esc(d.message||'查詢失敗，請重新整理再試一次')+'</option>'; return; }
+    var types=d.types||[];
     if(types.length===0){ sel.innerHTML='<option value="">尚未設定任何服務類型，請聯絡元代謝</option>'; return; }
     sel.innerHTML=types.map(function(t){ return '<option value="'+esc(t.id||t.name)+'">'+esc(t.name)+'</option>'; }).join('');
   });
@@ -452,7 +484,8 @@ function reportSale(){
   if(_reportSaleSaving) return;
   var clientId=document.getElementById('rs-client-id').value.trim();
   var eventType=document.getElementById('rs-event-type').value;
-  var amount=Number(document.getElementById('rs-amount').value);
+  // 2026-09-09補：後端一樣會四捨五入到整數才記錄，前端先取整數讓確認框顯示的數字跟實際存進去的一致
+  var amount=Math.round(Number(document.getElementById('rs-amount').value));
   var err=document.getElementById('rs-err');
   if(!clientId){ err.textContent='請填寫客人編號'; return; }
   if(!eventType){ err.textContent='請選擇服務類型'; return; }
@@ -502,9 +535,12 @@ function loadMyReportedSales(){
     listBox.innerHTML='<table><thead><tr><th>日期</th><th>客人</th><th>類型</th><th>客人來源</th><th style="text-align:right">您收的金額</th><th style="text-align:right">您應付元代謝</th><th>狀態</th></tr></thead><tbody>'
       + items.map(function(it){
         var settleTag = it.status==='已核查' ? ('<span class="src">'+(it.settleStatus==='已結清'?'已結清':'未結清')+'</span>') : '';
+        // 2026-09-09補：被退回時把退回原因顯示出來，之前只看得到「已退回」三個字，不知道要改什麼才能重新回報
+        var reasonMatch = it.status==='已退回' && it.note ? /退回原因:([^｜]*)/.exec(it.note) : null;
+        var reasonHtml = reasonMatch && reasonMatch[1] ? '<div style="font-size:10.5px;color:#E24B4A;margin-top:2px">原因：'+esc(reasonMatch[1])+'</div>' : '';
         return '<tr><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td>'+esc(it.eventType)+'</td><td><span class="src">'+esc(it.clientSource||'元代謝介紹')+'</span></td>'
           +'<td class="amt">$'+(it.amount||0).toLocaleString()+'</td><td class="amt">$'+(it.owed||0).toLocaleString()+'</td>'
-          +'<td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span> '+settleTag+'</td></tr>';
+          +'<td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span> '+settleTag+reasonHtml+'</td></tr>';
       }).join('')
       + '</tbody></table>';
   });
@@ -610,7 +646,7 @@ function loadMySlots(){
       return '<div style="display:flex;align-items:center;gap:8px;padding:10px 4px;border-bottom:1px solid #f0f0f0'+(off?';opacity:.5':'')+'">'
         +'<div style="flex:1"><div style="font-weight:700;font-size:14px">🕐 '+esc(it.datetime)+'</div>'
         +'<div style="font-size:11px;color:#999">'+esc(it.region||'')+(off?'・已停用':'・開放中')+'</div></div>'
-        +'<button style="font-size:12px;padding:8px 12px;background:'+(off?'#1D9E75':'#eee')+';color:'+(off?'#fff':'#556')+'" onclick="toggleMySlot('+it.row+')">'+(off?'重新開放':'停用')+'</button>'
+        +'<button id="slot-tgl-'+it.row+'" style="font-size:12px;padding:8px 12px;background:'+(off?'#1D9E75':'#eee')+';color:'+(off?'#fff':'#556')+'" onclick="toggleMySlot('+it.row+')">'+(off?'重新開放':'停用')+'</button>'
         +'</div>';
     }).join('');
   });
@@ -631,10 +667,22 @@ function addMySlot(){
     } else err.textContent=(d&&d.message)||'新增失敗，請重試';
   });
 }
+var _slotTglSaving={};
 function toggleMySlot(row){
+  // 2026-09-09補：這裡原本沒有防連點兩下——停用/開放是「切換」不是「設成固定值」，
+  // 手滑連點兩下會送出兩次切換請求，兩次疊加剛好會變回原本的狀態，等於這次操作白做，
+  // 合作單位還會誤以為已經停用/開放成功。送出中先鎖住這顆按鈕避免重複觸發。
+  if(_slotTglSaving[row]) return;
+  _slotTglSaving[row]=true;
+  var btn=document.getElementById('slot-tgl-'+row);
+  if(btn){ btn.disabled=true; btn.style.opacity='.6'; }
   api({action:'vendorToggleSlot',row:row},function(d){
+    _slotTglSaving[row]=false;
     if(d&&d.status==='ok') loadMySlots();
-    else toast((d&&d.message)||'操作失敗');
+    else {
+      toast((d&&d.message)||'操作失敗');
+      if(btn){ btn.disabled=false; btn.style.opacity=''; }
+    }
   });
 }
 var PENDING_CACHE=[], UPLOAD_TARGET=null;
@@ -667,14 +715,17 @@ function cancelUpload(){
   UPLOAD_TARGET=null;
   document.getElementById('upload-form').style.display='none';
 }
+var _submitReportSaving=false;
 function submitReport(){
   if(!UPLOAD_TARGET) return;
+  if(_submitReportSaving) return; // 2026-09-09補：防連點兩下重複送出同一筆報告
   var result=document.getElementById('up-result').value.trim();
   var note=document.getElementById('up-note').value.trim();
   var err=document.getElementById('up-err');
   if(!result){ err.textContent='請填寫檢測結果'; return; }
-  err.textContent='送出中…';
+  err.textContent='送出中…'; _submitReportSaving=true;
   api({action:'vendorUploadReport',src:UPLOAD_TARGET.src,row:UPLOAD_TARGET.row,result:result,note:note},function(d){
+    _submitReportSaving=false;
     if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'送出失敗，請稍後再試'; return; }
     err.textContent='';
     cancelUpload();
@@ -682,18 +733,21 @@ function submitReport(){
   });
 }
 var LAST_STMT_MONTH='', LAST_STMT_TOTAL=0;
+var _confirmStmtSaving=false;
 function confirmMyStatement(){
+  if(_confirmStmtSaving) return; // 2026-09-09補：確認對帳單這個動作有審核意義，防止手滑連點送出兩次確認請求
   var err=document.getElementById('confirm-err');
   vConfirm('確認這份對帳單金額（$'+LAST_STMT_TOTAL.toLocaleString()+'）沒有問題嗎？', function(){
-    err.textContent='送出中…';
+    err.textContent='送出中…'; _confirmStmtSaving=true;
     api({action:'vendorConfirmSettlement',month:LAST_STMT_MONTH,total:LAST_STMT_TOTAL},function(d){
+      _confirmStmtSaving=false;
       if(!d||d.status!=='ok'){ err.textContent=(d&&d.message)||'送出失敗'; return; }
       err.textContent='';
       document.getElementById('confirm-card').innerHTML='<div style="text-align:center;color:#1D9E75;font-weight:700">✅ 已確認，謝謝您的核對</div>';
     });
   });
 }
-var CUR_CID='';
+var CUR_CID='', CUR_BAL=0;
 function lookupClient(){
   var cid=document.getElementById('c-cid').value.trim();
   var err=document.getElementById('c-err1');
@@ -704,22 +758,37 @@ function lookupClient(){
     if(d.status!=='ok'){ err.textContent=d.message||'查詢失敗'; return; }
     err.textContent='';
     CUR_CID=d.clientId;
+    CUR_BAL=Number(d.balance)||0;
     document.getElementById('c-name').textContent=d.maskedName;
     document.getElementById('c-cid-show').textContent=d.clientId;
     document.getElementById('c-bal').textContent='$'+(d.balance||0).toLocaleString();
     document.getElementById('charge-step2').style.display='';
+    // 2026-09-10補：之前換查另一位客人時，前一位客人還沒送出的項目/金額會留著，很容易沒注意到就
+    // 對著新客人送出舊客人的金額——查到新客人一律清空，避免跟錯客人對錯金額
+    var itemEl=document.getElementById('c-item'), amtEl=document.getElementById('c-amt');
+    if(itemEl) itemEl.value='';
+    if(amtEl) amtEl.value='';
     document.getElementById('c-item').focus();
   });
 }
+var _chargeSaving=false;
 function doCharge(){
+  if(_chargeSaving) return; // 2026-09-09補：扣款是真的動到客人餘額的錢，防止手滑連點兩下vConfirm確認鈕間隔中又點到原按鈕、送出兩筆扣款（後端也有鎖跟重複偵測擋著，這裡是前端再多一層防護，減少不必要的重試請求）
   var item=document.getElementById('c-item').value.trim();
-  var amt=Number(document.getElementById('c-amt').value);
+  // 2026-09-09補：後端vendorCharge會把金額四捨五入到整數才記錄，如果這裡直接顯示原始輸入值，
+  // 打了小數點（例如150.6）的話，確認框顯示的金額會跟實際扣款金額對不上——這裡先在前端就取整數，
+  // 讓確認框看到的數字保證跟最後真的扣款的數字一致。
+  var amt=Math.round(Number(document.getElementById('c-amt').value));
   var err=document.getElementById('c-err2');
   if(!item){ err.textContent='請填寫消費項目'; return; }
   if(!(amt>0)){ err.textContent='請輸入正確金額'; return; }
-  vConfirm('確認扣款？\n\n客人：'+document.getElementById('c-name').textContent+'（'+CUR_CID+'）\n項目：'+item+'\n金額：$'+amt.toLocaleString(), function(){
-    err.textContent='扣款中…';
+  // 2026-09-09補：查完客人時已經知道餘額（CUR_BAL），這裡先提醒一下，不用等按下確認、送到後端
+  // 才被擋下來——後端本來就有真正的餘額檢查（這裡不是取代它，只是提早讓合作單位知道可能會失敗）
+  var balHint = (amt > CUR_BAL) ? '\n\n⚠️ 這個金額超過客人目前餘額（$'+CUR_BAL.toLocaleString()+'），送出可能會失敗，請跟客人確認' : '';
+  vConfirm('確認扣款？\n\n客人：'+document.getElementById('c-name').textContent+'（'+CUR_CID+'）\n項目：'+item+'\n金額：$'+amt.toLocaleString()+balHint, function(){
+    err.textContent='扣款中…'; _chargeSaving=true;
     api({action:'vendorCharge',clientId:CUR_CID,amount:amt,item:item},function(d){
+      _chargeSaving=false;
       if(!d){ err.textContent='連線失敗，請稍後再試（請勿重複按，先到對帳單確認是否已扣款）'; return; }
       if(d.status!=='ok'){ err.textContent=d.message||'扣款失敗'; return; }
       err.textContent='';
@@ -728,6 +797,7 @@ function doCharge(){
       document.getElementById('done-detail').textContent=item+'・$'+(d.amount||0).toLocaleString();
       document.getElementById('done-bal').textContent='$'+(d.newBalance||0).toLocaleString();
       document.getElementById('charge-done').style.display='';
+      loadChargeHistory(); // 2026-09-09補：扣款成功後立刻刷新即時扣款紀錄，不用手動按重新整理
     });
   });
 }
@@ -739,6 +809,28 @@ function resetCharge(){
   document.getElementById('charge-done').style.display='none';
   document.getElementById('charge-step1').style.display='';
   document.getElementById('c-cid').focus();
+}
+// 2026-09-09新增：合作單位自己查「我剛剛扣了哪些款」——之前扣款成功後只能等月底對帳單才看得到彙總數字，
+// 扣錯/扣多少心裡沒底；只列最近50筆，最新的在前面（跟後端vendorGetMyChargeHistory對應）
+function loadChargeHistory(){
+  var box=document.getElementById('charge-history-list');
+  if(!box) return;
+  box.innerHTML='載入中…';
+  api({action:'vendorGetMyChargeHistory'},function(d){
+    if(!d||d.status!=='ok'){ box.innerHTML='<div class="muted">載入失敗，請按重新整理再試一次</div>'; return; }
+    var items=d.items||[];
+    if(items.length===0){ box.innerHTML='<div class="muted">目前還沒有扣款紀錄</div>'; return; }
+    var statusLabel={'待核查':'待核查','已核查':'已核查','已退回':'已退回'};
+    box.innerHTML='<table><thead><tr><th>時間</th><th>客人</th><th>項目</th><th style="text-align:right">金額</th><th>狀態</th></tr></thead><tbody>'
+      + items.map(function(it){
+        // 2026-09-10補：跟「回報收款」被退回時顯示原因是同一套邏輯，之前這裡漏了，扣款被退回只看得到「已退回」三個字
+        var reasonMatch = it.status==='已退回' && it.note ? /退回原因:([^｜]*)/.exec(it.note) : null;
+        var reasonHtml = reasonMatch && reasonMatch[1] ? '<div style="font-size:10.5px;color:#E24B4A;margin-top:2px">原因：'+esc(reasonMatch[1])+'</div>' : '';
+        return '<tr><td>'+esc(it.date)+'</td><td>'+esc(it.clientId)+'</td><td>'+esc(it.item)+'</td>'
+          +'<td class="amt">$'+(it.amount||0).toLocaleString()+'</td><td><span class="src">'+esc(statusLabel[it.status]||it.status)+'</span>'+reasonHtml+'</td></tr>';
+      }).join('')
+      + '</tbody></table>';
+  });
 }
 function loadStatement(){
   var month=document.getElementById('vmonth').value;
