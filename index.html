@@ -51,8 +51,13 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .rb{padding:13px 16px}
 .sec{font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;padding-bottom:5px;border-bottom:1px solid var(--border);margin:14px 0 9px;display:flex;align-items:center;gap:5px}
 .inp-row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
-.inp{flex:1;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--text);background:var(--card);outline:none;transition:border-color .13s}
+.inp{flex:1;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:14px;color:var(--text);background:var(--card);outline:none;transition:border-color .13s,background .13s}
 .inp:focus{border-color:var(--g)}
+/* 2026-09-11新增：管理人反映「每日記錄」頁的血酮/體重/腰圍儲存後，游標移開就看不出剛剛存過了——
+   原本唯一看得到的綠框其實是CSS的:focus效果（正在輸入中才會綠），不是真正的「已儲存」標記，
+   遊標一離開就消失，看起來像「換存哪個、哪個才綠」。這裡加一個真正代表「今天已存」的樣式，
+   儲存成功後用JS加上這個class，不受游標焦點影響，同時存好幾項也都能一起維持綠色 */
+.inp.saved{border-color:var(--g);background:var(--g2)}
 .k-badge{font-size:12px;border-radius:7px;padding:4px 9px;font-weight:600;white-space:nowrap;background:var(--bg);color:var(--text3)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .chip{border:1px solid var(--border2);border-radius:20px;padding:5px 11px;font-size:13px;color:var(--text2);cursor:pointer;background:var(--card);transition:all .12s}
@@ -264,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-11d';
+var MX_BUILD = '2026-09-11f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -630,7 +635,7 @@ window.openHealthForm = function() {
 
     <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血酮 &amp; 體重</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
-      <input class="inp" type="number" step="0.1" placeholder="血酮 mmol/L" id="k-inp" oninput="onKetone(this.value)" style="flex:1">
+      <input class="inp" type="number" step="0.1" placeholder="血酮 mmol/L" id="k-inp" oninput="onKetone(this.value);this.classList.remove('saved')" style="flex:1">
       <div class="k-badge" id="k-badge">—</div>
       <button onclick="quickSave('ketone')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
@@ -646,13 +651,13 @@ window.openHealthForm = function() {
          這裡把預設數字整個拿掉，改成只留placeholder提示，真的要送出必須自己輸入 -->
     <div style="font-size:11px;color:var(--text2);margin-bottom:4px">⚖️ 體重 kg</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
-      <input class="inp" type="number" step="0.1" placeholder="體重 kg" id="w-inp" oninput="calcProg();syncWeightSlider()" style="flex:1">
+      <input class="inp" type="number" step="0.1" placeholder="體重 kg" id="w-inp" oninput="calcProg();syncWeightSlider();this.classList.remove('saved')" style="flex:1">
       <button onclick="quickSave('weight')" style="background:var(--b);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <input type="range" id="w-slider" min="30" max="150" step="0.1" value="50" oninput="document.getElementById('w-inp').value=this.value;calcProg()" style="width:100%;margin:6px 0 10px;accent-color:var(--b)">
     <div style="font-size:11px;color:var(--text2);margin-bottom:4px">📏 腰圍 cm（選填）</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
-      <input class="inp" type="number" step="0.5" placeholder="腰圍 cm（選填）" id="waist-inp" oninput="calcProg();syncWaistSlider()" style="flex:1">
+      <input class="inp" type="number" step="0.5" placeholder="腰圍 cm（選填）" id="waist-inp" oninput="calcProg();syncWaistSlider();this.classList.remove('saved')" style="flex:1">
       <button onclick="quickSave('waist')" style="background:var(--p);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <input type="range" id="waist-slider" min="40" max="150" step="0.5" value="65" oninput="document.getElementById('waist-inp').value=this.value;calcProg()" style="width:100%;margin:6px 0 10px;accent-color:var(--p)">
@@ -675,7 +680,7 @@ window.openHealthForm = function() {
         <div style="font-size:11px;color:var(--text2)">今天排便了嗎</div>
         <div class="carb-chip" id="carb-bowel-chip" data-val="" onclick="toggleCarbBowel(this)" style="padding:6px 16px">尚未</div>
       </div>
-      <input class="inp" type="number" step="1" placeholder="今天吃了多少克碳水（選填）" id="carb-inp" style="width:100%">
+      <input class="inp" type="number" step="1" placeholder="今天吃了多少克碳水（選填）" id="carb-inp" oninput="this.classList.remove('saved')" style="width:100%">
       <div style="font-size:10.5px;color:var(--g3);margin-top:6px;line-height:1.5">💡 建議選根莖類原型食物（地瓜、南瓜、芋頭等），效果比精緻澱粉更好</div>
     </div>
 
@@ -4467,6 +4472,7 @@ function submitDailyRecord() {
         if(gt0) gt0.className = 'gs-task done';
         updateHomeTask(0);
         syncGardenTask(GS_TASK_NAMES[0], true);
+        var kInpEl = document.getElementById('k-inp'); if(kInpEl) kInpEl.classList.add('saved');
       }
       // 自動完成體重腰圍任務
       var waist_v = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
@@ -4476,6 +4482,8 @@ function submitDailyRecord() {
         if(gt1) gt1.className = 'gs-task done';
         updateHomeTask(1);
         syncGardenTask(GS_TASK_NAMES[1], true);
+        if(w && parseFloat(w) > 0){ var wInpEl = document.getElementById('w-inp'); if(wInpEl) wInpEl.classList.add('saved'); }
+        if(waist_v && parseFloat(waist_v) > 0){ var waistInpEl = document.getElementById('waist-inp'); if(waistInpEl) waistInpEl.classList.add('saved'); }
       }
       // 2026-09-11修：這裡原本寫gsTasks[2]（打勾「飲食記錄」），但這段是電解質有勾選才進來的判斷，
       // 應該要打勾gt3（補電解質）才對，之前2是誤把飲食記錄的燈點亮，電解質自己的燈反而永遠不會透過
@@ -4486,6 +4494,11 @@ function submitDailyRecord() {
         if(gt3) gt3.className = 'gs-task done';
         updateHomeTask(3);
         syncGardenTask(GS_TASK_NAMES[3], true);
+      }
+      // 2026-09-11補：碳水回補期的「碳水克數」欄位跟血酮/體重/腰圍是同一個問題——
+      // 存成功後也要保持綠色，不是只有血酮/體重/腰圍這幾個才要
+      if(carbsVal && parseFloat(carbsVal) >= 0) {
+        var carbInpEl = document.getElementById('carb-inp'); if(carbInpEl) carbInpEl.classList.add('saved');
       }
       updateGardenProgress();
       updateDayTot(); calcProg();
@@ -5792,6 +5805,9 @@ function quickSave(type) {
         // 重新整理頁面或重開APP之後，loadTodayGarden()去後端比對抓不到今天的記錄，
         // 明明記錄過還是會被打回灰色——這裡補上同步，存成功才同步（避免存失敗但花園誤記完成）
         syncGardenTask(GS_TASK_NAMES[0], true);
+        // 2026-09-11補：管理人反映欄位存完、游標一離開就看不出剛剛存過了——原本綠框只是輸入中的
+        // :focus效果，跟游標一起消失；這裡改用真正的「已存」樣式，不受游標影響，其他欄位也不會被清掉
+        var kInpQS = document.getElementById('k-inp'); if(kInpQS) kInpQS.classList.add('saved');
       }
     });
 
@@ -5819,6 +5835,10 @@ function quickSave(type) {
         toast('⚠️ 體重數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
       } else {
         syncGardenTask(GS_TASK_NAMES[1], true);
+        // 這裡跟腰圍是同一個「體重腰圍」任務，而且送出時waist欄位的值也一起送出去了，
+        // 如果腰圍欄位當下也有填數字，一併標記已存，不用讓客人誤以為腰圍還沒存到
+        var wInpQS = document.getElementById('w-inp'); if(wInpQS) wInpQS.classList.add('saved');
+        if (waist && parseFloat(waist) > 0) { var waistInpQSw = document.getElementById('waist-inp'); if(waistInpQSw) waistInpQSw.classList.add('saved'); }
       }
     });
 
@@ -5846,6 +5866,10 @@ function quickSave(type) {
         toast('⚠️ 腰圍數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
       } else {
         syncGardenTask(GS_TASK_NAMES[1], true);
+        // 這裡跟體重是同一個「體重腰圍」任務，而且送出時weight欄位的值也一起送出去了，
+        // 如果體重欄位當下也有填數字，一併標記已存，不用讓客人誤以為體重還沒存到
+        var waistInpQS = document.getElementById('waist-inp'); if(waistInpQS) waistInpQS.classList.add('saved');
+        if (w && parseFloat(w) > 0) { var wInpQSw = document.getElementById('w-inp'); if(wInpQSw) wInpQSw.classList.add('saved'); }
       }
     });
 
