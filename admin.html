@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-10e';
+var MX_BUILD = '2026-09-10h';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6950,14 +6950,19 @@ function admLoadRSS(cb){
       });
     });
   };
-  if (sessionStorage.getItem('mx_art_synced')) { _admVocusFinish(); }
-  else {
+  // 2026-09-10修復（她回報「搜尋文章中…一直轉、壞掉了」）：上面註解寫「背景同步、幾秒內完成」，
+  // 但原本寫法是「等syncVocusArticles同步完才呼叫_admVocusFinish()」——同步是跟方格子做最多15次
+  // 依序外部連線（一次抓到全部近300篇文章），常常要抓好幾十秒甚至更久，等於每個瀏覽器session的
+  // 第一次搜尋都被這個慢速同步卡住，看起來就像卡住不動。改成同步真的丟到背景跑、不等它，
+  // 搜尋直接用目前已有的文章庫（📚文章庫是空的話_admVocusFinish()內建有直接抓沙龍頁最新10篇當備援，
+  // 一次外部連線很快）；同步完成後才跳toast通知，下次搜尋就找得到新文章
+  if (!sessionStorage.getItem('mx_art_synced')) {
+    try { sessionStorage.setItem('mx_art_synced', '1'); } catch(e){}
     adminAPIPost({action:'syncVocusArticles'}, function(sd){
-      try { sessionStorage.setItem('mx_art_synced', '1'); } catch(e){}
-      if (sd && sd.status==='ok' && sd.added > 0) toast('📚 文章庫同步：新增 ' + sd.added + ' 篇（共 ' + sd.total + ' 篇）');
-      _admVocusFinish();
+      if (sd && sd.status==='ok' && sd.added > 0) toast('📚 文章庫背景同步完成：新增 ' + sd.added + ' 篇（共 ' + sd.total + ' 篇），可以再搜一次');
     });
   }
+  _admVocusFinish();
   adminAPI({action:'getRSS', url:'https://feed.firstory.me/rss/user/cmjqwlcyo052m01rh61f1h53d'}, function(d){ if(d && d.status==='ok' && d.items) _admPod = d.items; done(); });
 }
 // 把整句問題修剪成比較會命中的關鍵字（拿掉常見疑問詞尾；標題比對是「包含」，字越短越容易中）
@@ -11860,6 +11865,12 @@ function toggleLoginPassVisible(){
   if(!el) return;
   el.type = (el.type === 'password') ? 'text' : 'password';
 }
+// 2026-09-10補：通用版——改密碼視窗的「目前密碼」「新密碼」兩欄也比照辦理，共用同一個切換邏輯
+function togglePwFieldVisible(id){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.type = (el.type === 'password') ? 'text' : 'password';
+}
 var _loginBusy = false;
 function doLogin(){
   if (_loginBusy) return;
@@ -11998,9 +12009,15 @@ function changeMyPasswordUI(){
   ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:360px;padding:18px 20px">'
     + '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text)">🔑 修改我的密碼</div>'
     + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">目前密碼</div>'
-    + '<input id="cpw-old" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:10px;font-family:inherit;outline:none">'
+    + '<div style="position:relative;margin-bottom:10px">'
+    + '<input id="cpw-old" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 40px 9px 11px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">'
+    + '<span onclick="togglePwFieldVisible(\'cpw-old\')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:14px;user-select:none" title="顯示/隱藏密碼">👁️</span>'
+    + '</div>'
     + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">新密碼（至少6碼，英文、數字皆可，不分大小寫）</div>'
-    + '<input id="cpw-new" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:13px;margin-bottom:14px;font-family:inherit;outline:none">'
+    + '<div style="position:relative;margin-bottom:14px">'
+    + '<input id="cpw-new" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 40px 9px 11px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">'
+    + '<span onclick="togglePwFieldVisible(\'cpw-new\')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:14px;user-select:none" title="顯示/隱藏密碼">👁️</span>'
+    + '</div>'
     + '<div style="display:flex;gap:8px;justify-content:flex-end">'
     + '<button onclick="document.getElementById(\'change-pw-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
     + '<button id="cpw-submit" onclick="submitChangePw()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">確認修改</button>'
