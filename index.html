@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-10a';
+var MX_BUILD = '2026-09-11a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6430,7 +6430,10 @@ function _finishMeal(mealCode) {
         </div>
       </div>
       <div style="text-align:center;margin-bottom:12px"><a href="manual_client.html" target="_blank" style="font-size:12px;color:#0F6E56;text-decoration:underline">📖 想看完整圖文使用說明？點這裡</a></div>
-      <button style="width:100%;background:#1D9E75;color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-wrap').style.display='none';try{localStorage.setItem('ob_done','1')}catch(e){}">🌱 開始我的陪跑旅程</button>
+      <!-- 2026-09-11修正（管理人指出）：這顆只是關閉新手導覽、進入APP，跟秘書在後台「開通陪跑」
+           那個真正的付費陪跑功能是兩回事，原本寫「開始我的陪跑旅程」容易讓客人誤以為點下去就等於
+           開通陪跑了，改成「開始體驗」避免混淆 -->
+      <button style="width:100%;background:#1D9E75;color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent" onclick="document.getElementById('ob-wrap').style.display='none';try{localStorage.setItem('ob_done','1')}catch(e){}">🌱 開始體驗</button>
       <div style="text-align:center"><button style="background:none;border:none;font-size:11px;color:#6B7280;cursor:pointer" onclick="document.getElementById('ob-wrap').style.display='none';try{localStorage.setItem('ob_done','1')}catch(e){}">跳過</button></div>
     </div>
 
