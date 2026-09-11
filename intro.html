@@ -95,11 +95,11 @@ const SCENES = [
   { html:`<div class="scene"><div class="plant floaty" id="s0-plant">🌱</div>
     <div class="big" style="font-size:clamp(22px,5.4vw,34px);margin-top:24px">歡迎來到<br>你的代謝健康旅程</div>
     <div class="sub" style="font-size:clamp(13px,3.2vw,16px)">接下來的每一天<br>我們會陪著你，一起照顧身體</div></div>`,
-    narr:'audio/intro-1.mp3', dur:9800, act:(r)=>{ setTimeout(()=>{const p=r.querySelector('#s0-plant');if(p)p.textContent='🌿';},2600); } },
+    narr:'intro-1.mp3', dur:9800, act:(r)=>{ setTimeout(()=>{const p=r.querySelector('#s0-plant');if(p)p.textContent='🌿';},2600); } },
 
   { html:`<div class="scene"><div class="big" style="font-size:clamp(20px,4.8vw,30px)">這趟旅程<br>不是<span class="accent">節食</span>，也不是<span class="accent">減肥</span></div>
     <div class="sub" style="font-size:clamp(14px,3.4vw,17px);margin-top:22px">而是讓身體的<br><span class="accent" style="font-weight:800">粒線體回春</span><br>找回原本該有的健康</div></div>`,
-    narr:'audio/intro-2.mp3', dur:10700 },
+    narr:'intro-2.mp3', dur:10700 },
 
   { html:`<div class="scene"><div class="big" style="font-size:clamp(20px,4.8vw,28px);margin-bottom:6px">我們照顧你的三件事</div>
     <div class="cards">
@@ -107,13 +107,13 @@ const SCENES = [
       <div class="pcard" id="c2"><div class="ic">🩸</div><div class="tt">身體的數據</div><div class="ds">血酮、體重、腰圍<br>看見自己的改變</div></div>
       <div class="pcard" id="c3"><div class="ic">🌱</div><div class="tt">代謝的花園</div><div class="ds">每天照顧一點<br>小樹就會長大</div></div>
     </div></div>`,
-    narr:'audio/intro-3.mp3', dur:26700, act:(r)=>{ ['c1','c2','c3'].forEach((id,i)=>setTimeout(()=>{const e=r.querySelector('#'+id);if(e)e.classList.add('in');},400+i*500)); } },
+    narr:'intro-3.mp3', dur:26700, act:(r)=>{ ['c1','c2','c3'].forEach((id,i)=>setTimeout(()=>{const e=r.querySelector('#'+id);if(e)e.classList.add('in');},400+i*500)); } },
 
   { html:`<div class="scene"><div class="plant" id="s3-plant" style="font-size:clamp(70px,20vw,140px)">🌿</div>
     <div class="orbit" id="o1" style="top:38%">🦋</div><div class="orbit" id="o2" style="top:38%">✨</div>
     <div class="big" style="font-size:clamp(19px,4.6vw,26px);margin-top:20px">你每照顧身體一次<br>花園就成長一點</div>
     <div class="sub" style="font-size:clamp(13px,3.2vw,16px)">堅持會被看見，努力會開花</div></div>`,
-    narr:'audio/intro-4.mp3', dur:10900, act:(r)=>{ setTimeout(()=>{const p=r.querySelector('#s3-plant');if(p){p.textContent='🌳';p.style.transform='scale(1.15)';}},1400);
+    narr:'intro-4.mp3', dur:10900, act:(r)=>{ setTimeout(()=>{const p=r.querySelector('#s3-plant');if(p){p.textContent='🌳';p.style.transform='scale(1.15)';}},1400);
       setTimeout(()=>{r.querySelector('#o1')&&r.querySelector('#o1').classList.add('show');},2400);
       setTimeout(()=>{r.querySelector('#o2')&&r.querySelector('#o2').classList.add('show');},3000); } },
 
@@ -121,7 +121,7 @@ const SCENES = [
     <div class="companions" id="comps">
       <div class="av" id="a1">👩‍⚕️</div><div class="av" id="a2">🧑‍⚕️</div><div class="av" id="a3">💚</div></div>
     <div class="sub" style="font-size:clamp(14px,3.4vw,17px);margin-top:20px">專屬健康秘書<br>隨時在 LINE 陪著你<br>有問題，隨時問</div></div>`,
-    narr:'audio/intro-5.mp3', dur:11500, act:(r)=>{ ['a1','a2','a3'].forEach((id,i)=>setTimeout(()=>{const e=r.querySelector('#'+id);if(e)e.classList.add('in');},500+i*400)); } },
+    narr:'intro-5.mp3', dur:11500, act:(r)=>{ ['a1','a2','a3'].forEach((id,i)=>setTimeout(()=>{const e=r.querySelector('#'+id);if(e)e.classList.add('in');},500+i*400)); } },
 
   { html:`<div class="scene"><div class="big" style="font-size:clamp(19px,4.6vw,26px);margin-bottom:4px">改變，是一天一天累積的</div>
     <div class="stat-row">
@@ -130,13 +130,13 @@ const SCENES = [
       <div class="statb" id="st3"><div class="n">八成</div><div class="l">好油脂</div></div>
     </div>
     <div class="sub" style="font-size:clamp(13px,3.2vw,16px);margin-top:24px">有了好的前面<br>才會有好的後面</div></div>`,
-    narr:'audio/intro-6.mp3', dur:15700, act:(r)=>{ ['st1','st2','st3'].forEach((id,i)=>setTimeout(()=>{const e=r.querySelector('#'+id);if(e)e.classList.add('in');},400+i*450)); } },
+    narr:'intro-6.mp3', dur:15700, act:(r)=>{ ['st1','st2','st3'].forEach((id,i)=>setTimeout(()=>{const e=r.querySelector('#'+id);if(e)e.classList.add('in');},400+i*450)); } },
 
   { html:`<div class="scene"><div class="plant floaty">🌳</div>
     <div class="logo" style="margin-top:20px">元代謝</div>
     <div class="tagline">一起，找回身體的原廠設定</div>
     <div class="sub" style="font-size:clamp(13px,3.2vw,15px);margin-top:22px">現在，就從今天的第一筆記錄開始 🌱</div></div>`,
-    narr:'audio/intro-7.mp3', dur:11000, act:()=>{ document.getElementById('halo').classList.add('show'); } },
+    narr:'intro-7.mp3', dur:11000, act:()=>{ document.getElementById('halo').classList.add('show'); } },
 ];
 
 let idx=0, playing=false, timer=null, token=0;
