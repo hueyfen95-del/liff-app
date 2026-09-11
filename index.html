@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-11c';
+var MX_BUILD = '2026-09-11d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4466,6 +4466,7 @@ function submitDailyRecord() {
         var gt0 = document.getElementById('gt0');
         if(gt0) gt0.className = 'gs-task done';
         updateHomeTask(0);
+        syncGardenTask(GS_TASK_NAMES[0], true);
       }
       // 自動完成體重腰圍任務
       var waist_v = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
@@ -4474,13 +4475,17 @@ function submitDailyRecord() {
         var gt1 = document.getElementById('gt1');
         if(gt1) gt1.className = 'gs-task done';
         updateHomeTask(1);
+        syncGardenTask(GS_TASK_NAMES[1], true);
       }
-      // 電解質勾選了就完成gt2
+      // 2026-09-11修：這裡原本寫gsTasks[2]（打勾「飲食記錄」），但這段是電解質有勾選才進來的判斷，
+      // 應該要打勾gt3（補電解質）才對，之前2是誤把飲食記錄的燈點亮，電解質自己的燈反而永遠不會透過
+      // 這條路徑點亮——電解質勾選了就完成gt3
       if(e.length > 0) {
-        gsTasks[2] = true;
-        var gt2 = document.getElementById('gt2');
-        if(gt2) gt2.className = 'gs-task done';
-        updateHomeTask(2);
+        gsTasks[3] = true;
+        var gt3 = document.getElementById('gt3');
+        if(gt3) gt3.className = 'gs-task done';
+        updateHomeTask(3);
+        syncGardenTask(GS_TASK_NAMES[3], true);
       }
       updateGardenProgress();
       updateDayTot(); calcProg();
@@ -5782,6 +5787,11 @@ function quickSave(type) {
         if (gt0f) gt0f.className = 'gs-task pending';
         updateHomeTask(0); updateGardenProgress();
         toast('⚠️ 血酮數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
+      } else {
+        // 2026-09-11補：這裡之前只有畫面上打勾，沒有同步到後端「🌱花園任務」表，
+        // 重新整理頁面或重開APP之後，loadTodayGarden()去後端比對抓不到今天的記錄，
+        // 明明記錄過還是會被打回灰色——這裡補上同步，存成功才同步（避免存失敗但花園誤記完成）
+        syncGardenTask(GS_TASK_NAMES[0], true);
       }
     });
 
@@ -5807,6 +5817,8 @@ function quickSave(type) {
         if (gt1f) gt1f.className = 'gs-task pending';
         updateHomeTask(1); updateGardenProgress();
         toast('⚠️ 體重數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
+      } else {
+        syncGardenTask(GS_TASK_NAMES[1], true);
       }
     });
 
@@ -5832,6 +5844,8 @@ function quickSave(type) {
         if (gt1wf) gt1wf.className = 'gs-task pending';
         updateHomeTask(1); updateGardenProgress();
         toast('⚠️ 腰圍數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
+      } else {
+        syncGardenTask(GS_TASK_NAMES[1], true);
       }
     });
 
@@ -5857,6 +5871,8 @@ function quickSave(type) {
         if (gt3f) gt3f.className = 'gs-task pending';
         updateHomeTask(3); updateGardenProgress();
         toast('⚠️ 電解質補充剛剛沒有存成功，請重新選擇一次');
+      } else {
+        syncGardenTask(GS_TASK_NAMES[3], true);
       }
     });
 
@@ -5884,6 +5900,8 @@ function quickSave(type) {
         if (gt4f) gt4f.className = 'gs-task pending';
         updateHomeTask(4); updateGardenProgress();
         toast('⚠️ 今日體感剛剛沒有存成功，請重新選擇一次');
+      } else {
+        syncGardenTask(GS_TASK_NAMES[4], true);
       }
     });
 
@@ -5892,6 +5910,7 @@ function quickSave(type) {
     var gt2el = document.getElementById('gt2');
     if (gt2el) gt2el.className = 'gs-task done';
     updateHomeTask(2);
+    syncGardenTask(GS_TASK_NAMES[2], true);
     updateGardenProgress();
     toast('📷 今日飲食記錄完成！');
     setTimeout(function() { goPage('garden', '代謝花園'); }, 1800);
@@ -6318,6 +6337,10 @@ function _finishMeal(mealCode) {
     var gt2 = document.getElementById('gt2');
     if (gt2) gt2.className = 'gs-task done';
     updateHomeTask(2);
+    // 2026-09-11補：三餐都記錄完才會走到這裡，是「飲食記錄」任務唯一真正完成的時機
+    // （管理人指示：飲食記錄要等晚餐記完才變色，這裡本來就是這樣設計的），
+    // 但之前完成後沒有同步到後端「🌱花園任務」表，重新整理頁面就會被打回灰色，這裡補上同步
+    syncGardenTask(GS_TASK_NAMES[2], true);
     updateGardenProgress();
     toast('🎉 三餐全部記錄完成！花園任務達成！');
     // 等慶祝動畫播完（celebrateTask內部約1.3秒）才切頁
@@ -8560,7 +8583,15 @@ function loadMyStats(){
 
 
 // ══════ 花園每日任務：載入「今天」的完成狀態（每天 00:00 自動歸零）══════
-var GS_TASK_NAMES = ['血酮','體重腰圍','餐盤','喝水','走路','斷食','睡眠']; // 對應 gsTasks[0..6]
+// 2026-09-11修：這個對照表原本是『血酮/體重腰圍/餐盤/喝水/走路/斷食/睡眠』，是舊版任務名稱，
+// 跟畫面上實際的7個任務（血酮記錄/體重腰圍/飲食記錄/補電解質/今日體感/早睡11點前/今日心情）完全對不上；
+// 而且原本只有「早睡11點前」「今日心情」這兩個任務真的有呼叫syncGardenTask()把完成狀態寫進後端
+// 「🌱花園任務」表，其餘5個任務（血酮/體重腰圍/飲食記錄/補電解質/今日體感）從來沒有同步——
+// 這兩個問題疊在一起，造成客人記錄完之後只要重新整理頁面或重開APP，幾乎所有任務都會被誤判成
+// 「還沒完成」變回灰色（因為loadTodayGarden()去後端比對名字，名字對不上/後端根本沒有這筆資料），
+// 明明記錄過的項目看起來卻沒變色，花園也一直收集不到元素——這裡統一改成跟畫面文字完全一致的名稱，
+// 並在下面補齊所有任務完成時都呼叫syncGardenTask()，兩邊修好整個機制才會一致
+var GS_TASK_NAMES = ['血酮記錄','體重腰圍','飲食記錄','補電解質','今日體感','早睡11點前','今日心情']; // 對應 gsTasks[0..6]
 function loadTodayGarden(){
   callAPI({action:'getTodayGardenTasks', clientId: CLIENT_ID}, function(d){
     if(!d || d.status!=='ok') return;
