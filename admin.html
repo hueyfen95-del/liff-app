@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-10h';
+var MX_BUILD = '2026-09-11a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6598,6 +6598,14 @@ var CONSULT_REPLY_TEMPLATES = [
   '收到！這次諮詢會用你的陪跑點數扣抵，確認時間後會告訴你扣幾點。',
   '你的點數餘額不太夠這個項目，秘書幫你看看其他方案，稍後回覆你 😊'
 ];
+// 禮物請求的罐頭回覆（2026-09-11：客人在花園頁「今天還沒收到秘書的禮物」改成可以按，
+// 主動跟秘書要一個鼓勵小禮物，這裡是秘書回覆時可以用的罐頭句）
+var GIFT_REQUEST_REPLY_TEMPLATES = [
+  '收到！送你一個小禮物，這幾天做得很好，繼續加油 🌱',
+  '看到你這幾天的努力，這份鼓勵送給你 💚',
+  '禮物送上！今天也要好好照顧自己喔 😊',
+  '謝謝你這麼認真記錄，這個小禮物是你應得的 ✨'
+];
 // 心情關心的罐頭回覆
 var MOOD_REPLY_TEMPLATES = [
   '秘書看到你今天的心情了，辛苦了！你不是一個人，有什麼想說的隨時跟我說 🌿',
@@ -6724,11 +6732,13 @@ function loadClientInbox(){
     if(_ciCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = _ciCache.map(function(it, i){
-      var setName = it.src === 'mood' ? 'MOOD_REPLY_TEMPLATES' : (it.noteType === '進階服務詢問' ? 'SVC_REPLY_TEMPLATES' : 'CONSULT_REPLY_TEMPLATES');
+      var setName = it.src === 'mood' ? 'MOOD_REPLY_TEMPLATES' : (it.noteType === '進階服務詢問' ? 'SVC_REPLY_TEMPLATES' : (it.noteType === '禮物請求' ? 'GIFT_REQUEST_REPLY_TEMPLATES' : 'CONSULT_REPLY_TEMPLATES'));
+      var ciBadgeBg = it.src==='mood' ? '#EFF6FF' : (it.noteType==='禮物請求' ? '#ECFDF5' : '#F5F3FF');
+      var ciBadgeColor = it.src==='mood' ? '#1E40AF' : (it.noteType==='禮物請求' ? '#065F46' : '#5B21B6');
       return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
         + '<span style="font-size:11px;font-weight:700;color:#5B3FA8;background:#EDE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
-        + '<span style="font-size:10.5px;background:'+(it.src==='mood'?'#EFF6FF':'#F5F3FF')+';color:'+(it.src==='mood'?'#1E40AF':'#5B21B6')+';border-radius:20px;padding:2px 8px;font-weight:700">'+escH(it.kind)+'</span>'
+        + '<span style="font-size:10.5px;background:'+ciBadgeBg+';color:'+ciBadgeColor+';border-radius:20px;padding:2px 8px;font-weight:700">'+escH(it.kind)+'</span>'
         + '<span style="font-size:11px;color:var(--text3)">'+escH(it.time)+'</span>'
         + '<b style="font-size:12px">'+escH(it.name || it.clientId)+'</b>'
         + '<span style="font-size:10.5px;color:var(--text3)">'+escH(it.clientId)+'</span>'
@@ -6749,8 +6759,11 @@ function ciSendReply(i, btnEl){
   var text = ta ? ta.value.trim() : '';
   if (!text) { toast('⚠️ 先選一句常用回覆或自己輸入內容'); if(ta) ta.focus(); return; }
   var ciGift = _pickedGift(btnEl || null);
+  // 禮物請求的回覆本來就是要送禮物，如果秘書忘了選小圖案，預設給個嫩芽，不會變成空白回覆
+  if (it.noteType === '禮物請求' && !ciGift) ciGift = 'sprout';
+  var ciPrefix = it.src==='mood' ? '💛 秘書的關心：' : (it.noteType==='進階服務詢問' ? '🛍 服務介紹：' : (it.noteType==='禮物請求' ? '🌱 ' : '🎫 諮詢預約回覆：'));
   adminAPIPost({action:'sendGift', clientId:it.clientId, giftType: ciGift || 'message',
-    message:(it.src==='mood' ? '💛 秘書的關心：' : (it.noteType==='進階服務詢問' ? '🛍 服務介紹：' : '🎫 諮詢預約回覆：')) + text,
+    message: ciPrefix + text,
     secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok'){
       toast('💌 已回覆 ' + (it.name||it.clientId) + '，客人鈴鐺會亮紅點');
@@ -10902,7 +10915,7 @@ function loadTodayDuty(){
     var items=[];
     // 新預約放最上面（管理人2026-08-10：這最緊急）
     if(dt.backlog24>0) items.push({icon:'⏰',text:'<b>'+dt.backlog24+' 筆</b>客人訊息超過<b>24小時</b>還沒回覆，請優先處理',act:"scrollToCard('mealhelp-card')",urgent:true});
-    if(dt.clientInbox>0) items.push({icon:'📥',text:'<b>'+dt.clientInbox+' 筆</b>客人互動（諮詢預約/心情關心）還沒回覆',act:"scrollToCard('client-inbox-card')"});
+    if(dt.clientInbox>0) items.push({icon:'📥',text:'<b>'+dt.clientInbox+' 筆</b>客人互動（諮詢預約/心情關心/禮物請求）還沒回覆',act:"scrollToCard('client-inbox-card')"});
     if(dt.mealHelp>0) items.push({icon:'🍽',text:'<b>'+dt.mealHelp+' 筆</b>客人的飲食判斷求助還沒回覆，回覆了客人才學得會',act:"scrollToCard('mealhelp-card')"});
     if(dt.newBookings>0) items.push({icon:'💉',text:'<b>'+dt.newBookings+' 筆</b>新預約還沒聯繫，先跟客人確認檢測日期',act:"scrollToCard('bkg-card')"});
     if(dt.alertsCritical>0) items.push({icon:'🚨',text:'<b>'+dt.alertsCritical+' 位</b>客人可能有酮酸風險',act:"scrollToCard('alert-card')",urgent:true});

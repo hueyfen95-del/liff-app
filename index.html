@@ -264,7 +264,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-11b';
+var MX_BUILD = '2026-09-11c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2113,7 +2113,9 @@ window.openHealthForm = function() {
         </div>
       </div>
     </div>
-    <div id="no-gift-area" style="font-size:11px;color:#6B7280;text-align:center;padding:8px 0">今天還沒有收到秘書的禮物 🌱</div>
+    <div id="no-gift-area" style="text-align:center;padding:6px 0">
+      <button id="gift-req-btn" onclick="requestGift()" style="background:var(--g2);border:1.5px dashed var(--g);border-radius:20px;padding:8px 16px;font-size:11.5px;font-weight:600;color:var(--g3);cursor:pointer">🌱 請秘書送我花園小禮物</button>
+    </div>
     </div>
   <div style="padding:0 16px 20px">
     <button onclick="openTestimonialPrompt()" style="width:100%;background:var(--bg);border:1px dashed var(--border);border-radius:14px;padding:14px;font-size:13px;color:var(--text2);cursor:pointer;text-align:center">💬 想分享這段旅程的心得嗎？點這裡告訴我們</button>
@@ -6642,6 +6644,43 @@ function showGift(type, msg) {
   // 觸發視覺效果
   cfg.fx();
 }
+
+// ══════ 🌱 主動跟秘書要小禮物（2026-09-11新增，管理人指示：原本「今天還沒有收到秘書的禮物」
+// 只是純文字提示，感覺像在怪秘書沒給禮物；改成可以按的按鈕，客人可以主動跟秘書要一個鼓勵，
+// 秘書在後台「秘書互動信箱」會看到這則請求，回覆時可以附上小禮物圖案（陽光/嫩芽/星星等），
+// 送出後客人這裡就會變成真的收到禮物的畫面。每天只能按一次，避免洗版。）══════
+function _giftReqTodayKey(){
+  var d = new Date();
+  return 'mx_gift_req_' + d.getFullYear() + '' + (d.getMonth()+1) + '' + d.getDate();
+}
+function requestGift(){
+  var key = _giftReqTodayKey();
+  var btn = document.getElementById('gift-req-btn');
+  try { if (localStorage.getItem(key)) { toast('💌 今天已經跟秘書要過囉，明天可以再要一次'); return; } } catch(e){}
+  if (btn) { btn.disabled = true; btn.style.cursor = 'default'; btn.style.opacity = .7; btn.textContent = '傳送中…'; }
+  callAPI({action:'addNote', clientId:CLIENT_ID,
+    content:'客人在花園頁按了「請秘書送我花園小禮物」，想收到一個鼓勵小禮物 🌱',
+    type:'禮物請求', secretary:'系統'}, function(d){
+    if (d && d.status === 'ok') {
+      try { localStorage.setItem(key, '1'); } catch(e){}
+      if (btn) { btn.textContent = '💌 已經跟秘書說了，等秘書有空會送你'; btn.style.opacity = .75; }
+      toast('🌱 已經告訴秘書了，等秘書有空會送你小禮物');
+    } else {
+      if (btn) { btn.disabled = false; btn.style.cursor = 'pointer'; btn.style.opacity = 1; btn.textContent = '🌱 請秘書送我花園小禮物'; }
+      toast('⚠️ 送出失敗，請再試一次');
+    }
+  });
+}
+// 頁面一打開就還原「今天已經要過禮物」的按鈕狀態，不會重新整理後又變回可以按
+document.addEventListener('DOMContentLoaded', function(){
+  try {
+    var btn0 = document.getElementById('gift-req-btn');
+    if (btn0 && localStorage.getItem(_giftReqTodayKey())) {
+      btn0.disabled = true; btn0.style.cursor = 'default'; btn0.style.opacity = .75;
+      btn0.textContent = '💌 已經跟秘書說了，等秘書有空會送你';
+    }
+  } catch(e){}
+});
 
 // ══════ 📬 秘書訊息匣 ══════
 function _msgInbox(){ try { return JSON.parse(localStorage.getItem('mx_msg_inbox') || '[]'); } catch(e){ return []; } }
