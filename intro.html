@@ -95,7 +95,7 @@ const SCENES = [
   { html:`<div class="scene"><div class="plant floaty" id="s0-plant">🌱</div>
     <div class="big" style="font-size:clamp(22px,5.4vw,34px);margin-top:24px">歡迎來到<br>你的代謝健康旅程</div>
     <div class="sub" style="font-size:clamp(13px,3.2vw,16px)">接下來的每一天<br>我們會陪著你，一起照顧身體</div></div>`,
-    narr:'intro-1.mp3', dur:9800, act:(r)=>{ setTimeout(()=>{const p=r.querySelector('#s0-plant');if(p)p.textContent='🌿';},2600); } },
+    narr:'intro-1.mp3', dur:11700, act:(r)=>{ setTimeout(()=>{const p=r.querySelector('#s0-plant');if(p)p.textContent='🌿';},2600); } },
 
   { html:`<div class="scene"><div class="big" style="font-size:clamp(20px,4.8vw,30px)">這趟旅程<br>不是<span class="accent">節食</span>，也不是<span class="accent">減肥</span></div>
     <div class="sub" style="font-size:clamp(14px,3.4vw,17px);margin-top:22px">而是讓身體的<br><span class="accent" style="font-weight:800">粒線體回春</span><br>找回原本該有的健康</div></div>`,
@@ -143,18 +143,33 @@ let idx=0, playing=false, timer=null, token=0;
 const scenesBox=document.getElementById('scenes');
 
 // ══════ 旁白語音（每個畫面各自一段錄音，播畫面時同步播放）══════
-let _narrAudio=null;
-function playNarr(src){
+// 2026-09-11c：改成一開頁就把7段錄音先建立好、開始預先載入（preload），
+// 而不是每次要播放才臨時new Audio()——手機瀏覽器第一次播放剛建立、
+// 都還沒緩衝好的音檔時，開頭一小段常常會被吃掉，管理人反映第一段
+// 開頭聽起來被截掉一點點就是這個原因；預先載入之後，播放時是重複
+// 使用同一個已經緩衝好的Audio物件（每次播放前先倒回0秒），不會再有
+// 「臨時現載」的空檔。
+const NARR_EL = SCENES.map(function(s){
+  if(!s.narr) return null;
+  var a = new Audio(s.narr);
+  a.preload = 'auto';
+  a.volume = 1;
+  try{ a.load(); }catch(e){}
+  return a;
+});
+let _narrPlaying=null;
+function playNarr(i){
   stopNarr();
-  if(!src) return;
+  var a = NARR_EL[i];
+  if(!a) return;
   try{
-    _narrAudio = new Audio(src);
-    _narrAudio.volume = 1;
-    _narrAudio.play().catch(function(){});
+    a.currentTime = 0;
+    a.play().catch(function(){});
+    _narrPlaying = a;
   }catch(e){}
 }
 function stopNarr(){
-  if(_narrAudio){ try{ _narrAudio.pause(); }catch(e){} _narrAudio=null; }
+  if(_narrPlaying){ try{ _narrPlaying.pause(); }catch(e){} _narrPlaying=null; }
 }
 
 function renderScene(i){
@@ -163,7 +178,7 @@ function renderScene(i){
     const sc=scenesBox.querySelector('.scene'); if(sc)sc.classList.add('on');
   }));
   if(SCENES[i].act) try{ SCENES[i].act(scenesBox); }catch(e){}
-  playNarr(SCENES[i].narr);
+  playNarr(i);
 }
 function playFrom(i){
   if(!playing) return;
