@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-13c';
+var MX_BUILD = '2026-09-13d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -8658,11 +8658,27 @@ function loadTodayGarden(){
     if(!d || d.status!=='ok') return;
     var done = d.doneTasks || [];
     // 重置成今天的狀態（沒完成的就是空的——這就是「每天像新的一天」）
+    // 2026-09-13修：這支API是頁面一打開就送出去的（見上面DOMContentLoaded那行），如果後端剛好冷啟動、
+    // 回應要等好幾秒到幾十秒，客人很可能在這段等待期間，自己已經先按了某個任務（例如早睡11點前）——
+    // 這時如果這裡直接用這筆「送出當下」的舊資料覆蓋畫面，會把客人剛剛按過的「已完成」蓋回「還沒完成」，
+    // 客人會看到「按了沒反應／變色後又消失」，其實任務本身可能還是有正確記錄，只是畫面被這裡的舊資料蓋掉。
+    // 這裡改成只會把still沒做的補上「已完成」，絕不會把客人這段期間已經按過的（gsTasks[i]已經是true）
+    // 往回蓋成「還沒完成」——原本「每天像新的一天」的歸零邏輯，是靠每天開新的一頁時gsTasks本來就是
+    // 全新的[false...]陣列達成，不需要靠這裡「主動改回false」。
     for(var i=0;i<gsTasks.length;i++){
-      var wasDone = done.indexOf(GS_TASK_NAMES[i])>=0;
+      var wasDone = done.indexOf(GS_TASK_NAMES[i])>=0 || gsTasks[i];
       gsTasks[i] = wasDone;
       var el=document.getElementById('gt'+i);
       if(el) el.className='gs-task '+(wasDone?'done':'pending');
+      // 2026-09-13補：這裡原本只更新代謝花園頁的圖示(gt0~gt6)，沒有同步更新首頁那份任務小清單
+      // (home-gt0~home-gt6)——導致今天稍早已經完成的任務，客人一回到首頁還是看到全部沒打勾，
+      // 要進一次代謝花園頁才會看到正確狀態。這裡補上同步；先標記data-done='1'再呼叫updateHomeTask()，
+      // 避免restore資料時被誤判成「剛剛才第一次完成」而多放一次慶祝動畫
+      if(wasDone && typeof updateHomeTask==='function'){
+        var homeElPre = document.getElementById('home-gt'+i);
+        if(homeElPre) homeElPre.setAttribute('data-done','1');
+        updateHomeTask(i);
+      }
     }
     gardenTasksDone = gsTasks.filter(Boolean).length;
     if(typeof updateGardenVisual==='function') updateGardenVisual();
