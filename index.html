@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-13d';
+var MX_BUILD = '2026-09-13e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -8138,9 +8138,18 @@ function mealPick(el){
 // ══════ 花園活力（真實記錄反映，溫和版）══════
 function loadGardenHealth(){
   callAPI({action:'getGardenHealth', clientId: CLIENT_ID}, function(d){
-    if(!d || d.status!=='ok') return;
-    // 真實連續打卡天數
     var s1=document.getElementById('streak-day-1'), s2=document.getElementById('streak-day-2');
+    // 2026-09-13補：這裡原本失敗（連線失敗、登入驗證沒過等）就直接return，畫面上初始寫死的
+    // 「–」會永遠留在原地，客人完全看不出來是「還在載入」還是「壞掉了」，看起來就像
+    // 「我的天數不見了」。這裡改成失敗時至少顯示0（不留著看不出所以然的「–」），
+    // 並在console留一行記錄失敗原因，之後排查比較有線索可查。
+    if(!d || d.status!=='ok'){
+      if(s1) s1.textContent = 0;
+      if(s2) s2.textContent = 0;
+      try{ console.warn('[loadGardenHealth] 讀取連續打卡天數失敗：', d && d.status, d && d.code, d && d.message); }catch(e){}
+      return;
+    }
+    // 真實連續打卡天數
     if(s1) s1.textContent = d.streak;
     if(s2) s2.textContent = d.streak;
     applyGardenVitality(d.vitality, d.daysSinceLast);
