@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-13e';
+var MX_BUILD = '2026-09-13f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4092,12 +4092,32 @@ function doCopyText(){
   if(navigator.clipboard){navigator.clipboard.writeText(text);}
   toast('✅ 文字已複製！可以貼到 LINE 或 IG 分享 😊');
 }
+var _activeToasts=[];
 function toast(msg){
   var t=document.createElement('div');
   // 2026-08-12修正：底部導覽列改成真的position:fixed後會固定佔住畫面最下方，
   // toast原本bottom:24px會被導覽列蓋住/重疊，往上移到78px讓兩者不打架
-  t.style.cssText='position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 20px;border-radius:30px;font-size:15px;font-weight:600;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4)';
-  t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2500);
+  // 2026-09-13補：之前每個toast都疊在同一個bottom:78px位置，如果兩則訊息前後腳出現
+  // （例如按了任務按鈕先跳出「太棒了」，結果後端比較慢，2秒後又跳出「資料準備中」的提示），
+  // 後出現的會整個蓋在前一則上面，導致使用者只看到後面那則、以為前面成功的訊息沒出現過，
+  // 誤以為「按了都沒反應/沒儲存」。改成用陣列記錄目前畫面上所有toast，依出現順序往上堆疊，
+  // 讓每一則都看得到，不會互相蓋住。
+  t.style.cssText='position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 20px;border-radius:30px;font-size:15px;font-weight:600;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4);transition:bottom .2s ease';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  _activeToasts.push(t);
+  _repositionToasts();
+  setTimeout(function(){
+    t.remove();
+    var idx=_activeToasts.indexOf(t); if(idx>=0) _activeToasts.splice(idx,1);
+    _repositionToasts();
+  },2500);
+}
+function _repositionToasts(){
+  var base=78;
+  for(var i=0;i<_activeToasts.length;i++){
+    _activeToasts[i].style.bottom=(base+i*50)+'px';
+  }
 }
 updateDayTot();calcProg();
 </script>
