@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-13a';
+var MX_BUILD = '2026-09-13b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -691,7 +691,7 @@ window.openHealthForm = function() {
       <div style="font-size:10.5px;color:var(--g3);margin-top:6px;line-height:1.5">💡 建議選根莖類原型食物（地瓜、南瓜、芋頭等），效果比精緻澱粉更好</div>
     </div>
 
-    <button onclick="goTaskPage(5)" style="width:100%;background:var(--b2);color:var(--b3);border:1px solid var(--b);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
+    <button onclick="var el=document.getElementById('diet-section'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'});" style="width:100%;background:var(--b2);color:var(--b3);border:1px solid var(--b);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
       <i class="ti ti-camera" style="font-size:14px"></i>前往飲食記錄
     </button>
 
