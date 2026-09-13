@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-13b';
+var MX_BUILD = '2026-09-13c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1932,6 +1932,9 @@ window.openHealthForm = function() {
 .gs-task{flex:1;border:none;border-radius:11px;padding:9px 6px;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;font-weight:600}
 .gs-task.pending{background:#F3F4F6;color:#4B5563}
 .gs-task.done{background:#D1FAE5;color:#065F46}
+/* 2026-09-13：早睡11點前完成後改用夜晚色系（靛藍），不要跟其他任務共用的「已記錄」綠色一樣，
+   避免管理人反映的「顏色跟記錄完一樣，分不出來」問題——這裡靠id+class的優先權蓋掉上面那行綠色 */
+#gt5.gs-task.done{background:#E0E7FF;color:#3730A3}
 .gs-task .gt-em{font-size:18px;line-height:1}
 .gs-msg{margin:12px 14px 0;border-radius:11px;padding:10px 12px;background:#ECFDF5;border:0.5px solid #A7F3D0}
 .gs-msg-icon{font-size:16px;margin-bottom:4px}
@@ -5683,14 +5686,20 @@ function updateHomeTask(i) {
   var homeCheck = document.getElementById('home-gt' + i + '-check');
   var wasAlreadyDone = (homeTask && homeTask.getAttribute('data-done') === '1');
   
+  // 2026-09-13：早睡11點前（i===5）改用夜晚色系（靛藍），跟其他任務共用的「已記錄」綠色區分開，
+  // 理由同代謝花園頁的#gt5.done——避免看起來跟其他任務的完成顏色一樣、分不出來
+  var homeDoneBg = (i === 5) ? '#E0E7FF' : '#E1F5EE';
+  var homeDoneBorder = (i === 5) ? '#4338CA' : '#1D9E75';
+  var homeCheckBg = (i === 5) ? '#4338CA' : '#1D9E75';
+  var homeCheckBorder = (i === 5) ? '#312E81' : '#085041';
   if (homeTask) {
-    homeTask.style.background = '#E1F5EE';
-    homeTask.style.borderLeft = '3px solid #1D9E75';
+    homeTask.style.background = homeDoneBg;
+    homeTask.style.borderLeft = '3px solid ' + homeDoneBorder;
     homeTask.setAttribute('data-done', '1');
   }
   if (homeCheck) {
-    homeCheck.style.background = '#1D9E75';
-    homeCheck.style.border = '1.5px solid #085041';
+    homeCheck.style.background = homeCheckBg;
+    homeCheck.style.border = '1.5px solid ' + homeCheckBorder;
     homeCheck.style.color = '#fff';
     homeCheck.textContent = '✓';
   }
