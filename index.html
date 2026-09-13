@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-11f';
+var MX_BUILD = '2026-09-13a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -434,6 +434,13 @@ window.openHealthForm = function() {
       </div>
 
       <div style="padding:12px 14px">
+        <!-- 2026-09-13新增：晚上時段的醒目提醒色塊——平常任務清單語氣都一樣平淡，
+             不會因為快到晚上、任務還沒做完而特別提醒；這裡在指定時間之後、還有任務沒完成時，
+             跳出一個比平常清單更顯眼的提醒，增加客人打開APP時注意到的機會（純前端判斷，不用後端） -->
+        <div id="home-reminder-banner" style="display:none;background:#FEF3E2;border:1.5px solid #FBBF77;border-radius:10px;padding:9px 12px;margin-bottom:10px;align-items:center;gap:8px">
+          <span style="font-size:16px">⏰</span>
+          <span style="font-size:11.5px;color:#92400E;font-weight:600;line-height:1.5" id="home-reminder-text"></span>
+        </div>
         <!-- 花園生長進度 -->
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
           <div style="font-size:32px" id="garden-plant">🌿</div>
@@ -5733,7 +5740,28 @@ function updateGardenHint() {
 function updateGardenProgress() {
   if (typeof updateGardenVisual === 'function') updateGardenVisual();
   updateGardenCount();
+  updateHomeReminderBanner();
 }
+
+// 2026-09-13新增：晚上8點之後，如果今天還有任務沒完成，首頁最上面跳出比平常清單更顯眼的提醒色塊。
+// 純前端判斷（用客人手機當下的時間），每次任務狀態變動、或每5分鐘都會重新檢查一次，
+// 不需要後端推播、不佔用LINE官方帳號的訊息額度——但客人本來就沒打開APP的話還是看不到，
+// 這是這個做法本身的限制，不是bug。
+function updateHomeReminderBanner() {
+  var banner = document.getElementById('home-reminder-banner');
+  var textEl = document.getElementById('home-reminder-text');
+  if (!banner || !textEl) return;
+  var hour = new Date().getHours();
+  var done = gsTasks.filter(Boolean).length;
+  var remaining = gsTasks.length - done;
+  if (hour >= 20 && remaining > 0) {
+    textEl.textContent = '今天還有 ' + remaining + ' 項還沒記錄，別忘了喔';
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+setInterval(function(){ if (typeof updateHomeReminderBanner === 'function') updateHomeReminderBanner(); }, 5 * 60 * 1000);
 
 // ── 更新首頁花園計數 ──
 function updateGardenCount() {
