@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-14e';
+var MX_BUILD = '2026-09-14f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -962,12 +962,13 @@ var MX_BUILD = '2026-09-14e';
         </div>
       </div>
       <div style="margin-bottom:12px">
-        <div class="gi-lbl" style="margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，例如設定合作單位收費模式跟分帳比例；勾選「行政」會額外取得好物商城/補充品售價與優惠折扣的維護權限；其餘職務純顯示參考用）</div>
+        <div class="gi-lbl" style="margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限，例如設定合作單位收費模式跟分帳比例；勾選「行政」會額外取得好物商城/補充品售價與優惠折扣的維護權限；勾選「專業秘書」會額外取得「甜蜜點分析」的查看/發布權限（一般秘書屬於服務型，看不到這個功能）；其餘職務純顯示參考用）</div>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="秘書">💁 秘書</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="會計">🧾 會計</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="行政">📋 行政</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="財務主管">💰 財務主管</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="專業秘書">🎓 專業秘書</label>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -3784,9 +3785,9 @@ function loadAdminAccounts(){
         '<select id="edit-role-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
         ['秘書','會計','行政','財務主管','醫師','管理人'].map(function(r){ return '<option value="'+r+'" '+(a.role===r?'selected':'')+'>'+(roleIcon[r]||'')+' '+r+'</option>'; }).join('')+
         '</select></div>'+
-        '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限；勾選「行政」會額外取得好物/補充品定價維護權限；其餘純顯示參考用）</div>'+
+        '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限；勾選「行政」會額外取得好物/補充品定價維護權限；勾選「專業秘書」會額外取得「甜蜜點分析」的查看/發布權限；其餘純顯示參考用）</div>'+
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
-        ['秘書','會計','行政','財務主管'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'')+' '+r+'</label>'; }).join('')+
+        ['秘書','會計','行政','財務主管','專業秘書'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'🎓')+' '+r+'</label>'; }).join('')+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">'+
         '<select id="edit-paytype-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
@@ -5864,9 +5865,11 @@ function openClientDetail(id, name){
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍯 代謝甜蜜點分析</div>'
-    + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">從這位客人自己的每日記錄＋IRCT複測結果，找出真的適合他的碳水回補／運動節奏（不是套公版建議）。算出來的結果不會自動給客人看，你確認/編輯文字後按「顯示給客人」才會真正曝光。</div>'
-    + '<button class="ai-btn b" style="font-size:11.5px;padding:7px 12px" onclick="loadSweetSpotAnalysis(\''+escH(id)+'\')">🔍 分析這位客人的甜蜜點</button>'
-    + '<div id="cd-sweetspot-body" style="margin-top:9px"></div>'
+    + (isSweetSpotTier() ?
+      ('<div style="font-size:10px;color:var(--text3);margin-bottom:7px">從這位客人自己的每日記錄＋IRCT複測結果，找出真的適合他的碳水回補／運動節奏（不是套公版建議）。算出來的結果不會自動給客人看，你確認/編輯文字後按「顯示給客人」才會真正曝光。</div>'
+      + '<button class="ai-btn b" style="font-size:11.5px;padding:7px 12px" onclick="loadSweetSpotAnalysis(\''+escH(id)+'\')">🔍 分析這位客人的甜蜜點</button>'
+      + '<div id="cd-sweetspot-body" style="margin-top:9px"></div>')
+      : '<div style="font-size:11px;color:var(--text3)">🔒 這項屬於專業判讀，只開放給「專業秘書」、醫師、管理人查看——如需要，請跟創辦人申請把帳號的「身兼職務」加開「專業秘書」。</div>')
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💬 客人心得分享（客人在前台自己送出）<span id="cd-badge-testi" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
@@ -7528,7 +7531,12 @@ function loadSweetSpotAnalysis(id){
     } else {
       h += '<div style="font-size:11px;color:var(--text3)">目前還沒有出現2次以上重複的模式，先持續記錄</div>';
     }
-    h += '<textarea id="cd-ss-diet-text" class="form-input" style="font-size:11.5px;width:100%;min-height:52px;margin-top:4px" placeholder="給客人看的溫和版文字（可編輯）">'+escH(d.draftDietText||'')+'</textarea>'
+    if (d.dietTextOptions && d.dietTextOptions.length) {
+      h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">'
+        + d.dietTextOptions.map(function(o){ return '<span onclick="pickSweetSpotOption(\'diet\',\''+escH(o.key)+'\')" style="font-size:10.5px;color:var(--b3);background:var(--b2);border-radius:20px;padding:4px 10px;cursor:pointer;white-space:nowrap">'+escH(o.label)+'</span>'; }).join('')
+        + '</div>';
+    }
+    h += '<textarea id="cd-ss-diet-text" class="form-input" style="font-size:11.5px;width:100%;min-height:52px;margin-top:6px" placeholder="給客人看的溫和版文字（可點上面的選項快速帶入，帶入後仍可自行微調）">'+escH(d.draftDietText||'')+'</textarea>'
       + '<div style="display:flex;gap:6px;margin-top:5px">'
       + '<button class="btn-g" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'diet\',true)">✅ 顯示給客人</button>'
       + '<button class="ai-btn gray" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'diet\',false)">停用</button>'
@@ -7550,7 +7558,12 @@ function loadSweetSpotAnalysis(id){
     } else {
       h += '<div style="font-size:11px;color:var(--text3)">目前還沒有出現2週以上重複的模式，先持續記錄</div>';
     }
-    h += '<textarea id="cd-ss-ex-text" class="form-input" style="font-size:11.5px;width:100%;min-height:52px;margin-top:4px" placeholder="給客人看的溫和版文字（可編輯）">'+escH(d.draftExerciseText||'')+'</textarea>'
+    if (d.exerciseTextOptions && d.exerciseTextOptions.length) {
+      h += '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">'
+        + d.exerciseTextOptions.map(function(o){ return '<span onclick="pickSweetSpotOption(\'exercise\',\''+escH(o.key)+'\')" style="font-size:10.5px;color:var(--b3);background:var(--b2);border-radius:20px;padding:4px 10px;cursor:pointer;white-space:nowrap">'+escH(o.label)+'</span>'; }).join('')
+        + '</div>';
+    }
+    h += '<textarea id="cd-ss-ex-text" class="form-input" style="font-size:11.5px;width:100%;min-height:52px;margin-top:6px" placeholder="給客人看的溫和版文字（可點上面的選項快速帶入，帶入後仍可自行微調）">'+escH(d.draftExerciseText||'')+'</textarea>'
       + '<div style="display:flex;gap:6px;margin-top:5px">'
       + '<button class="btn-g" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'exercise\',true)">✅ 顯示給客人</button>'
       + '<button class="ai-btn gray" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'exercise\',false)">停用</button>'
@@ -7583,6 +7596,17 @@ function loadSweetSpotAnalysis(id){
   });
 }
 var _sweetSpotLastData = null;
+// 2026-09-14新增：創辦人要求把「給客人看的溫和版文字」改成選擇題——上面渲染出一排選項小圓標，
+// 點了直接把對應版本的文字帶入textarea，帶入後還是一般文字框，秘書/醫師可以自己再微調，不是鎖死選項。
+function pickSweetSpotOption(type, key){
+  if (!_sweetSpotLastData) return;
+  var opts = type === 'diet' ? _sweetSpotLastData.dietTextOptions : _sweetSpotLastData.exerciseTextOptions;
+  if (!opts) return;
+  var opt = opts.filter(function(o){ return o.key === key; })[0];
+  if (!opt) return;
+  var ta = document.getElementById(type === 'diet' ? 'cd-ss-diet-text' : 'cd-ss-ex-text');
+  if (ta) ta.value = opt.text;
+}
 function confirmSweetSpotUI(id, type, enabled){
   var ta = document.getElementById(type === 'diet' ? 'cd-ss-diet-text' : 'cd-ss-ex-text');
   var text = ta ? ta.value : '';
@@ -11916,6 +11940,16 @@ function isPricingTier(){
   var r = CURRENT_USER.role;
   var other = CURRENT_USER.otherRoles || [];
   return r === '管理人' || r === '老闆' || r === '創始人' || r === '財務主管' || r === '行政' || other.indexOf('財務主管') >= 0 || other.indexOf('行政') >= 0;
+}
+// 2026-09-14新增：創辦人指示「甜蜜點分析」（含IRCT複測佐證的判讀結論、給客人看的建議文字）屬於專業判讀，
+// 服務型秘書沒有專業度看不懂，不該打開這個功能；只開放給醫師、管理人層級，以及帳號「身兼職務」有勾選
+// 「專業秘書」的帳號——一般秘書預設是「服務型」看不到，創始人要幫特定秘書在帳號管理頁面勾選「專業秘書」
+// 才會開通。跟後端 SWEETSPOT_TIER_ACTIONS 的判斷邏輯對齊，這裡只是決定畫面要不要顯示，真正擋下操作的是後端。
+function isSweetSpotTier(){
+  if (!CURRENT_USER) return false;
+  var r = CURRENT_USER.role;
+  var other = CURRENT_USER.otherRoles || [];
+  return r === '管理人' || r === '老闆' || r === '創始人' || r === '醫師' || other.indexOf('專業秘書') >= 0;
 }
 // 2026-08-28 登入強化（她回報「要按很多次都登入不進去」）：
 // (1) Apps Script 剛部署完或閒置後第一次連線要「喚醒」，可能等 5~20 秒——以前畫面只停在「登入中…」
