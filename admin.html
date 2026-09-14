@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-14a';
+var MX_BUILD = '2026-09-14c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2367,10 +2367,14 @@ function loadTodayRecords() {
     if (d.records && d.records.length > 0) {
       var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
       html += '<tr style="background:var(--bg)"><th style="padding:8px;text-align:left;border-bottom:1px solid var(--border)">時間</th><th style="padding:8px;text-align:left;border-bottom:1px solid var(--border)">客人</th><th style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">血酮</th><th style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">體重</th><th style="padding:8px;text-align:left;border-bottom:1px solid var(--border)">體感</th></tr>';
+      // 2026-09-14補：這張表原本每一列都是純文字，看得到今天誰記錄了什麼，卻沒辦法點進去看這位
+      // 客人的完整資料——要處理（例如覺得數值怪怪的想關心一下）還是得自己去客戶管理重新找人。
+      // 補上點列開啟客人詳情視窗（跟IRCT報告狀態名單那顆「前去處理」同樣的修法），順便補上escH()
+      // escape——這裡原本clientId是直接內插進HTML，沒有跳脫。
       d.records.forEach(function(r) {
         var time = new Date(r.time).toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit'});
         var ketoneColor = parseFloat(r.ketone) >= 0.5 ? 'color:var(--g3);font-weight:700' : '';
-        html += '<tr><td style="padding:8px;border-bottom:1px solid var(--border)">' + time + '</td><td style="padding:8px;border-bottom:1px solid var(--border)">' + r.clientId + '</td><td style="padding:8px;text-align:center;border-bottom:1px solid var(--border);' + ketoneColor + '">' + r.ketone + '</td><td style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">' + r.weight + '</td><td style="padding:8px;border-bottom:1px solid var(--border)">' + r.feeling + '</td></tr>';
+        html += '<tr onclick="openClientDetail(\''+escH(r.clientId)+'\',\''+escH(r.clientId)+'\')" style="cursor:pointer" title="點這裡查看這位客人的完整資料"><td style="padding:8px;border-bottom:1px solid var(--border)">' + time + '</td><td style="padding:8px;border-bottom:1px solid var(--border);color:var(--b3);text-decoration:underline">' + escH(r.clientId) + '</td><td style="padding:8px;text-align:center;border-bottom:1px solid var(--border);' + ketoneColor + '">' + escH(r.ketone) + '</td><td style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">' + escH(r.weight) + '</td><td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(r.feeling) + '</td></tr>';
       });
       html += '</table>';
       document.getElementById('today-records-body').innerHTML = html;
@@ -3281,15 +3285,39 @@ function loadReportReadyList() {
     }
     body.innerHTML = d.list.map(function(r) {
       var urgent = r.days >= 3;
+      // 2026-09-14新增：這排原本只是純文字顯示，看得到誰在等、卻沒有任何按鈕可以直接去處理，
+      // 秘書/管理人還是要自己手動到上面的「選擇客人」下拉選單裡找同一個人，很不方便。
+      // 補上「前去處理 →」：點了直接開這位客人的完整詳情視窗（裡面有IRCT檢測歷史，可以直接
+      // 跟客人講解報告用），同時也順便把這位客人選進上面的下拉選單，講解完關掉視窗後
+      // 可以馬上點「講解完成・陪跑中」更新狀態，不用再重新找一次人
       return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:'
         + (urgent ? '#FEF2F2' : 'var(--bg)') + ';border:1px solid ' + (urgent ? '#FCA5A5' : 'var(--border)')
         + ';border-radius:8px;padding:8px 10px;margin-bottom:6px">'
         + '<span style="font-size:12px;color:var(--text)">' + escH(r.name) + '（' + escH(r.clientId) + '）</span>'
+        + '<div style="display:flex;align-items:center;gap:8px">'
         + '<span style="font-size:11px;color:' + (urgent ? '#B91C1C' : 'var(--text3)') + ';font-weight:' + (urgent ? '700' : '400') + '">'
         + r.sinceDate + ' 出報告・已等 ' + r.days + ' 天</span>'
-        + '</div>';
+        + '<button onclick="handleReportReadyItem(\''+escH(r.clientId)+'\',\''+escH(r.name||r.clientId)+'\')" style="background:var(--g);color:#fff;border:none;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">前去處理 →</button>'
+        + '</div></div>';
     }).join('');
   });
+}
+// 2026-09-14新增：點「前去處理 →」——開這位客人的完整詳情視窗（可以直接看IRCT檢測歷史、
+// 跟客人講解），同時把這位客人選進上面「選擇客人」下拉選單，方便講解完直接點狀態按鈕更新，
+// 不用自己再重新找一次人。下拉選單如果還沒載入過選項（例如剛進警示看板頁、還沒去過客戶管理頁），
+// 這裡順便觸發一次loadReportClients()把選項補齊
+function handleReportReadyItem(clientId, name){
+  if (typeof openClientDetail === 'function') openClientDetail(clientId, name);
+  var sel = document.getElementById('report-client-select');
+  if (sel && sel.options.length > 1) {
+    sel.value = clientId;
+  } else if (typeof loadReportClients === 'function') {
+    loadReportClients();
+    setTimeout(function(){
+      var sel2 = document.getElementById('report-client-select');
+      if (sel2) sel2.value = clientId;
+    }, 800);
+  }
 }
 
 </script>
@@ -9401,10 +9429,12 @@ function loadDietPatternCompare(){
     var compares = d.compares || [];
     if(listBox){
       var html = '';
+      // 2026-09-14補：這份「飲食型態前後對照」原本每一列都是純文字，看得到哪位客人的分型惡化/改善了，
+      // 卻沒辦法點進去看這位客人的完整資料去跟進——補上點列開啟客人詳情視窗
       compares.forEach(function(c, idx){
         var color = DIET_LABEL_COLOR[c.label] || 'b';
         var lastRow = idx === compares.length - 1;
-        html += '<div style="display:flex;align-items:center;gap:11px;padding:11px 0;'+(lastRow?'':'border-bottom:1px solid var(--border)')+'">'
+        html += '<div onclick="openClientDetail(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\')" style="display:flex;align-items:center;gap:11px;padding:11px 0;cursor:pointer;'+(lastRow?'':'border-bottom:1px solid var(--border)')+'" title="點這裡查看這位客人的完整資料">'
           + '<div class="cr-av" style="background:var(--'+color+');width:32px;height:32px;font-size:12px">'+escH(String(c.name||c.clientId).slice(-1))+'</div>'
           + '<div style="flex:1">'
           + '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">'+escH(c.name)+'・第 '+escH(c.currentCount||'?')+' 次 IRCT（'+escH(c.currentDate)+'）</div>'
@@ -10706,10 +10736,13 @@ function loadBirthdays(){
         + '</div>'
         + '</div>';
     });
+    // 2026-09-14補：這裡原本純文字顯示「近期生日」名單，跟上面「今天生日」那份清單（有開啟/複製祝福/
+    // 記錄生日禮這幾顆按鈕）不一致——沒辦法點進去看這位客人，想先預約提前準備禮物也不方便。補上「開啟」
     up.forEach(function(b, ui){
       html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;color:var(--text2);font-size:12px">'
         + '<span style="font-size:11px;font-weight:700;color:#C2185B;background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (today.length + ui + 1) + '</span>'
         + '<span>🎈</span><div style="flex:1">'+escH(b.name)+'　<span style="color:var(--text3)">'+escH(b.date)+'（'+b.inDays+' 天後）</span></div>'
+        + '<button class="tb-btn" style="font-size:10.5px;padding:3px 8px;flex-shrink:0" onclick="openClientDetail(\''+escH(b.clientId)+'\',\''+escH(b.name)+'\')">開啟</button>'
         + '</div>';
     });
     box.innerHTML=html;
