@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-14a';
+var MX_BUILD = '2026-09-14b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -680,22 +680,6 @@ window.openHealthForm = function() {
       </div>
     </div>
 
-    <!-- 只要秘書設定了碳水計畫(不管嚴格期或回補期)就會顯示，平常不顯示 -->
-    <div id="carb-refeed-section" style="display:none;background:var(--g2);border:1px solid var(--g);border-radius:12px;padding:12px;margin:10px 0">
-      <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:9px">🍚 今日碳水記錄</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div style="font-size:11px;color:var(--text2)">今天排便了嗎</div>
-        <div class="carb-chip" id="carb-bowel-chip" data-val="" onclick="toggleCarbBowel(this)" style="padding:6px 16px">尚未</div>
-      </div>
-      <input class="inp" type="number" step="1" placeholder="今天吃了多少克碳水（選填）" id="carb-inp" oninput="this.classList.remove('saved')" style="width:100%">
-      <div style="font-size:10.5px;color:var(--g3);margin-top:6px;line-height:1.5">💡 建議選根莖類原型食物（地瓜、南瓜、芋頭等），效果比精緻澱粉更好</div>
-      <!-- 2026-09-14新增：健康秘書/醫師要判斷客人的碳水甜蜜點，除了原本的血酮/體重/腰圍/排便/運動，
-           還需要體脂%（沒有InBody數值可對照的日子也能有數字參考）跟一句話備註（例如當天特殊狀況），
-           兩欄都是選填，跟碳水克數一樣只有碳水回補期客人才會看到、才會被記錄 -->
-      <input class="inp" type="number" step="0.1" placeholder="體脂 %（選填，有體脂計可以量）" id="carb-bodyfat-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
-      <input class="inp" type="text" maxlength="100" placeholder="備註（選填，今天有什麼想讓秘書/醫師知道的）" id="carb-note-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
-    </div>
-
     <button onclick="var el=document.getElementById('diet-section'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'});" style="width:100%;background:var(--b2);color:var(--b3);border:1px solid var(--b);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
       <i class="ti ti-camera" style="font-size:14px"></i>前往飲食記錄
     </button>
@@ -840,7 +824,27 @@ window.openHealthForm = function() {
     <div class="sec" id="feeling-section"><i class="ti ti-mood-smile" style="font-size:13px"></i>今日體感</div>
     <div class="chips"><div class="chip" onclick="this.classList.toggle('on')">精神好</div><div class="chip" onclick="this.classList.toggle('on')">頭腦清晰</div><div class="chip" onclick="this.classList.toggle('on')">不容易餓</div><div class="chip bad" onclick="this.classList.toggle('on')">頭暈</div><div class="chip bad" onclick="this.classList.toggle('on')">便秘</div><div class="chip bad" onclick="this.classList.toggle('on')">抽筋</div><div class="chip bad" onclick="this.classList.toggle('on')">疲勞</div><div class="chip bad" onclick="this.classList.toggle('on')">皮膚癢</div></div>
     <button onclick="quickSave('feeling')" style="width:100%;background:var(--g2);color:var(--g3);border:1px solid var(--g);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px">✅ 今日體感完成・儲存</button>
-    
+
+    <!-- 2026-09-14搬移：原本卡在血酮/體重/運動中間，客人反應整個記錄頁「很混亂」——
+         碳水回補是開始吃碳水的客人才有的額外項目，跟前面血酮/體重/腰圍/運動這些每個人都要記的
+         核心項目混在一起容易搞混。改放到整個記錄頁最下面、儲存按鈕正上方，變成獨立的最後一步，
+         平常沒開放碳水回補的客人完全看不到這區（display:none機制不變，只是搬了位置）。
+         只要秘書設定了碳水計畫(不管嚴格期或回補期)就會顯示，平常不顯示 -->
+    <div id="carb-refeed-section" style="display:none;background:var(--g2);border:1px solid var(--g);border-radius:12px;padding:12px;margin:14px 0 10px">
+      <div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:9px">🍚 今日碳水記錄</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:11px;color:var(--text2)">今天排便了嗎</div>
+        <div class="carb-chip" id="carb-bowel-chip" data-val="" onclick="toggleCarbBowel(this)" style="padding:6px 16px">尚未</div>
+      </div>
+      <input class="inp" type="number" step="1" placeholder="今天吃了多少克碳水（選填）" id="carb-inp" oninput="this.classList.remove('saved')" style="width:100%">
+      <div style="font-size:10.5px;color:var(--g3);margin-top:6px;line-height:1.5">💡 建議選根莖類原型食物（地瓜、南瓜、芋頭等），效果比精緻澱粉更好</div>
+      <!-- 2026-09-14新增：健康秘書/醫師要判斷客人的碳水甜蜜點，除了原本的血酮/體重/腰圍/排便/運動，
+           還需要體脂%（沒有InBody數值可對照的日子也能有數字參考）跟一句話備註（例如當天特殊狀況），
+           兩欄都是選填，跟碳水克數一樣只有碳水回補期客人才會看到、才會被記錄 -->
+      <input class="inp" type="number" step="0.1" placeholder="體脂 %（選填，有體脂計可以量）" id="carb-bodyfat-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
+      <input class="inp" type="text" maxlength="100" placeholder="備註（選填，今天有什麼想讓秘書/醫師知道的）" id="carb-note-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
+    </div>
+
 <button class="submit-btn" id="submit-daily-btn" onclick="submitDailyRecord()">儲存今日記錄</button>
   </div>
 </div>
