@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-14e';
+var MX_BUILD = '2026-09-14g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -846,16 +846,19 @@ window.openHealthForm = function() {
       <div id="carb-refeed-title" style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:9px">🍚 今日碳水記錄</div>
       <div id="carb-refeed-locked" style="font-size:12px;color:var(--text3);line-height:1.5">🔒 尚未開通——等秘書/醫師核准開始吃碳水後，這裡就會開放記錄</div>
       <div id="carb-refeed-fields" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div style="font-size:11px;color:var(--text2)">今天排便了嗎</div>
-          <div class="carb-chip" id="carb-bowel-chip" data-val="" onclick="toggleCarbBowel(this)" style="padding:6px 16px">尚未</div>
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;color:var(--text2);margin-bottom:6px">今天排便了嗎</div>
+          <div style="display:flex;gap:6px" id="carb-bowel-chips">
+            <div class="carb-chip on" data-val="" onclick="selCarbBowel(this)" style="flex:1">尚未</div>
+            <div class="carb-chip" data-val="V" onclick="selCarbBowel(this)" style="flex:1">已排便</div>
+          </div>
         </div>
-        <input class="inp" type="number" step="1" placeholder="今天吃了多少克碳水（選填）" id="carb-inp" oninput="this.classList.remove('saved')" style="width:100%">
+        <input class="inp" type="number" step="15" min="0" placeholder="今天吃了多少克碳水（選填，以15g/份為單位比較好抓）" id="carb-inp" oninput="this.classList.remove('saved')" style="width:100%">
         <div style="font-size:10.5px;color:var(--g3);margin-top:6px;line-height:1.5">💡 建議選根莖類原型食物（地瓜、南瓜、芋頭等），效果比精緻澱粉更好</div>
         <!-- 2026-09-14新增：健康秘書/醫師要判斷客人的碳水甜蜜點，除了原本的血酮/體重/腰圍/排便/運動，
              還需要體脂%（沒有InBody數值可對照的日子也能有數字參考）跟一句話備註（例如當天特殊狀況），
              兩欄都是選填，跟碳水克數一樣只有碳水回補期客人才會看到、才會被記錄 -->
-        <input class="inp" type="number" step="0.1" placeholder="體脂 %（選填，有體脂計可以量）" id="carb-bodyfat-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
+        <input class="inp" type="number" step="0.1" min="0" max="80" placeholder="體脂 %（選填，有體脂計可以量）" id="carb-bodyfat-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
         <input class="inp" type="text" maxlength="100" placeholder="備註（選填，今天有什麼想讓秘書/醫師知道的）" id="carb-note-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
       </div>
     </div>
@@ -4496,9 +4499,11 @@ function selCarbExercise(el){
   document.querySelectorAll('#carb-exercise-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
   el.classList.add('on');
 }
-function toggleCarbBowel(el){
-  var on = el.classList.toggle('on');
-  el.textContent = on ? '已排便' : '尚未';
+// 2026-09-14補：排便原本是單一顆チップ用文字切換「尚未／已排便」，創辦人反應應該跟運動狀態一樣
+// 兩個選項同時顯示、點哪個就選哪個，比較清楚——改成跟selCarbExercise同一套「兩顆並排、點選高亮」
+function selCarbBowel(el){
+  document.querySelectorAll('#carb-bowel-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
 }
 var _carbRefeedActive = false;
 var _submitDailySaving = false; // 2026-09-09補：防止手滑連點兩下「儲存今日記錄」，後端目前對這個動作沒有防重複機制，連點會產生兩筆一模一樣的記錄，影響月平均/趨勢圖
@@ -4521,8 +4526,8 @@ function submitDailyRecord() {
   var exerciseVal = exerciseChip0 ? (exerciseChip0.getAttribute('data-val') || '') : '';
   var bowelVal = '', carbsVal = '', bodyFatVal = '', carbNoteVal = '';
   if (_carbRefeedActive) {
-    var bowelChip = document.getElementById('carb-bowel-chip');
-    bowelVal = bowelChip && bowelChip.classList.contains('on') ? 'V' : '';
+    var bowelChip = document.querySelector('#carb-bowel-chips .carb-chip.on');
+    bowelVal = bowelChip ? (bowelChip.getAttribute('data-val') || '') : '';
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
     if(carbsVal && (Number(carbsVal) < 0 || Number(carbsVal) > 500)){ toast('碳水克數看起來不太合理，麻煩再確認一下'); return; }
     bodyFatVal = document.getElementById('carb-bodyfat-inp') ? document.getElementById('carb-bodyfat-inp').value : '';
