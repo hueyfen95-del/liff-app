@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-14f';
+var MX_BUILD = '2026-09-14g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -584,6 +584,17 @@ var MX_BUILD = '2026-09-14f';
 
 <!-- ══ 警示看板 ══ -->
 <div class="pg" id="pg-alerts">
+  <!-- 2026-09-14新增：症狀關鍵字預警——這是側邊欄「警示看板」旁邊那個紅色數字實際對應的名單
+       （創辦人回報「點側邊欄數字進來，畫面上完全找不到對得上的警示」，根源是這份名單原本只出現在
+       儀表板頁面，警示看板頁面自己另外一套紅/橘/正常分類，兩邊算法本來就不一樣、名單也對不起來——
+       現在把同一份名單也放進警示看板頁面最上面，並且從側邊欄點進來時會自動捲到這裡、短暫發亮提示）。 -->
+  <div class="card" id="alert-card-ab" style="margin-bottom:12px;display:none;border:1px solid #F0C0B0">
+    <div class="card-hd">
+      <div class="card-title" style="color:var(--r3)"><i class="ti ti-alert-triangle"></i>症狀提醒（近 7 天）</div>
+    </div>
+    <div class="card-body" id="symptom-alerts-body-ab"></div>
+  </div>
+
   <!-- 問卷未填客人提醒 -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-hd">
@@ -9513,7 +9524,7 @@ function runPageLoader(id){
     var newBtn = document.getElementById('new-client-btn');
     if(newBtn) newBtn.style.display = (CURRENT_USER && CURRENT_USER.canEditClients === false) ? 'none' : '';
   }
-  if (id === 'alerts') loadAlerts();
+  if (id === 'alerts') { loadAlerts(); if(typeof loadSymptomAlertsForAlertsPage==='function') loadSymptomAlertsForAlertsPage(); }
   if (id === 'report') loadClientsList(function(){});
   if (id === 'tracking') loadTrackingAdmin();
   if (id === 'remind') {
@@ -10717,32 +10728,55 @@ function addHandoverItem(text){
 
 
 // ══════ 症狀關鍵字預警 ══════
+// 2026-09-14抽成共用渲染函式——原本只有儀表板頁面的「症狀提醒」卡會渲染，現在警示看板頁面最上面
+// 也要放同一份名單（側邊欄「警示看板」紅色數字就是算這份），兩邊共用同一段渲染邏輯，不要各寫一次。
+function renderSymptomAlertsInto_(alerts, cardId, bodyId, navId){
+  var card=document.getElementById(cardId), box=document.getElementById(bodyId);
+  if(!box) return;
+  if(navId && typeof _mxDashNavSet==='function') _mxDashNavSet(navId, alerts.length, '症狀提醒', 'ti ti-alert-triangle');
+  if(alerts.length===0){ if(card) card.style.display='none'; return; }
+  if(card) card.style.display='block';
+  var html='';
+  alerts.forEach(function(a, ai){
+    var color = a.level==='critical' ? '#C0392B' : (a.level==='high' ? '#D35400' : '#B8860B');
+    var bg = a.level==='critical' ? '#FDEDEC' : (a.level==='high' ? '#FEF5EC' : '#FEFBF0');
+    var badge = a.level==='critical' ? '🚨 緊急' : (a.level==='high' ? '⚠️ 需關心' : '注意');
+    html += '<div style="background:'+bg+';border-radius:9px;padding:9px 12px;margin-bottom:7px;border-left:4px solid '+color+'">'
+      + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">'
+      + '<span style="font-size:11px;font-weight:700;color:'+color+';background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ai + 1) + '</span>'
+      + '<span style="font-weight:800;color:'+color+';font-size:12px">'+badge+'</span>'
+      + '<span style="font-weight:700;font-size:13px">'+escH(a.name||a.clientId)+'</span>'
+      + '<span style="font-size:10.5px;color:var(--text3)">'+escH(a.date)+'・'+escH(a.tag)+(a.isInsulin?'・💉胰島素客人':'')+'</span>'
+      + '<span style="margin-left:auto"><button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\')">開啟</button></span>'
+      + '</div>'
+      + '<div style="font-size:11px;color:'+color+';line-height:1.5">'+escH(a.hint)+'</div>'
+      + '<div style="font-size:10.5px;color:var(--text3);margin-top:2px">客人回報：「'+escH(a.feeling)+'」</div>'
+      + '</div>';
+  });
+  box.innerHTML=html;
+}
 function loadSymptomAlerts(){
   adminAPI({action:'getSymptomAlerts'}, function(d){
-    var card=document.getElementById('alert-card'), box=document.getElementById('symptom-alerts-body');
-    if(!box) return;
-    var alerts=d.alerts||[];
-    _mxDashNavSet('alert-card', alerts.length, '症狀提醒', 'ti ti-alert-triangle');
-    if(alerts.length===0){ card.style.display='none'; return; }
-    card.style.display='block';
-    var html='';
-    alerts.forEach(function(a, ai){
-      var color = a.level==='critical' ? '#C0392B' : (a.level==='high' ? '#D35400' : '#B8860B');
-      var bg = a.level==='critical' ? '#FDEDEC' : (a.level==='high' ? '#FEF5EC' : '#FEFBF0');
-      var badge = a.level==='critical' ? '🚨 緊急' : (a.level==='high' ? '⚠️ 需關心' : '注意');
-      html += '<div style="background:'+bg+';border-radius:9px;padding:9px 12px;margin-bottom:7px;border-left:4px solid '+color+'">'
-        + '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">'
-        + '<span style="font-size:11px;font-weight:700;color:'+color+';background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ai + 1) + '</span>'
-        + '<span style="font-weight:800;color:'+color+';font-size:12px">'+badge+'</span>'
-        + '<span style="font-weight:700;font-size:13px">'+escH(a.name||a.clientId)+'</span>'
-        + '<span style="font-size:10.5px;color:var(--text3)">'+escH(a.date)+'・'+escH(a.tag)+(a.isInsulin?'・💉胰島素客人':'')+'</span>'
-        + '<span style="margin-left:auto"><button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\')">開啟</button></span>'
-        + '</div>'
-        + '<div style="font-size:11px;color:'+color+';line-height:1.5">'+escH(a.hint)+'</div>'
-        + '<div style="font-size:10.5px;color:var(--text3);margin-top:2px">客人回報：「'+escH(a.feeling)+'」</div>'
-        + '</div>';
-    });
-    box.innerHTML=html;
+    renderSymptomAlertsInto_(d.alerts||[], 'alert-card', 'symptom-alerts-body', 'alert-card');
+  });
+}
+// 警示看板頁面版本——側邊欄「警示看板」旁邊那個紅色數字，點進來就是要看這份名單，所以除了渲染，
+// 有警示時還會自動捲到這裡、短暫發亮提示，不用她自己在頁面裡從頭找是哪個警示在響。
+function loadSymptomAlertsForAlertsPage(){
+  adminAPI({action:'getSymptomAlerts'}, function(d){
+    var alerts = d.alerts||[];
+    renderSymptomAlertsInto_(alerts, 'alert-card-ab', 'symptom-alerts-body-ab', null);
+    if(alerts.length>0){
+      var card=document.getElementById('alert-card-ab');
+      if(card){
+        setTimeout(function(){
+          card.scrollIntoView({behavior:'smooth', block:'start'});
+          card.style.transition='box-shadow .3s';
+          card.style.boxShadow='0 0 0 3px #F0C0B0';
+          setTimeout(function(){ card.style.boxShadow=''; }, 1800);
+        }, 250);
+      }
+    }
   });
 }
 // ══════ 生日提醒 ══════
