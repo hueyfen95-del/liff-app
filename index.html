@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-14g';
+var MX_BUILD = '2026-09-14i';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -649,7 +649,7 @@ window.openHealthForm = function() {
       </div>
     </div>
 
-    <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血酮 &amp; 體重</div>
+    <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血酮・血糖 &amp; 體重</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
       <input class="inp" type="number" step="0.1" placeholder="血酮 mmol/L" id="k-inp" oninput="onKetone(this.value);this.classList.remove('saved')" style="flex:1">
       <div class="k-badge" id="k-badge">—</div>
@@ -659,6 +659,12 @@ window.openHealthForm = function() {
       <div class="chip" onclick="selChip(this,'t')">午餐前</div>
       <div class="chip on" onclick="selChip(this,'t')">傍晚晚餐前</div>
       <div class="chip" onclick="selChip(this,'t')">晚餐後 3–4h</div>
+    </div>
+    <!-- 2026-09-14新增：創辦人指出很多糖尿病客人天天都要測血糖、血酮，血糖不該只限碳水回補期客人才看得到
+         （不像下面碳水回補區的碳水克數/體脂%那幾欄，這欄開放給「所有」客人，有測的人才會填、沒有的人維持空白） -->
+    <div class="inp-row" style="display:flex;gap:6px;align-items:center;margin-top:8px">
+      <input class="inp" type="number" step="1" min="0" placeholder="血糖 mg/dL（選填，有測再填）" id="glucose-inp" oninput="this.classList.remove('saved')" style="flex:1">
+      <button onclick="quickSave('glucose')" style="background:var(--a);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
     <!-- 2026-08-12修正：體重/腰圍原本只靠placeholder標示欄位名稱，但欄位一開始就帶著預設數字，
          placeholder會被蓋掉，客人完全看不出「50」「65」代表體重還是腰圍，補上明確文字標籤
@@ -928,6 +934,21 @@ window.openHealthForm = function() {
           <div id="kit-trend-ketone"></div>
         </div>
       </div>
+    </div>
+    <!-- 2026-09-14新增：創辦人要求「血糖、血酮、體重、腰圍、碳水」整合成一張、標不同顏色的趨勢圖。
+         血糖原本沒有每天記錄的欄位（只有做IRCT檢測才有一次數值），創辦人後來補充：很多糖尿病客人
+         天天都要測血糖、血酮，不該漏掉——所以「每日記錄」頁的血酮區塊旁邊補了一個血糖欄位（開放給
+         所有客人，不限碳水回補期），這張圖也把血糖加進來當第5條線；沒有天天測血糖習慣的客人，
+         這條線就不會出現（COMBINED_TREND_SERIES裡「這7天完全沒資料」的系列會被跳過，圖例改顯示
+         「尚無記錄」），做到「有測就出現、沒測就不出現」。
+         每條線各自依自己這7天的最小～最大值正規化成0~100%畫（不然血酮0~3跟體重50~90公斤放同一個
+         Y軸，體重那條線幾乎變成一直線看不出變化）——這張圖看的是「走勢形狀」，實際數字看下面圖例
+         跟原本各自獨立的長條圖（有精確數字跟每天的值） -->
+    <div class="chart-wrap" id="combined-trend-wrap">
+      <div class="cw-t">📊 本週趨勢總覽</div>
+      <div style="font-size:10.5px;color:var(--text3);margin:-4px 0 10px;line-height:1.5">血酮・血糖（有測才會出現）・體重・腰圍・碳水同一張圖看走勢，各自依自己這7天的高低分別畫、方便比對形狀（不是同一個刻度，精確數字看下面各自的長條圖）。</div>
+      <svg id="combined-trend-svg" viewBox="0 0 300 130" style="width:100%;height:auto;overflow:visible"></svg>
+      <div id="combined-trend-legend" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:10.5px"></div>
     </div>
     <div class="chart-wrap">
       <div class="cw-t">本週血酮趨勢（mmol/L）</div>
@@ -4516,6 +4537,9 @@ function submitDailyRecord() {
   if(w && (Number(w) <= 0 || Number(w) > 300)){ toast('體重數值看起來不太合理，麻煩再確認一下'); return; }
   var waistCheck = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
   if(waistCheck && (Number(waistCheck) <= 0 || Number(waistCheck) > 200)){ toast('腰圍數值看起來不太合理，麻煩再確認一下'); return; }
+  // 2026-09-14新增：血糖，開放所有客人填（不限碳水回補期）——很多糖尿病客人天天都要測血糖、血酮
+  var glucoseVal = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
+  if(glucoseVal && (Number(glucoseVal) <= 0 || Number(glucoseVal) > 600)){ toast('血糖數值看起來不太合理，麻煩再確認一下'); return; }
   var f = []; document.querySelectorAll('.chip.on').forEach(function(c) { f.push(c.textContent); });
   var e = []; document.querySelectorAll('.t-box.on').forEach(function(c) { e.push(c.textContent); });
   toast('⏳ 儲存中...');
@@ -4541,7 +4565,7 @@ function submitDailyRecord() {
     action: 'addDailyRecord', clientId: CLIENT_ID,
     ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(','),
     exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal,
-    bodyFat: bodyFatVal, note: carbNoteVal
+    bodyFat: bodyFatVal, note: carbNoteVal, glucose: glucoseVal
   }, function(d) {
     _submitDailySaving = false;
     if (_sdBtn) { _sdBtn.disabled = false; _sdBtn.style.opacity = ''; _sdBtn.style.cursor = 'pointer'; }
@@ -4567,6 +4591,8 @@ function submitDailyRecord() {
         if(w && parseFloat(w) > 0){ var wInpEl = document.getElementById('w-inp'); if(wInpEl) wInpEl.classList.add('saved'); }
         if(waist_v && parseFloat(waist_v) > 0){ var waistInpEl = document.getElementById('waist-inp'); if(waistInpEl) waistInpEl.classList.add('saved'); }
       }
+      // 血糖跟血酮/體重/腰圍同一種待遇，存成功後保持綠色
+      if(glucoseVal && parseFloat(glucoseVal) > 0){ var gInpEl = document.getElementById('glucose-inp'); if(gInpEl) gInpEl.classList.add('saved'); }
       // 2026-09-11修：這裡原本寫gsTasks[2]（打勾「飲食記錄」），但這段是電解質有勾選才進來的判斷，
       // 應該要打勾gt3（補電解質）才對，之前2是誤把飲食記錄的燈點亮，電解質自己的燈反而永遠不會透過
       // 這條路徑點亮——電解質勾選了就完成gt3
@@ -5928,6 +5954,10 @@ function quickSave(type) {
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
   var waist = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
+  // 2026-09-14新增：血糖，開放所有客人填（不限碳水回補期）——這裡先讀出來，
+  // 讓血酮/體重/腰圍任一顆「儲存」按鈕被按下時，如果血糖欄位剛好也有填，會一起順便存進去，
+  // 不用逼客人一定要按血糖自己的「儲存」鈕才存得到
+  var glucose = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
   var e = [];
   document.querySelectorAll('.chip.on').forEach(function(c) { e.push(c.textContent); });
 
@@ -5940,7 +5970,7 @@ function quickSave(type) {
     // 客人卻以為已經記錄了。改用callAPI（一定會呼叫callback），失敗時另外補一個提醒。
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone:'', weight:'', waist:'', feeling:'',
+      ketone:'', weight:'', waist:'', feeling:'', glucose: glucose,
       meal: _mealSel.meal||'', oil: _mealSel.oil||'', protein: _mealSel.protein||'', starch: _mealSel.starch||''
     }, function(d){
       if (!d || d.status !== 'ok') toast('⚠️ 餐盤紀錄剛剛沒有存成功，麻煩重新選擇一次再送出');
@@ -5965,7 +5995,7 @@ function quickSave(type) {
     // 失敗時把剛剛的樂觀更新（打勾）復原，並另外提醒補記。
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: k, weight: '', waist: '', feeling: '', electrolyte: ''
+      ketone: k, weight: '', waist: '', feeling: '', electrolyte: '', glucose: glucose
     }, function(d){
       if (!d || d.status !== 'ok') {
         gsTasks[0] = false;
@@ -5998,7 +6028,7 @@ function quickSave(type) {
     // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: '', weight: w, waist: waist, feeling: '', electrolyte: ''
+      ketone: '', weight: w, waist: waist, feeling: '', electrolyte: '', glucose: glucose
     }, function(d){
       if (!d || d.status !== 'ok') {
         gsTasks[1] = false;
@@ -6029,7 +6059,7 @@ function quickSave(type) {
     // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: '', weight: w, waist: waist, feeling: '', electrolyte: ''
+      ketone: '', weight: w, waist: waist, feeling: '', electrolyte: '', glucose: glucose
     }, function(d){
       if (!d || d.status !== 'ok') {
         gsTasks[1] = false;
@@ -6043,6 +6073,22 @@ function quickSave(type) {
         // 如果體重欄位當下也有填數字，一併標記已存，不用讓客人誤以為體重還沒存到
         var waistInpQS = document.getElementById('waist-inp'); if(waistInpQS) waistInpQS.classList.add('saved');
         if (w && parseFloat(w) > 0) { var wInpQSw = document.getElementById('w-inp'); if(wInpQSw) wInpQSw.classList.add('saved'); }
+      }
+    });
+
+  } else if (type === 'glucose') {
+    // 2026-09-14新增：血糖獨立的快速儲存按鈕，開放所有客人（不限碳水回補期）。
+    // 血糖不是花園7個任務之一，這裡不動gsTasks/打勾，單純存值、給toast回饋
+    if (!glucose || parseFloat(glucose) <= 0) { toast('請先輸入血糖數值'); return; }
+    toast('🩸 血糖 ' + glucose + ' mg/dL 已儲存！');
+    callAPI({
+      action: 'addDailyRecord', clientId: CLIENT_ID,
+      ketone: '', weight: '', waist: '', feeling: '', electrolyte: '', glucose: glucose
+    }, function(d){
+      if (!d || d.status !== 'ok') {
+        toast('⚠️ 血糖數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
+      } else {
+        var gInpQS = document.getElementById('glucose-inp'); if(gInpQS) gInpQS.classList.add('saved');
       }
     });
 
@@ -6060,7 +6106,7 @@ function quickSave(type) {
     // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: '', weight: '', waist: '', feeling: '', electrolyte: e.join(',')
+      ketone: '', weight: '', waist: '', feeling: '', electrolyte: e.join(','), glucose: glucose
     }, function(d){
       if (!d || d.status !== 'ok') {
         gsTasks[3] = false;
@@ -6089,7 +6135,7 @@ function quickSave(type) {
     // 2026-09-09補：同血酮的問題——失敗時復原打勾狀態並提醒補記，不要讓客人以為存了其實沒存
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
-      ketone: '', weight: '', waist: '', feeling: feelingChips.join(','), electrolyte: ''
+      ketone: '', weight: '', waist: '', feeling: feelingChips.join(','), electrolyte: '', glucose: glucose
     }, function(d){
       if (!d || d.status !== 'ok') {
         gsTasks[4] = false;
@@ -8783,10 +8829,67 @@ function loadMyStats(){
           if(wbEl) wbEl.style.height = '4%';
         }
       });
+      if(typeof renderCombinedTrendChart === 'function') renderCombinedTrendChart(d.last7Days);
     }
   });
 }
 
+// 2026-09-14新增：「本週趨勢總覽」整合圖——血酮/體重/腰圍/碳水4條線畫在同一張SVG裡，顏色跟各自
+// 原本長條圖的顏色呼應（血酮綠/體重藍），腰圍用紫、碳水用橘，方便跟下面各自的長條圖對照。
+// 每條線各自正規化（自己這7天的最小值=最下面、最大值=最上面），因為5種數值的單位/範圍差太多，
+// 放同一個Y軸的話體重變化幾公斤幾乎會被血酮0~3的尺度蓋過去看不出來——這張圖的目的是比對「形狀」
+// 不是比對絕對數字，精確數字看圖例跟原本各自的長條圖。
+// 2026-09-14補：血糖排在血酮後面——這條線是否出現完全看renderCombinedTrendChart()裡「這7天有沒有
+// 任何資料」來決定，沒有天天測血糖習慣的客人，這條線不會畫出來、圖例也只會顯示「尚無記錄」
+var COMBINED_TREND_SERIES = [
+  { key:'ketone', label:'血酮', unit:'mmol/L', color:'#1D9E75' },
+  { key:'glucose', label:'血糖', unit:'mg/dL', color:'#E24B4A' },
+  { key:'weight', label:'體重', unit:'kg', color:'#378ADD' },
+  { key:'waist', label:'腰圍', unit:'cm', color:'#534AB7' },
+  { key:'carbs', label:'碳水', unit:'g', color:'#EF9F27' }
+];
+function renderCombinedTrendChart(last7Days){
+  var svg = document.getElementById('combined-trend-svg');
+  var legendEl = document.getElementById('combined-trend-legend');
+  if(!svg || !legendEl || !last7Days || last7Days.length!==7) return;
+  var padL = 8, padR = 8, padT = 10, padB = 22;
+  var w = 300, h = 130;
+  var plotW = w - padL - padR, plotH = h - padT - padB;
+  var n = last7Days.length;
+  var xAt = function(i){ return padL + (n===1 ? plotW/2 : plotW * i/(n-1)); };
+  var svgParts = [];
+  var legendParts = [];
+  COMBINED_TREND_SERIES.forEach(function(s){
+    var vals = last7Days.map(function(d){ return d[s.key]; });
+    var present = vals.filter(function(v){ return v!==null && v!==undefined && !isNaN(v); });
+    var latest = null;
+    for(var li=vals.length-1; li>=0; li--){ if(vals[li]!==null && vals[li]!==undefined && !isNaN(vals[li])){ latest = vals[li]; break; } }
+    if(present.length===0){
+      legendParts.push('<div style="display:flex;align-items:center;gap:5px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:'+s.color+';display:inline-block;opacity:.35"></span>'+s.label+'　尚無記錄</div>');
+      return;
+    }
+    var vMin = Math.min.apply(null, present), vMax = Math.max.apply(null, present);
+    var vRange = (vMax - vMin) || 1;
+    var yAt = function(v){ return padT + plotH - ((v - vMin) / vRange) * plotH; };
+    var pts = [];
+    vals.forEach(function(v, i){
+      if(v===null || v===undefined || isNaN(v)) return;
+      pts.push({ x: xAt(i), y: yAt(v) });
+    });
+    if(pts.length>0){
+      var poly = pts.map(function(p){ return p.x.toFixed(1)+','+p.y.toFixed(1); }).join(' ');
+      svgParts.push('<polyline points="'+poly+'" fill="none" stroke="'+s.color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>');
+      pts.forEach(function(p){ svgParts.push('<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="2.2" fill="'+s.color+'"></circle>'); });
+    }
+    legendParts.push('<div style="display:flex;align-items:center;gap:5px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:'+s.color+';display:inline-block"></span>'+s.label+'　最新 '+(latest!==null?latest:'–')+' '+s.unit+'</div>');
+  });
+  // X軸日期標籤
+  last7Days.forEach(function(d, i){
+    svgParts.push('<text x="'+xAt(i).toFixed(1)+'" y="'+(h-6)+'" font-size="8" fill="#9CA3AF" text-anchor="middle">'+escHtml(d.label)+'</text>');
+  });
+  svg.innerHTML = svgParts.join('');
+  legendEl.innerHTML = legendParts.join('');
+}
 
 // ══════ 花園每日任務：載入「今天」的完成狀態（每天 00:00 自動歸零）══════
 // 2026-09-11修：這個對照表原本是『血酮/體重腰圍/餐盤/喝水/走路/斷食/睡眠』，是舊版任務名稱，
