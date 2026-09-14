@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-14g';
+var MX_BUILD = '2026-09-14h';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7254,7 +7254,11 @@ function loadPurchases(){
         + '<span style="margin-left:auto;display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
         + (isPending ? '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="proxyMark(' + i + ',\'已訂購\')">已幫客人下單</button>' : '')
         + (!isPaid ? '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px" onclick="proxyFinish(' + i + ')">到貨結帳</button>' : '')
-        + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 9px" onclick="proxyMark(' + i + ',\'取消\')">取消</button>'
+        + (!isPaid ? '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 9px" onclick="proxyMark(' + i + ',\'取消\')">取消</button>'
+                    // 2026-09-14補：創辦人指出「按鈕自己消失也很奇怪」——結帳完成後到貨結帳/取消兩顆按鈕都收起來，
+                    // 畫面上只剩空白，看起來像壞掉或漏東西，容易讓人跑來問「怎麼沒地方按」。改成明確顯示一段文字，
+                    // 直接告訴秘書「這筆已經結案、不用再操作」，不要用「什麼都不顯示」讓人自己猜。
+                    : '<span style="font-size:10.5px;color:var(--g3);font-weight:700">✅ 已結案，不用再操作</span>')
         + '</span>'
         + '<div style="width:100%;display:flex;gap:6px;margin-top:4px">'
         + '<label style="display:flex;align-items:center;gap:4px;font-size:10.5px;color:' + (p.shipped ? 'var(--g3)' : 'var(--text3)') + ';cursor:pointer"><input type="checkbox" ' + (p.shipped ? 'checked' : '') + ' onchange="proxyProgress(' + i + ',\'shipped\',this.checked)" style="accent-color:var(--g)">📦 已寄出</label>'
