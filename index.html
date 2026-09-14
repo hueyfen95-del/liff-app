@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-13f';
+var MX_BUILD = '2026-09-14a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -689,6 +689,11 @@ window.openHealthForm = function() {
       </div>
       <input class="inp" type="number" step="1" placeholder="今天吃了多少克碳水（選填）" id="carb-inp" oninput="this.classList.remove('saved')" style="width:100%">
       <div style="font-size:10.5px;color:var(--g3);margin-top:6px;line-height:1.5">💡 建議選根莖類原型食物（地瓜、南瓜、芋頭等），效果比精緻澱粉更好</div>
+      <!-- 2026-09-14新增：健康秘書/醫師要判斷客人的碳水甜蜜點，除了原本的血酮/體重/腰圍/排便/運動，
+           還需要體脂%（沒有InBody數值可對照的日子也能有數字參考）跟一句話備註（例如當天特殊狀況），
+           兩欄都是選填，跟碳水克數一樣只有碳水回補期客人才會看到、才會被記錄 -->
+      <input class="inp" type="number" step="0.1" placeholder="體脂 %（選填，有體脂計可以量）" id="carb-bodyfat-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
+      <input class="inp" type="text" maxlength="100" placeholder="備註（選填，今天有什麼想讓秘書/醫師知道的）" id="carb-note-inp" oninput="this.classList.remove('saved')" style="width:100%;margin-top:8px">
     </div>
 
     <button onclick="var el=document.getElementById('diet-section'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'});" style="width:100%;background:var(--b2);color:var(--b3);border:1px solid var(--b);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
@@ -4476,12 +4481,15 @@ function submitDailyRecord() {
   // 這格現在每位客人都看得到、都會收集；排便/碳水克數還是碳水回補期專屬的追蹤項目，維持原本的條件收集
   var exerciseChip0 = document.querySelector('#carb-exercise-chips .carb-chip.on');
   var exerciseVal = exerciseChip0 ? (exerciseChip0.getAttribute('data-val') || '') : '';
-  var bowelVal = '', carbsVal = '';
+  var bowelVal = '', carbsVal = '', bodyFatVal = '', carbNoteVal = '';
   if (_carbRefeedActive) {
     var bowelChip = document.getElementById('carb-bowel-chip');
     bowelVal = bowelChip && bowelChip.classList.contains('on') ? 'V' : '';
     carbsVal = document.getElementById('carb-inp') ? document.getElementById('carb-inp').value : '';
     if(carbsVal && (Number(carbsVal) < 0 || Number(carbsVal) > 500)){ toast('碳水克數看起來不太合理，麻煩再確認一下'); return; }
+    bodyFatVal = document.getElementById('carb-bodyfat-inp') ? document.getElementById('carb-bodyfat-inp').value : '';
+    if(bodyFatVal && (Number(bodyFatVal) <= 0 || Number(bodyFatVal) > 80)){ toast('體脂%數值看起來不太合理，麻煩再確認一下'); return; }
+    carbNoteVal = document.getElementById('carb-note-inp') ? document.getElementById('carb-note-inp').value : '';
   }
   _submitDailySaving = true;
   var _sdBtn = document.getElementById('submit-daily-btn');
@@ -4489,7 +4497,8 @@ function submitDailyRecord() {
   callAPI({
     action: 'addDailyRecord', clientId: CLIENT_ID,
     ketone: k, weight: w, waist: waist_val, feeling: f.join(','), electrolyte: e.join(','),
-    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal
+    exercise: exerciseVal, bowelMovement: bowelVal, carbs: carbsVal,
+    bodyFat: bodyFatVal, note: carbNoteVal
   }, function(d) {
     _submitDailySaving = false;
     if (_sdBtn) { _sdBtn.disabled = false; _sdBtn.style.opacity = ''; _sdBtn.style.cursor = 'pointer'; }
@@ -4529,6 +4538,13 @@ function submitDailyRecord() {
       // 存成功後也要保持綠色，不是只有血酮/體重/腰圍這幾個才要
       if(carbsVal && parseFloat(carbsVal) >= 0) {
         var carbInpEl = document.getElementById('carb-inp'); if(carbInpEl) carbInpEl.classList.add('saved');
+      }
+      // 2026-09-14補：體脂%、備註欄位跟碳水克數同一種待遇，存成功後也要保持綠色
+      if(bodyFatVal && parseFloat(bodyFatVal) > 0) {
+        var bodyFatInpEl = document.getElementById('carb-bodyfat-inp'); if(bodyFatInpEl) bodyFatInpEl.classList.add('saved');
+      }
+      if(carbNoteVal) {
+        var carbNoteInpEl = document.getElementById('carb-note-inp'); if(carbNoteInpEl) carbNoteInpEl.classList.add('saved');
       }
       updateGardenProgress();
       updateDayTot(); calcProg();
