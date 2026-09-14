@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-14d';
+var MX_BUILD = '2026-09-14e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -496,6 +496,15 @@ window.openHealthForm = function() {
             <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#6B7280" id="home-gt6-check">○</div>
             <div style="flex:1;font-size:11px;color:#374151">💬 今日心情</div>
             <div style="font-size:12px;color:#6B7280">點擊記錄</div>
+          </div>
+          <!-- 2026-09-14e新增：碳水回補記錄——客人反應「都要在花園清單裡才看得到」，所以直接加在這份
+               清單最後一項，跟前面7項並排。跟前面7項不同的地方：①不計入上面「X/7」的花園任務進度
+               （因為只有醫師核准開始吃碳水的客人才有這一項，計進去對其他客人不公平），②預設是鎖住
+               灰色狀態（🔒尚未開通、不能點），等loadCarbPlan()確認秘書已核准才會解鎖成可以點擊記錄 -->
+          <div class="g-task" id="home-gt-carb" onclick="goCarbRecordPage()" style="display:flex;align-items:center;gap:9px;background:#F3F4F6;border-radius:10px;padding:8px 11px;cursor:default;transition:all .15s;opacity:.7">
+            <div style="width:20px;height:20px;border-radius:50%;background:#E5E7EB;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9CA3AF" id="home-gt-carb-check">🔒</div>
+            <div style="flex:1;font-size:11px;color:#374151">🍚 碳水記錄</div>
+            <div style="font-size:12px;color:#9CA3AF" id="home-gt-carb-action">尚未開通</div>
           </div>
         </div>
 
@@ -4402,6 +4411,8 @@ function loadCarbPlan(){
     if(refeedSection) refeedSection.style.background = _carbRefeedActive ? 'var(--g2)' : 'var(--bg2)';
     if(refeedSection) refeedSection.style.borderColor = _carbRefeedActive ? 'var(--g)' : 'var(--border)';
     if(refeedTitle) refeedTitle.style.color = _carbRefeedActive ? 'var(--g3)' : 'var(--text3)';
+    // 2026-09-14e：首頁花園清單裡的「🍚 碳水記錄」第8項，鎖住/解鎖外觀也跟著這裡的核准狀態切換
+    if(typeof updateHomeCarbLock === 'function') updateHomeCarbLock();
     var card = document.getElementById('carb-plan-card');
     var txt = document.getElementById('carb-plan-text');
     var homeCard = document.getElementById('carb-home-card');
@@ -4565,6 +4576,10 @@ function submitDailyRecord() {
       // 存成功後也要保持綠色，不是只有血酮/體重/腰圍這幾個才要
       if(carbsVal && parseFloat(carbsVal) >= 0) {
         var carbInpEl = document.getElementById('carb-inp'); if(carbInpEl) carbInpEl.classList.add('saved');
+        // 2026-09-14e：今天記錄過碳水了，首頁花園清單那顆「🍚 碳水記錄」也要打勾，
+        // 跟血酮/體重/電解質那幾項一樣存進🌱花園任務表，之後重新整理頁面才能正確恢復狀態
+        syncGardenTask('碳水回補記錄', true);
+        if(typeof updateHomeCarbTask === 'function') updateHomeCarbTask(true);
       }
       // 2026-09-14補：體脂%、備註欄位跟碳水克數同一種待遇，存成功後也要保持綠色
       if(bodyFatVal && parseFloat(bodyFatVal) > 0) {
@@ -4592,6 +4607,59 @@ function syncGardenTask(taskName, done) {
     taskName: taskName, done: done ? 'true' : 'false',
     travelMode: gsTravelMode ? 'true' : 'false'
   });
+}
+
+// 2026-09-14e新增：首頁花園清單裡「🍚 碳水記錄」這第8項的點擊/鎖住邏輯，跟其他7項分開寫，
+// 故意不共用goTaskPage()／updateHomeTask()——那兩支是綁死gsTasks[0..6]、doneCnt、celebrateTask(i,...)
+// 這套7項計數系統的，碳水這項不算進「X/7」進度，混進去會讓計數跟慶祝動畫的index對不起來
+function goCarbRecordPage(){
+  if(!_carbRefeedActive){
+    toast('🔒 這個功能要等秘書/醫師核准開始吃碳水後才會開通，先跟你的健康秘書確認一下 😊');
+    return;
+  }
+  goPage('record', '每日記錄');
+  setTimeout(function(){
+    var el = document.getElementById('carb-refeed-section');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 300);
+}
+// 依_carbRefeedActive切換鎖住／解鎖的外觀（loadCarbPlan()確認核准狀態後呼叫）
+function updateHomeCarbLock(){
+  var row = document.getElementById('home-gt-carb');
+  var check = document.getElementById('home-gt-carb-check');
+  var action = document.getElementById('home-gt-carb-action');
+  if(!row || !check || !action) return;
+  if(_carbRefeedActive){
+    row.style.cursor = 'pointer';
+    row.style.opacity = '';
+    var isDone = row.getAttribute('data-done') === '1';
+    check.textContent = isDone ? '✓' : '○';
+    check.style.background = isDone ? '#1D9E75' : '#E5E7EB';
+    check.style.border = '1.5px solid ' + (isDone ? '#085041' : '#D1D5DB');
+    check.style.color = isDone ? '#fff' : '#6B7280';
+    if(!isDone){ row.style.background = '#F3F4F6'; row.style.borderLeft = ''; }
+    action.textContent = '點擊記錄 →';
+    action.style.color = '#6B7280';
+  } else {
+    row.style.cursor = 'default';
+    row.style.opacity = '.7';
+    row.style.background = '#F3F4F6';
+    row.style.borderLeft = '';
+    check.textContent = '🔒';
+    check.style.background = '#E5E7EB';
+    check.style.border = '1.5px solid #D1D5DB';
+    check.style.color = '#9CA3AF';
+    action.textContent = '尚未開通';
+    action.style.color = '#9CA3AF';
+  }
+}
+// 標記今天是否已經記錄過碳水（只影響外觀跟data-done，不動gsTasks/花園進度計數）
+function updateHomeCarbTask(done){
+  var row = document.getElementById('home-gt-carb');
+  if(!row) return;
+  row.setAttribute('data-done', done ? '1' : '0');
+  if(done){ row.style.background = '#E1F5EE'; row.style.borderLeft = '3px solid #1D9E75'; }
+  updateHomeCarbLock();
 }
 
 // ── IRCT預約完成 ──
@@ -8755,6 +8823,9 @@ function loadTodayGarden(){
     gardenTasksDone = gsTasks.filter(Boolean).length;
     if(typeof updateGardenVisual==='function') updateGardenVisual();
     if(typeof updateGardenProgress==='function') updateGardenProgress();
+    // 2026-09-14e：碳水記錄這項不在gsTasks[0..6]裡（不計入X/7進度），要另外單獨還原今天的打勾狀態，
+    // 不然重新整理頁面後，今天明明記錄過碳水，卻又看起來變回沒記錄
+    if(done.indexOf('碳水回補記錄')>=0 && typeof updateHomeCarbTask==='function') updateHomeCarbTask(true);
     // 今天還沒任何記錄 → 花園是「清新的一天」狀態
     var hint=document.getElementById('gs-label');
     if(hint && gardenTasksDone===0) hint.textContent='新的一天開始了，今天也要好好照顧自己 🌱';
