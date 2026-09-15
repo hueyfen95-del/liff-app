@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-15h';
+var MX_BUILD = '2026-09-15j';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -702,6 +702,28 @@ var MX_BUILD = '2026-09-15h';
 
 <!-- ══ 排班交接 ══ -->
 <div class="pg" id="pg-duty">
+  <!-- 2026-09-15搬到最上面＋強化：創辦人反映想一打開「排班交接」就看到這個月／下個月排好的班，
+       才能趕緊叫還沒排班的人補上，不用自己往下滑、也不用自己對日曆抓哪幾天沒人排。
+       加了「這個月／下個月」快速切換鈕（預設顯示這個月＝原本的排班，點了才會換），
+       以及自動列出「目前完全沒有人排班的日期」提示區塊。 -->
+  <div class="card" id="full-schedule-card" style="margin-bottom:14px">
+    <div class="card-hd">
+      <div class="card-title"><i class="ti ti-calendar-month"></i>📅 本月／下月排班總表</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <button class="tb-btn" id="fs-btn-this" style="font-size:11px;padding:5px 10px" onclick="fsQuickMonth(0)">這個月</button>
+        <button class="tb-btn" id="fs-btn-next" style="font-size:11px;padding:5px 10px" onclick="fsQuickMonth(1)">下個月</button>
+        <input id="full-sched-month" type="month" class="form-input" style="font-size:12px;padding:6px 9px" onchange="loadFullSchedule()">
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="full-sched-summary" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
+      <div id="full-sched-gaps" style="display:none;font-size:11.5px;color:#A32D2D;background:#FBEAEA;border:1px solid #F0C0B0;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.7"></div>
+      <table class="dt"><thead><tr><th>日期</th><th>星期</th><th>秘書</th><th>時段</th><th>備註</th></tr></thead>
+      <tbody id="full-sched-tbody">
+        <tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
+      </tbody></table>
+    </div>
+  </div>
   <div class="card" style="margin-bottom:14px">
     <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>📅 新增排班記錄</div></div>
     <div class="card-body">
@@ -766,24 +788,6 @@ var MX_BUILD = '2026-09-15h';
       <button onclick="saveHandoverNote()" style="margin-top:8px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px;font-size:13px;cursor:pointer;width:100%;font-weight:600">儲存交接</button>
     </div></div>
     <!-- 2026-09-05f：移除，改由runPageLoader('duty')統一負責（見下方），避免登入前CURRENT_USER還是null時就呼叫adminAPI，觸發「登入逾時」誤報 -->
-  </div>
-  <!-- 2026-09-15新增：完整月班表查詢——原本「今日值班／本週排班」只看得到這禮拜，創辦人反映看不到
-       整個月排好的班，只能自己開Google試算表翻。這裡補一個可選月份、全部秘書排在一起的完整班表。 -->
-  <div class="card" id="full-schedule-card" style="margin-bottom:14px">
-    <div class="card-hd">
-      <div class="card-title"><i class="ti ti-calendar-month"></i>📅 完整班表查詢</div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <input id="full-sched-month" type="month" class="form-input" style="font-size:12px;padding:6px 9px" onchange="loadFullSchedule()">
-        <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="loadFullSchedule()"><i class="ti ti-refresh" style="font-size:13px"></i>查詢</button>
-      </div>
-    </div>
-    <div class="card-body">
-      <div id="full-sched-summary" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
-      <table class="dt"><thead><tr><th>日期</th><th>星期</th><th>秘書</th><th>時段</th><th>備註</th></tr></thead>
-      <tbody id="full-sched-tbody">
-        <tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
-      </tbody></table>
-    </div>
   </div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-calendar-event"></i>下月排班意願</div></div><div class="card-body">
     <div style="font-size:12px;color:var(--text2);margin-bottom:11px">選擇可輪值的週次（可複選）和偏好時段（單選）</div>
@@ -4679,27 +4683,84 @@ function loadShiftSchedule(){
 }
 // 2026-09-15新增：完整月班表查詢——跟loadShiftSchedule()共用同一張「💰 排班記錄」表，只是換成
 // 可指定月份、不限本週的完整版本，讓創辦人不用開Google試算表就能看到整個月排好的班。
+function fsDaysInMonth(ym){
+  var parts = (ym||'').split('-');
+  var y = parseInt(parts[0],10), m = parseInt(parts[1],10);
+  if(!y || !m) return 0;
+  return new Date(y, m, 0).getDate();
+}
+// 2026-09-15新增：「這個月／下個月」快速切換——不用自己開日期選單找月份
+function fsQuickMonth(offset){
+  var mEl = document.getElementById('full-sched-month');
+  if(!mEl) return;
+  var now = new Date();
+  var target = new Date(now.getFullYear(), now.getMonth()+offset, 1);
+  mEl.value = target.getFullYear() + '-' + String(target.getMonth()+1).padStart(2,'0');
+  loadFullSchedule();
+}
 function loadFullSchedule(){
   var mEl = document.getElementById('full-sched-month');
   var tbody = document.getElementById('full-sched-tbody');
   var summary = document.getElementById('full-sched-summary');
+  var gapsBox = document.getElementById('full-sched-gaps');
   if(!tbody) return;
   if(mEl && !mEl.value){
     var now = new Date();
     mEl.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
   }
   var month = mEl ? mEl.value : '';
+  // 「這個月／下個月」按鈕高亮，一眼看出現在顯示的是哪個月（沒有刻意點選就是這個月＝原本的排班）
+  try {
+    var now2 = new Date();
+    var thisYM = now2.getFullYear() + '-' + String(now2.getMonth()+1).padStart(2,'0');
+    var nextD2 = new Date(now2.getFullYear(), now2.getMonth()+1, 1);
+    var nextYM = nextD2.getFullYear() + '-' + String(nextD2.getMonth()+1).padStart(2,'0');
+    var bThis = document.getElementById('fs-btn-this'), bNext = document.getElementById('fs-btn-next');
+    if(bThis){ bThis.style.background = month===thisYM ? 'var(--g)' : ''; bThis.style.color = month===thisYM ? '#fff' : ''; bThis.style.borderColor = month===thisYM ? 'var(--g)' : ''; }
+    if(bNext){ bNext.style.background = month===nextYM ? 'var(--g)' : ''; bNext.style.color = month===nextYM ? '#fff' : ''; bNext.style.borderColor = month===nextYM ? 'var(--g)' : ''; }
+  } catch(e){}
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>';
+  if(gapsBox) gapsBox.style.display = 'none';
   adminAPI({action:'getShiftScheduleMonth', month:month}, function(d){
     tbody = document.getElementById('full-sched-tbody');
     summary = document.getElementById('full-sched-summary');
+    gapsBox = document.getElementById('full-sched-gaps');
     if(!tbody) return;
     if(!d || d.status!=='ok'){
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入失敗，請重新整理</td></tr>';
       return;
     }
     var items = d.items||[];
-    if(summary) summary.textContent = (d.month||month)+'　共 '+items.length+' 筆排班';
+    var actualMonth = d.month || month;
+    if(summary) summary.textContent = actualMonth+'　共 '+items.length+' 筆排班';
+
+    // 2026-09-15新增：算出這個月哪幾天完全沒有人排班，管理者才知道要趕緊叫誰補上
+    if(gapsBox){
+      try {
+        var wdNames0 = ['日','一','二','三','四','五','六'];
+        var scheduledDates = {};
+        items.forEach(function(s){ if(s.date) scheduledDates[s.date] = true; });
+        var totalDays = fsDaysInMonth(actualMonth);
+        var gapDates = [];
+        for(var dd=1; dd<=totalDays; dd++){
+          var dateStr = actualMonth + '-' + String(dd).padStart(2,'0');
+          if(!scheduledDates[dateStr]) gapDates.push(dateStr);
+        }
+        if(gapDates.length > 0){
+          var gapLabels = gapDates.map(function(ds){
+            var wd = '';
+            try { wd = wdNames0[new Date(ds+'T00:00:00').getDay()]; } catch(e){}
+            var md = ds.slice(5).replace('-','/');
+            return md+'（週'+wd+'）';
+          });
+          gapsBox.innerHTML = '⚠️ 這個月還有 <b>'+gapDates.length+'</b> 天目前完全沒有人排班，記得提醒秘書補上：<br>'+gapLabels.join('、');
+          gapsBox.style.display = '';
+        } else {
+          gapsBox.style.display = 'none';
+        }
+      } catch(e){ gapsBox.style.display = 'none'; }
+    }
+
     if(items.length===0){
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">這個月還沒有排班記錄</td></tr>';
       return;
@@ -6942,7 +7003,10 @@ var MEAL_REPLY_TEMPLATES = [
   '這餐的加工食品成分較多，下次盡量選原型食物。',
   '蔬菜量可以再多一點，葉菜、菇類不限量，放心加。',
   '這餐搭配得不錯，只要把醬料換掉就更完美了。',
-  '建議進食順序：先喝湯或吃菜、再吃蛋白質、最後才吃碳水，血糖會更穩。'
+  '建議進食順序：先喝湯或吃菜、再吃蛋白質、最後才吃碳水，血糖會更穩。',
+  '您這幾天流汗或飲水量較多，記得補充電解質，避免頭暈、無力。',
+  '低碳飲食容易流失鈉離子，記得同時補充電解質＋鹽，才不會不舒服。',
+  '如果有便秘或口渴的狀況，記得補充一點鹽分就會改善，這是很常見的情況，不用擔心 🙂'
 ];
 function _mealReplyUI(uid){
   return '<div class="mr-wrap" style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
