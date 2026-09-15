@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-15k';
+var MX_BUILD = '2026-09-15m';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -702,10 +702,13 @@ var MX_BUILD = '2026-09-15k';
 
 <!-- ══ 排班交接 ══ -->
 <div class="pg" id="pg-duty">
-  <!-- 2026-09-15搬到最上面＋強化：創辦人反映想一打開「排班交接」就看到這個月／下個月排好的班，
-       才能趕緊叫還沒排班的人補上，不用自己往下滑、也不用自己對日曆抓哪幾天沒人排。
-       加了「這個月／下個月」快速切換鈕（預設顯示這個月＝原本的排班，點了才會換），
-       以及自動列出「目前完全沒有人排班的日期」提示區塊。 -->
+  <!-- 2026-09-15整合：創辦人一開始要求把「完整班表查詢」搬到最上面；後來又發現搬上去之後跟旁邊
+       「排班意願彙整・缺人警示」是兩份不同資料（一個是確定日期的正式班表、一個是週次x時段的意願），
+       兩張分開看兜不起來、看不懂；這次直接合併成「同一張表」——每一天一列，該天有正式排班就顯示
+       綠色已確認，沒有正式排班但當週有秘書填意願就顯示黃色待確認＋「確認排班」按鈕（一鍵把秘書／
+       日期／時段帶進下面「新增排班記錄」表單，稍微調整時間就能送出，達成「盡快排班進去」），
+       完全沒人（也沒意願）就顯示紅色＋「提醒」按鈕（直接發一則交接留言提醒全體秘書，達成
+       「盡快找到誰沒排班」＋「能提醒秘書」三個目的）。 -->
   <div class="card" id="full-schedule-card" style="margin-bottom:14px">
     <div class="card-hd">
       <div class="card-title"><i class="ti ti-calendar-month"></i>📅 本月／下月排班總表</div>
@@ -716,27 +719,13 @@ var MX_BUILD = '2026-09-15k';
       </div>
     </div>
     <div class="card-body">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:8px;background:var(--bg);border-radius:7px;padding:6px 9px">ℹ️ 這裡顯示的是已經用下面「新增排班記錄」確定日期的正式班表——跟下一張卡片「排班意願彙整」不是同一份資料，意願被標記「已排定」不會自動出現在這裡，要記得也幫忙按「新增排班記錄」建進去，這裡跟打卡系統才抓得到。</div>
+      <div id="full-sched-legend" style="font-size:11px;color:var(--text3);margin-bottom:8px;background:var(--bg);border-radius:7px;padding:6px 9px;line-height:1.6"></div>
       <div id="full-sched-summary" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
       <div id="full-sched-gaps" style="display:none;font-size:11.5px;color:#A32D2D;background:#FBEAEA;border:1px solid #F0C0B0;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.7"></div>
-      <table class="dt"><thead><tr><th>日期</th><th>星期</th><th>秘書</th><th>時段</th><th>備註</th></tr></thead>
+      <div style="overflow-x:auto"><table class="dt" style="min-width:640px"><thead><tr><th>日期</th><th>星期</th><th>排班狀況</th><th>動作</th></tr></thead>
       <tbody id="full-sched-tbody">
-        <tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
-      </tbody></table>
-    </div>
-  </div>
-  <!-- 2026-09-15搬到這裡＋強化：創辦人反映跟上面「本月／下月排班總表」放太遠、對照不起來，看不懂
-       為什麼上面顯示都沒人排、下面卻已經有人「標記已排定」——因為這兩張卡片本來就是不同資料（上面是
-       確定日期的正式班表，這張是秘書填的彈性「週次 x 時段」意願），搬到緊接在一起＋各自加說明文字，
-       兩張放在一起比較好懂，也提醒「標記已排定」不會自動變成正式班表。 -->
-  <div class="card" id="shift-wish-summary-card" style="display:none;margin-bottom:14px;border:1px solid #F0C0B0">
-    <div class="card-hd">
-      <div class="card-title"><i class="ti ti-calendar-stats"></i>排班意願彙整・缺人警示（管理人專屬）</div>
-      <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="loadShiftWishSummary()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
-    </div>
-    <div class="card-body">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:9px;background:var(--bg);border-radius:7px;padding:6px 9px">ℹ️ 這裡是秘書填的「意願」，只到「第幾週＋哪個時段」，不是確切日期；下面「標記已排定」只是註記意願已確認，並不會自動變成上面「本月／下月排班總表」的正式排班，確定的班次還是要手動用「新增排班記錄」建一筆才算數。</div>
-      <div id="shift-wish-summary-body" style="font-size:12px;color:var(--text3);padding-top:8px">載入中…</div>
+        <tr><td colspan="4" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
+      </tbody></table></div>
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
@@ -4600,6 +4589,14 @@ function exportAllTestsCSV(){
 // 排班時間改成整點選擇，不用選到分鐘，值班頁面載入時就先填好選項
 // 值班頁面載入時，把帳號清單填進秘書下拉選單，選了之後自動帶出後台設定好的薪資(不用秘書自己打)
 var _dutySecretaryAccounts = [];
+// 2026-09-15新增：跟後端 isDutyAdminRole_ 對應的前端版本——只用來決定「要不要顯示/預選」，
+// 真正擋得住的權限判斷在後端（addShift/getShiftScheduleMonth 都已經加了角色檢查），這裡只是體驗一致
+function mxIsDutyAdmin(){
+  if(!CURRENT_USER) return false;
+  if(CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆' || CURRENT_USER.role === '創始人' || CURRENT_USER.role === '行政') return true;
+  var other = CURRENT_USER.otherRoles || [];
+  return other.indexOf('行政') >= 0;
+}
 function loadDutySecretaryOptions(){
   var sel = document.getElementById('duty-secretary');
   if(!sel) return;
@@ -4609,9 +4606,18 @@ function loadDutySecretaryOptions(){
     sel = document.getElementById('duty-secretary');
     if(!sel || !d || !d.staff) return;
     _dutySecretaryAccounts = d.staff;
-    sel.innerHTML = '<option value="">選擇秘書…</option>' + d.staff.map(function(a){
+    // 2026-09-15新增：創辦人指示只有管理者/行政能幫別人排班——一般秘書的下拉直接只列自己，
+    // 避免選到別人、送出時被後端擋下才發現
+    var isAdmin = mxIsDutyAdmin();
+    var list = d.staff;
+    if(!isAdmin){
+      var myName = (CURRENT_USER && CURRENT_USER.name) || '';
+      list = d.staff.filter(function(a){ return a.name === myName; });
+    }
+    sel.innerHTML = '<option value="">選擇秘書…</option>' + list.map(function(a){
       return '<option value="'+escH(a.name)+'">'+escH(a.name)+'</option>';
     }).join('');
+    if(!isAdmin && list.length === 1){ sel.value = list[0].name; loadSecretaryPayInfo(); }
     adminAPI({action:'getAdminAccounts'}, function(d2){
       if(d2 && d2.accounts) _dutySecretaryAccounts = d2.accounts;
     });
@@ -4703,6 +4709,27 @@ function fsQuickMonth(offset){
   mEl.value = target.getFullYear() + '-' + String(target.getMonth()+1).padStart(2,'0');
   loadFullSchedule();
 }
+// 2026-09-15：把某天（幾號）對應到秘書填意願時用的「第幾週」標籤——意願表單本來就只問「第幾週」不是
+// 確切日期，這裡用固定切法對應回日期，才能跟「本月／下月排班總表」合併成同一張表
+function fsWeekOfMonth(dd){
+  if(dd<=7) return '第一週';
+  if(dd<=14) return '第二週';
+  if(dd<=21) return '第三週';
+  return '第四週';
+}
+// 2026-09-15新增：「這個月／下個月」快速切換——不用自己開日期選單找月份
+function fsQuickMonth(offset){
+  var mEl = document.getElementById('full-sched-month');
+  if(!mEl) return;
+  var now = new Date();
+  var target = new Date(now.getFullYear(), now.getMonth()+offset, 1);
+  mEl.value = target.getFullYear() + '-' + String(target.getMonth()+1).padStart(2,'0');
+  loadFullSchedule();
+}
+// 2026-09-15合併：原本「完整班表查詢」（正式排班，按日期）跟「排班意願彙整」（意願，按週次x時段）
+// 是兩張分開的卡片、兩份不同資料，創辦人反映看不懂、對不起來。這裡改成同時抓兩份資料、合併成一張
+// 「一天一列」的表：有正式排班＝綠色；沒有正式排班但當週有人填意願＝黃色＋可一鍵帶進新增排班表單；
+// 兩者都沒有＝紅色＋可一鍵發提醒。
 function loadFullSchedule(){
   var mEl = document.getElementById('full-sched-month');
   var tbody = document.getElementById('full-sched-tbody');
@@ -4724,67 +4751,166 @@ function loadFullSchedule(){
     if(bThis){ bThis.style.background = month===thisYM ? 'var(--g)' : ''; bThis.style.color = month===thisYM ? '#fff' : ''; bThis.style.borderColor = month===thisYM ? 'var(--g)' : ''; }
     if(bNext){ bNext.style.background = month===nextYM ? 'var(--g)' : ''; bNext.style.color = month===nextYM ? '#fff' : ''; bNext.style.borderColor = month===nextYM ? 'var(--g)' : ''; }
   } catch(e){}
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>';
   if(gapsBox) gapsBox.style.display = 'none';
-  adminAPI({action:'getShiftScheduleMonth', month:month}, function(d){
+
+  var scheduleData = null, wishData = null, pending = 2, failed = false;
+  // 2026-09-15新增：創辦人指示「只有管理者和行政」能看到全部秘書的班表、能操作確認/提醒——一般秘書
+  // 只能看到自己的排班跟需要補的空班，看不到其他秘書排的班。真正的資料過濾已經在後端 getShiftScheduleMonth
+  // 做了（items 只會含自己的，其他人的班只給 coveredDates 這種不含身分的日期清單），這裡的 scheduleData.restricted
+  // 是後端權威判斷，前端直接照這個旗標決定怎麼畫，不用自己再判斷一次角色。
+  function afterBoth(){
     tbody = document.getElementById('full-sched-tbody');
     summary = document.getElementById('full-sched-summary');
     gapsBox = document.getElementById('full-sched-gaps');
+    var legendEl = document.getElementById('full-sched-legend');
     if(!tbody) return;
-    if(!d || d.status!=='ok'){
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入失敗，請重新整理</td></tr>';
+    if(failed || !scheduleData || scheduleData.status!=='ok'){
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入失敗，請重新整理</td></tr>';
       return;
     }
-    var items = d.items||[];
-    var actualMonth = d.month || month;
-    if(summary) summary.textContent = actualMonth+'　共 '+items.length+' 筆排班';
-
-    // 2026-09-15新增：算出這個月哪幾天完全沒有人排班，管理者才知道要趕緊叫誰補上
-    if(gapsBox){
-      try {
-        var wdNames0 = ['日','一','二','三','四','五','六'];
-        var scheduledDates = {};
-        items.forEach(function(s){ if(s.date) scheduledDates[s.date] = true; });
-        var totalDays = fsDaysInMonth(actualMonth);
-        var gapDates = [];
-        for(var dd=1; dd<=totalDays; dd++){
-          var dateStr = actualMonth + '-' + String(dd).padStart(2,'0');
-          if(!scheduledDates[dateStr]) gapDates.push(dateStr);
-        }
-        if(gapDates.length > 0){
-          var gapLabels = gapDates.map(function(ds){
-            var wd = '';
-            try { wd = wdNames0[new Date(ds+'T00:00:00').getDay()]; } catch(e){}
-            var md = ds.slice(5).replace('-','/');
-            return md+'（週'+wd+'）';
-          });
-          gapsBox.innerHTML = '⚠️ 這個月還有 <b>'+gapDates.length+'</b> 天目前完全沒有人排班，記得提醒秘書補上：<br>'+gapLabels.join('、');
-          gapsBox.style.display = '';
-        } else {
-          gapsBox.style.display = 'none';
-        }
-      } catch(e){ gapsBox.style.display = 'none'; }
-    }
-
-    if(items.length===0){
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">這個月還沒有排班記錄</td></tr>';
-      return;
-    }
+    var items = scheduleData.items || [];
+    var actualMonth = scheduleData.month || month;
+    var todayStr = scheduleData.todayStr || '';
+    var isFullView = !scheduleData.restricted;
+    var coveredByOther = {};
+    (scheduleData.coveredDates || []).forEach(function(ds){ coveredByOther[ds] = true; });
+    var myName = (CURRENT_USER && CURRENT_USER.name) || '';
+    var matrix = buildShiftWishMatrix((wishData && wishData.items) || []);
+    var byDate = {};
+    items.forEach(function(s){ (byDate[s.date] = byDate[s.date] || []).push(s); });
+    var totalDays = fsDaysInMonth(actualMonth);
     var wdNames = ['日','一','二','三','四','五','六'];
-    var todayStr = d.todayStr || '';
-    tbody.innerHTML = items.map(function(s){
-      var isToday = s.date === todayStr;
-      var wd = '';
-      try { wd = '週'+wdNames[new Date(s.date+'T00:00:00').getDay()]; } catch(e){}
-      var timeLabel = (s.startTime&&s.endTime) ? (s.startTime+'–'+s.endTime) : '';
-      return '<tr'+(isToday?' style="background:var(--g2)"':'')+'>'
-        + '<td style="'+(isToday?'font-weight:700':'')+'">'+escH(s.date)+(isToday?'（今天）':'')+'</td>'
-        + '<td>'+escH(wd)+'</td>'
-        + '<td>'+escH(s.secretary)+'</td>'
-        + '<td>'+escH((s.shift||'')+(timeLabel?'　'+timeLabel:''))+'</td>'
-        + '<td style="color:var(--text3)">'+escH(s.note||'')+'</td>'
-        + '</tr>';
-    }).join('');
+    var confirmedDays = 0, gapHasWish = 0, gapNoWish = 0;
+    var noWishDates = [];
+    var rows = [];
+
+    if(legendEl){
+      legendEl.textContent = isFullView
+        ? '🟢已確認排班　🟡秘書已填意願、還沒正式排進去　🔴完全沒人也沒意願　——　🟡的意願用「1–7日＝第一週、8–14日＝第二週、15–21日＝第三週、22日以後＝第四週」對應到日期，只計最近40天內填的意願'
+        : '🟢你已經排定　🟡你已填意願、還沒正式排進去　🔴這天還沒有人排班，需要人補上　——　這裡只顯示你自己的排班和需要補的空班，其他秘書排的班不會顯示在這裡';
+    }
+
+    for(var dd=1; dd<=totalDays; dd++){
+      var dateStr = actualMonth + '-' + String(dd).padStart(2,'0');
+      var isToday = dateStr === todayStr;
+      var wd = ''; try { wd = wdNames[new Date(dateStr+'T00:00:00').getDay()]; } catch(e){}
+      var confirmed = byDate[dateStr] || [];
+      var statusHtml, actionHtml;
+      if(confirmed.length > 0){
+        confirmedDays++;
+        statusHtml = confirmed.map(function(s){
+          var t = (s.startTime && s.endTime) ? (s.startTime+'–'+s.endTime) : '';
+          var label = isFullView ? escH(s.secretary) : '你';
+          return '<span style="display:inline-block;background:#E3F3E8;color:#1A6B3C;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;margin:2px 4px 2px 0">🟢 '+label+(t?'　'+escH(t):(s.shift?'　'+escH(s.shift):''))+'</span>';
+        }).join('');
+        actionHtml = isFullView ? '<span style="color:var(--text3);font-size:11px">已確認，不用處理</span>' : '';
+      } else if(!isFullView && coveredByOther[dateStr]){
+        // 秘書視角：這天已經有別的秘書排了，不顯示是誰、也不用他處理
+        statusHtml = '<span style="color:var(--text3);font-size:11.5px">已有人排定</span>';
+        actionHtml = '';
+      } else {
+        var weekLabel = fsWeekOfMonth(dd);
+        var wishChips = [];
+        SHIFT_WISH_SLOTS.forEach(function(slot){
+          ((matrix[weekLabel] && matrix[weekLabel][slot]) || []).forEach(function(w){
+            if(isFullView || w.secretary === myName) wishChips.push({ secretary: w.secretary, slot: slot });
+          });
+        });
+        if(wishChips.length > 0){
+          gapHasWish++;
+          statusHtml = wishChips.map(function(w){
+            var label = isFullView ? escH(w.secretary) : '你';
+            return '<span style="display:inline-block;background:#FCF3D9;color:#8A6A1F;border-radius:6px;padding:3px 9px;font-size:11px;font-weight:700;margin:2px 4px 2px 0">🟡 '+label+' 想排'+escH(w.slot.replace(/[0-9:–]/g,''))+'</span>';
+          }).join('');
+          actionHtml = isFullView ? (wishChips.map(function(w){
+            return '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px;margin:2px 4px 2px 0" onclick="fsConfirmWish(\''+dateStr+'\',\''+w.secretary+'\',\''+w.slot+'\')">✅ 確認排班</button>';
+          }).join('') + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 9px;margin:2px 0" onclick="fsRemindGap(\''+dateStr+'\',this,true)">🔔 提醒</button>') : '';
+        } else {
+          gapNoWish++;
+          noWishDates.push(dateStr);
+          statusHtml = '<span style="color:#A32D2D;font-weight:700;font-size:11.5px">🔴 '+(isFullView?'沒人，也還沒人填意願':'這天還沒有人排班，需要人補上')+'</span>';
+          actionHtml = isFullView ? ('<button class="ai-btn gray" style="font-size:10.5px;padding:4px 9px" onclick="fsRemindGap(\''+dateStr+'\',this,false)">🔔 提醒秘書</button>') : '';
+        }
+      }
+      rows.push('<tr'+(isToday?' style="background:var(--g2)"':'')+'>'
+        + '<td style="'+(isToday?'font-weight:700':'')+'">'+escH(dateStr)+(isToday?'（今天）':'')+'</td>'
+        + '<td>週'+escH(wd)+'</td>'
+        + '<td>'+statusHtml+'</td>'
+        + '<td>'+actionHtml+'</td>'
+        + '</tr>');
+    }
+    if(summary){
+      summary.textContent = isFullView
+        ? (actualMonth+'　🟢已確認 '+confirmedDays+' 天　🟡有意願未確認 '+gapHasWish+' 天　🔴完全沒人 '+gapNoWish+' 天')
+        : (actualMonth+'　🟢你已排 '+confirmedDays+' 天　🔴還缺 '+(gapHasWish+gapNoWish)+' 天需要人補上（其中 '+gapHasWish+' 天你已填過意願）');
+    }
+    window._fsNoWishDates = noWishDates;
+    if(gapsBox){
+      if(noWishDates.length > 0){
+        var wdNames0 = wdNames;
+        var gapLabels = noWishDates.map(function(ds){
+          var w = ''; try { w = wdNames0[new Date(ds+'T00:00:00').getDay()]; } catch(e){}
+          return ds.slice(5).replace('-','/')+'（週'+w+'）';
+        });
+        gapsBox.innerHTML = '⚠️ 這個月還有 <b>'+noWishDates.length+'</b> 天完全沒人排班'+(isFullView?'、也沒人填意願':'')+'：<br>'+gapLabels.join('、')
+          + (isFullView ? '<div style="margin-top:8px"><button class="ai-btn" style="font-size:11px;padding:5px 11px;background:#A32D2D;color:#fff;border:none" onclick="fsRemindAllGaps(this)">🔔 一鍵提醒全部秘書</button></div>' : '');
+        gapsBox.style.display = '';
+      } else {
+        gapsBox.style.display = 'none';
+      }
+    }
+    tbody.innerHTML = rows.join('');
+  }
+  adminAPI({action:'getShiftScheduleMonth', month:month}, function(d){ scheduleData = d; if(!d || d.status!=='ok') failed = true; pending--; if(pending===0) afterBoth(); });
+  adminAPI({action:'getHandoverHistory'}, function(d){ wishData = d; pending--; if(pending===0) afterBoth(); });
+}
+// 2026-09-15新增：點「確認排班」——把秘書／日期／建議時段帶進下面「新增排班記錄」表單，
+// 秘書確認/微調時間後按送出就完成正式排班，不用重新手動輸入
+function fsConfirmWish(dateStr, secretaryName, slotLabel){
+  var m = String(slotLabel||'').match(/^([^\d]+)([\d:–]+)$/);
+  var periodName = m ? m[1] : slotLabel;
+  var timeRange = m ? m[2] : '';
+  var sel = document.getElementById('duty-secretary');
+  var dateEl = document.getElementById('duty-date');
+  var shiftEl = document.getElementById('duty-shift');
+  if(sel){ sel.value = secretaryName; if(typeof loadSecretaryPayInfo==='function') loadSecretaryPayInfo(); }
+  if(dateEl) dateEl.value = dateStr;
+  if(shiftEl) shiftEl.value = periodName+'班'+(timeRange?'（'+timeRange+'）':'');
+  var wrap = sel ? sel.closest('.card') : null;
+  if(wrap && wrap.scrollIntoView) wrap.scrollIntoView({behavior:'smooth', block:'center'});
+  toast('✅ 已幫你帶入「新增排班記錄」：'+secretaryName+'　'+dateStr+'，確認/微調時間後按「新增排班」就完成');
+}
+// 2026-09-15新增：點「提醒」——直接發一則交接留言（全體秘書可見），不用自己另外傳訊息
+function fsRemindGap(dateStr, btn, hasWish){
+  if(btn){ btn.disabled = true; btn.style.opacity = '.5'; }
+  var wdNames = ['日','一','二','三','四','五','六'];
+  var wd = ''; try { wd = wdNames[new Date(dateStr+'T00:00:00').getDay()]; } catch(e){}
+  var md = dateStr.slice(5).replace('-','/');
+  var msg = hasWish
+    ? ('⚠️ '+md+'（週'+wd+'）已經有秘書填了排班意願，但還沒有人到「排班交接」正式登記，麻煩盡快確認並按「新增排班記錄」')
+    : ('⚠️ '+md+'（週'+wd+'）目前還沒有人排班，也還沒有人填意願，麻煩盡快去「排班交接」登記或回報');
+  adminAPIPost({action:'addHandover', note:'', important:msg, fromSecretary:(CURRENT_USER&&CURRENT_USER.name)||'管理人', toSecretary:'秘書', pendingClients:''}, function(d){
+    if(btn){ btn.disabled = false; btn.style.opacity=''; }
+    if(d && d.status === 'ok'){ toast('🔔 已發出提醒，秘書登入後會在交接留言看到'); }
+    else toast('⚠️ 提醒發送失敗，請重試');
+  });
+}
+// 2026-09-15新增：紅色警示區塊的「一鍵提醒」——把整個月完全沒人排班的日期合併成一則留言一次發出，
+// 不用一天一天分開點，也不會洗版
+function fsRemindAllGaps(btn){
+  var dateList = window._fsNoWishDates || [];
+  if(dateList.length === 0) return;
+  if(btn){ btn.disabled = true; btn.style.opacity = '.5'; }
+  var wdNames = ['日','一','二','三','四','五','六'];
+  var labels = dateList.map(function(ds){
+    var w = ''; try { w = wdNames[new Date(ds+'T00:00:00').getDay()]; } catch(e){}
+    return ds.slice(5).replace('-','/')+'（週'+w+'）';
+  });
+  var msg = '⚠️ 這個月還有 '+dateList.length+' 天完全沒人排班：'+labels.join('、')+'，麻煩大家盡快去「排班交接」登記';
+  adminAPIPost({action:'addHandover', note:'', important:msg, fromSecretary:(CURRENT_USER&&CURRENT_USER.name)||'管理人', toSecretary:'秘書', pendingClients:''}, function(d){
+    if(btn){ btn.disabled = false; btn.style.opacity=''; }
+    if(d && d.status === 'ok'){ toast('🔔 已發出提醒'); } else toast('⚠️ 提醒發送失敗，請重試');
   });
 }
 function submitShift(btn){
@@ -6522,57 +6648,15 @@ function countShiftWishGaps(matrix){
   SHIFT_WISH_WEEKS.forEach(function(w){ SHIFT_WISH_SLOTS.forEach(function(s){ if(matrix[w][s].length === 0) n++; }); });
   return n;
 }
+// 2026-09-15簡化：矩陣視覺化已經併入「本月／下月排班總表」的合併表格（loadFullSchedule），
+// 這裡只保留算「缺人時段數」給側邊欄紅點用，不再單獨畫一張卡片
 function loadShiftWishSummary(){
-  var card = document.getElementById('shift-wish-summary-card');
-  if(!card) return;
-  var isFounder = CURRENT_USER && (CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆' || CURRENT_USER.role === '創始人');
-  if(!isFounder){ card.style.display = 'none'; return; }
-  card.style.display = '';
-  var body = document.getElementById('shift-wish-summary-body');
-  if(body) body.innerHTML = '載入中…';
   adminAPI({action:'getHandoverHistory'}, function(d){
-    body = document.getElementById('shift-wish-summary-body');
-    if(!body) return;
+    var badge = document.getElementById('sb-badge-shiftgap');
+    if(!badge) return;
     var matrix = buildShiftWishMatrix((d && d.items) || []);
     var gapCount = countShiftWishGaps(matrix);
-    var badge = document.getElementById('sb-badge-shiftgap');
-    if(badge){ badge.textContent = gapCount; badge.style.display = gapCount > 0 ? '' : 'none'; }
-    var html = '';
-    if(gapCount > 0){
-      var gapLabels = [];
-      SHIFT_WISH_WEEKS.forEach(function(w){ SHIFT_WISH_SLOTS.forEach(function(s){ if(matrix[w][s].length === 0) gapLabels.push(w + s.replace(/[0-9:–]/g,'').trim()); }); });
-      html += '<div style="background:#FDEAEA;border:1px solid #F0B0B0;border-radius:9px;padding:9px 12px;margin-bottom:11px;font-size:12px;color:#A32D2D">⚠️ 這個月還有 ' + gapCount + ' 個時段沒人排班：' + gapLabels.join('、') + '</div>';
-    } else {
-      html += '<div style="background:var(--g2);border-radius:9px;padding:9px 12px;margin-bottom:11px;font-size:12px;color:var(--g3)">✅ 目前所有時段都有人排了</div>';
-    }
-    html += '<div style="overflow-x:auto"><table class="dt" style="min-width:480px"><thead><tr><th></th>' + SHIFT_WISH_SLOTS.map(function(s){ return '<th style="font-size:11px">' + escH(s) + '</th>'; }).join('') + '</tr></thead><tbody>';
-    SHIFT_WISH_WEEKS.forEach(function(w){
-      html += '<tr><td style="font-weight:700;font-size:12px">' + escH(w) + '</td>';
-      SHIFT_WISH_SLOTS.forEach(function(s){
-        var entries = matrix[w][s];
-        if(entries.length === 0){
-          html += '<td style="background:#FDEAEA;text-align:center;font-size:11px;color:#A32D2D;padding:6px">⚠️ 沒人</td>';
-        } else {
-          html += '<td style="font-size:11px;padding:6px">' + entries.map(function(e){
-            return '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">'
-              + '<span>' + escH(e.secretary || '未填名') + '</span>'
-              + (e.isRead ? '<span style="font-size:9px;background:var(--g2);color:var(--g3);border-radius:5px;padding:0 5px">已排定</span>'
-                : '<button class="ai-btn gray" style="font-size:9px;padding:1px 6px" onclick="ackShiftWish(' + e.row + ')">標記已排定</button>')
-              + '</div>';
-          }).join('') + '</td>';
-        }
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table></div>';
-    html += '<div style="font-size:10.5px;color:var(--text3);margin-top:8px">只統計最近40天內送出的排班意願，避免跟上個週期的舊資料混在一起</div>';
-    body.innerHTML = html;
-  });
-}
-function ackShiftWish(row){
-  adminAPIPost({action:'ackHandover', row:row, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 已標記排定完成'); loadShiftWishSummary(); }
-    else toast('⚠️ 操作失敗');
+    badge.textContent = gapCount; badge.style.display = gapCount > 0 ? '' : 'none';
   });
 }
 // 2026-09-03 新增：秘書個人「我的排班」表——用同一份 buildShiftWishMatrix，只挑出自己被排到的格子
