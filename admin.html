@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-15q';
+var MX_BUILD = '2026-09-15r';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -938,6 +938,7 @@ var MX_BUILD = '2026-09-15q';
             <option value="秘書">💁 秘書</option>
             <option value="行政">📋 行政</option>
             <option value="講師">🎤 講師</option>
+            <option value="教練">🏃 教練（推廣／陪跑）</option>
             <option value="供應商">📦 供應商</option>
             <option value="內部">🌱 元代謝內部</option>
             <option value="其他">➕ 其他（自訂類型）</option>
@@ -945,7 +946,7 @@ var MX_BUILD = '2026-09-15q';
         </div>
         <div>
           <div class="gi-lbl" style="margin-bottom:5px">角色名稱</div>
-          <input id="role-name" placeholder="例如：瑞絲得診所 / 王醫師 / 服務秘書-小美" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
+          <input id="role-name" placeholder="例如：瑞絲得診所 / 王醫師 / 服務秘書-小美 / 教練-智謙" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
       </div>
       <div id="role-type-custom-wrap" style="display:none;margin-bottom:12px">
@@ -4009,7 +4010,11 @@ function dedupRoles(){
   });
 }
 // 2026-09-08新增：把之前用「其他」自訂過的角色類型，記回下拉選單裡讓VV下次可以直接選，不用重打
-var ROLE_TYPE_PRESETS = ['診所','實驗室','醫師','秘書','行政','講師','供應商','內部','其他'];
+// 2026-09-15新增「教練」：創辦人說明教練是「推廣者＋陪跑教練」，跟每天回覆客人的秘書不同——先用「分帳角色」
+// 這套本來就是給講師/美業集團等純推廣型合作對象用的機制（開通「客戶轉介來源標記」就有專屬轉介連結＋QR碼，
+// 登入vendor.html後只會看到「我的推廣」一個分頁），不用另外新建一套帳號系統，也不用改後端就能直接用。
+// 「陪跑教練」要看客人甜蜜點分析那塊，創辦人說是之後的功能，這次先不做。
+var ROLE_TYPE_PRESETS = ['診所','實驗室','醫師','秘書','行政','講師','教練','供應商','內部','其他'];
 function refreshRoleTypeOptions(roles){
   var sel = document.getElementById('role-type');
   if (!sel) return;
@@ -4039,7 +4044,7 @@ function loadRoles() {
   adminAPI({action: 'getRoles'}, function(d) {
     refreshRoleTypeOptions(d.roles || []);
     if (d.status === 'ok' && d.roles && d.roles.length > 0) {
-      var typeIcons = {'診所':'🏥','實驗室':'🧪','醫師':'👨‍⚕️','秘書':'💁','行政':'📋','講師':'🎤','供應商':'📦','內部':'🌱','其他':'•'};
+      var typeIcons = {'診所':'🏥','實驗室':'🧪','醫師':'👨‍⚕️','秘書':'💁','行政':'📋','講師':'🎤','教練':'🏃','供應商':'📦','內部':'🌱','其他':'•'};
       listEl.innerHTML = d.roles.map(function(r) {
         var isLab = (r.roleType === '診所' || r.roleType === '實驗室');
         var labInfo = isLab && (r.contactPerson || r.defaultDays)
