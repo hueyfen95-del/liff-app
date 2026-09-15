@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-15d';
+var MX_BUILD = '2026-09-15h';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -766,6 +766,24 @@ var MX_BUILD = '2026-09-15d';
       <button onclick="saveHandoverNote()" style="margin-top:8px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px;font-size:13px;cursor:pointer;width:100%;font-weight:600">儲存交接</button>
     </div></div>
     <!-- 2026-09-05f：移除，改由runPageLoader('duty')統一負責（見下方），避免登入前CURRENT_USER還是null時就呼叫adminAPI，觸發「登入逾時」誤報 -->
+  </div>
+  <!-- 2026-09-15新增：完整月班表查詢——原本「今日值班／本週排班」只看得到這禮拜，創辦人反映看不到
+       整個月排好的班，只能自己開Google試算表翻。這裡補一個可選月份、全部秘書排在一起的完整班表。 -->
+  <div class="card" id="full-schedule-card" style="margin-bottom:14px">
+    <div class="card-hd">
+      <div class="card-title"><i class="ti ti-calendar-month"></i>📅 完整班表查詢</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input id="full-sched-month" type="month" class="form-input" style="font-size:12px;padding:6px 9px" onchange="loadFullSchedule()">
+        <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="loadFullSchedule()"><i class="ti ti-refresh" style="font-size:13px"></i>查詢</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="full-sched-summary" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
+      <table class="dt"><thead><tr><th>日期</th><th>星期</th><th>秘書</th><th>時段</th><th>備註</th></tr></thead>
+      <tbody id="full-sched-tbody">
+        <tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
+      </tbody></table>
+    </div>
   </div>
   <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-calendar-event"></i>下月排班意願</div></div><div class="card-body">
     <div style="font-size:12px;color:var(--text2);margin-bottom:11px">選擇可輪值的週次（可複選）和偏好時段（單選）</div>
@@ -2054,8 +2072,12 @@ function _mxDashNavRender(){
     if(typeof dt.clientInbox==='number') btns.push(_mxNavBtn("scrollToCard('client-inbox-card')", 'ti ti-inbox', '互動信箱', dt.clientInbox, dt.clientInbox>0));
     // 分開兩顆而不是合併成一顆「待關心」：沒記錄的客人跟症狀警示的客人是不同名單、不同卡片，
     // 合併成一個數字點下去只能跳一個地方，另一半的人反而找不到（2026-08-26修正）
-    if(typeof dt.noRecord==='number') btns.push(_mxNavBtn("scrollToCard('norecord-card')", 'ti ti-notes', '今日沒記錄', dt.noRecord, dt.noRecord>0));
-    if(typeof dt.alerts==='number') btns.push(_mxNavBtn("scrollToCard('alert-card')", 'ti ti-heart', '症狀警示', dt.alerts, dt.alerts>0));
+    // 2026-09-15修正：「今日沒記錄」「症狀警示」這兩顆原本在這裡用dt.noRecord／dt.alerts又畫一次，
+    // 但norecord-card／alert-card這兩張卡各自的載入函式（loadNoRecordClients／loadSymptomAlerts）
+    // 也都有呼叫_mxDashNavSet註冊同一張卡，等於同一個目的地在導覽列上出現兩顆數字不一樣的按鈕
+    // （dt.alerts是不重複客人數，卡片實際列出的是症狀警示「筆數」，兩個數字本來就對不上；
+    // dt.noRecord跟新卡的筆數雖然算法一致，但還是會看到兩顆長得幾乎一樣的按鈕，很奇怪）。
+    // 既然這兩張卡自己都已經會正確註冊，這裡拿掉重複的那一份，只留卡片自己算出來、保證跟實際內容一致的版本。
     if(typeof dt.purchasesShipping==='number') btns.push(_mxNavBtn("scrollToCard('proxy-card')", 'ti ti-truck', '待處理出貨', dt.purchasesShipping, dt.purchasesShipping>0));
     if(typeof dt.pendingReviews==='number') btns.push(_mxNavBtn("goPg('review')", 'ti ti-receipt', '待核查', dt.pendingReviews, dt.pendingReviews>0));
     if(typeof dt.balanceDeficit==='number') btns.push(_mxNavBtn("goPg('stored-value')", 'ti ti-credit-card', '餘額異常', dt.balanceDeficit, dt.balanceDeficit>0));
@@ -4655,6 +4677,50 @@ function loadShiftSchedule(){
     }
   });
 }
+// 2026-09-15新增：完整月班表查詢——跟loadShiftSchedule()共用同一張「💰 排班記錄」表，只是換成
+// 可指定月份、不限本週的完整版本，讓創辦人不用開Google試算表就能看到整個月排好的班。
+function loadFullSchedule(){
+  var mEl = document.getElementById('full-sched-month');
+  var tbody = document.getElementById('full-sched-tbody');
+  var summary = document.getElementById('full-sched-summary');
+  if(!tbody) return;
+  if(mEl && !mEl.value){
+    var now = new Date();
+    mEl.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  }
+  var month = mEl ? mEl.value : '';
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>';
+  adminAPI({action:'getShiftScheduleMonth', month:month}, function(d){
+    tbody = document.getElementById('full-sched-tbody');
+    summary = document.getElementById('full-sched-summary');
+    if(!tbody) return;
+    if(!d || d.status!=='ok'){
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入失敗，請重新整理</td></tr>';
+      return;
+    }
+    var items = d.items||[];
+    if(summary) summary.textContent = (d.month||month)+'　共 '+items.length+' 筆排班';
+    if(items.length===0){
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">這個月還沒有排班記錄</td></tr>';
+      return;
+    }
+    var wdNames = ['日','一','二','三','四','五','六'];
+    var todayStr = d.todayStr || '';
+    tbody.innerHTML = items.map(function(s){
+      var isToday = s.date === todayStr;
+      var wd = '';
+      try { wd = '週'+wdNames[new Date(s.date+'T00:00:00').getDay()]; } catch(e){}
+      var timeLabel = (s.startTime&&s.endTime) ? (s.startTime+'–'+s.endTime) : '';
+      return '<tr'+(isToday?' style="background:var(--g2)"':'')+'>'
+        + '<td style="'+(isToday?'font-weight:700':'')+'">'+escH(s.date)+(isToday?'（今天）':'')+'</td>'
+        + '<td>'+escH(wd)+'</td>'
+        + '<td>'+escH(s.secretary)+'</td>'
+        + '<td>'+escH((s.shift||'')+(timeLabel?'　'+timeLabel:''))+'</td>'
+        + '<td style="color:var(--text3)">'+escH(s.note||'')+'</td>'
+        + '</tr>';
+    }).join('');
+  });
+}
 function submitShift(btn){
   var secretary = document.getElementById('duty-secretary').value.trim();
   if(!secretary){ toast('請選擇秘書'); return; }
@@ -4679,6 +4745,7 @@ function submitShift(btn){
       ['duty-secretary','duty-shift','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
       document.getElementById('duty-pay-display').textContent = '先選秘書才會帶出薪資設定';
       if(typeof loadShiftSchedule==='function') loadShiftSchedule();
+      if(typeof loadFullSchedule==='function') loadFullSchedule();
     } else toast('⚠️ 儲存失敗');
   });
 }
@@ -8287,7 +8354,7 @@ function loadFounderMetrics(){
       html += chipRow('😞 本月給了不滿意的客人：'+sat.sad.length+' 位（點開看看發生什麼事）', '#B91C1C', '#FFF1F0', '#F5C6C4',
         sat.sad, function(c){ return escH(c.name)+(c.comment?' <span style="color:#B91C1C">「'+escH(c.comment)+'」</span>':''); }, '');
     }
-    html += chipRow('💳 到期沒續約（近90天）：'+(rn.notRenewed||[]).length+' 位', '#8a6d00', '#FFF8E6', '#F0DEA0',
+    html += chipRow('💳 到期沒續約（近90天）：'+(rn.notRenewedCount!=null?rn.notRenewedCount:(rn.notRenewed||[]).length)+' 位', '#8a6d00', '#FFF8E6', '#F0DEA0',
       rn.notRenewed||[], function(c){ return escH(c.name)+' <span style="color:#8a6d00">'+escH(c.endDate||'')+'到期</span>'; }, '近90天到期的都續約了 ✨');
     html += chipRow('🚪 流失風險（超過7天沒動靜）：'+(d.churnRisk||[]).length+' 位', '#B91C1C', '#FFF1F0', '#F5C6C4',
       d.churnRisk||[], function(c){ return escH(c.name)+' <span style="color:#B91C1C">'+(c.days==null?'從未記錄':c.days+'天')+'</span>'; }, '太好了，大家最近都有在動 ✨');
@@ -9648,6 +9715,7 @@ function runPageLoader(id){
     // 就會一直卡在「請先登入」或空白，因為DOMContentLoaded早就跑完了、CURRENT_USER當時還是null；
     // 統一補進runPageLoader，確保每次切換到這頁都會用當下已登入的身份重新載入
     if(typeof loadShiftSchedule==='function') loadShiftSchedule();
+    if(typeof loadFullSchedule==='function') loadFullSchedule();
     if(typeof loadDutySecretaryOptions==='function') loadDutySecretaryOptions();
     if(typeof loadRecentHandovers==='function') loadRecentHandovers();
     if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions();
@@ -9681,7 +9749,10 @@ function refreshSidebarBadges(){
   adminAPI({action:'getTodayDuty'}, function(d){
     var el = document.getElementById('sb-badge-alerts');
     if(!el || !d || d.status!=='ok' || !d.duty) return;
-    var n = (d.duty.alerts||0) + (d.duty.alertsCritical||0);
+    // 2026-09-15修正：原本是「不重複客人數」+「重症筆數」加起來，兩種算法混在一起，既不等於不重複
+    // 客人數、也不等於警示看板頁面實際列出的警示筆數，點進去常常發現數字對不上。改成直接用
+    // duty.alertsItemCount（跟頁面實際列出的筆數同一套算法），才會保證點進去看到的筆數一致。
+    var n = d.duty.alertsItemCount!=null ? d.duty.alertsItemCount : ((d.duty.alerts||0) + (d.duty.alertsCritical||0));
     el.textContent = n; el.style.display = n>0 ? '' : 'none';
   });
   adminAPI({action:'getTracking'}, function(d){
@@ -12173,7 +12244,15 @@ function applyPermissions(){
     // 2026-09-05f新增、2026-09-08d改版：角色簡介，讓剛登入的人知道這個身分大概能做什麼——
     // 原本是一整句逗號分隔的長文字，管理人反映擠在側欄很昏、看不清楚，改成一個一個色塊小標籤，
     // 一眼就能掃過去，不用讀完整句話
-    var roleDescArr = ROLE_DESC[roleDisplayName(CURRENT_USER.role)];
+    var roleDescArr = (ROLE_DESC[roleDisplayName(CURRENT_USER.role)] || []).slice();
+    // 2026-09-15補：「身兼職務」（財務主管/行政/專業秘書）額外取得的權限，原本只有創辦人在帳號管理頁面
+    // 才看得到「身兼：專業秘書」這行字，當事人自己登入後，側欄「這個身分可以做」完全沒有顯示——今天
+    // 要發給大家測試，帳號才剛開通專業秘書等額外權限，本人登入應該要一眼看到自己多了什麼，不然會以為
+    // 系統沒生效。這裡把身兼職務對應的額外能力也一併加進同一排標籤（用「額外」註記跟原本角色標籤區分）。
+    var _otherRolesFE = CURRENT_USER.otherRoles || [];
+    if (_otherRolesFE.indexOf('專業秘書') >= 0) roleDescArr.push('甜蜜點分析（額外）');
+    if (_otherRolesFE.indexOf('財務主管') >= 0) roleDescArr.push('財務主管權限（額外）');
+    if (_otherRolesFE.indexOf('行政') >= 0) roleDescArr.push('好物/補充品定價（額外）');
     if (roleDescArr && roleDescArr.length) {
       var rd = document.createElement('div');
       rd.id = 'role-desc-note';
