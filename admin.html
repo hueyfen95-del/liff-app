@@ -113,7 +113,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 .fs-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .fs-cal-day{border:1px solid var(--border2);border-radius:8px;padding:4px;min-height:56px;display:flex;flex-direction:column;gap:4px;background:var(--card)}
 .fs-cal-day.fs-empty{border:none;background:transparent}
-.fs-cal-day.fs-today{border-color:var(--g);box-shadow:0 0 0 1px var(--g) inset}
+.fs-cal-day.fs-today{border-color:var(--g);box-shadow:0 0 0 1px var(--g) inset;background:var(--g2)}
 .fs-cal-day.fs-gapday{border-color:#F0C0B0;background:#FBEAEA}
 .fs-cal-daynum{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;justify-content:space-between;gap:3px}
 .fs-cal-day.fs-past .fs-cal-daynum{color:var(--text3);font-weight:400}
@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-15p';
+var MX_BUILD = '2026-09-15q';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4796,6 +4796,10 @@ function loadFullSchedule(){
     var takenSlots = {}; (scheduleData.takenSlots || []).forEach(function(k){ takenSlots[k] = true; });
     var byDate = {};
     items.forEach(function(s){ (byDate[s.date] = byDate[s.date] || []).push(s); });
+    // 存一份給「點名字看個人班表」用（openPersonSchedule）——items 本來就是這個月完整資料，
+    // 不用為了這個再多打一次API
+    window._fsScheduleItems = items;
+    window._fsScheduleMonth = actualMonth;
     var totalDays = fsDaysInMonth(actualMonth);
     var wdNames = ['日','一','二','三','四','五','六'];
     var confirmedDays = 0, openDays = 0;
@@ -4804,7 +4808,7 @@ function loadFullSchedule(){
 
     if(legendEl){
       legendEl.textContent = isFullView
-        ? ('🟢已確認排班　⚪還空著（秘書自己點就能立刻排進去，依登記先後順序，先登記的人算數）　🔴三個時段都還空著　——　每人每月排班上限 '+capInfo.cap+' 班（依目前 '+capInfo.secretaryCount+' 位在職秘書自動計算，人數變動會自動調整）；如果某位秘書這個月已經到上限、但你還是想特別排她進來，點空時段的「👑邀請」直接指定，不受上限限制')
+        ? ('🟢綠色色塊顯示的是該秘書姓名的第一個字，點下去可以看她這個月完整的個人班表　⚪還空著（依登記先後順序，先登記的人算數）　🔴三個時段都還空著　——　每人每月排班上限 '+capInfo.cap+' 班（依目前 '+capInfo.secretaryCount+' 位在職秘書自動計算，人數變動會自動調整）；如果某位秘書這個月已經到上限、但你還是想特別排她進來，點空時段的「👑邀請」直接指定，不受上限限制')
         : ('🟢你已經排定　⚪還空著，點一下立刻排進去（依登記先後順序，登記成功立刻算數不用等人確認）　🔴這天完全沒人　——　你這個月已排 '+(capInfo.used||0)+'／上限 '+capInfo.cap+' 班　——　其他秘書排的班不會顯示在這裡，只會看到「已有人排定」');
     }
 
@@ -4826,7 +4830,12 @@ function loadFullSchedule(){
         if(match.length > 0){
           var who = isFullView ? match.map(function(s){ return s.secretary; }).join('、') : '你';
           var tt = match.map(function(s){ return (s.startTime&&s.endTime)?(s.startTime+'–'+s.endTime):''; }).filter(Boolean).join('、');
-          return '<span class="fs-slot fs-slot-g" title="'+escH(sd.label+'：'+who+(tt?'　'+tt:''))+'" onclick="toast(\''+escH('🟢 '+sd.label+'：'+who+(tt?'　'+tt:''))+'\')">'+sd.key.slice(0,1)+'</span>';
+          // 2026-09-15補：創辦人要求「標示出每個時段是誰」——色塊裡不要只顯示上/下/晚這種時段字，
+          // 改成顯示這位秘書姓名的第一個字（例如婷、V、盼），一眼就知道誰排了；管理人視角點下去
+          // 直接跳出這個人這個月的完整個人班表（openPersonSchedule），不用再另外去別的地方找。
+          var label = isFullView ? fsAbbrev(match[0].secretary) + (match.length>1?'+'+(match.length-1):'') : '你';
+          var clickAction = isFullView ? 'openPersonSchedule(\''+escH(match[0].secretary).replace(/'/g,"\\'")+'\',this)' : ('toast(\''+escH('🟢 '+sd.label+'：你'+(tt?'　'+tt:''))+'\')');
+          return '<span class="fs-slot fs-slot-g" title="'+escH(sd.label+'：'+who+(tt?'　'+tt:''))+'" onclick="'+clickAction+'">'+escH(label)+'</span>';
         }
         if(isPast){
           return '<span class="fs-slot fs-slot-muted" title="已過期">'+sd.key.slice(0,1)+'</span>';
@@ -4846,7 +4855,7 @@ function loadFullSchedule(){
       var remindIcon = (isFullView && isGapDay)
         ? '<span style="cursor:pointer;font-size:10px" title="提醒秘書補這天的班" onclick="event.stopPropagation();fsRemindGap(\''+dateStr+'\',this)">🔔</span>' : '';
       rows.push('<div class="'+cls+'" title="'+escH(dateStr)+(isToday?'（今天）':'')+'">'
-        + '<div class="fs-cal-daynum">'+dd+(isToday?' 🔵':'')+remindIcon+'</div>'
+        + '<div class="fs-cal-daynum">'+dd+(isToday?' <span style="font-size:9px;font-weight:700;background:var(--g);color:#fff;border-radius:4px;padding:0 3px">今天</span>':'')+remindIcon+'</div>'
         + '<div class="fs-cal-slots">'+slotHtml+'</div>'
         + '</div>');
     }
@@ -4936,12 +4945,42 @@ function doInvite(dateStr, slotKey, name){
     }
   });
 }
-// 點浮動選單以外的地方就自動關閉——用closest排除觸發邀請的👑本身，避免它自己這一次click又把剛打開的選單關掉
+// 2026-09-15補：創辦人要求「幫我標示出每個時段是誰，點進去就是他的個人班表」——色塊上直接顯示這位
+// 秘書姓名的第一個字，管理人視角點綠色色塊會跳出這個人這個月的完整排班明細（沿用同一個浮動選單，
+// 不用再打一次API，直接篩選畫格子時已經存起來的 window._fsScheduleItems）。
+function fsAbbrev(name){
+  var s = String(name||'').trim();
+  return s ? s.slice(0,1) : '？';
+}
+function openPersonSchedule(name, anchorEl){
+  var pop = document.getElementById('fs-invite-pop');
+  if(!pop || !anchorEl) return;
+  var items = (window._fsScheduleItems || []).filter(function(s){ return s.secretary === name; });
+  items.sort(function(a,b){ return a.date===b.date ? String(a.startTime).localeCompare(String(b.startTime)) : a.date.localeCompare(b.date); });
+  var monthLabel = window._fsScheduleMonth || '';
+  var body = items.length === 0
+    ? '<div style="font-size:12px;color:var(--text3);padding:4px 0">這個月還沒有排班紀錄</div>'
+    : items.map(function(s){
+        var t = (s.startTime && s.endTime) ? (s.startTime+'–'+s.endTime) : '';
+        var md = s.date ? s.date.slice(5).replace('-','/') : '';
+        return '<div style="padding:5px 4px;font-size:12px;border-bottom:1px solid var(--border2)">'+escH(md)+'　'+escH(t)+(s.shift?'　'+escH(s.shift):'')+'</div>';
+      }).join('');
+  pop.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--text2);padding:2px 4px 6px">'+escH(name)+'　'+escH(monthLabel)+' 個人班表（共 '+items.length+' 班）</div>'
+    + '<div style="max-height:200px;overflow-y:auto">'+body+'</div>'
+    + '<div class="fs-inv-cancel" onclick="closeInvitePopover()">關閉</div>';
+  var rect = anchorEl.getBoundingClientRect();
+  pop.style.display = 'block';
+  var popW = Math.max(pop.offsetWidth || 0, 190);
+  pop.style.left = Math.max(6, Math.min(rect.left, window.innerWidth - popW - 6)) + 'px';
+  pop.style.top = Math.min(rect.bottom + 4, window.innerHeight - 60) + 'px';
+}
+// 點浮動選單以外的地方就自動關閉——用classList排除觸發用的色塊本身（不論是邀請用的👑還是點名字看
+// 個人班表），避免它自己這一次click冒泡到document又把剛打開的選單關掉
 document.addEventListener('click', function(e){
   var pop = document.getElementById('fs-invite-pop');
   if(!pop || pop.style.display === 'none') return;
   if(pop.contains(e.target)) return;
-  if(e.target && e.target.classList && e.target.classList.contains('fs-slot-invite')) return;
+  if(e.target && e.target.classList && e.target.classList.contains('fs-slot')) return;
   closeInvitePopover();
 });
 // 2026-09-15新增：點「提醒」——直接發一則交接留言（全體秘書可見），不用自己另外傳訊息
