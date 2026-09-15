@@ -194,7 +194,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-14h';
+var MX_BUILD = '2026-09-15d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -376,6 +376,16 @@ var MX_BUILD = '2026-09-14h';
         </div>
         <div class="card-body" id="mealhelp-body" style="padding-top:4px"></div>
       </div>
+      <!-- 💬 客人心得待審核（2026-09-15新增：原本「今日待辦」點「N則客人心得分享還沒審核」只會跳去
+           客戶管理的客人總覽頁，完全沒說是哪幾位客人、要秘書自己一個一個點開找——這裡本來就已經有
+           getTestimonials可以查全部客人的心得，只是以前只在客人詳情頁裡按clientId篩選顯示，從來沒有
+           整合成一張總覽卡。現在補上，才有地方可以真的「跳過去處理」）-->
+      <div class="card" id="testimonial-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9E8">
+        <div class="card-hd">
+          <div class="card-title" style="color:#6B3FA0"><i class="ti ti-message-2"></i>客人心得待審核</div>
+        </div>
+        <div class="card-body" id="testimonial-body" style="padding-top:4px"></div>
+      </div>
       <!-- ❓ 客人未回答的問題（AI答不出來或客人追問還是沒效，都會出現在這裡） -->
       <div class="card" id="unknown-q-card" style="margin-bottom:14px;display:none;border:1px solid #F2C9C9">
         <div class="card-hd">
@@ -432,6 +442,19 @@ var MX_BUILD = '2026-09-14h';
           <button class="tb-btn" onclick="loadCareAwards()"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button>
         </div>
         <div class="card-body" id="award-body"></div>
+      </div>
+
+      <!-- 📝 今天還沒記錄的客人（2026-09-15新增：原本「今日待辦」「N位客人今天還沒記錄」點下去、
+           跟快速導覽列的「今日沒記錄」數字點下去，都是跳到下面的「今日客人記錄」卡——但那張卡
+           （today-records-body／getTodayRecords）顯示的其實是今天『已經』記錄的客人名單，剛好是
+           相反的名單，秘書永遠找不到真正沒記錄的是誰。這裡補一張真正列出「沒記錄的人是誰」的卡，
+           跳轉才對得起來） -->
+      <div class="card" id="norecord-card" style="margin-bottom:14px;display:none;border:1px solid #E3D8B8">
+        <div class="card-hd">
+          <div class="card-title" style="color:#8A6D1A"><i class="ti ti-notes"></i>今天還沒記錄的客人</div>
+          <button class="tb-btn" onclick="loadNoRecordClients()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
+        </div>
+        <div class="card-body" id="norecord-body" style="padding-top:4px"></div>
       </div>
 
       <!-- 今日客人記錄 -->
@@ -2031,7 +2054,7 @@ function _mxDashNavRender(){
     if(typeof dt.clientInbox==='number') btns.push(_mxNavBtn("scrollToCard('client-inbox-card')", 'ti ti-inbox', '互動信箱', dt.clientInbox, dt.clientInbox>0));
     // 分開兩顆而不是合併成一顆「待關心」：沒記錄的客人跟症狀警示的客人是不同名單、不同卡片，
     // 合併成一個數字點下去只能跳一個地方，另一半的人反而找不到（2026-08-26修正）
-    if(typeof dt.noRecord==='number') btns.push(_mxNavBtn("scrollToCard('today-records-body')", 'ti ti-notes', '今日沒記錄', dt.noRecord, dt.noRecord>0));
+    if(typeof dt.noRecord==='number') btns.push(_mxNavBtn("scrollToCard('norecord-card')", 'ti ti-notes', '今日沒記錄', dt.noRecord, dt.noRecord>0));
     if(typeof dt.alerts==='number') btns.push(_mxNavBtn("scrollToCard('alert-card')", 'ti ti-heart', '症狀警示', dt.alerts, dt.alerts>0));
     if(typeof dt.purchasesShipping==='number') btns.push(_mxNavBtn("scrollToCard('proxy-card')", 'ti ti-truck', '待處理出貨', dt.purchasesShipping, dt.purchasesShipping>0));
     if(typeof dt.pendingReviews==='number') btns.push(_mxNavBtn("goPg('review')", 'ti ti-receipt', '待核查', dt.pendingReviews, dt.pendingReviews>0));
@@ -7914,8 +7937,62 @@ function loadClientTestimonials(clientId){
 }
 function reviewTestimonialUI(row, clientId){
   adminAPIPost({action:'reviewTestimonial', row:row, status:'approved'}, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 已標記審核通過'); loadClientTestimonials(clientId); }
+    if(d && d.status === 'ok'){
+      toast('✅ 已標記審核通過');
+      loadClientTestimonials(clientId);
+      // 2026-09-15補：客人詳情頁跟儀表板總覽卡都能標記審核，兩邊互相同步，不然這邊標記完，
+      // 另一邊卡片還留著舊的（要按「重新整理」才會消失），看起來像沒生效
+      if(typeof loadTestimonialsPending==='function') loadTestimonialsPending();
+    }
     else toast('⚠️ 操作失敗');
+  });
+}
+// 2026-09-15新增：「客人心得待審核」總覽卡——原本getTestimonials早就查得到全部客人的心得，
+// 卻只有在客人詳情頁裡按clientId篩選顯示，儀表板「今日待辦」點「N則客人心得分享還沒審核」
+// 只能跳去客戶管理的客人總覽頁，完全沒有整合成一張「這幾位待審核」的清單，秘書得自己一個一個
+// 點開客人卡片找。這裡補上總覽卡，過濾條件跟後端duty.testimonialPending算法對齊
+// （排除【今日感謝】【今日心情——這兩種getTestimonials本身就已經濾掉了，這裡只再篩reviewStatus）。
+function loadTestimonialsPending(){
+  adminAPI({action:'getTestimonials'}, function(d){
+    var card=document.getElementById('testimonial-card'), box=document.getElementById('testimonial-body');
+    if(!box) return;
+    var items = ((d && d.items) || []).filter(function(t){ return t.reviewStatus !== 'approved'; });
+    _mxDashNavSet('testimonial-card', items.length, '心得待審核', 'ti ti-message-2');
+    if(items.length===0){ card.style.display='none'; return; }
+    card.style.display='block';
+    box.innerHTML = items.map(function(t, ti){
+      return '<div style="background:var(--bg);border-radius:9px;margin-bottom:6px;padding:8px 10px">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+        + '<span style="font-size:11px;font-weight:700;color:#6B3FA0;background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ti + 1) + '</span>'
+        + '<b style="color:var(--text)">'+escH(t.clientName||t.clientId)+'</b>'
+        + '<span style="font-size:10px;color:var(--text3)">'+escH(t.date)+'</span>'
+        + '<span style="margin-left:auto;display:flex;gap:5px">'
+        + '<button class="tb-btn" style="font-size:10.5px;padding:3px 9px" onclick="openClientDetail(\''+escH(t.clientId)+'\',\''+escH(t.clientName||t.clientId)+'\')">開啟</button>'
+        + '<button class="tb-btn g" style="font-size:10.5px;padding:3px 9px" onclick="reviewTestimonialUI('+t.row+',\''+escH(t.clientId)+'\')">標記已審核</button>'
+        + '</span></div>'
+        + '<div style="font-size:12px;color:var(--text2);padding-left:28px">'+escH(t.content)+'</div>'
+        + '</div>';
+    }).join('');
+  });
+}
+// 2026-09-15新增：「今天還沒記錄的客人」總覽卡——跟後端computeNoRecordClients_（getNoRecordClients
+// action）同一套邏輯，數字保證跟「今日待辦」dt.noRecord、快速導覽列的「今日沒記錄」對得起來。
+function loadNoRecordClients(){
+  adminAPI({action:'getNoRecordClients'}, function(d){
+    var card=document.getElementById('norecord-card'), box=document.getElementById('norecord-body');
+    if(!box) return;
+    var items = (d && d.list) || [];
+    _mxDashNavSet('norecord-card', items.length, '今日沒記錄', 'ti ti-notes');
+    if(items.length===0){ card.style.display='none'; return; }
+    card.style.display='block';
+    box.innerHTML = items.map(function(c, ci){
+      return '<div style="background:var(--bg);border-radius:9px;margin-bottom:6px;padding:8px 10px;display:flex;align-items:center;gap:8px">'
+        + '<span style="font-size:11px;font-weight:700;color:#8A6D1A;background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ci + 1) + '</span>'
+        + '<b style="color:var(--text)">'+escH(c.name||c.clientId)+'</b>'
+        + '<span style="font-size:10px;color:var(--text3)">'+escH(c.clientId)+(c.lastRecordDate?'・上次記錄 '+escH(c.lastRecordDate):'・還沒有任何記錄')+'</span>'
+        + '<button class="tb-btn" style="font-size:10.5px;padding:3px 9px;margin-left:auto" onclick="openClientDetail(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\')">開啟</button>'
+        + '</div>';
+    }).join('');
   });
 }
 function loadDiscussions(clientId, focusIdx){
@@ -8380,6 +8457,8 @@ function loadDashboard(){
   loadSymptomAlerts();
   loadBirthdays();
   loadCareAwards();
+  if(typeof loadTestimonialsPending==='function') loadTestimonialsPending();
+  if(typeof loadNoRecordClients==='function') loadNoRecordClients();
 }
 
 // ── 警示引擎 ──
@@ -9533,6 +9612,11 @@ function runPageLoader(id){
   if (id === 'tracking') loadTrackingAdmin();
   if (id === 'remind') {
     loadRemindList();
+    // 2026-09-15補：這頁的「複檢提醒總覽」原本只有頁面script載入後2秒鐘（多半還沒登入完成）
+    // 呼叫一次checkPlanExpiry，之後不管進出這頁幾次都不會再重新查——如果那次呼叫剛好卡在登入完成前
+    // （fetch沒有token），這裡就會一直卡著空白/失敗畫面，跟儀表板「N位客人方案到期」點進來的期待對不上。
+    // 補上每次進這頁都重新查一次，才會保證看到的是當下真的資料。
+    if(typeof loadExpiringPlans==='function') loadExpiringPlans();
     if(typeof loadServiceEventTypeDropdown==='function') loadServiceEventTypeDropdown();
     // 2026-09-10補：這頁的「建立客人方案」「記錄服務收款」下拉選單原本沒有叫loadClientsList()，
     // 如果秘書這次登入session還沒去過其他有叫這個函式的頁面（例如月報/上傳報告），下拉選單只會停在
@@ -11027,22 +11111,34 @@ function loadTodayDuty(){
     // 待辦項目：系統偵測到才顯示，數字+一鍵處理
     var items=[];
     // 新預約放最上面（管理人2026-08-10：這最緊急）
-    if(dt.backlog24>0) items.push({icon:'⏰',text:'<b>'+dt.backlog24+' 筆</b>客人訊息超過<b>24小時</b>還沒回覆，請優先處理',act:"scrollToCard('mealhelp-card')",urgent:true});
+    // 2026-09-15修正：backlog24是「飲食判斷求助」跟「客人互動信箱」兩種逾期訊息加總的數字，原本這裡
+    // 「處理」按鈕寫死永遠跳去飲食判斷求助卡片，如果這次逾期的其實是互動信箱那邊的訊息，點過去只會看到
+    // 一堆早就已回覆的舊記錄、找不到真正逾期的是哪幾筆（創辦人回報「按了處理卻跳到不相關的畫面」）。
+    // 改成依實際逾期來源決定要跳去哪張卡片；如果兩邊都有逾期，文字裡註明清楚，跳去互動信箱那張（優先跳
+    // 去互動信箱是因為那裡的求助類型比較急，飲食判斷求助另外還有自己獨立一行提醒，兩邊都會顯示）。
+    if(dt.backlog24>0){
+      var _bl24MH = dt.mealHelpBacklog24||0, _bl24CIB = dt.inboxBacklog24||0;
+      var _bl24Target = _bl24CIB>0 ? 'client-inbox-card' : 'mealhelp-card';
+      var _bl24Note = (_bl24MH>0 && _bl24CIB>0) ? '（互動信箱 '+_bl24CIB+' 筆、飲食判斷求助 '+_bl24MH+' 筆，兩邊都要看）' : '';
+      items.push({icon:'⏰',text:'<b>'+dt.backlog24+' 筆</b>客人訊息超過<b>24小時</b>還沒回覆'+_bl24Note+'，請優先處理',act:"scrollToCard('"+_bl24Target+"')",urgent:true});
+    }
     if(dt.clientInbox>0) items.push({icon:'📥',text:'<b>'+dt.clientInbox+' 筆</b>客人互動（諮詢預約/心情關心/禮物請求）還沒回覆',act:"scrollToCard('client-inbox-card')"});
     if(dt.mealHelp>0) items.push({icon:'🍽',text:'<b>'+dt.mealHelp+' 筆</b>客人的飲食判斷求助還沒回覆，回覆了客人才學得會',act:"scrollToCard('mealhelp-card')"});
     if(dt.newBookings>0) items.push({icon:'💉',text:'<b>'+dt.newBookings+' 筆</b>新預約還沒聯繫，先跟客人確認檢測日期',act:"scrollToCard('bkg-card')"});
     if(dt.alertsCritical>0) items.push({icon:'🚨',text:'<b>'+dt.alertsCritical+' 位</b>客人可能有酮酸風險',act:"scrollToCard('alert-card')",urgent:true});
     if(dt.alerts>0) items.push({icon:'⚠️',text:'<b>'+dt.alerts+' 位</b>客人近期有不適症狀，需關心',act:"scrollToCard('alert-card')"});
     if(dt.birthdays>0) items.push({icon:'🎂',text:'今天有 <b>'+dt.birthdays+' 位</b>客人生日，記得送祝福',act:"scrollToCard('birthday-card')"});
-    if(dt.noRecord>0) items.push({icon:'📝',text:'<b>'+dt.noRecord+' 位</b>客人今天還沒記錄，溫柔提醒一下',act:"scrollToCard('today-records-body')"});
-    if(dt.planExpiring>0) items.push({icon:'📆',text:'<b>'+dt.planExpiring+' 位</b>客人方案 14 天內到期，提前續約',act:"goPg('remind')"});
+    if(dt.noRecord>0) items.push({icon:'📝',text:'<b>'+dt.noRecord+' 位</b>客人今天還沒記錄，溫柔提醒一下',act:"scrollToCard('norecord-card')"});
+    if(dt.planExpiring>0) items.push({icon:'📆',text:'<b>'+dt.planExpiring+' 位</b>客人方案 14 天內到期或已到期，記得續約',act:"goPg('remind')"});
     if(dt.balanceDeficit>0) items.push({icon:'💳',text:'<b>'+dt.balanceDeficit+' 位</b>客人儲值餘額是負的，記得提醒補款',act:"goPg('stored-value')"});
     if(dt.purchasesNewPending>0) items.push({icon:'🛒',text:'<b>'+dt.purchasesNewPending+' 筆</b>新的代購需求還沒確認，記得跟客人回覆',act:"scrollToCard('proxy-card')"});
     if(dt.purchasesShipping>0) items.push({icon:'📦',text:'<b>'+dt.purchasesShipping+' 筆</b>代購已確認訂購，出貨/收貨還沒完成',act:"scrollToCard('proxy-card')"});
     if(dt.pendingReviews>0) items.push({icon:'🧾',text:'<b>'+dt.pendingReviews+' 筆</b>儲值/消費記錄還沒核查',act:"goPg('review')"});
     if(dt.unknownFoodPending>0) items.push({icon:'🍱',text:'<b>'+dt.unknownFoodPending+' 筆</b>客人查不到的外食還沒補充',act:"goPg('food-mgmt')"});
     if(dt.foodRecommendPending>0) items.push({icon:'🥗',text:'<b>'+dt.foodRecommendPending+' 筆</b>客人推薦的食材還沒審核',act:"goPg('food-mgmt')"});
-    if(dt.testimonialPending>0) items.push({icon:'💬',text:'<b>'+dt.testimonialPending+' 則</b>客人心得分享還沒審核',act:"goPg('clients')"});
+    // 2026-09-15修正：原本跳去客戶管理總覽頁，完全沒說是哪幾位客人的心得，秘書得自己一個一個點開找
+    // （創辦人要求把類似的跳轉問題一併抓出來修）。現在儀表板已經有「客人心得待審核」總覽卡，改跳去那裡。
+    if(dt.testimonialPending>0) items.push({icon:'💬',text:'<b>'+dt.testimonialPending+' 則</b>客人心得分享還沒審核',act:"scrollToCard('testimonial-card')"});
     if(dt.reportReadyPending>0) items.push({icon:'📋',text:'<b>'+dt.reportReadyPending+' 位</b>客人報告已出，還沒跟他們講解（最久等了 '+dt.reportReadyMaxDays+' 天）',act:"goPg('alerts')",urgent:dt.reportReadyMaxDays>=3});
 
     // 統計數字現在併到頁面最上方的合併快速導覽列（mx-dash-nav）一起顯示，這裡不再重複畫一次
