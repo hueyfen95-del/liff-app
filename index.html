@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-14i';
+var MX_BUILD = '2026-09-16a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6848,6 +6848,50 @@ var giftConfigs = {
       if (scene) {
         scene.style.filter = 'brightness(0.85) saturate(1.5)';
         setTimeout(function(){ scene.style.filter = ''; }, 4000);
+      }
+    }
+  },
+  // 2026-09-16補：創辦人回報「花朵禮物有看到，新葉沒有看到」——逐一檢查6種禮物（GIFT_LABELS列的
+  // sunshine/rain/sprout/leaf/star/flower）才發現giftConfigs本來只有sun/rain/star/flower這4種，
+  // 「新芽sprout」跟「新葉leaf」這兩種根本沒有寫在這裡——showGift(type,msg)一開頭
+  // 「var cfg=giftConfigs[type]; if(!cfg)return;」找不到對應設定就整個函式直接return，不會出現任何
+  // 禮物卡片或動畫，訊息匣「點我重看」按了也沒反應。這兩種在gsGift()（花園頁即時特效用的另一份設定）
+  // 其實都有寫，只有showGift用的這份漏掉，所以才會是「有的禮物看得到、有的看不到」而不是全部都壞掉。
+  // 顏色沿用gsGift裡已經在用的新芽/新葉配色，效果比照星星/花朵用飄浮小圖示，不依賴花園頁才有的DOM元素，
+  // 不管客人現在在哪一頁，訊息匣點「重看」都能正常顯示。
+  sprout: {
+    icon: '🌱', title: '新芽',
+    bg: '#F0FDF4', border: '#BBF7D0', color: '#166534',
+    fx: function() {
+      for (var i = 0; i < 10; i++) {
+        (function(i) {
+          setTimeout(function() {
+            var s = document.createElement('div');
+            s.textContent = '🌱';
+            s.style.cssText = 'position:fixed;font-size:18px;left:' + (10+Math.random()*80) + '%;top:' + (10+Math.random()*60) + '%;z-index:9999;pointer-events:none;transition:all 1.5s ease-out;opacity:1';
+            document.body.appendChild(s);
+            setTimeout(function(){ s.style.transform='translateY(-50px)';s.style.opacity='0'; }, 100);
+            setTimeout(function(){ s.remove(); }, 1700);
+          }, i * 130);
+        })(i);
+      }
+    }
+  },
+  leaf: {
+    icon: '🍃', title: '新葉',
+    bg: '#ECFDF5', border: '#A7F3D0', color: '#065F46',
+    fx: function() {
+      for (var i = 0; i < 10; i++) {
+        (function(i) {
+          setTimeout(function() {
+            var s = document.createElement('div');
+            s.textContent = '🍃';
+            s.style.cssText = 'position:fixed;font-size:18px;left:' + (10+Math.random()*80) + '%;top:' + (10+Math.random()*60) + '%;z-index:9999;pointer-events:none;transition:all 1.5s ease-out;opacity:1';
+            document.body.appendChild(s);
+            setTimeout(function(){ s.style.transform='translateY(-50px)';s.style.opacity='0'; }, 100);
+            setTimeout(function(){ s.remove(); }, 1700);
+          }, i * 130);
+        })(i);
       }
     }
   },

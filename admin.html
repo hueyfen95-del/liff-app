@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-15s';
+var MX_BUILD = '2026-09-16a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -553,9 +553,18 @@ var MX_BUILD = '2026-09-15s';
           <!-- 送禮物 -->
           <div style="margin-top:12px;border-top:0.5px solid var(--border);padding-top:12px">
             <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px">💌 送禮物給客人</div>
+            <!-- 2026-09-16修正：創辦人回報「花朵有看到，新葉沒看到」，全面檢查禮物功能後發現這裡原本
+                 只有4顆按鈕（陽光/雨水/星光/花朵），漏了新芽🌱跟新葉🍃這兩種——現在補齊成6種，跟
+                 GIFT_LABELS（index.html客人端）、GIFT_PICK_OPTIONS（下面訊息回覆用的禮物選單）一致。
+                 同時修正「陽光」按鈕原本送出的giftType是'sun'，但客人端index.html認得的是'sunshine'
+                 （其餘雨水/星光/花朵三個名稱本來就一樣所以沒發現），這個對不上的結果是：秘書從這個
+                 客戶詳情頁面送「陽光」禮物給客人，客人端完全看不到禮物卡片或動畫、訊息匣也不會出現
+                 禮物標籤，客人只會收到一句沒有任何禮物效果的純文字——已經改成跟其他5種一致的正確代碼。 -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
-              <button onclick="selectGift('sun')" id="gift-btn-sun" style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#92400E">☀️ 陽光</button>
+              <button onclick="selectGift('sunshine')" id="gift-btn-sunshine" style="background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#92400E">☀️ 陽光</button>
               <button onclick="selectGift('rain')" id="gift-btn-rain" style="background:#EFF6FF;border:1.5px solid #BFDBFE;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#1E40AF">🌧 雨水</button>
+              <button onclick="selectGift('sprout')" id="gift-btn-sprout" style="background:#F0FDF4;border:1.5px solid #BBF7D0;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#166534">🌱 新芽</button>
+              <button onclick="selectGift('leaf')" id="gift-btn-leaf" style="background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#065F46">🍃 新葉</button>
               <button onclick="selectGift('star')" id="gift-btn-star" style="background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#5B21B6">🌟 星光</button>
               <button onclick="selectGift('flower')" id="gift-btn-flower" style="background:#FFF0F6;border:1.5px solid #FBCFE8;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#9D174D">🌸 花朵</button>
             </div>
@@ -3255,11 +3264,13 @@ function lockClient() {
 </script>
 <script>
 // ── 送禮物給客人 ──
-var selectedGift = 'sun';
+// 2026-09-16修正：原本預設值/型別清單用的是'sun'，跟客人端index.html認得的'sunshine'對不上（詳見上面
+// HTML按鈕處的說明），這裡一併改成'sunshine'，並補上新增的sprout/leaf兩種
+var selectedGift = 'sunshine';
 
 function selectGift(type) {
   selectedGift = type;
-  var types = ['sun', 'rain', 'star', 'flower'];
+  var types = ['sunshine', 'rain', 'sprout', 'leaf', 'star', 'flower'];
   types.forEach(function(t) {
     var btn = document.getElementById('gift-btn-' + t);
     if (btn) btn.style.opacity = t === type ? '1' : '0.4';
@@ -3275,7 +3286,7 @@ function sendGiftToClient() {
     document.getElementById('gift-msg-input').value.trim() : '';
   if (!msg) { toast('請寫一段鼓勵的話'); return; }
   
-  var giftNames = {sun:'陽光', rain:'雨水', star:'星光', flower:'花朵'};
+  var giftNames = {sunshine:'陽光', rain:'雨水', sprout:'新芽', leaf:'新葉', star:'星光', flower:'花朵'};
   
   adminAPI({
     action: 'sendGift',
@@ -10082,12 +10093,15 @@ function showGiftMenu(idx, btn){
   var existing=document.getElementById(mid);
   if(existing){existing.remove();return;}
   document.querySelectorAll('[id^="gift-menu-"]').forEach(function(el){el.remove();});
+  // 2026-09-16補：這裡原本漏了「花朵」，全面檢查禮物功能時一併補上，跟其他送禮物入口（客戶詳情頁、
+  // 訊息回覆的GIFT_PICK_OPTIONS）湊齊同一套6種
   var gifts=[
     {t:'sunshine', label:'☀️ 陽光', msg:'秘書送你陽光：你今天做到了，我看見了 ☀️'},
     {t:'rain', label:'🌧 下雨', msg:'秘書送你下雨：今天好好休息，花園會自己長 🌧'},
     {t:'sprout', label:'🌱 新芽', msg:'秘書送你新芽：一小步也是進步，繼續長大 🌱'},
     {t:'leaf', label:'🍃 新葉', msg:'秘書送你新葉：秘書陪著你，不用一個人撐 🍃'},
-    {t:'star', label:'⭐ 星星', msg:'秘書送你星星：這週你真的很棒，這是你應得的 ⭐'}
+    {t:'star', label:'⭐ 星星', msg:'秘書送你星星：這週你真的很棒，這是你應得的 ⭐'},
+    {t:'flower', label:'🌸 花朵', msg:'秘書送你花朵：謝謝你這麼用心地照顧自己 🌸'}
   ];
   var menu=document.createElement('div');
   menu.id=mid;
