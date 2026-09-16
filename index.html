@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-16a';
+var MX_BUILD = '2026-09-16b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6993,9 +6993,34 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 // ══════ 📬 秘書訊息匣 ══════
+// 2026-09-16改：以前「秘書互動」頁面一打開，未讀數就整批歸零——她的回饋「本來3則通知，
+// 點開一看剩下兩則還沒看的也不見了」。現在改成每一則訊息自己記錄有沒有被點開看過(r)，
+// 點開一則才消掉一個未讀數，其他還沒點過的繼續留著提醒，可以一則一則慢慢點完
 function _msgInbox(){ try { return JSON.parse(localStorage.getItem('mx_msg_inbox') || '[]'); } catch(e){ return []; } }
 function _msgSave(list){ try { localStorage.setItem('mx_msg_inbox', JSON.stringify(list.slice(0, 20))); } catch(e){} }
-function _msgUnread(){ try { return parseInt(localStorage.getItem('mx_msg_unread') || '0', 10) || 0; } catch(e){ return 0; } }
+// 舊資料搬家：第一次套用新版時既有訊息沒有 r 欄位，這裡一次補上 r:true（視為已讀），
+// 避免舊訊息突然又冒出來變成「未讀」；之後新進來的訊息才會照新規則一則一則來
+function _msgMigrateOnce(){
+  try {
+    if (localStorage.getItem('mx_msg_migrated_v1')) return;
+    var list = _msgInbox();
+    var changed = false;
+    for (var mi = 0; mi < list.length; mi++) {
+      if (list[mi] && typeof list[mi].r === 'undefined') { list[mi].r = true; changed = true; }
+    }
+    if (changed) _msgSave(list);
+    localStorage.setItem('mx_msg_migrated_v1', '1');
+  } catch(e){}
+}
+function _msgUnread(){
+  try {
+    _msgMigrateOnce();
+    var list = _msgInbox();
+    var n = 0;
+    for (var ui = 0; ui < list.length; ui++) { if (!list[ui] || list[ui].r !== true) n++; }
+    return n;
+  } catch(e){ return 0; }
+}
 // 禮物類型 → 訊息匣標籤（2026-08-30 她的回饋「為什麼沒有看到秘書給我的雨水或陽光」：
 // 動畫只在收到當下的花園頁出現，人在別頁就錯過了，訊息匣又只存文字——現在禮物跟著訊息一起存，
 // 每則訊息都看得到附了什麼禮物，點標籤隨時重看動畫）
@@ -7005,9 +7030,8 @@ function addToMsgInbox(text, gtype){
   var list = _msgInbox();
   var now = new Date();
   var pad = function(n){ return (n < 10 ? '0' : '') + n; };
-  list.unshift({ t: pad(now.getMonth()+1) + '/' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()), m: String(text), g: (gtype && gtype !== 'message') ? String(gtype) : '' });
+  list.unshift({ t: pad(now.getMonth()+1) + '/' + pad(now.getDate()) + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()), m: String(text), g: (gtype && gtype !== 'message') ? String(gtype) : '', r: false });
   _msgSave(list);
-  try { localStorage.setItem('mx_msg_unread', String(_msgUnread() + 1)); } catch(e){}
   updateBellDot();
   if (typeof updateSecHubBadge === 'function') updateSecHubBadge();
 }
@@ -7035,24 +7059,37 @@ function _linkifyMsg(text){
   }
   return out + esc(s.slice(last));
 }
+// 點一則訊息卡片＝標記那一則已讀（2026-09-16新增）：只消掉這一則的未讀數，
+// 其他還沒點過的訊息繼續留著紅點提醒，讓她可以一則一則點完
+function markOneMsgRead(i){
+  var list = _msgInbox();
+  if (!list[i] || list[i].r === true) return;
+  list[i].r = true;
+  _msgSave(list);
+  updateBellDot();
+  if (typeof updateSecHubBadge === 'function') updateSecHubBadge();
+  renderSechubMsgs();
+}
 function renderSechubMsgs(){
   var listEl = document.getElementById('sechub-msg-list');
   if (!listEl) return;
+  _msgMigrateOnce();
   var list = _msgInbox();
   listEl.innerHTML = list.length
     ? list.map(function(it, i){
+        var unread = !!(it && it.r !== true);
         var giftTag = (it.g && GIFT_LABELS[it.g])
-          ? '<span onclick="replayGift(' + i + ')" style="display:inline-flex;align-items:center;gap:4px;background:#FFF8E6;border:1px solid #F0DEA0;color:#8a6d00;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:5px">' + GIFT_LABELS[it.g] + '禮物・點我重看 ✨</span>'
+          ? '<span onclick="event.stopPropagation();replayGift(' + i + ')" style="display:inline-flex;align-items:center;gap:4px;background:#FFF8E6;border:1px solid #F0DEA0;color:#8a6d00;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-bottom:5px">' + GIFT_LABELS[it.g] + '禮物・點我重看 ✨</span>'
           : '';
-        return '<div style="background:var(--card);border:0.5px solid var(--border);border-radius:11px;padding:10px 13px;margin-bottom:7px">'
-          + '<div style="font-size:11px;color:#9CA3AF;margin-bottom:3px">' + it.t + '</div>'
+        var newTag = unread ? '<span style="display:inline-flex;align-items:center;gap:3px;background:#E24B4A;color:#fff;border-radius:20px;padding:1px 8px;font-size:10px;font-weight:800;margin-left:6px;vertical-align:middle">● 未讀</span>' : '';
+        return '<div onclick="markOneMsgRead(' + i + ')" style="cursor:pointer;background:var(--card);border:0.5px solid ' + (unread ? '#E24B4A' : 'var(--border)') + ';border-radius:11px;padding:10px 13px;margin-bottom:7px">'
+          + '<div style="font-size:11px;color:#9CA3AF;margin-bottom:3px">' + it.t + newTag + '</div>'
           + giftTag
           + '<div style="font-size:13px;line-height:1.7;white-space:pre-wrap">' + _linkifyMsg(it.m) + '</div>'
           + '</div>';
       }).join('')
     : '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有訊息，秘書的建議和關心都會出現在這裡 🌱</div>';
-  // 進來看了，紅點與未讀數歸零；同步告訴後端「已讀」（秘書那邊的已讀狀態才是真的看過）
-  try { localStorage.setItem('mx_msg_unread', '0'); } catch(e){}
+  // 秘書那邊「客人是否已讀」的狀態，只要有打開這頁看過訊息就算已讀（跟前台這裡逐則消紅點是兩件事，互不影響）
   if (CLIENT_ID) callAPI({action:'markGiftsRead', clientId:CLIENT_ID}, function(){});
   updateBellDot();
   if (typeof updateSecHubBadge === 'function') updateSecHubBadge();
@@ -7066,6 +7103,7 @@ function replayGift(i){
   var keyMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower' };
   var key = keyMap[it.g];
   if (!key) return;
+  markOneMsgRead(i);
   goPage('garden', '代謝花園');
   setTimeout(function(){
     if (typeof gsGift === 'function') { try { gsGift(key); } catch(e){} }
