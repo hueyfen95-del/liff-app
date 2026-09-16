@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-15r';
+var MX_BUILD = '2026-09-15s';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -763,8 +763,15 @@ var MX_BUILD = '2026-09-15r';
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="duty-secretary" class="form-select" style="font-size:12px" onchange="loadSecretaryPayInfo()"><option value="">選擇秘書…</option></select>
         <input id="duty-date" type="date" class="form-input" style="font-size:12px">
-        <input id="duty-shift" class="form-input" style="font-size:12px" placeholder="班別（例：上午班）">
+        <select id="duty-shift" class="form-select" style="font-size:12px" onchange="dutyShiftPresetChange()">
+          <option value="">選擇班別…</option>
+          <option value="上午">上午班（09:00–13:00）</option>
+          <option value="下午">下午班（13:00–17:00）</option>
+          <option value="晚上">晚上班（18:00–21:00）</option>
+          <option value="其他">➕ 其他（自訂班別／時間）</option>
+        </select>
         <div id="duty-pay-display" style="font-size:11px;color:var(--text3);display:flex;align-items:center;padding:0 4px">先選秘書才會帶出薪資設定</div>
+        <input id="duty-shift-custom" class="form-input" style="font-size:12px;grid-column:1/-1;display:none" placeholder="自訂班別名稱（例：代班上午）">
         <select id="duty-start" class="form-select" style="font-size:12px"><option value="">上班時間（整點）</option></select>
         <select id="duty-end" class="form-select" style="font-size:12px"><option value="">下班時間（整點）</option></select>
         <input id="duty-note" class="form-input" style="font-size:12px;grid-column:1/-1" placeholder="備註（選填）">
@@ -4723,10 +4730,15 @@ function fsQuickMonth(offset){
 // 2026-09-15第二次重新設計：固定時段定義，跟後端 DUTY_SLOT_DEFS 一一對應（key要一致，claimShift靠這個key比對）。
 // 原本「排班意願」問「第幾週」不是確切日期，同一週每天都顯示一樣的意願，創辦人反映「更昏了」；
 // 這裡改成秘書直接對「確切日期＋這三個固定時段」自助登記排班，不再有「第幾週」這種模糊中間狀態。
+// 2026-09-15再補：創辦人指定固定時段時間，直接寫死不用手動填——上午9:00-13:00、下午13:00-17:00、
+// 晚上18:00-21:00，要跟後端 DUTY_SLOT_DEFS 完全一致。同時補上start/end欄位——原本這裡只有給人看的
+// time字串，doInvite（管理者邀請排班）卻是讀slotDef.start/slotDef.end，這兩個欄位根本不存在，
+// 導致邀請排班送出的上下班時間永遠是空的，邀請進去的班在月曆格子裡比對不到任何時段、永遠不會顯示成綠色，
+// 這是「還是沒有寫上誰排班」的另一個原因（自助登記則是另一個原因，已在後端duty_timeCellToStr_修掉）。
 var DUTY_SLOTS = [
-  { key:'上午', label:'上午', time:'09:30–11:30' },
-  { key:'下午', label:'下午', time:'15:00–17:00' },
-  { key:'晚上', label:'晚上', time:'19:00–21:00' }
+  { key:'上午', label:'上午', start:'09:00', end:'13:00' },
+  { key:'下午', label:'下午', start:'13:00', end:'17:00' },
+  { key:'晚上', label:'晚上', start:'18:00', end:'21:00' }
 ];
 function duty_timeToMinutes(t){
   var m = String(t||'').match(/^(\d{1,2}):(\d{2})$/);
@@ -5018,20 +5030,55 @@ function fsRemindAllGaps(btn){
     if(d && d.status === 'ok'){ toast('🔔 已發出提醒'); } else toast('⚠️ 提醒發送失敗，請重試');
   });
 }
+// 2026-09-15再補：創辦人要求「按下去下面就會連動顯示出來，不用重複一個一個填寫」——原本班別是自由輸入的文字框，
+// 上下班時間要自己一格一格選整點，這裡改成班別先選上午/下午/晚上，選了就直接帶出寫死的固定時間
+// （對應DUTY_SLOTS），不用再手動選時間；只有選「其他」才會跳出自訂欄位+開放手動選時間，保留特殊班別的彈性。
+function dutyShiftPresetChange(){
+  var sel = document.getElementById('duty-shift');
+  var customWrap = document.getElementById('duty-shift-custom');
+  var startSel = document.getElementById('duty-start');
+  var endSel = document.getElementById('duty-end');
+  if(!sel) return;
+  var slot = DUTY_SLOTS.find(function(sd){ return sd.key === sel.value; });
+  if(slot){
+    if(customWrap){ customWrap.style.display='none'; customWrap.value=''; }
+    if(startSel) startSel.value = slot.start;
+    if(endSel) endSel.value = slot.end;
+  } else if(sel.value === '其他'){
+    if(customWrap) customWrap.style.display='';
+    if(startSel) startSel.value = '';
+    if(endSel) endSel.value = '';
+  } else {
+    if(customWrap){ customWrap.style.display='none'; customWrap.value=''; }
+    if(startSel) startSel.value = '';
+    if(endSel) endSel.value = '';
+  }
+}
 function submitShift(btn){
   var secretary = document.getElementById('duty-secretary').value.trim();
   if(!secretary){ toast('請選擇秘書'); return; }
   var date = document.getElementById('duty-date').value;
   if(!date){ toast('請選擇日期'); return; }
+  var shiftSel = document.getElementById('duty-shift').value;
+  if(!shiftSel){ toast('請選擇班別'); return; }
+  var shiftLabel;
+  if(shiftSel === '其他'){
+    shiftLabel = document.getElementById('duty-shift-custom').value.trim();
+    if(!shiftLabel){ toast('請輸入自訂班別名稱'); return; }
+  } else {
+    var slot = DUTY_SLOTS.find(function(sd){ return sd.key === shiftSel; });
+    shiftLabel = (slot ? slot.label : shiftSel) + '班';
+  }
+  var startTime = document.getElementById('duty-start').value;
+  var endTime = document.getElementById('duty-end').value;
+  if(!startTime || !endTime){ toast('請選擇上下班時間'); return; }
   // 2026-09-09補：薪資類型/金額改由後端直接查帳號表，不用前端先查得到才能送出——
   // 之前這裡要求acc.payType/acc.payRate才能繼續，但一般秘書/行政帳號沒有權限查到薪資設定
   // （查詢會被後端拒絕），導致這顆「新增排班」按鈕對非創始人帳號永遠是擋住的，就算薪資其實已經設定好了
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   adminAPIPost({
     action:'addShift', secretary:secretary, date:date,
-    shift:document.getElementById('duty-shift').value,
-    startTime:document.getElementById('duty-start').value,
-    endTime:document.getElementById('duty-end').value,
+    shift:shiftLabel, startTime:startTime, endTime:endTime,
     note:document.getElementById('duty-note').value
   }, function(d){
     if(btn){ btn.disabled=false; btn.style.opacity=''; }
@@ -5039,7 +5086,8 @@ function submitShift(btn){
       // 2026-09-09補：後端沒查到薪資設定時payType會是空字串——排班本身還是照存，只是提醒一下
       // 薪資小計還沒算（等創始人去帳號管理補設定），不擋住排班這個動作本身
       toast(d.payType ? ('✅ 排班已記錄，小計 '+d.subtotal) : '✅ 排班已記錄（這位帳號還沒設定薪資，小計暫記0，補設定後之後結算會抓得到）');
-      ['duty-secretary','duty-shift','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+      ['duty-secretary','duty-shift','duty-shift-custom','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+      var cw = document.getElementById('duty-shift-custom'); if(cw) cw.style.display='none';
       document.getElementById('duty-pay-display').textContent = '先選秘書才會帶出薪資設定';
       if(typeof loadShiftSchedule==='function') loadShiftSchedule();
       if(typeof loadFullSchedule==='function') loadFullSchedule();
