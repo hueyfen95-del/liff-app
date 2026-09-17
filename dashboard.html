@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>元代謝｜每日儀表板</title>
+<style>
+  :root{
+    color-scheme: light dark;
+    --surface-1:#fcfcfb; --plane:#f4f4f1;
+    --text-1:#0b0b0b; --text-2:#52514e; --text-3:#898781;
+    --grid:#e1e0d9; --line:#c3c2b7;
+    --ring:rgba(11,11,11,.10);
+    --blue:#2a78d6; --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+    --good-ink:#006300; --warn-ink:#8a5a00;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --surface-1:#1a1a19; --plane:#0d0d0d;
+      --text-1:#ffffff; --text-2:#c3c2b7; --text-3:#898781;
+      --grid:#2c2c2a; --line:#383835;
+      --ring:rgba(255,255,255,.10);
+      --blue:#3987e5; --good-ink:#0ca30c; --warn-ink:#fab219;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:22px 18px 48px;
+    background:var(--plane); color:var(--text-1);
+    font-family:system-ui,-apple-system,"Segoe UI","PingFang TC","Noto Sans TC",sans-serif;
+    font-size:15px; line-height:1.6;
+  }
+  .wrap{max-width:1020px;margin:0 auto}
+  header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;margin-bottom:4px}
+  h1{font-size:22px;margin:0;letter-spacing:.2px}
+  .sub{color:var(--text-2);font-size:13px}
+  .stamp{margin-left:auto;color:var(--text-3);font-size:12px;font-variant-numeric:tabular-nums}
+  .card{background:var(--surface-1);border:1px solid var(--ring);border-radius:14px;padding:18px 18px 16px;margin-top:16px}
+  .card > h2{font-size:15px;margin:0 0 2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .card > .why{color:var(--text-3);font-size:12.5px;margin:0 0 14px}
+  .badge{font-size:11px;font-weight:600;letter-spacing:.3px;border-radius:999px;padding:2px 8px;
+         border:1px solid var(--ring);color:var(--text-2);background:color-mix(in srgb,var(--text-1) 5%,transparent)}
+  .badge.live{color:var(--good-ink);border-color:color-mix(in srgb,var(--good) 45%,transparent)}
+  .badge.snap{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 45%,transparent)}
+
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+  .tile{background:var(--plane);border:1px solid var(--ring);border-radius:11px;padding:11px 13px}
+  .tile .k{font-size:11.5px;color:var(--text-3);margin-bottom:2px}
+  .tile .v{font-size:25px;font-weight:600;line-height:1.15}
+  .tile .n{font-size:11.5px;color:var(--text-2);margin-top:1px}
+
+  /* 衝突警示 */
+  .alert{display:flex;gap:11px;align-items:flex-start;border-radius:10px;padding:11px 13px;margin-bottom:14px;
+         background:color-mix(in srgb,var(--crit) 10%,transparent);
+         border:1px solid color-mix(in srgb,var(--crit) 40%,transparent)}
+  .alert .ic{flex:none;font-size:16px;line-height:1.3}
+  .alert b{display:block;color:var(--crit);font-size:13.5px;margin-bottom:2px}
+  .alert span{font-size:13px;color:var(--text-2)}
+
+  /* 行程 */
+  .day{margin-top:14px}
+  .day:first-of-type{margin-top:0}
+  .day-h{display:flex;align-items:baseline;gap:9px;font-size:12.5px;font-weight:600;color:var(--text-3);
+         padding-bottom:6px;border-bottom:1px solid var(--grid);letter-spacing:.3px}
+  .day-h .tag{font-size:10.5px;font-weight:700;border-radius:4px;padding:1px 6px;letter-spacing:.3px}
+  .t-today{background:color-mix(in srgb,var(--blue) 18%,transparent);color:var(--blue)}
+  .t-tmr{background:color-mix(in srgb,var(--text-1) 8%,transparent);color:var(--text-2)}
+  .ev{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid var(--grid);font-size:13.5px;align-items:flex-start}
+  .ev:last-child{border-bottom:none}
+  .ev .tm{flex:none;width:52px;font-variant-numeric:tabular-nums;color:var(--text-2);font-size:12.5px;padding-top:1px}
+  .ev .ti{flex:1;min-width:0}
+  .ev .loc{display:block;color:var(--text-3);font-size:12px}
+  .ev.past{opacity:.42}
+  .ev.clash .ti{color:var(--crit);font-weight:600}
+  .empty{font-size:13px;color:var(--text-3);padding:8px 0}
+  .allday{font-size:12.5px;color:var(--text-2);background:var(--plane);border:1px solid var(--ring);
+          border-radius:8px;padding:7px 11px;margin-bottom:12px}
+
+  /* 待辦 */
+  .grp{margin:0 0 4px;font-size:12px;font-weight:600;color:var(--text-3);letter-spacing:.4px;padding-top:14px}
+  .grp:first-of-type{padding-top:0}
+  ul.todo{list-style:none;margin:0;padding:0}
+  ul.todo li{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--grid);font-size:13.5px}
+  ul.todo li:last-child{border-bottom:none}
+  .pill{flex:none;font-size:11px;font-weight:600;border-radius:5px;padding:2px 7px;height:fit-content;margin-top:2px}
+  .p-you{background:color-mix(in srgb,var(--warn) 26%,transparent);color:var(--warn-ink)}
+  .p-me{background:color-mix(in srgb,var(--blue) 16%,transparent);color:var(--blue)}
+  .p-done{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good-ink)}
+  .li-note{color:var(--text-3);font-size:12.5px;display:block}
+
+  table{width:100%;border-collapse:collapse}
+  th{text-align:left;font-size:11.5px;font-weight:600;color:var(--text-3);padding:0 8px 7px 0;border-bottom:1px solid var(--grid)}
+  td{padding:9px 8px 9px 0;border-bottom:1px solid var(--grid);vertical-align:top;font-size:13.5px}
+  tr:last-child td{border-bottom:none}
+  td a{color:var(--blue);text-decoration:none}
+  td a:hover{text-decoration:underline}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:7px;vertical-align:1px}
+  .s-good{background:var(--good)} .s-crit{background:var(--crit)} .s-idle{background:var(--line)}
+  .st{white-space:nowrap;font-weight:600;font-size:12.5px}
+  .st.good{color:var(--good-ink)} .st.crit{color:var(--crit)} .st.idle{color:var(--text-3)}
+  .mono{font-variant-numeric:tabular-nums;color:var(--text-2);font-size:12.5px}
+  footer{color:var(--text-3);font-size:11.5px;margin-top:18px;text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>元代謝｜每日儀表板</h1>
+    <span class="sub">VV</span>
+    <span class="stamp" id="stamp">載入中…</span>
+  </header>
+
+  <!-- ════════ ① 行程 ════════ -->
+  <section class="card">
+    <h2>① 這週行程 <span class="badge snap">● Google 行事曆</span></h2>
+    <p class="why">你本人的 Google 行事曆，真實資料。時間過了的會自動變淡。</p>
+
+    <div id="clash-box"></div>
+    <div class="allday">🧳 方學姊出國中 — 9/15 至 10/6</div>
+    <div id="agenda"></div>
+  </section>
+
+  <!-- ════════ ② 系統狀態 ════════ -->
+  <section class="card">
+    <h2>② 生產系統狀態 <span class="badge live">● 即時抓取</span></h2>
+    <p class="why">每次打開就重新連線檢查，頁面開著時每 5 分鐘再測一次。</p>
+
+    <div class="tiles">
+      <div class="tile"><div class="k">前台可連線</div><div class="v" id="t-up">—</div><div class="n" id="t-up-n">檢查中…</div></div>
+      <div class="tile"><div class="k">後端部署版本</div><div class="v" style="color:var(--good-ink)">169</div><div class="n">含行事曆同步 · 09/17</div></div>
+      <div class="tile"><div class="k">前端 GitHub</div><div class="v" style="color:var(--good-ink)">同步</div><div class="n">5 檔雜湊全一致</div></div>
+      <div class="tile"><div class="k">最新 commit</div><div class="v mono" id="t-sha" style="font-size:20px">—</div><div class="n" id="t-sha-n">讀取中…</div></div>
+    </div>
+
+    <table>
+      <thead><tr><th style="width:36%">端點</th><th style="width:20%">狀態</th><th>說明</th></tr></thead>
+      <tbody id="ep-rows">
+        <tr data-url="https://hueyfen95-del.github.io/liff-app/">
+          <td><span class="dot s-idle"></span><a href="https://hueyfen95-del.github.io/liff-app/" target="_blank">客人前台 index</a></td>
+          <td class="st idle">檢查中</td><td class="mono">2026-09-14e</td></tr>
+        <tr data-url="https://hueyfen95-del.github.io/liff-app/admin.html">
+          <td><span class="dot s-idle"></span><a href="https://hueyfen95-del.github.io/liff-app/admin.html" target="_blank">秘書後台 admin</a></td>
+          <td class="st idle">檢查中</td><td class="mono">2026-09-15</td></tr>
+        <tr data-url="https://hueyfen95-del.github.io/liff-app/vendor.html">
+          <td><span class="dot s-idle"></span><a href="https://hueyfen95-del.github.io/liff-app/vendor.html" target="_blank">店家工作台 vendor</a></td>
+          <td class="st idle">檢查中</td><td class="mono">2026-09-10</td></tr>
+        <tr data-url="https://hueyfen95-del.github.io/liff-app/intro.html">
+          <td><span class="dot s-idle"></span><a href="https://hueyfen95-del.github.io/liff-app/intro.html" target="_blank">導覽 intro</a></td>
+          <td class="st idle">檢查中</td><td class="mono">2026-09-11c</td></tr>
+      </tbody>
+    </table>
+    <div id="commits" style="margin-top:14px"></div>
+  </section>
+
+  <!-- ════════ ③ 未結案 ════════ -->
+  <section class="card">
+    <h2>③ 未結案清單 <span class="badge live">● 依實際工作紀錄</span></h2>
+    <p class="why">卡住的不是程式，是「誰欠誰一個決定」。</p>
+
+    <div class="tiles">
+      <div class="tile"><div class="k">等你決定</div><div class="v" style="color:var(--warn-ink)">6</div><div class="n">卡住後續開發</div></div>
+      <div class="tile"><div class="k">我待辦</div><div class="v" style="color:var(--blue)">2</div><div class="n">隨時可做</div></div>
+      <div class="tile"><div class="k">今天完成</div><div class="v" style="color:var(--good-ink)">3</div><div class="n">部署 · 授權 · 連接器</div></div>
+      <div class="tile"><div class="k">待實測</div><div class="v" style="color:var(--warn-ink)">1</div><div class="n">行事曆同步</div></div>
+    </div>
+
+    <p class="grp">等你回覆（沒有就做不下去）</p>
+    <ul class="todo">
+      <li><span class="pill p-you">等你</span><span>「測試A」帳號以前真的有連續打卡過嗎？<span class="li-note">連續打卡顯示「–」那個 bug — 如果本來就沒記錄，顯示 0 才是對的、已經解決；如果有記錄卻讀不到，那還有更深的問題要抓</span></span></li>
+      <li><span class="pill p-you">等你</span><span>其餘約 30 處按鈕要不要全面補防連點？<span class="li-note">自訂追蹤模組那個已修。其他 30 處寫法一樣，但目前沒證據真的出過問題 — 你決定要一次補齊還是遇到再修</span></span></li>
+      <li><span class="pill p-you">等你</span><span>C001 那筆查無此人的測試資料要清掉嗎？<span class="li-note">追蹤模組裡的殘留，跟真實客人編號格式對不上</span></span></li>
+      <li><span class="pill p-you">等你</span><span>ABC 先天分型的判定標準<span class="li-note">程式裡還是空的 stub，一直沒有依據可以寫</span></span></li>
+      <li><span class="pill p-you">等你</span><span>sdLDL × 過量運動的實際案例<span class="li-note">規則不敢自己定，等你的真實案例</span></span></li>
+      <li><span class="pill p-you">等你</span><span>0026 體脂 / 性別確認<span class="li-note">14 對 20.7，兩個值矛盾</span></span></li>
+    </ul>
+
+    <p class="grp">我欠的</p>
+    <ul class="todo">
+      <li><span class="pill p-me">我</span><span>manual_founder.html 補上今天的更新說明<span class="li-note">行事曆同步這輪還沒寫進手冊，你的慣例是每輪都要同步</span></span></li>
+      <li><span class="pill p-me">我</span><span>行事曆同步實測<span class="li-note">要一筆有具體日期的預約才測得到（「每週六上午」那種不會建事件）</span></span></li>
+    </ul>
+
+    <p class="grp">今天完成</p>
+    <ul class="todo">
+      <li><span class="pill p-done">✓</span><span>Apps Script 部署 169 版<span class="li-note">預約自動寫進 Google 行事曆；網址沒變，前台不受影響</span></span></li>
+      <li><span class="pill p-done">✓</span><span>Google 日曆權限授權<span class="li-note">本來沒授權過，沒抓到的話會靜默失敗、查不出原因</span></span></li>
+      <li><span class="pill p-done">✓</span><span>Gmail / Google Calendar / GitHub 連接器<span class="li-note">GitHub 的工具還沒接進對話，但你前端本來就沒積壓，不急</span></span></li>
+    </ul>
+  </section>
+
+  <footer id="foot">
+    ②即時抓取，每 5 分鐘自動重測 · ①③ 由我更新
+  </footer>
+</div>
+
+<script>
+/* ── 行事曆快照（抓取時間：2026-09-17 14:2x 台北）─────────────────
+   來源是 VV 本人的 Google 行事曆。頁面會用當下時間重算「今天/明天」、
+   把過去的行程變淡，所以隔天打開標籤還是對的。 */
+var EVENTS = [
+  {s:"2026-09-17T09:00", e:"2026-09-17T10:00", t:"絜恩預約原蘊"},
+  {s:"2026-09-18T10:00", e:"2026-09-18T11:00", t:"安生郭醫師講解"},
+  {s:"2026-09-18T10:00", e:"2026-09-18T10:30", t:"傅玉婷、李雅玲講解", l:"騰訊會議 891-341-122"},
+  {s:"2026-09-18T21:10", e:"2026-09-18T21:40", t:"傅玉婷講解討論", l:"騰訊會議 344-760-079"},
+  {s:"2026-09-18T21:30", e:"2026-09-18T22:30", t:"帶大任的保健品去"},
+  {s:"2026-09-19T11:30", e:"2026-09-19T12:30", t:"大台北社區辦演講"},
+  {s:"2026-09-19T14:30", e:"2026-09-19T15:30", t:"瑞珠：下午四點前約客人諮詢"},
+  {s:"2026-09-21T10:00", e:"2026-09-21T11:00", t:"來排安排 21 日上午"},
+  {s:"2026-09-21T10:30", e:"2026-09-21T11:30", t:"員工健康檢查", l:"欣憶電子一樓會議室"},
+  {s:"2026-09-21T10:30", e:"2026-09-21T11:30", t:"每週一在艱困減重群裡發問"},
+  {s:"2026-09-21T16:00", e:"2026-09-21T17:00", t:"May 請假"},
+  {s:"2026-09-22T13:30", e:"2026-09-22T14:00", t:"瀚仕生醫合約客戶線上視訊會議"},
+  {s:"2026-09-23T09:10", e:"2026-09-23T12:10", t:"零樂理也能當製作人－用 AI 打造你的專屬主題曲", l:"新竹縣政府前棟三樓第二會議室"},
+  {s:"2026-09-23T12:30", e:"2026-09-23T13:30", t:"約敏旭去打點滴"}
+];
+/* 真正的時段重疊（同一天、時間交疊、兩件都要本人出席）。
+   「每週一在艱困減重群裡發問」是固定提醒不是行程，不算衝突。 */
+var CLASHES = [{date:"2026-09-18", time:"10:00", a:"安生郭醫師講解", b:"傅玉婷、李雅玲講解（騰訊會議）"}];
+
+(function(){
+  var TZ='Asia/Taipei', WD=['日','一','二','三','四','五','六'];
+  function fmt(d){
+    return new Intl.DateTimeFormat('zh-TW',{timeZone:TZ,year:'numeric',month:'2-digit',
+      day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(d);
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  // 行事曆時間一律當成台北時間解析，不跟著看的人的裝置時區跑。
+  function tpe(s){ return new Date(s + ':00+08:00'); }
+  // 「今天」也要用台北算 —— 直接從格式化結果取，不靠裝置時區。
+  function dayKeyNow(offsetDays){
+    var d = new Date(Date.now() + (offsetDays||0)*864e5);
+    var p = new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).format(d);
+    return p; // en-CA give YYYY-MM-DD
+  }
+  function dayKey(s){ return s.slice(0,10); }
+
+  function renderClash(){
+    var box=document.getElementById('clash-box');
+    var now=new Date(), html='';
+    CLASHES.forEach(function(c){
+      if(tpe(c.date+'T23:59') < now) return;   // 過去的衝突不用再提醒
+      var d=new Date(c.date+'T00:00:00');
+      html += '<div class="alert"><span class="ic">⚠️</span><div><b>'
+            + (d.getMonth()+1)+'/'+d.getDate()+'（'+WD[d.getDay()]+'）'+c.time+' 撞期</b>'
+            + '<span>'+esc(c.a)+'　vs　'+esc(c.b)+'</span></div></div>';
+    });
+    box.innerHTML = html;
+  }
+
+  function renderAgenda(){
+    var now=new Date(), todayK=dayKeyNow(0), tmrK=dayKeyNow(1);
+    var groups={}, order=[];
+    EVENTS.forEach(function(ev){
+      var k=dayKey(ev.s);
+      if(!groups[k]){ groups[k]=[]; order.push(k); }
+      groups[k].push(ev);
+    });
+    var out='';
+    order.forEach(function(k){
+      var d=new Date(k+'T00:00:00');
+      var tag = k===todayK ? '<span class="tag t-today">今天</span>'
+              : k===tmrK  ? '<span class="tag t-tmr">明天</span>' : '';
+      out += '<div class="day"><div class="day-h">'
+           + (d.getMonth()+1)+'月'+d.getDate()+'日（'+WD[d.getDay()]+'）'+tag+'</div>';
+      groups[k].forEach(function(ev){
+        var past = tpe(ev.e) < now;
+        var isClash = CLASHES.some(function(c){ return c.date===k && ev.s.indexOf('T'+c.time)>0; });
+        out += '<div class="ev'+(past?' past':'')+(isClash?' clash':'')+'">'
+             + '<span class="tm">'+ev.s.slice(11)+'</span><span class="ti">'
+             + (isClash?'⚠️ ':'') + esc(ev.t)
+             + (ev.l? '<span class="loc">'+esc(ev.l)+'</span>' : '')
+             + '</span></div>';
+      });
+      out += '</div>';
+    });
+    document.getElementById('agenda').innerHTML = out || '<p class="empty">這週沒有行程。</p>';
+  }
+
+  /* ── 系統狀態 ───────────────────────────────── */
+  function setRow(tr, ok){
+    tr.querySelector('.dot').className='dot '+(ok?'s-good':'s-crit');
+    var st=tr.querySelector('.st'); st.className='st '+(ok?'good':'crit');
+    st.textContent = ok?'正常':'連不上';
+  }
+  function setUnknown(tr){
+    tr.querySelector('.dot').className='dot s-idle';
+    var st=tr.querySelector('.st'); st.className='st idle'; st.textContent='無法檢查';
+  }
+  // 全部失敗時先用對照組確認是不是「這個畫面本身不能連外網」，
+  // 不能因為畫面被隔離就誤報成她的網站掛了。
+  function checkEndpoints(){
+    var rows=[].slice.call(document.querySelectorAll('#ep-rows tr'));
+    var probes=rows.map(function(tr){
+      return fetch(tr.getAttribute('data-url')+'?_='+Math.floor(Date.now()/60000),
+                   {mode:'no-cors',cache:'no-store'})
+             .then(function(){return true;}).catch(function(){return false;});
+    });
+    var control=fetch('https://www.gstatic.com/generate_204',{mode:'no-cors',cache:'no-store'})
+                 .then(function(){return true;}).catch(function(){return false;});
+    Promise.all([Promise.all(probes),control]).then(function(r){
+      var list=r[0], online=r[1], ok=list.filter(Boolean).length;
+      var tile=document.getElementById('t-up'), note=document.getElementById('t-up-n');
+      if(ok===0 && !online){
+        rows.forEach(setUnknown);
+        tile.textContent='—'; tile.style.color='var(--text-3)';
+        note.textContent='此畫面無法連外網，非你的網站問題';
+        return;
+      }
+      rows.forEach(function(tr,i){ setRow(tr,list[i]); });
+      tile.textContent=ok+'/'+rows.length;
+      tile.style.color=(ok===rows.length)?'var(--good-ink)':'var(--crit)';
+      note.textContent=(ok===rows.length)?'全部正常':'有端點連不上';
+    });
+  }
+
+  function loadCommits(){
+    fetch('https://api.github.com/repos/hueyfen95-del/liff-app/commits?per_page=5',
+          {headers:{'Accept':'application/vnd.github+json'},cache:'no-store'})
+      .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+      .then(function(list){
+        if(!list.length) throw 0;
+        var top=list[0], dt=new Date(top.commit.author.date);
+        document.getElementById('t-sha').textContent=top.sha.slice(0,7);
+        document.getElementById('t-sha-n').textContent=fmt(dt).slice(5);
+        var h='<p class="grp">最近的版本紀錄</p><ul class="todo">';
+        list.forEach(function(c){
+          h+='<li><span class="pill p-done">'+c.sha.slice(0,7)+'</span><span>'
+            + esc((c.commit.message||'').split('\n')[0])
+            + '<span class="li-note">'+fmt(new Date(c.commit.author.date))+'</span></span></li>';
+        });
+        document.getElementById('commits').innerHTML=h+'</ul>';
+      })
+      .catch(function(){
+        document.getElementById('t-sha').textContent='n/a';
+        document.getElementById('t-sha-n').textContent='連線被擋';
+        document.getElementById('commits').innerHTML=
+          '<p class="grp">最近的版本紀錄</p><p style="font-size:13px;color:var(--text-3);margin:0">'
+         +'這個畫面擋掉了對 api.github.com 的連線，版本紀錄讀不到。端點狀態不受影響。</p>';
+      });
+  }
+
+  function refresh(){
+    document.getElementById('stamp').textContent='最後檢查 '+fmt(new Date())+'（台北）';
+    renderClash(); renderAgenda(); checkEndpoints(); loadCommits();
+  }
+  refresh();
+  setInterval(refresh, 5*60*1000);
+})();
+</script>
+</body>
+</html>
