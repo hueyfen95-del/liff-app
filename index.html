@@ -497,7 +497,7 @@ window.openHealthForm = function() {
             <div style="flex:1;font-size:11px;color:#374151">💬 今日心情</div>
             <div style="font-size:12px;color:#6B7280">點擊記錄</div>
           </div>
-          <!-- 2026-09-17a新增：碳水回補記錄——客人反應「都要在花園清單裡才看得到」，所以直接加在這份
+          <!-- 2026-09-17b新增：碳水回補記錄——客人反應「都要在花園清單裡才看得到」，所以直接加在這份
                清單最後一項，跟前面7項並排。跟前面7項不同的地方：①不計入上面「X/7」的花園任務進度
                （因為只有醫師核准開始吃碳水的客人才有這一項，計進去對其他客人不公平），②預設是鎖住
                灰色狀態（🔒尚未開通、不能點），等loadCarbPlan()確認秘書已核准才會解鎖成可以點擊記錄 -->
@@ -4444,7 +4444,7 @@ function loadCarbPlan(){
     if(refeedSection) refeedSection.style.background = _carbRefeedActive ? 'var(--g2)' : 'var(--bg2)';
     if(refeedSection) refeedSection.style.borderColor = _carbRefeedActive ? 'var(--g)' : 'var(--border)';
     if(refeedTitle) refeedTitle.style.color = _carbRefeedActive ? 'var(--g3)' : 'var(--text3)';
-    // 2026-09-17a：首頁花園清單裡的「🍚 碳水記錄」第8項，鎖住/解鎖外觀也跟著這裡的核准狀態切換
+    // 2026-09-17b：首頁花園清單裡的「🍚 碳水記錄」第8項，鎖住/解鎖外觀也跟著這裡的核准狀態切換
     if(typeof updateHomeCarbLock === 'function') updateHomeCarbLock();
     var card = document.getElementById('carb-plan-card');
     var txt = document.getElementById('carb-plan-text');
@@ -4616,7 +4616,7 @@ function submitDailyRecord() {
       // 存成功後也要保持綠色，不是只有血酮/體重/腰圍這幾個才要
       if(carbsVal && parseFloat(carbsVal) >= 0) {
         var carbInpEl = document.getElementById('carb-inp'); if(carbInpEl) carbInpEl.classList.add('saved');
-        // 2026-09-17a：今天記錄過碳水了，首頁花園清單那顆「🍚 碳水記錄」也要打勾，
+        // 2026-09-17b：今天記錄過碳水了，首頁花園清單那顆「🍚 碳水記錄」也要打勾，
         // 跟血酮/體重/電解質那幾項一樣存進🌱花園任務表，之後重新整理頁面才能正確恢復狀態
         syncGardenTask('碳水回補記錄', true);
         if(typeof updateHomeCarbTask === 'function') updateHomeCarbTask(true);
@@ -4649,7 +4649,7 @@ function syncGardenTask(taskName, done) {
   });
 }
 
-// 2026-09-17a新增：首頁花園清單裡「🍚 碳水記錄」這第8項的點擊/鎖住邏輯，跟其他7項分開寫，
+// 2026-09-17b新增：首頁花園清單裡「🍚 碳水記錄」這第8項的點擊/鎖住邏輯，跟其他7項分開寫，
 // 故意不共用goTaskPage()／updateHomeTask()——那兩支是綁死gsTasks[0..6]、doneCnt、celebrateTask(i,...)
 // 這套7項計數系統的，碳水這項不算進「X/7」進度，混進去會讓計數跟慶祝動畫的index對不起來
 function goCarbRecordPage(){
@@ -9048,7 +9048,7 @@ function loadTodayGarden(){
     gardenTasksDone = gsTasks.filter(Boolean).length;
     if(typeof updateGardenVisual==='function') updateGardenVisual();
     if(typeof updateGardenProgress==='function') updateGardenProgress();
-    // 2026-09-17a：碳水記錄這項不在gsTasks[0..6]裡（不計入X/7進度），要另外單獨還原今天的打勾狀態，
+    // 2026-09-17b：碳水記錄這項不在gsTasks[0..6]裡（不計入X/7進度），要另外單獨還原今天的打勾狀態，
     // 不然重新整理頁面後，今天明明記錄過碳水，卻又看起來變回沒記錄
     if(done.indexOf('碳水回補記錄')>=0 && typeof updateHomeCarbTask==='function') updateHomeCarbTask(true);
     // 今天還沒任何記錄 → 花園是「清新的一天」狀態
@@ -9209,7 +9209,10 @@ function bkParseSlotPattern(text){
 function bkGenerateDates(pattern, count){
   if(!pattern.days || pattern.days.length===0) return [];
   var results = [];
-  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+1); // 從明天開始找
+  // 2026-09-17 改：創辦人規定「所有院所都要提前一週預約」，但這裡原本是從明天開始給日期，
+  // 客人明天就約得到、只提前一天，跟規定不符也讓秘書要一直改時間。改成七天後才開放選。
+  var BOOKING_LEAD_DAYS = 7;
+  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+BOOKING_LEAD_DAYS);
   var guard = 0;
   while(results.length < count && guard < 90){
     if(pattern.days.indexOf(d.getDay()) >= 0){
