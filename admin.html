@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-16a';
+var MX_BUILD = '2026-09-16b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -8862,7 +8862,7 @@ function copyAlertMsg(idx){
 function resolveAlertUI(btn, idx){
   var a=_alertsCache && _alertsCache.alerts ? _alertsCache.alerts[idx] : null;
   if(!a) return;
-  adminAPIPost({action:'resolveAlert', clientId:a.clientId, alertType:a.type, handler:'', note:'已標記處理中'}, function(d){
+  adminAPIPost({action:'resolveAlert', clientId:a.clientId, alertType:(a.alertKey||a.type), handler:'', note:'已標記處理中'}, function(d){
     if(d.status==='ok'){
       toast('✅ 已記錄處理狀態（⚙️ 警示處理記錄）');
       var card = btn.closest('.alert-item');
@@ -11145,7 +11145,10 @@ function renderSymptomAlertsInto_(alerts, cardId, bodyId, navId){
       + '<span style="font-weight:800;color:'+color+';font-size:12px">'+badge+'</span>'
       + '<span style="font-weight:700;font-size:13px">'+escH(a.name||a.clientId)+'</span>'
       + '<span style="font-size:10.5px;color:var(--text3)">'+escH(a.date)+'・'+escH(a.tag)+(a.isInsulin?'・💉胰島素客人':'')+'</span>'
-      + '<span style="margin-left:auto"><button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\')">開啟</button></span>'
+      + '<span style="margin-left:auto;display:flex;gap:5px">'
+      + '<button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\')">開啟</button>'
+      + '<button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="resolveSymptomAlertUI(this,\''+escH(a.clientId)+'\',\''+escH(a.alertKey||a.tag)+'\')">✅ 標記已處理</button>'
+      + '</span>'
       + '</div>'
       + '<div style="font-size:11px;color:'+color+';line-height:1.5">'+escH(a.hint)+'</div>'
       + '<div style="font-size:10.5px;color:var(--text3);margin-top:2px">客人回報：「'+escH(a.feeling)+'」</div>'
@@ -11156,6 +11159,23 @@ function renderSymptomAlertsInto_(alerts, cardId, bodyId, navId){
 function loadSymptomAlerts(){
   adminAPI({action:'getSymptomAlerts'}, function(d){
     renderSymptomAlertsInto_(d.alerts||[], 'alert-card', 'symptom-alerts-body', 'alert-card');
+  });
+}
+// 2026-09-16新增：症狀提醒原本完全沒有「標記已處理」的按鈕——創辦人回報「我已經處理了，警示
+// 還是留在那裡」。現在按下去會真的寫進「⚙️ 警示處理記錄」（跟後端 getResolvedAlertMap_ 共用同一套
+// 判斷邏輯），下次重新整理／換頁再回來，這筆就不會再出現，除非同一位客人又有新的記錄進來。
+function resolveSymptomAlertUI(btn, clientId, alertKey){
+  if(btn){ btn.disabled = true; btn.textContent = '處理中…'; btn.style.opacity = '.6'; }
+  adminAPIPost({action:'resolveAlert', clientId:clientId, alertType:alertKey, handler:'', note:'已標記處理中'}, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ 已標記處理，重新整理後這筆警示就不會再出現');
+      var card = btn ? btn.closest('div[style*="border-left:4px solid"]') : null;
+      if(card){ card.style.opacity = '.4'; }
+      if(btn){ btn.textContent = '已處理'; }
+    } else {
+      toast('⚠️ 記錄失敗，請重試');
+      if(btn){ btn.disabled = false; btn.textContent = '✅ 標記已處理'; btn.style.opacity = ''; }
+    }
   });
 }
 // 警示看板頁面版本——側邊欄「警示看板」旁邊那個紅色數字，點進來就是要看這份名單，所以除了渲染，
