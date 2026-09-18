@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-16b';
+var MX_BUILD = '2026-09-17a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -583,9 +583,18 @@ var MX_BUILD = '2026-09-16b';
       </div>
 
   <div id="client-search-filter-row" data-nav-label="搜尋／篩選／新增客人" data-nav-icon="ti ti-filter" style="display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-    <input placeholder="搜尋客人姓名…" style="flex:1;max-width:200px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
-    <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部階段</option><option>亂流期</option><option>粒線體期</option><option>穩酮期</option><option>固酮期</option></select>
-    <select class="form-select" style="width:auto;flex:none;font-size:12px"><option>全部秘書</option><option>婷婷</option><option>Vivien</option></select>
+    <input id="client-search-input" placeholder="搜尋客人姓名／編號…" oninput="applyClientFilters()" style="flex:1;max-width:200px;border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-size:12px;outline:none">
+    <select id="client-filter-stage" class="form-select" style="width:auto;flex:none;font-size:12px" onchange="applyClientFilters()">
+      <option value="__ALL__">全部階段</option>
+      <option value="__EMPTY__">（未設定）</option>
+      <option value="0階亂流期">0階亂流期</option>
+      <option value="一階a生酮期">一階a生酮期</option>
+      <option value="一階b穩酮期">一階b穩酮期</option>
+      <option value="一階c固酮期">一階c固酮期</option>
+      <option value="二階營養性生酮">二階營養性生酮</option>
+      <option value="三階抗老化健康">三階抗老化健康</option>
+    </select>
+    <select id="client-filter-secretary" class="form-select" style="width:auto;flex:none;font-size:12px" onchange="applyClientFilters()"><option value="__ALL__">全部秘書</option></select>
     <button class="tb-btn" style="margin-left:auto" onclick="exportClientsCSV()"><i class="ti ti-download" style="font-size:14px"></i>匯出</button>
     <button id="new-client-btn" class="tb-btn g" onclick="toggleClientForm()"><i class="ti ti-plus" style="font-size:14px"></i>新增客人</button>
   </div>
@@ -3656,27 +3665,75 @@ function addInvItem(btn){
 }
 function invStockAction(i, type){
   var it = _invCache[i]; if(!it) return;
+  // 2026-09-17改：進貨牽涉到供應商應付帳款，之前用prompt()自由輸入供應商名字，同一個供應商很容易
+  // 被打成不同字串（多打一個空白、簡繁體不同、大小寫不同...），後台是拿字串直接當key去加總欠款，
+  // 打法不一樣就會被當成不同供應商分開累計、對帳時漏掉——改成跟「新增品項」一樣用既有供應商下拉選單
+  if(type === '進貨'){ openInvRestockModal(i); return; }
   var qty;
   if(type === '調整'){
     qty = prompt('「'+it.name+'」盤點後實際數量是多少？（目前系統記錄：'+it.stock+' '+it.unit+'）', it.stock);
   } else {
-    qty = prompt((type === '進貨' ? '這次進貨' : '這次出貨') + '「'+it.name+'」幾'+it.unit+'？', '1');
+    qty = prompt('這次出貨「'+it.name+'」幾'+it.unit+'？', '1');
   }
   if(qty === null) return;
   qty = parseInt(qty, 10);
   if(!(qty >= 0)){ toast('⚠️ 請輸入正確的數字'); return; }
-  var clientId = '', supplier = '', unitCost = '';
+  var clientId = '';
   if(type === '出貨') clientId = prompt('如果是賣給特定客人，填客人編號（沒有就留空）：', '') || '';
-  if(type === '進貨'){
-    supplier = prompt('這批貨的供應商是誰？（沒有就留空，之後還是可以在「編輯」補上）', it.supplier || '') || '';
-    var costInput = prompt('這批「'+it.name+'」每'+it.unit+'的採購單價是多少？（用來算欠供應商多少錢，沒有就留空）', it.unitCost ? String(it.unitCost) : '');
-    if(costInput !== null && costInput !== '') unitCost = costInput;
-  }
   adminAPI({action:'addStockTransaction', itemName:it.name, type:type, qty:qty, clientId:clientId,
-    supplier:supplier, unitCost:unitCost,
     secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
     if(d && d.status === 'ok'){ toast('✅ 已更新，目前庫存 '+d.newStock+' '+it.unit); loadInventoryList(); }
     else toast('⚠️ ' + ((d && d.message) || '操作失敗'));
+  });
+}
+// 2026-09-17新增：進貨的供應商選擇視窗——重用「新增品項」既有的供應商名單（分帳角色裡roleType=供應商），
+// 選得到就直接選，選不到才手動輸入，這樣同一個供應商在「供應商應付帳款」才會正確累計成同一筆
+function openInvRestockModal(i){
+  var it = _invCache[i]; if(!it) return;
+  var old = document.getElementById('inv-restock-modal'); if(old) old.remove();
+  var ov = document.createElement('div');
+  ov.id = 'inv-restock-modal';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';
+  var manualSelected = !!(it.supplier && !_invSupplierRoles.some(function(r){ return r.roleName === it.supplier; }));
+  var supOptions = '<option value="">（不指定供應商）</option>';
+  _invSupplierRoles.forEach(function(r){ supOptions += '<option value="'+escH(r.roleName)+'"'+(r.roleName===it.supplier?' selected':'')+'>📦 '+escH(r.roleName)+'</option>'; });
+  supOptions += '<option value="__manual__"'+(manualSelected?' selected':'')+'>✏️ 手動輸入（尚未登錄的供應商）</option>';
+  ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:420px;padding:18px 20px">'
+    + '<div style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--text)">📥 進貨：'+escH(it.name)+'</div>'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">進貨數量（'+escH(it.unit)+'，目前庫存 '+it.stock+'）</div>'
+    + '<input id="irm-qty" type="number" min="1" value="1" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:8px 11px;font-size:13px;margin-bottom:10px;font-family:inherit;outline:none;box-sizing:border-box">'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">供應商</div>'
+    + '<select id="irm-supplier-sel" class="form-input" style="font-size:12px;width:100%;margin-bottom:6px;box-sizing:border-box" onchange="var m=document.getElementById(\'irm-supplier-manual\');if(this.value===\'__manual__\'){m.style.display=\'\';m.focus();}else{m.style.display=\'none\';m.value=\'\';}">'+supOptions+'</select>'
+    + '<input id="irm-supplier-manual" placeholder="輸入供應商名稱" value="'+(manualSelected?escH(it.supplier):'')+'" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:8px 11px;font-size:13px;margin-bottom:10px;font-family:inherit;outline:none;box-sizing:border-box;display:'+(manualSelected?'':'none')+'">'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">這批每'+escH(it.unit)+'採購單價（選填，用來算欠供應商多少錢）</div>'
+    + '<input id="irm-cost" type="number" min="0" step="0.01" value="'+(it.unitCost||'')+'" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:8px 11px;font-size:13px;margin-bottom:14px;font-family:inherit;outline:none;box-sizing:border-box">'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end">'
+    + '<button onclick="document.getElementById(\'inv-restock-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
+    + '<button id="irm-submit" onclick="submitInvRestock('+i+')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer">確定進貨</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+}
+function submitInvRestock(i){
+  var it = _invCache[i]; if(!it) return;
+  var qty = parseInt((document.getElementById('irm-qty')||{value:''}).value, 10);
+  if(!(qty > 0)){ toast('⚠️ 請輸入正確的進貨數量'); return; }
+  var sel = document.getElementById('irm-supplier-sel');
+  var manual = document.getElementById('irm-supplier-manual');
+  var supplier = sel && sel.value === '__manual__' ? ((manual && manual.value) || '').trim() : ((sel && sel.value) || '');
+  var unitCost = (document.getElementById('irm-cost')||{value:''}).value;
+  var sb = document.getElementById('irm-submit');
+  if(sb){ sb.disabled = true; sb.textContent = '送出中…'; sb.style.opacity = '.6'; }
+  adminAPI({action:'addStockTransaction', itemName:it.name, type:'進貨', qty:qty, clientId:'',
+    supplier:supplier, unitCost:unitCost,
+    secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
+    if(d && d.status === 'ok'){
+      toast('✅ 已進貨，目前庫存 '+d.newStock+' '+it.unit);
+      var m = document.getElementById('inv-restock-modal'); if(m) m.remove();
+      loadInventoryList();
+    } else {
+      if(sb){ sb.disabled = false; sb.textContent = '確定進貨'; sb.style.opacity = ''; }
+      toast('⚠️ ' + ((d && d.message) || '操作失敗'));
+    }
   });
 }
 function invShowLedger(i){
@@ -4693,10 +4750,16 @@ function loadShiftSchedule(){
       return;
     }
     var today = d.today||[], week = d.week||[];
+    // 2026-09-17新增：跟月排班總表一樣，一般秘書這裡也只看得到自己的班，看不到其他同事排了什麼——
+    // 之前這個「今日值班／本週排班」清單忘了套用這個限制，任何秘書都能看到全部人的姓名跟時間，這裡補上提示
+    var restrictNote = (d.restricted)
+      ? '<div style="font-size:10.5px;color:var(--text3);padding:4px 2px 8px">🔒 這裡只顯示你自己的排班；其他同事的班表不會顯示在這裡'
+        + (d.othersTodayCount ? '（今天另外還有 '+d.othersTodayCount+' 位同事排班）' : '') + '</div>'
+      : '';
     if(today.length===0){
-      todayBox.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text3);font-size:12px">今天還沒有排班記錄</div>';
+      todayBox.innerHTML = restrictNote + '<div style="text-align:center;padding:10px;color:var(--text3);font-size:12px">今天還沒有排班記錄</div>';
     } else {
-      todayBox.innerHTML = today.map(function(s){
+      todayBox.innerHTML = restrictNote + today.map(function(s){
         var initial = String(s.secretary||'?').slice(0,1);
         var timeLabel = (s.startTime&&s.endTime) ? (s.startTime+'–'+s.endTime) : (s.shift||'');
         var badge = s.onNow ? '<span class="badge g">值班中</span>' : '<span class="badge b">'+escH(s.shift||'今日')+'</span>';
@@ -8872,40 +8935,85 @@ function resolveAlertUI(btn, idx){
 }
 
 // ── 客戶管理 ──
+// 2026-09-17補：客人「目前階段」是靠 setClientStage 這條路徑維護的欄位(ketoStage)，跟建檔當下打的
+// 「階段」舊欄位(stage)是完全不同的兩個欄位——之前這裡跟CSV匯出都只讀舊的stage，秘書在客戶詳情頁
+// 明明已經把目前階段改成最新的，這裡列表卻還是顯示建檔當時的舊資料。改成優先顯示ketoStage，
+// 只有從來沒設定過目前階段的舊客人，才退回顯示建檔當時的舊stage（並標註「舊資料」避免誤會成目前階段）。
+function clientDisplayStage_(c){
+  if(c.ketoStage) return escH(c.ketoStage);
+  if(c.stage) return escH(c.stage)+'<span style="color:var(--text3);font-size:9.5px">（舊資料）</span>';
+  return '–';
+}
+function renderClientsTable(clients){
+  var tb = document.getElementById('clients-tbody');
+  if(!tb) return;
+  if(clients.length===0){
+    tb.innerHTML = (!_clientsCache || _clientsCache.length===0)
+      ? '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">👤 客人名單還沒有資料，點右上「新增客人」開始建立</td></tr>'
+      : '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">沒有符合搜尋／篩選條件的客人</td></tr>';
+    return;
+  }
+  var html='';
+  clients.forEach(function(c){
+    var rs = c.runStatus||'';
+    // 修正：這裡原本用active/locked/expired這種英文鍵值去比對，但系統實際存的是中文（陪跑中/一般客人），
+    // 完全對不上，等於死代碼——導致「陪跑中」跟「一般客人」變成同一種藍色徽章，秘書分不出誰解鎖了誰沒有
+    var rsBadge = rs === '一般客人' ? '<span class="badge a">🔒 未開通</span>'
+      : rs === '陪跑中' ? '<span class="badge g">✅ 陪跑中</span>'
+      : rs ? '<span class="badge b">'+escH(rs)+'</span>'
+      : '<span class="badge g">✅ 陪跑中</span>'; // 空白=既有老客戶預設當作陪跑中，相容舊資料
+    var subInfo = [];
+    if(c.plan) subInfo.push('方案：'+escH(c.plan));
+    if(c.serviceSecretary) subInfo.push('服務：'+escH(c.serviceSecretary));
+    if(c.internSecretaries) subInfo.push('實習：'+escH(c.internSecretaries));
+    var subHtml = subInfo.length ? '<div style="font-size:9.5px;color:var(--text3);margin-top:2px">'+subInfo.join('・')+'</div>' : '';
+    html += '<tr style="cursor:pointer" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">'
+      + '<td>'+escH(c.id)+'</td><td style="font-weight:600">'+escH(c.name)+'</td>'
+      + '<td>'+clientDisplayStage_(c)+'</td><td>'+escH(c.irt||'未確認')+'</td>'
+      + '<td>'+escH(c.secretary||'–')+subHtml+'</td><td>'+rsBadge+'</td>'
+      + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">查看記錄</button>'
+      // 2026-08-26修正：跟「新增客人」按鈕一樣，行政/會計等只有查看權限的帳號不該看到這顆刪除按鈕
+      // 2026-09-09補：刪除客人後台已限定只有創始人層級能執行，前端這裡跟著只給管理人/老闆看到這顆按鈕，
+      // 一般秘書/醫師即使有客人編輯權限，也不該看到（點了也會被後端擋下來，這裡只是不要讓畫面顯示誤導）
+      + ((canEditClientsNow() && CURRENT_USER && (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆'||CURRENT_USER.role==='創始人')) ? ('<button class="ai-btn" style="background:#FDEDEC;color:#C0392B;margin-left:6px" onclick="deleteClientUI('+c.row+',\''+escH(c.id)+'\',\''+escH(c.name)+'\')">🗑 刪除</button>') : '')
+      + '</td></tr>';
+  });
+  tb.innerHTML = html;
+}
+// 2026-09-17新增：搜尋框跟階段/秘書篩選下拉之前完全沒有接任何程式——打字、選篩選畫面完全不會變，
+// 也不會有任何提示告訴使用者這功能還沒做。這裡補上真正的篩選邏輯，並且動態把目前名單裡實際有的
+// 「負責秘書」名字列進秘書篩選下拉（不再是寫死的兩個假名字，人員異動也不用改程式碼）。
+function populateClientSecretaryFilter_(clients){
+  var sel = document.getElementById('client-filter-secretary');
+  if(!sel) return;
+  var cur = sel.value;
+  var names = [];
+  clients.forEach(function(c){ if(c.secretary && names.indexOf(c.secretary) < 0) names.push(c.secretary); });
+  names.sort();
+  sel.innerHTML = '<option value="__ALL__">全部秘書</option>' + names.map(function(n){ return '<option value="'+escH(n)+'">'+escH(n)+'</option>'; }).join('');
+  if(cur && (cur==='__ALL__' || names.indexOf(cur)>=0)) sel.value = cur;
+}
+function applyClientFilters(){
+  if(!_clientsCache) return;
+  var kw = (document.getElementById('client-search-input')||{value:''}).value.trim().toLowerCase();
+  var stageSel = (document.getElementById('client-filter-stage')||{value:'__ALL__'}).value;
+  var secSel = (document.getElementById('client-filter-secretary')||{value:'__ALL__'}).value;
+  var filtered = _clientsCache.filter(function(c){
+    if(kw){
+      var hay = (String(c.name||'') + ' ' + String(c.id||'')).toLowerCase();
+      if(hay.indexOf(kw) < 0) return false;
+    }
+    if(stageSel === '__EMPTY__'){ if(c.ketoStage) return false; }
+    else if(stageSel !== '__ALL__'){ if((c.ketoStage||'') !== stageSel) return false; }
+    if(secSel !== '__ALL__'){ if((c.secretary||'') !== secSel) return false; }
+    return true;
+  });
+  renderClientsTable(filtered);
+}
 function loadClientsPage(){
   loadClientsList(function(clients){
-    var tb = document.getElementById('clients-tbody');
-    if(!tb) return;
-    if(clients.length===0){
-      tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">👤 客人名單還沒有資料，點右上「新增客人」開始建立</td></tr>';
-      return;
-    }
-    var html='';
-    clients.forEach(function(c){
-      var rs = c.runStatus||'';
-      // 修正：這裡原本用active/locked/expired這種英文鍵值去比對，但系統實際存的是中文（陪跑中/一般客人），
-      // 完全對不上，等於死代碼——導致「陪跑中」跟「一般客人」變成同一種藍色徽章，秘書分不出誰解鎖了誰沒有
-      var rsBadge = rs === '一般客人' ? '<span class="badge a">🔒 未開通</span>'
-        : rs === '陪跑中' ? '<span class="badge g">✅ 陪跑中</span>'
-        : rs ? '<span class="badge b">'+escH(rs)+'</span>'
-        : '<span class="badge g">✅ 陪跑中</span>'; // 空白=既有老客戶預設當作陪跑中，相容舊資料
-      var subInfo = [];
-      if(c.plan) subInfo.push('方案：'+escH(c.plan));
-      if(c.serviceSecretary) subInfo.push('服務：'+escH(c.serviceSecretary));
-      if(c.internSecretaries) subInfo.push('實習：'+escH(c.internSecretaries));
-      var subHtml = subInfo.length ? '<div style="font-size:9.5px;color:var(--text3);margin-top:2px">'+subInfo.join('・')+'</div>' : '';
-      html += '<tr style="cursor:pointer" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">'
-        + '<td>'+escH(c.id)+'</td><td style="font-weight:600">'+escH(c.name)+'</td>'
-        + '<td>'+escH(c.stage||'–')+'</td><td>'+escH(c.irt||'未確認')+'</td>'
-        + '<td>'+escH(c.secretary||'–')+subHtml+'</td><td>'+rsBadge+'</td>'
-        + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">查看記錄</button>'
-        // 2026-08-26修正：跟「新增客人」按鈕一樣，行政/會計等只有查看權限的帳號不該看到這顆刪除按鈕
-        // 2026-09-09補：刪除客人後台已限定只有創始人層級能執行，前端這裡跟著只給管理人/老闆看到這顆按鈕，
-        // 一般秘書/醫師即使有客人編輯權限，也不該看到（點了也會被後端擋下來，這裡只是不要讓畫面顯示誤導）
-        + ((canEditClientsNow() && CURRENT_USER && (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆'||CURRENT_USER.role==='創始人')) ? ('<button class="ai-btn" style="background:#FDEDEC;color:#C0392B;margin-left:6px" onclick="deleteClientUI('+c.row+',\''+escH(c.id)+'\',\''+escH(c.name)+'\')">🗑 刪除</button>') : '')
-        + '</td></tr>';
-    });
-    tb.innerHTML = html;
+    populateClientSecretaryFilter_(clients);
+    applyClientFilters();
   }, true);
 }
 function canEditClientsNow(){ return !(CURRENT_USER && CURRENT_USER.canEditClients === false); }
@@ -8973,10 +9081,22 @@ function saveClientForm(btn){
 }
 function exportClientsCSV(){
   if(!_clientsCache || _clientsCache.length===0){toast('請先等名單載入');return;}
-  var csv='\uFEFF客人ID,姓名,階段,IRT模型,負責秘書,陪跑狀態\n';
+  // 2026-09-17補：階段欄位改匯出「目前階段」(ketoStage)，不再是建檔當時就沒再更新過的舊欄位；
+  // 同時只匯出畫面上目前搜尋／篩選後看得到的這幾位客人，所見即所得，不會匯出跟畫面對不起來的全部名單
+  var tbRows = document.getElementById('clients-tbody');
+  var visibleIds = null;
+  if(tbRows){
+    visibleIds = {};
+    Array.prototype.forEach.call(tbRows.querySelectorAll('tr[onclick]'), function(tr){
+      var m = /openClientDetail\('([^']*)'/.exec(tr.getAttribute('onclick')||'');
+      if(m) visibleIds[m[1]] = true;
+    });
+  }
+  var csv='\uFEFF客人ID,姓名,目前階段,IRT模型,負責秘書,陪跑狀態\n';
   _clientsCache.forEach(function(c){
+    if(visibleIds && Object.keys(visibleIds).length && !visibleIds[c.id]) return;
     var q=function(v){return '"'+String(v||'').replace(/"/g,'""')+'"';};
-    csv += [q(c.id),q(c.name),q(c.stage),q(c.irt),q(c.secretary),q(c.runStatus)].join(',')+'\n';
+    csv += [q(c.id),q(c.name),q(c.ketoStage||c.stage||''),q(c.irt),q(c.secretary),q(c.runStatus)].join(',')+'\n';
   });
   try {
     var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
@@ -11282,27 +11402,61 @@ function loadCareAwards(){
   var box=document.getElementById('award-body');
   if(box) box.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">載入中…</div>';
   document.getElementById('award-card').style.display='block';
+  loadClientsList(function(){}); // 手動頒發要選客人，順便把名單快取準備好
   adminAPI({action:'getCareAwards'}, function(d){
     var awards=d.awards||[];
+    var manualAwards=d.manualAwards||[];
     if(!box) return;
-    if(awards.length===0){ box.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">這個月還沒有足夠記錄可以頒獎，等客人多記錄幾天就會出現 🌱</div>'; return; }
-    var html='<div style="font-size:11px;color:var(--text3);margin-bottom:9px">這些是鼓勵用的溫柔稱讚，可以複製到 LINE 給客人打氣（非競賽排名）</div>';
-    awards.forEach(function(a, ai){
-      html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--mint);border-radius:11px;margin-bottom:7px">'
-        + '<span style="font-size:11px;font-weight:700;color:var(--g3);background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ai + 1) + '</span>'
-        + '<span style="font-size:26px">'+escH(a.icon)+'</span>'
-        + '<div style="flex:1"><div style="font-weight:800;color:var(--g3);font-size:13px">'+escH(a.title)+'</div>'
-        + '<div style="font-size:11px;color:var(--text2);margin-top:1px">'+escH(a.name)+'　'+escH(a.desc)+'</div></div>'
-        + '<button class="tb-btn" style="font-size:11px;padding:4px 10px" onclick="copyAward(\''+escH(a.name)+'\',\''+escH(a.title)+'\',\''+escH(a.desc)+'\')">複製祝賀</button>'
-        + '</div>';
-    });
+    var html='';
+    if(awards.length===0){
+      html += '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">這個月還沒有足夠記錄可以自動偵測頒獎，等客人多記錄幾天就會出現 🌱</div>';
+    } else {
+      html += '<div style="font-size:11px;color:var(--text3);margin-bottom:9px">這些是鼓勵用的溫柔稱讚，可以複製到 LINE 給客人打氣（非競賽排名）</div>';
+      awards.forEach(function(a, ai){
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--mint);border-radius:11px;margin-bottom:7px">'
+          + '<span style="font-size:11px;font-weight:700;color:var(--g3);background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ai + 1) + '</span>'
+          + '<span style="font-size:26px">'+escH(a.icon)+'</span>'
+          + '<div style="flex:1"><div style="font-weight:800;color:var(--g3);font-size:13px">'+escH(a.title)+'</div>'
+          + '<div style="font-size:11px;color:var(--text2);margin-top:1px">'+escH(a.name)+'　'+escH(a.desc)+'</div></div>'
+          + '<button class="tb-btn" style="font-size:11px;padding:4px 10px" onclick="copyAward(\''+escH(a.name)+'\',\''+escH(a.title)+'\',\''+escH(a.desc)+'\')">複製祝賀</button>'
+          + '</div>';
+      });
+    }
+    // 2026-09-17新增：「鼓勵獎項管理」裡標「手動頒發」的獎項，之前新增了完全用不到——這裡補上真正可以
+    // 選一位客人、套用這個獎項的地方，管理頁面新增的東西才有意義
+    if(manualAwards.length){
+      html += '<div style="font-size:11px;font-weight:700;color:var(--text2);margin:14px 0 6px">✋ 手動頒發（自己選客人、自己選時機）</div>';
+      manualAwards.forEach(function(a, mi){
+        var selId = 'award-manual-cl-'+mi;
+        html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:11px;margin-bottom:7px;flex-wrap:wrap">'
+          + '<span style="font-size:26px">'+escH(a.icon)+'</span>'
+          + '<div style="flex:1;min-width:140px"><div style="font-weight:800;color:var(--text);font-size:13px">'+escH(a.title)+'</div>'
+          + '<div style="font-size:11px;color:var(--text2);margin-top:1px">'+escH(a.desc)+'</div></div>'
+          + '<select id="'+selId+'" class="form-select" style="width:auto;flex:none;font-size:11.5px">'+clientPickerOptionsHtml_()+'</select>'
+          + '<button class="tb-btn" style="font-size:11px;padding:4px 10px" onclick="copyManualAward(\''+selId+'\',\''+escH(a.title)+'\',\''+escH(a.desc)+'\')">複製祝賀</button>'
+          + '</div>';
+      });
+    }
+    if(!html) html = '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">還沒有可以頒發的獎項</div>';
     box.innerHTML=html;
   });
+}
+function clientPickerOptionsHtml_(){
+  var list = _clientsCache || [];
+  if(!list.length) return '<option value="">（名單載入中…）</option>';
+  return '<option value="">選客人…</option>' + list.map(function(c){ return '<option value="'+escH(c.name||c.id)+'">'+escH(c.name||c.id)+'</option>'; }).join('');
 }
 function copyAward(name, title, desc){
   var text = name + '，恭喜你獲得「' + title + '」🎉\n' + desc + '。繼續為自己加油，我們一直都在 💚';
   // 2026-09-07修復：原本用舊式execCommand直接複製、沒有跳出「複製了什麼」的預覽卡（管理人實測回報「複製了什麼祝賀？我看不到」）——
   // 統一改用共用的copyText()，跟其他複製功能一樣會秀出複製的完整內容+下一步指示
+  copyText(text, '祝賀語');
+}
+function copyManualAward(selId, title, desc){
+  var sel = document.getElementById(selId);
+  var name = sel ? sel.value : '';
+  if(!name){ toast('請先選一位客人'); return; }
+  var text = name + '，恭喜你獲得「' + title + '」🎉\n' + desc + '。繼續為自己加油，我們一直都在 💚';
   copyText(text, '祝賀語');
 }
 
