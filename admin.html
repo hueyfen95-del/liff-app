@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-17a';
+var MX_BUILD = '2026-09-20a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -3236,11 +3236,14 @@ function toggleCloseSection() {
 </script>
 <script>
 // ── 解鎖/鎖定陪跑功能 ──
+// 2026-09-20改：跟客人詳細面板裡的 unlockClientQuick 同步，改叫合併後的 activateCareJourney，
+// 這樣不管秘書是從這裡還是從客人詳細面板開通，客人都一定會收到「陪跑後你會得到什麼」的通知，
+// 該發的陪跑點數開卡禮也不會漏掉。
 function unlockClient() {
-  var clientId = document.getElementById('client-select') ? 
+  var clientId = document.getElementById('client-select') ?
     document.getElementById('client-select').value : '';
   if (!clientId) { toast('請先選擇客人'); return; }
-  
+
   adminAPI({
     action: 'addPlan',
     clientId: clientId,
@@ -3253,9 +3256,9 @@ function unlockClient() {
       toast('✅ 已解鎖 ' + clientId + ' 的陪跑功能！');
     }
   });
-  
-  // 真正更新客人名單的「陪跑狀態」欄位，客人前台才會實際解鎖
-  adminAPI({ action: 'setClientAccess', clientId: clientId, active: true }, function(d){
+
+  // 真正更新客人名單的「陪跑狀態」欄位＋（有財務權限才發）陪跑點數開卡禮＋通知客人，客人前台才會實際解鎖
+  adminAPIPost({ action: 'activateCareJourney', clientId: clientId, grantPoints: isFinanceTier(), secretary: (CURRENT_USER&&CURRENT_USER.name)||'秘書' }, function(d){
     if (!d || d.status !== 'ok') toast('⚠️ 解鎖寫入失敗，請重試');
   });
 }
@@ -5991,11 +5994,26 @@ function setClientStageUI(id){
     else toast('⚠️ 更新失敗');
   });
 }
+// 2026-09-20改：原本這裡只做「解鎖陪跑狀態」一件事，陪跑點數開卡禮、歡迎客人的說明訊息都要秘書
+// 自己另外記得去做。創始人要求合併成一次點擊搞定——這裡改叫合併後的 activateCareJourney，一次做完
+// ①解鎖陪跑狀態 ②（有財務權限才會做）發開卡禮4點 ③通知客人「陪跑後你會得到什麼」。
+// 是否發點數沿用原本 cpsOpen() 的權限規則（isFinanceTier()），一般秘書按這顆一樣能開通陪跑本身，
+// 只是點數的部分會留給財務主管/管理人另外到「陪跑點數」頁按（跟原本權限邊界一致，沒有放寬）。
 function unlockClientQuick(id){
-  if(!confirm('確定要幫這位客人開通陪跑嗎？')) return;
-  adminAPI({ action: 'setClientAccess', clientId: id, active: true }, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 已開通陪跑'); if(_clientsCache) loadClientsList(function(){}, true); openClientDetail(id, _cdCurrentName); }
-    else toast('⚠️ 操作失敗');
+  var grantPoints = isFinanceTier();
+  var confirmMsg = grantPoints
+    ? '確定要幫這位客人開通陪跑嗎？\n會一次完成：解鎖陪跑狀態＋發放陪跑點數開卡禮 4 點＋通知客人開通了哪些服務。'
+    : '確定要幫這位客人開通陪跑嗎？\n會解鎖陪跑狀態＋通知客人開通了哪些服務（陪跑點數開卡禮要請財務主管或管理人另外到「陪跑點數」頁開通）。';
+  if(!confirm(confirmMsg)) return;
+  adminAPIPost({ action: 'activateCareJourney', clientId: id, grantPoints: grantPoints, secretary: (CURRENT_USER&&CURRENT_USER.name)||'秘書' }, function(d){
+    if(d && d.status === 'ok'){
+      var msg = '✅ 已開通陪跑，已通知客人';
+      if(d.pointsGranted) msg += '，開卡禮 4 點已發';
+      else if(d.pointsAlready) msg += '（陪跑點數之前已經開過卡了）';
+      toast(msg);
+      if(_clientsCache) loadClientsList(function(){}, true); openClientDetail(id, _cdCurrentName);
+    }
+    else toast('⚠️ '+(d&&d.message||'操作失敗'));
   });
 }
 function lockClientQuick(id){

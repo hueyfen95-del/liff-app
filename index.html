@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-20a';
+var MX_BUILD = '2026-09-20f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -378,6 +378,13 @@ window.openHealthForm = function() {
     <div id="wallet-detail" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:11.5px;line-height:1.7"></div>
     <div id="cps-monthend" style="display:none;background:#FFFBEB;color:#92400E;border:1px solid #FCD34D;border-radius:10px;padding:8px 11px;margin-bottom:8px;font-size:11px">🛍 月底囉！這個月沒用完的點數，現在可以到好物商城折抵（1點=100元），跟秘書說一聲就好</div>
     <div id="cps-recent" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:11px;line-height:1.7"></div>
+    <!-- 🎁 我的陪跑權益（2026-09-20新增）：固定入口，只有陪跑中的客人看得到（預設隱藏，
+         removeLockBanners()/loadClientAccess() 確認開通後才顯示，見下方腳本） -->
+    <div id="care-benefits-entry" style="display:none;align-items:center;gap:10px;background:linear-gradient(135deg,#B8860B,#D9A521);color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:12px;cursor:pointer" onclick="goPage('care-benefits','我的陪跑權益')">
+      <div style="font-size:22px;flex-shrink:0">🎁</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700">我的陪跑權益</div><div style="font-size:10.5px;opacity:.85;margin-top:1px">開通後你可以用哪些服務？飲食參考資料一次看</div></div>
+      <i class="ti ti-chevron-right"></i>
+    </div>
     <div style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:14px;padding:13px 15px;margin-bottom:12px">
       <!-- 影片說明 -->
       <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:6px">📽 了解這趟旅程的目標</div>
@@ -1344,6 +1351,81 @@ window.openHealthForm = function() {
 
 
 
+  </div>
+</div>
+<!-- ══ 🎁 我的陪跑權益（2026-09-20新增，創始人要求：客人開通陪跑後，要有地方完整看到自己
+     享有哪些服務／權益，還有隨附的生酮飲食參考資料。入口是首頁的固定卡片，只有陪跑中的客人看得到，
+     鎖定中的客人這頁會被 applyLockStatus() 整個隱藏，見下面 simpleLockPages 陣列 ── ══ -->
+<div class="page" id="p-care-benefits">
+  <div style="padding:14px 16px">
+    <div style="background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;border-radius:14px;padding:18px 16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:26px;margin-bottom:6px">🎉</div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:5px">歡迎正式加入元代謝陪跑計畫！</div>
+      <div style="font-size:12px;opacity:.9;line-height:1.7">從今天開始，健康秘書會一對一陪著你調整。下面整理了開通後你可以用的所有服務，還有幫你準備好的飲食參考資料，隨時回來看看 😊</div>
+    </div>
+
+    <div style="font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:10px">✨ 你現在可以用的服務</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:22px" id="care-benefits-list">
+      <div onclick="goPage('sec-hub','秘書互動')" style="display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer">
+        <div style="font-size:20px;flex-shrink:0">💬</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:var(--text)">秘書一對一陪跑</div><div style="font-size:10.5px;color:var(--text3);margin-top:1px">隨時傳訊息問問題、秘書會主動關心你的狀況</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+      <div onclick="goPage('home','元代謝健康管理')" style="display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer">
+        <div style="font-size:20px;flex-shrink:0">🎫</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:var(--text)">陪跑點數</div><div style="font-size:10.5px;color:var(--text3);margin-top:1px">開卡禮 4 點＋每月自動加發 8 點，可以兌換秘書／醫師諮詢，首頁隨時看餘額</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+      <div onclick="goPage('food','外食指南')" style="display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer">
+        <div style="font-size:20px;flex-shrink:0">🍚</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:var(--text)">個人化碳水計畫</div><div style="font-size:10.5px;color:var(--text3);margin-top:1px">秘書依你的狀況設定每天碳水量，附完整份量圖鑑跟外食指南</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+      <div onclick="goPage('record','每日記錄')" style="display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer">
+        <div style="font-size:20px;flex-shrink:0">📷</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:var(--text)">每日記錄與健康趨勢</div><div style="font-size:10.5px;color:var(--text3);margin-top:1px">記血糖、血酮、體重，秘書都看得到，趨勢圖一次看懂變化</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+      <div onclick="goPage('irct','IRCT 報告')" style="display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer">
+        <div style="font-size:20px;flex-shrink:0">🔬</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:var(--text)">IRCT 檢測報告追蹤</div><div style="font-size:10.5px;color:var(--text3);margin-top:1px">每次複檢的完整數據、跟理想區間對照，看得到自己的進步</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+      <div onclick="goPage('garden','代謝花園')" style="display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer">
+        <div style="font-size:20px;flex-shrink:0">🌱</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:var(--text)">代謝花園與鼓勵獎項</div><div style="font-size:10.5px;color:var(--text3);margin-top:1px">持續記錄解鎖花園小生物、達標會收到秘書送的鼓勵獎項</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+      <div onclick="goPage('shop','好物推薦')" style="display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px;cursor:pointer">
+        <div style="font-size:20px;flex-shrink:0">🛍</div>
+        <div style="flex:1"><div style="font-size:12.5px;font-weight:700;color:var(--text)">儲值消費與好物商城</div><div style="font-size:10.5px;color:var(--text3);margin-top:1px">現場消費出示會員編號扣款，商城也可以直接選購或用點數折抵</div></div>
+        <i class="ti ti-chevron-right" style="color:var(--text3)"></i>
+      </div>
+    </div>
+
+    <div style="font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:10px">📖 生酮飲食參考資料</div>
+    <div style="background:#FFFBEB;border:0.5px solid #FCD34D;border-radius:12px;padding:11px 13px;margin-bottom:10px;font-size:11.5px;color:#92400E;line-height:1.8">
+      <div style="font-weight:700;margin-bottom:4px">💡 先懂一點點原理</div>
+      元代謝陪跑計畫最重要的核心目標，是幫你把<b>粒線體養好</b>——粒線體是身體裡負責製造能量的地方，粒線體健康，代謝、精神體力、老化速度都會跟著不一樣。要讓粒線體恢復健康，關鍵是先幫身體養出「燃脂體質」：身體主要有兩種能量來源，醣類（碳水化合物）跟脂肪；長期吃太多精緻醣類，身體會習慣優先燃燒醣、胰島素也容易一直偏高，脂肪就很難被身體拿來用，粒線體也少了機會用比較穩定的方式運作，這就是「代謝缺乏彈性」。「治療性生酮」是陪你養出燃脂體質的<b>第一階段手段</b>（不是最終目的）——先把飲食中的醣類降到很低，讓身體重新學會切換回燃燒脂肪的模式，同時也讓胰臟藉這段時間好好休息、恢復對胰島素的敏感度。等身體練出這個「燃脂彈性」，秘書會再依你的狀況，帶你進入下一階段的飲食調整。下面幾張圖，就是幫助你在這個階段做飲食選擇的具體參考。
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.6">秘書幫你準備了幾張參考圖，開始飲食調整前可以先看過，有不確定的隨時在「秘書互動」問 😊</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px">第一階段：治療性生酮／低醣／一般飲食的大營養素佔比圖</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:9px">如果你目前有代謝阻抗（血糖、胰島素比較不容易控制），我們會建議先從「斷碳生酮」開始，讓身體重新學會燃燒脂肪、而不是一直依賴醣類。下圖是三種飲食模式的大營養素佔比對照：第一階段治療性生酮飲食的碳水比例最低、脂肪比例最高，就是為了幫你先把「燃脂體質」練起來。</div>
+      <img src="care-benefit-macro-ratio.jpg" alt="第一階段：治療性生酮飲食、低醣飲食、一般飲食的大營養素佔比圖" style="width:100%;border-radius:8px;display:block">
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px">低碳生酮飲食・食材選擇參考</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:9px">星星數量代表推薦程度：⭐⭐⭐三顆星是最優先、最適合常吃的食材，接下來是⭐⭐兩顆星、⭐一顆星，依此類推。安排三餐時，可以先從星星多的食材開始挑，不確定怎麼搭配，隨時問你的健康秘書 😊</div>
+      <img src="care-benefit-food-list.jpg" alt="低碳生酮飲食・食材選擇" style="width:100%;border-radius:8px;display:block">
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:16px">
+      <div style="font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:6px">食物的升胰島素指數（Insulin Index）</div>
+      <div style="font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:9px">斷碳生酮、培養燃脂體質的初期，最重要的是讓你的胰臟好好休息，所以要特別留意「升胰島素」的食物——這跟「升血糖」的食物並不是同一回事！有些食物血糖看起來影響不大，卻會讓胰島素大幅上升，一樣會打斷身體燃脂的節奏，等於是踩到隱藏的地雷。這張表幫你整理出各種食物的升胰島素指數，盡量以<b style="color:#1D6FD1">藍色箭頭（30%以下）</b>的食材為主，紅色的則要謹慎、盡量避開。</div>
+      <img src="care-benefit-insulin-index.jpg" alt="食物的升胰島素指數" style="width:100%;border-radius:8px;display:block">
+    </div>
+
+    <div onclick="goPage('sec-hub','秘書互動')" style="background:var(--g2);color:var(--g3);border-radius:12px;padding:12px 14px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">💬 有任何問題，點這裡傳訊息給你的健康秘書</div>
   </div>
 </div>
 <!-- ══ IRCT 完整檢測數據對照表（多次檢測並排，含理想/正常區間） ══ -->
@@ -7376,7 +7458,10 @@ function applyLockStatus() {
   // 灰階預覽頁：底層內容變灰、禁止互動，但看得到畫面長相，引導購買
   var previewPages = ['p-record','p-trend','p-irct','p-journey','p-progress','p-progress-share','p-pledge'];
   // 簡單鎖定頁：這些是秘書才會用到的個人化互動內容(還沒陪跑的人本來就沒有資料可看)，完全隱藏、不做預覽
-  var simpleLockPages = ['p-sec-hub','p-irct-table','p-sharecard','p-qa'];
+  var simpleLockPages = ['p-sec-hub','p-irct-table','p-sharecard','p-qa','p-care-benefits'];
+  // 🎁 我的陪跑權益首頁入口，鎖定中不顯示（陪跑解鎖後 removeLockBanners() 會再打開）
+  var cbEntryLocked = document.getElementById('care-benefits-entry');
+  if (cbEntryLocked) cbEntryLocked.style.display = 'none';
 
   function lockPage(pid, mode) {
     var page = document.getElementById(pid);
@@ -7440,6 +7525,9 @@ function removeLockBanners() {
   });
   var gtipEl = document.getElementById('garden-locked-tip');
   if (gtipEl) gtipEl.remove();
+  // 🎁 我的陪跑權益首頁入口，陪跑解鎖後才顯示
+  var cbEntry = document.getElementById('care-benefits-entry');
+  if (cbEntry) cbEntry.style.display = 'flex';
 }
 function loadClientAccess(isRetry) {
   if (!CLIENT_ID) { setTimeout(loadClientAccess, 500); return; }
