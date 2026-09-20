@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-16c';
+var MX_BUILD = '2026-09-20a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -352,46 +352,32 @@ window.openHealthForm = function() {
     <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">–</span> 天 🔥</div>
   </div>
   <div class="hb">
-    <!-- 🍚 碳水計畫摘要（有設定才顯示，點擊看完整份量圖鑑）-->
-    <div id="carb-home-card" style="display:none;border-radius:14px;padding:13px 15px;margin-bottom:12px;background:linear-gradient(135deg,#7A4F1D,#A8742E);color:#fff;cursor:pointer" onclick="goPage('food','外食指南')">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div>
-          <div style="font-size:11px;opacity:.85">🍚 我的碳水計畫</div>
-          <div style="font-size:13.5px;font-weight:700;margin-top:2px" id="carb-home-text">載入中…</div>
-        </div>
-        <div style="font-size:10.5px;opacity:.8;white-space:nowrap">查看份量圖鑑 →</div>
+    <!-- 2026-09-20：創辦人反應這三張卡佔的版面太大，改成一橫排三格的精簡版；
+         點開的明細/提示內容原本在卡片內，這次移到下面跨版面顯示，比較好讀 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px;align-items:start">
+      <!-- 🍚 碳水計畫摘要（有設定才顯示，點擊看完整份量圖鑑）-->
+      <div id="carb-home-card" style="display:none;border-radius:12px;padding:9px 8px;background:linear-gradient(135deg,#7A4F1D,#A8742E);color:#fff;cursor:pointer" onclick="goPage('food','外食指南')">
+        <div style="font-size:9px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🍚 碳水計畫</div>
+        <div style="font-size:11px;font-weight:700;margin-top:3px;line-height:1.3" id="carb-home-text">載入中…</div>
+      </div>
+      <!-- 💳 儲值會員卡（有儲值記錄才顯示）-->
+      <div id="wallet-card" style="display:none;background:linear-gradient(135deg,#0F6E56,#1B8A6B);border-radius:12px;padding:9px 8px;color:#fff;cursor:pointer" onclick="toggleWalletDetail()">
+        <div style="font-size:9px;opacity:.8">💳 儲值餘額</div>
+        <div style="font-size:17px;font-weight:800;letter-spacing:.3px;margin-top:2px" id="wallet-bal">$0</div>
+        <div style="font-size:8.5px;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">出示 <b id="wallet-cid"></b></div>
+        <div style="font-size:8px;opacity:.8;margin-top:2px;line-height:1.3" id="wallet-note"></div>
+      </div>
+      <!-- 🎫 陪跑點數卡（2026-08-27 第一階段：已開通的客人才顯示）-->
+      <div id="cps-card" style="display:none;background:linear-gradient(135deg,#534AB7,#7C6FE0);border-radius:12px;padding:9px 8px;color:#fff;cursor:pointer" onclick="cpsToggleRecent()">
+        <div style="font-size:9px;opacity:.85">🎫 陪跑點數</div>
+        <div style="font-size:17px;font-weight:800;margin-top:2px"><span id="cps-bal">–</span> 點</div>
+        <button onclick="event.stopPropagation();cpsAskConsult()" style="margin-top:4px;width:100%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:7px;padding:4px 2px;font-size:9px;font-weight:700;cursor:pointer">💬 預約諮詢</button>
       </div>
     </div>
-    <!-- 💳 儲值會員卡（有儲值記錄才顯示）-->
-    <div id="wallet-card" style="display:none;background:linear-gradient(135deg,#0F6E56,#1B8A6B);border-radius:14px;padding:14px 16px;margin-bottom:12px;color:#fff;cursor:pointer" onclick="toggleWalletDetail()">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div>
-          <div style="font-size:11px;opacity:.8">💳 我的儲值餘額</div>
-          <div style="font-size:26px;font-weight:800;letter-spacing:.5px" id="wallet-bal">$0</div>
-          <div style="font-size:10.5px;opacity:.75" id="wallet-note"></div>
-        </div>
-        <div style="text-align:center;background:rgba(255,255,255,.15);border-radius:10px;padding:8px 12px">
-          <div style="font-size:12px;opacity:.85">消費時出示</div>
-          <div style="font-size:17px;font-weight:800;letter-spacing:1px" id="wallet-cid"></div>
-        </div>
-      </div>
-      <div id="wallet-detail" style="display:none;border-top:1px dashed rgba(255,255,255,.3);margin-top:10px;padding-top:8px;font-size:11.5px;line-height:1.7" ></div>
-      <div style="font-size:12px;opacity:.6;text-align:center;margin-top:6px">點一下展開消費明細</div>
-    </div>
-    <!-- 🎫 陪跑點數卡（2026-08-27 第一階段：已開通的客人才顯示）-->
-    <div id="cps-card" style="display:none;background:linear-gradient(135deg,#534AB7,#7C6FE0);border-radius:14px;padding:14px 16px;margin-bottom:12px;color:#fff">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div>
-          <div style="font-size:11px;opacity:.85">🎫 我的陪跑點數</div>
-          <div style="font-size:26px;font-weight:800;letter-spacing:.5px"><span id="cps-bal">–</span> 點</div>
-          <div style="font-size:10.5px;opacity:.8" id="cps-note">1點=100元・可換秘書/醫師諮詢</div>
-        </div>
-        <button onclick="cpsAskConsult()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">💬 我要預約諮詢</button>
-      </div>
-      <div id="cps-monthend" style="display:none;border-top:1px dashed rgba(255,255,255,.35);margin-top:9px;padding-top:7px;font-size:11px;opacity:.95">🛍 月底囉！這個月沒用完的點數，現在可以到好物商城折抵（1點=100元），跟秘書說一聲就好</div>
-      <div id="cps-recent" style="display:none;border-top:1px dashed rgba(255,255,255,.35);margin-top:9px;padding-top:7px;font-size:11px;line-height:1.7"></div>
-      <div style="font-size:11px;opacity:.6;text-align:center;margin-top:6px" onclick="cpsToggleRecent()">點一下看點數明細</div>
-    </div>
+    <!-- 上面三格點開後的明細／提示，跨版面顯示比較好讀 -->
+    <div id="wallet-detail" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:11.5px;line-height:1.7"></div>
+    <div id="cps-monthend" style="display:none;background:#FFFBEB;color:#92400E;border:1px solid #FCD34D;border-radius:10px;padding:8px 11px;margin-bottom:8px;font-size:11px">🛍 月底囉！這個月沒用完的點數，現在可以到好物商城折抵（1點=100元），跟秘書說一聲就好</div>
+    <div id="cps-recent" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:11px;line-height:1.7"></div>
     <div style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:14px;padding:13px 15px;margin-bottom:12px">
       <!-- 影片說明 -->
       <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:6px">📽 了解這趟旅程的目標</div>
@@ -497,7 +483,7 @@ window.openHealthForm = function() {
             <div style="flex:1;font-size:11px;color:#374151">💬 今日心情</div>
             <div style="font-size:12px;color:#6B7280">點擊記錄</div>
           </div>
-          <!-- 2026-09-17b新增：碳水回補記錄——客人反應「都要在花園清單裡才看得到」，所以直接加在這份
+          <!-- 2026-09-14e新增：碳水回補記錄——客人反應「都要在花園清單裡才看得到」，所以直接加在這份
                清單最後一項，跟前面7項並排。跟前面7項不同的地方：①不計入上面「X/7」的花園任務進度
                （因為只有醫師核准開始吃碳水的客人才有這一項，計進去對其他客人不公平），②預設是鎖住
                灰色狀態（🔒尚未開通、不能點），等loadCarbPlan()確認秘書已核准才會解鎖成可以點擊記錄 -->
@@ -1133,11 +1119,11 @@ window.openHealthForm = function() {
     <div style="background:var(--g2);border-radius:14px;padding:16px;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <i class="ti ti-clock" style="color:var(--g3);font-size:16px"></i>
-        <span id="irct-booked-time" style="font-size:13px;color:var(--g3);font-weight:600">—</span>
+        <span id="irct-booked-time" style="font-size:13px;color:var(--g3);font-weight:600">2026/06/25 09:00</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <i class="ti ti-map-pin" style="color:var(--g3);font-size:16px"></i>
-        <span id="irct-booked-location" style="font-size:13px;color:var(--g3);font-weight:600">—</span>
+        <span id="irct-booked-location" style="font-size:13px;color:var(--g3);font-weight:600">台北診所</span>
       </div>
     </div>
 
@@ -1182,7 +1168,7 @@ window.openHealthForm = function() {
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <i class="ti ti-clock" style="color:var(--g3);font-size:15px"></i>
-          <span id="detail-time" style="font-size:12px;color:var(--g3);font-weight:600">—</span>
+          <span id="detail-time" style="font-size:12px;color:var(--g3);font-weight:600">2026/06/25 09:00</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <i class="ti ti-meat" style="color:var(--g3);font-size:15px"></i>
@@ -1694,11 +1680,10 @@ window.openHealthForm = function() {
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測時間</div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・空腹8-10小時</div>
       <div id="bk-time-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
-        <!-- 2026-09-17 修：這裡原本寫死 4 張示意日期卡（06/18、06/21、06/25、06/28已滿）。
-             bkRenderTimes() 只要提早 return（資料還沒載回來／這家診所沒時段），這些假卡片就
-             留在畫面上，客人可以直接選一個假日期送出，後端就收到「06/21（六）08:30–10:30」。
-             改成中性的載入提示：之後即使任何一步失敗，也只會看到提示，不可能出現假日期。 -->
-        <div style="grid-column:1/-1;border:1px dashed var(--border2);border-radius:10px;padding:14px 12px;text-align:center;font-size:12px;color:var(--text2);line-height:1.7">載入可預約時段中…</div>
+        <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/18（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
+        <div onclick="bkSelTime(this)" style="border:1.5px solid var(--g);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--g2)"><div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:2px">06/21（六）</div><div style="font-size:11px;color:var(--g3)">08:30–10:30</div></div>
+        <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/25（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
+        <div style="border:1px solid var(--border);border-radius:10px;padding:10px 11px;text-align:center;background:var(--bg);opacity:.5"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px">06/28（六）</div><div style="font-size:11px;color:var(--r3)">已滿</div></div>
       </div>
       <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測前請空腹 8-10 小時（建議不超過12小時），空腹期間可喝水但總量勿超過200cc，詳見上一步「檢測前注意事項」。</div>
       <div style="display:flex;gap:8px">
@@ -1712,10 +1697,10 @@ window.openHealthForm = function() {
       <div style="background:linear-gradient(135deg,#085041,var(--g));color:#fff;padding:20px 16px;text-align:center">
         <div style="font-size:36px;margin-bottom:7px">🎉</div>
         <div id="bk-confirm-greet" style="font-size:16px;font-weight:700;margin-bottom:3px">預約成功！</div>
-        <div id="bk-confirm-banner" style="font-size:11px;opacity:.8"></div>
+        <div id="bk-confirm-banner" style="font-size:11px;opacity:.8">06/21（六）08:30・瑞絲得診所・新竹</div>
       </div>
       <div style="padding:13px 16px;padding-bottom:20px">
-        <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--g3);line-height:1.9"><div style="font-weight:700;margin-bottom:4px">預約確認 ✓</div><span id="bk-confirm-summary">IRCT 動態胰島素檢測・NT$6,800</span><br><span id="bk-confirm-location"></span><br><strong>飲食模式：</strong><span id="bk-confirm-diet">🥑 粒線體飲食（碳水 5%，脂肪 70%）</span></div>
+        <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12px;color:var(--g3);line-height:1.9"><div style="font-weight:700;margin-bottom:4px">預約確認 ✓</div><span id="bk-confirm-summary">IRCT 動態胰島素檢測・NT$6,800</span><br><span id="bk-confirm-location">瑞絲得診所・新竹・06/21 08:30</span><br><strong>飲食模式：</strong><span id="bk-confirm-diet">🥑 粒線體飲食（碳水 5%，脂肪 70%）</span></div>
         <!-- 2026-09-09新增：畫面上的「預約成功」是先顯示、資料才在背景送出，如果背景送出其實失敗
              （斷網/後端錯誤），這個區塊會顯示出來取代下面那個藍色的「已送出」提示，不讓客人誤以為真的約到了 -->
         <div id="bk-confirm-error" style="display:none;background:#FDEDEC;border:1px solid #F5B7B1;border-radius:9px;padding:9px 11px;font-size:11.5px;color:#A93226;line-height:1.7;margin-bottom:11px">⚠️ 剛剛這筆預約資料在傳送時發生問題，秘書那邊可能沒有收到，麻煩你直接用 LINE 跟秘書確認一下，或按下面按鈕再試一次<br><button onclick="bkRetrySubmit()" style="margin-top:6px;width:100%;background:#A93226;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">🔁 再送一次</button></div>
@@ -4444,7 +4429,7 @@ function loadCarbPlan(){
     if(refeedSection) refeedSection.style.background = _carbRefeedActive ? 'var(--g2)' : 'var(--bg2)';
     if(refeedSection) refeedSection.style.borderColor = _carbRefeedActive ? 'var(--g)' : 'var(--border)';
     if(refeedTitle) refeedTitle.style.color = _carbRefeedActive ? 'var(--g3)' : 'var(--text3)';
-    // 2026-09-17b：首頁花園清單裡的「🍚 碳水記錄」第8項，鎖住/解鎖外觀也跟著這裡的核准狀態切換
+    // 2026-09-14e：首頁花園清單裡的「🍚 碳水記錄」第8項，鎖住/解鎖外觀也跟著這裡的核准狀態切換
     if(typeof updateHomeCarbLock === 'function') updateHomeCarbLock();
     var card = document.getElementById('carb-plan-card');
     var txt = document.getElementById('carb-plan-text');
@@ -4616,7 +4601,7 @@ function submitDailyRecord() {
       // 存成功後也要保持綠色，不是只有血酮/體重/腰圍這幾個才要
       if(carbsVal && parseFloat(carbsVal) >= 0) {
         var carbInpEl = document.getElementById('carb-inp'); if(carbInpEl) carbInpEl.classList.add('saved');
-        // 2026-09-17b：今天記錄過碳水了，首頁花園清單那顆「🍚 碳水記錄」也要打勾，
+        // 2026-09-14e：今天記錄過碳水了，首頁花園清單那顆「🍚 碳水記錄」也要打勾，
         // 跟血酮/體重/電解質那幾項一樣存進🌱花園任務表，之後重新整理頁面才能正確恢復狀態
         syncGardenTask('碳水回補記錄', true);
         if(typeof updateHomeCarbTask === 'function') updateHomeCarbTask(true);
@@ -4649,7 +4634,7 @@ function syncGardenTask(taskName, done) {
   });
 }
 
-// 2026-09-17b新增：首頁花園清單裡「🍚 碳水記錄」這第8項的點擊/鎖住邏輯，跟其他7項分開寫，
+// 2026-09-14e新增：首頁花園清單裡「🍚 碳水記錄」這第8項的點擊/鎖住邏輯，跟其他7項分開寫，
 // 故意不共用goTaskPage()／updateHomeTask()——那兩支是綁死gsTasks[0..6]、doneCnt、celebrateTask(i,...)
 // 這套7項計數系統的，碳水這項不算進「X/7」進度，混進去會讓計數跟慶祝動畫的index對不起來
 function goCarbRecordPage(){
@@ -8037,11 +8022,8 @@ function showIRCTScene(status) {
   if (targetScene === 'booked') {
     var bookedTimeEl = document.getElementById('irct-booked-time');
     var bookedLocEl = document.getElementById('irct-booked-location');
-    // 2026-09-17 修：原本寫 (el && LOCAL_BOOKED_TIME) —— 變數只在「這次開啟就預約」時才有值，
-    // 客人隔天重開 APP 變數是空的，賦值整個被跳過，畫面就停在 HTML 裡寫死的示意日期，
-    // 等於對每一位回訪的已預約客人顯示一個假的檢測時間。改成一律賦值，沒有值就講實話。
-    if (bookedTimeEl) bookedTimeEl.textContent = LOCAL_BOOKED_TIME || '請跟秘書確認時間';
-    if (bookedLocEl) bookedLocEl.textContent = LOCAL_BOOKED_LOCATION || '請跟秘書確認地點';
+    if (bookedTimeEl && LOCAL_BOOKED_TIME) bookedTimeEl.textContent = LOCAL_BOOKED_TIME;
+    if (bookedLocEl && LOCAL_BOOKED_LOCATION) bookedLocEl.textContent = LOCAL_BOOKED_LOCATION;
   }
 
   // 如果是ready情境，還要處理子狀態（已出/陪跑/可複檢）
@@ -9048,7 +9030,7 @@ function loadTodayGarden(){
     gardenTasksDone = gsTasks.filter(Boolean).length;
     if(typeof updateGardenVisual==='function') updateGardenVisual();
     if(typeof updateGardenProgress==='function') updateGardenProgress();
-    // 2026-09-17b：碳水記錄這項不在gsTasks[0..6]裡（不計入X/7進度），要另外單獨還原今天的打勾狀態，
+    // 2026-09-14e：碳水記錄這項不在gsTasks[0..6]裡（不計入X/7進度），要另外單獨還原今天的打勾狀態，
     // 不然重新整理頁面後，今天明明記錄過碳水，卻又看起來變回沒記錄
     if(done.indexOf('碳水回補記錄')>=0 && typeof updateHomeCarbTask==='function') updateHomeCarbTask(true);
     // 今天還沒任何記錄 → 花園是「清新的一天」狀態
@@ -9209,10 +9191,7 @@ function bkParseSlotPattern(text){
 function bkGenerateDates(pattern, count){
   if(!pattern.days || pattern.days.length===0) return [];
   var results = [];
-  // 2026-09-17 改：創辦人規定「所有院所都要提前一週預約」，但這裡原本是從明天開始給日期，
-  // 客人明天就約得到、只提前一天，跟規定不符也讓秘書要一直改時間。改成七天後才開放選。
-  var BOOKING_LEAD_DAYS = 7;
-  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+BOOKING_LEAD_DAYS);
+  var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+1); // 從明天開始找
   var guard = 0;
   while(results.length < count && guard < 90){
     if(pattern.days.indexOf(d.getDay()) >= 0){
@@ -9223,37 +9202,14 @@ function bkGenerateDates(pattern, count){
   }
   return results;
 }
-// 時段卡片區的統一提示（載入中／沒時段／讀取失敗都走這裡）。
-// 重點是「絵不留著上一次的卡片」——舊的寫法一 return 就把畫面留在原狀，
-// 所以客人才會看到殘留的示意日期。
-function bkSetTimeMsg(box, msg){
-  if(!box) return;
-  box.innerHTML = '<div style="grid-column:1/-1;border:1px dashed var(--border2);border-radius:10px;'
-    + 'padding:14px 12px;text-align:center;font-size:12px;color:var(--text2);line-height:1.7">'
-    + escH(msg) + '</div>';
-}
 function bkRenderTimes(){
   var box = document.getElementById('bk-time-list');
-  if(!box) return;
-  // 2026-09-17 修：時段資料是非同步載入的，這個函式卻是同步被呼叫的
-  //（bkGoStep4 和 goToRescheduleStep 都是），後端一冷啟動就來不及，
-  // 原本的寫法直接 return、資料回來後也沒有任何重畫機制。
-  // 改成一律走 bkLoadSlots 的 callback，等資料到齊才畫。
-  // goToRescheduleStep 這條路原本根本沒載過時段，現在由這裡自己補上。
-  bkSetTimeMsg(box, '載入可預約時段中…');
-  bkLoadSlots(function(){
-  if(!_bkSlots || _bkSlots.length===0){
-    bkSetTimeMsg(box, '目前讀不到可預約時段。請稍後再試一次，或直接跟秘書確認時間。');
-    return;
-  }
+  if(!box || !_bkSlots || _bkSlots.length===0) return;
   // 找選中的診所
   var sel = document.getElementById('bk-loc'+(bkLocSelected||1));
   var clinicName = sel ? sel.getAttribute('data-clinic') : null;
   var times = _bkSlots.filter(function(s){ return !clinicName || s.clinic===clinicName; });
-  if(times.length===0){
-    bkSetTimeMsg(box, '這個地點目前沒有開放的時段。請回上一步換一個地點，或跟秘書確認。');
-    return;
-  }
+  if(times.length===0) return;
   var weekdayNames=['日','一','二','三','四','五','六'];
   var cards = [];
   times.forEach(function(s){
@@ -9276,12 +9232,7 @@ function bkRenderTimes(){
         + '<div style="font-size:12px;color:var(--text3);margin-top:2px">請選定後再跟秘書確認實際日期</div></div>');
     }
   });
-  if(cards.length===0){
-    bkSetTimeMsg(box, '這個地點目前沒有開放的時段，請跟秘書確認。');
-    return;
-  }
   box.innerHTML = cards.join('');
-  });
 }
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 
