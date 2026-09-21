@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-21a';
+var MX_BUILD = '2026-09-21b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6149,6 +6149,7 @@ function openClientDetail(id, name){
       // 後端setIRCTPricing雖然有擋（只有創始人能存），但前端失敗訊息原本吞掉真正原因只顯示「更新失敗，請重試」，
       // 非創始人的人會一直以為是網路問題、找不出到底為什麼存不了——這裡比照其他創始人專屬功能，直接不顯示這顆連結
       + (isFounderRoleFE_() ? '<span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTPricing()">改IRCT價格</span>' : '')
+      + (isFounderRoleFE_() ? ' <span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTClinicPricing()">診所別定價</span>' : '')
       + '<span id="cd-badge-lab" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
     + '<select id="cd-lab-sel" class="form-select" style="font-size:12px" onchange="onLabSelChange()"><option value="">載入檢測項目…</option></select>'
@@ -10449,10 +10450,12 @@ var IRCT_PANELS = [
   {name:'IRT-t2 續測', hint:'每隔兩個月・載入中', t2:true, key:'t2'}
 ];
 var _irctPricing = null;
+var _irctClinicOverrides = {}; // 2026-09-21新增：{ 診所名稱: {t1,t2} }，診所別定價用
 function loadIRCTPricing(cb){
   adminAPI({action:'getIRCTPricing'}, function(d){
     if(d && d.status === 'ok'){
       _irctPricing = d.pricing;
+      _irctClinicOverrides = d.clinicOverrides || {};
       IRCT_PANELS[0].hint = (d.pricing.t1Note||'未用慢性病藥者')+'・'+d.pricing.t1;
       IRCT_PANELS[1].hint = '每隔兩個月・'+d.pricing.t1;
       IRCT_PANELS[2].hint = (d.pricing.t2Note||'已有慢性病用藥者')+'・'+d.pricing.t2;
@@ -10464,18 +10467,59 @@ function loadIRCTPricing(cb){
 var _labItems = null, _labHist = [];
 function editIRCTPricing(){
   if(!_irctPricing){ toast('價格還在載入中，請稍等一下再試'); loadIRCTPricing(); return; }
-  var t1 = prompt('IRT-t1（未用慢性病藥者）目前多少錢？', _irctPricing.t1);
+  var t1 = prompt('全站預設 IRT-t1（未用慢性病藥者）目前多少錢？\n（注意：這是全站預設價，有設定「診所別定價」的診所不受影響）', _irctPricing.t1);
   if(t1 === null) return;
-  var t2 = prompt('IRT-t2（已有慢性病用藥者）目前多少錢？', _irctPricing.t2);
+  var t2 = prompt('全站預設 IRT-t2（已有慢性病用藥者）目前多少錢？', _irctPricing.t2);
   if(t2 === null) return;
   t1 = Number(t1); t2 = Number(t2);
   if(!(t1 > 0) || !(t2 > 0)){ toast('⚠️ 請輸入正確的金額'); return; }
   adminAPI({action:'setIRCTPricing', t1:t1, t2:t2}, function(d){
     if(d && d.status === 'ok'){
-      toast('✅ 已更新價格，客人前台預約頁也會看到新價格');
+      toast('✅ 已更新全站預設價格，客人前台預約頁也會看到新價格');
       _irctPricing = null; _labItems = null;
       loadLabOptions();
     } else toast('⚠️ ' + ((d && d.message) || '更新失敗，請重試'));
+  });
+}
+// 2026-09-21新增：診所別定價——某家診所送檢廠商成本不一樣時（例如台北原蘊改送優品，成本比其他
+// 還在用東泰的診所高很多），可以只針對那家診所設定專屬的t1/t2價格，其他診所繼續用全站預設價，
+// 不會被一起調漲。清單抓「📅診所可約時段」裡的診所名稱，避免手動打字打錯字導致比對不到。
+function editIRCTClinicPricing(){
+  adminAPI({action:'getClinicSlotsAdmin'}, function(d){
+    var names = [];
+    (d && d.slots || []).forEach(function(s){ if(s.clinic && names.indexOf(s.clinic) < 0) names.push(s.clinic); });
+    if(!names.length){ toast('⚠️ 還沒有設定任何診所的可約時段，請先到「診所預約時段管理」新增'); return; }
+    var overrideList = names.filter(function(n){ return _irctClinicOverrides[n]; })
+      .map(function(n){ return n+'（t1:'+_irctClinicOverrides[n].t1+'／t2:'+_irctClinicOverrides[n].t2+'）'; });
+    var listText = names.map(function(n,i){ return (i+1)+'. '+n+(_irctClinicOverrides[n]?'　［目前有專屬定價：t1 $'+_irctClinicOverrides[n].t1+'、t2 $'+_irctClinicOverrides[n].t2+'］':'　［目前用全站預設價］'); }).join('\n');
+    var pick = prompt('要設定哪一家診所的專屬定價？輸入編號：\n\n'+listText);
+    if(pick === null) return;
+    var idx = parseInt(pick, 10) - 1;
+    if(!(idx >= 0 && idx < names.length)){ toast('⚠️ 請輸入清單裡的編號'); return; }
+    var clinic = names[idx];
+    var existing = _irctClinicOverrides[clinic];
+    var clearIt = existing && confirm(clinic+' 目前有專屬定價（t1 $'+existing.t1+'、t2 $'+existing.t2+'）。\n\n按「確定」清除這個專屬定價、改回用全站預設價；按「取消」則繼續修改這個專屬定價。');
+    if(clearIt){
+      adminAPIPost({action:'setIRCTPricing', clinic:clinic, clearOverride:true}, function(d2){
+        if(d2 && d2.status === 'ok'){ toast('✅ 已清除，'+clinic+'改回用全站預設價'); _irctPricing=null; loadIRCTPricing(); }
+        else toast('⚠️ '+((d2 && d2.message) || '操作失敗'));
+      });
+      return;
+    }
+    var baseT1 = existing ? existing.t1 : (_irctPricing ? _irctPricing.t1 : 4800);
+    var baseT2 = existing ? existing.t2 : (_irctPricing ? _irctPricing.t2 : 6800);
+    var t1 = prompt(clinic+' 專屬 IRT-t1 價格？', baseT1);
+    if(t1 === null) return;
+    var t2 = prompt(clinic+' 專屬 IRT-t2 價格？', baseT2);
+    if(t2 === null) return;
+    t1 = Number(t1); t2 = Number(t2);
+    if(!(t1 > 0) || !(t2 > 0)){ toast('⚠️ 請輸入正確的金額'); return; }
+    adminAPIPost({action:'setIRCTPricing', clinic:clinic, t1:t1, t2:t2}, function(d3){
+      if(d3 && d3.status === 'ok'){
+        toast('✅ 已設定 '+clinic+' 的專屬定價，客人在這家診所預約時會看到新價格');
+        _irctPricing = null; loadIRCTPricing();
+      } else toast('⚠️ '+((d3 && d3.message) || '更新失敗，請重試'));
+    });
   });
 }
 function loadLabOptions(){

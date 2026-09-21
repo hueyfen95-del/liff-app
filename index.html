@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-21e';
+var MX_BUILD = '2026-09-21f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2743,8 +2743,10 @@ function bkGoStep4(){
     if(locEl4 && locEl4.getAttribute('data-clinic')){
       var lc4 = locEl4.getAttribute('data-clinic'), lr4 = locEl4.getAttribute('data-region');
       locText4 = lr4 ? (lc4+'・'+lr4) : lc4;
+      if(typeof bkApplyClinicPricing==='function') bkApplyClinicPricing(lc4); // 2026-09-21：選好診所後套用那家診所的專屬價格（沒有override就維持預設價）
     } else if(locEl4){
       locText4 = locEl4.textContent.trim().replace(/上次去過/,'').replace(/[›〉>]/g,'').trim();
+      if(typeof bkApplyClinicPricing==='function') bkApplyClinicPricing(null);
     }
     var planText4 = _bkType==='t2' ? 'IRCT-t2' : 'IRCT-t1';
     // 2026-09-09補：這裡原本寫死「需空腹4小時」，跟上一步「檢測前注意事項」卡片裡的正確版本（空腹8-10小時，建議不超過12小時）互相矛盾，
@@ -2759,20 +2761,23 @@ function bkGoStep5(){
   bkSetStep(5);
 
   // 整理已選擇的資料
-  var planNames = {t1:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t1.toLocaleString(), t2:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t2.toLocaleString()};
-  var planSummary = planNames[_bkType] || planNames['t2'];
-
   var locEl = document.getElementById('bk-loc' + bkLocSelected);
-  var locText;
+  var locText, locClinicName = null;
   if (locEl && locEl.getAttribute('data-clinic')) {
     // 動態清單有乾淨的data屬性可用，避免把畫面上的「›」箭頭符號也一起讀進來
     var lc = locEl.getAttribute('data-clinic'), lr = locEl.getAttribute('data-region');
     locText = lr ? (lc + '・' + lr) : lc;
+    locClinicName = lc;
   } else if (locEl) {
     locText = locEl.textContent.trim().replace(/上次去過/,'').replace(/[›〉>]/g,'').trim();
   } else {
     locText = '瑞絲得診所・新竹';
   }
+  // 2026-09-21：先確定選了哪家診所，再套用那家診所的專屬價格（沒有override就維持預設價），
+  // 這樣下面算planNames/planSummary時，_irctPricingClient已經是正確的價格
+  if(typeof bkApplyClinicPricing==='function') bkApplyClinicPricing(locClinicName);
+  var planNames = {t1:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t1.toLocaleString(), t2:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t2.toLocaleString()};
+  var planSummary = planNames[_bkType] || planNames['t2'];
 
   var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
   var timeText = timeEl ? timeEl.textContent.trim() : '';
@@ -2797,6 +2802,7 @@ function bkGoStep5(){
   LAST_DIET_RECORD = dietSummary;
   LOCAL_BOOKED_TIME = (locText + (timeText ? '・' + timeText : ''));
   LOCAL_BOOKED_LOCATION = locText;
+  LOCAL_BOOKED_CLINIC = locClinicName; // 2026-09-21：存乾淨的診所名稱，之後查看預約詳情時才能正確查到這家診所的專屬價格
 
   // 背景送出到Sheets
   var medInputEl = document.getElementById('bk-med-input');
@@ -2921,11 +2927,18 @@ function bkMedNoneToggled(){
   else { inp.disabled = false; }
 }
 // ══ IRCT 套組定價（跟後台同一份資料，改價格不用等重新部署）══
+// 2026-09-21補：支援「依診所分開定價」——_irctPricingDefault是全站預設價，_irctClinicOverrides是
+// 有專屬定價的診所清單（例如台北原蘊改送優品成本較高，只有它會有override，其他診所繼續用預設價）。
+// 選診所之前（bk-step1/2）先顯示全站預設價當參考；選好診所後（bk-step3→4）就換算成那家診所實際的價格。
+var _irctPricingDefault = { t1: 4800, t2: 6800 };
+var _irctClinicOverrides = {};
 var _irctPricingClient = { t1: 4800, t2: 6800 };
 function loadIRCTPricingClient(){
   callAPI({ action: 'getIRCTPricing' }, function(d){
     if (d && d.status === 'ok' && d.pricing) {
-      _irctPricingClient = { t1: d.pricing.t1 || 4800, t2: d.pricing.t2 || 6800 };
+      _irctPricingDefault = { t1: d.pricing.t1 || 4800, t2: d.pricing.t2 || 6800 };
+      _irctClinicOverrides = d.clinicOverrides || {};
+      _irctPricingClient = _irctPricingDefault;
       var t1El = document.getElementById('bk-price-t1');
       var t2El = document.getElementById('bk-price-t2');
       if (t1El) t1El.textContent = 'NT$' + _irctPricingClient.t1.toLocaleString();
@@ -2934,6 +2947,11 @@ function loadIRCTPricingClient(){
   });
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadIRCTPricingClient, 800); });
+// 選好診所後呼叫：有這家診所的專屬定價就換成那組價格，沒有就維持全站預設價
+function bkApplyClinicPricing(clinicName){
+  var ov = clinicName && _irctClinicOverrides[clinicName];
+  _irctPricingClient = ov ? { t1: ov.t1 || _irctPricingDefault.t1, t2: ov.t2 || _irctPricingDefault.t2 } : _irctPricingDefault;
+}
 function bkSelectType(type) {
   _bkType = type;
   var t1 = document.getElementById('bk-t1');
@@ -4805,6 +4823,7 @@ var LOCAL_REPORT_STATUS = null;
 var LAST_DIET_RECORD = null; // 上次填的飲食模式，由後台/API更新
 var LOCAL_BOOKED_TIME = null;
 var LOCAL_BOOKED_LOCATION = null; // 本地端記住最新狀態，避免API時間差問題
+var LOCAL_BOOKED_CLINIC = null; // 2026-09-21：乾淨的診所名稱（不含地區），用來查該診所是否有專屬IRCT價格
 
 function submitBooking(clinic, time, diet) {
   callAPI({
@@ -8235,6 +8254,10 @@ function showBookingDetail() {
   var timeEl = document.getElementById('detail-time');
   var dietEl = document.getElementById('detail-diet');
   
+  // 2026-09-21：用LOCAL_BOOKED_CLINIC（這筆預約實際選的診所）重新查一次價格，而不是直接用
+  // _irctPricingClient目前的值——例如頁面重新整理過，_irctPricingClient會被重設成全站預設價，
+  // 如果這筆預約是在有專屬定價的診所（例如台北原蘊）訂的，價格會顯示錯（顯示成預設價而不是那家的價格）
+  if (typeof bkApplyClinicPricing === 'function') bkApplyClinicPricing(LOCAL_BOOKED_CLINIC);
   if (planEl) planEl.textContent = 'IRCT 動態胰島素檢測・NT$' + ((_bkType === 't1') ? _irctPricingClient.t1 : _irctPricingClient.t2).toLocaleString();
   if (locEl) locEl.textContent = LOCAL_BOOKED_LOCATION || '尚未選擇地點';
   if (timeEl) timeEl.textContent = LOCAL_BOOKED_TIME || '尚未選擇時間';
