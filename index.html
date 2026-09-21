@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-21b';
+var MX_BUILD = '2026-09-21c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -354,31 +354,33 @@ window.openHealthForm = function() {
   <div class="hb">
     <!-- 🎁 我的陪跑權益（2026-09-21移到最上面，創辦人反應原本位置太下面容易被忽略）：固定入口，
          只有陪跑中的客人看得到（預設隱藏，removeLockBanners()/loadClientAccess() 確認開通後才顯示，見下方腳本） -->
-    <div id="care-benefits-entry" style="display:none;align-items:center;gap:10px;background:linear-gradient(135deg,#B8860B,#D9A521);color:#fff;border-radius:14px;padding:12px 14px;margin-bottom:12px;cursor:pointer" onclick="goPage('care-benefits','我的陪跑權益')">
+    <div id="care-benefits-entry" style="display:none;align-items:center;gap:10px;background:#FFF8E6;border:1px solid #F0DEA0;color:#8a6d00;border-radius:14px;padding:12px 14px;margin-bottom:12px;cursor:pointer" onclick="goPage('care-benefits','我的陪跑權益')">
       <div style="font-size:22px;flex-shrink:0">🎁</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700">我的陪跑權益</div><div style="font-size:10.5px;opacity:.85;margin-top:1px">開通後你可以用哪些服務？飲食參考資料一次看</div></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700">我的陪跑權益</div><div style="font-size:10.5px;opacity:.8;margin-top:1px">開通後你可以用哪些服務？飲食參考資料一次看</div></div>
       <i class="ti ti-chevron-right"></i>
     </div>
     <!-- 2026-09-20：創辦人反應這三張卡佔的版面太大，改成一橫排三格的精簡版；
-         點開的明細/提示內容原本在卡片內，這次移到下面跨版面顯示，比較好讀 -->
+         點開的明細/提示內容原本在卡片內，這次移到下面跨版面顯示，比較好讀
+         2026-09-21：創辦人反應深色系配色（棕/深綠/紫）放在一起太突兀，改成跟全站其他徽章
+         一致的淺色系配色（淺底＋深色字），比較柔和 -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px;align-items:start">
       <!-- 🍚 碳水計畫摘要（有設定才顯示，點擊看完整份量圖鑑）-->
-      <div id="carb-home-card" style="display:none;border-radius:12px;padding:9px 8px;background:linear-gradient(135deg,#7A4F1D,#A8742E);color:#fff;cursor:pointer" onclick="goPage('food','外食指南')">
-        <div style="font-size:9px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🍚 碳水計畫</div>
+      <div id="carb-home-card" style="display:none;border-radius:12px;padding:9px 8px;background:var(--a2);color:var(--a3);cursor:pointer" onclick="goPage('food','外食指南')">
+        <div style="font-size:9px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🍚 碳水計畫</div>
         <div style="font-size:11px;font-weight:700;margin-top:3px;line-height:1.3" id="carb-home-text">載入中…</div>
       </div>
       <!-- 💳 儲值會員卡（有儲值記錄才顯示）-->
-      <div id="wallet-card" style="display:none;background:linear-gradient(135deg,#0F6E56,#1B8A6B);border-radius:12px;padding:9px 8px;color:#fff;cursor:pointer" onclick="toggleWalletDetail()">
-        <div style="font-size:9px;opacity:.8">💳 儲值餘額</div>
+      <div id="wallet-card" style="display:none;background:var(--g2);border-radius:12px;padding:9px 8px;color:var(--g3);cursor:pointer" onclick="toggleWalletDetail()">
+        <div style="font-size:9px;opacity:.75">💳 儲值餘額</div>
         <div style="font-size:17px;font-weight:800;letter-spacing:.3px;margin-top:2px" id="wallet-bal">$0</div>
-        <div style="font-size:8.5px;opacity:.9;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">出示 <b id="wallet-cid"></b></div>
+        <div style="font-size:8.5px;opacity:.85;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">出示 <b id="wallet-cid"></b></div>
         <div style="font-size:8px;opacity:.8;margin-top:2px;line-height:1.3" id="wallet-note"></div>
       </div>
       <!-- 🎫 陪跑點數卡（2026-08-27 第一階段：已開通的客人才顯示）-->
-      <div id="cps-card" style="display:none;background:linear-gradient(135deg,#534AB7,#7C6FE0);border-radius:12px;padding:9px 8px;color:#fff;cursor:pointer" onclick="cpsToggleRecent()">
-        <div style="font-size:9px;opacity:.85">🎫 陪跑點數</div>
+      <div id="cps-card" style="display:none;background:var(--p2);border-radius:12px;padding:9px 8px;color:var(--p3);cursor:pointer" onclick="cpsToggleRecent()">
+        <div style="font-size:9px;opacity:.8">🎫 陪跑點數</div>
         <div style="font-size:17px;font-weight:800;margin-top:2px"><span id="cps-bal">–</span> 點</div>
-        <button onclick="event.stopPropagation();cpsAskConsult()" style="margin-top:4px;width:100%;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;border-radius:7px;padding:4px 2px;font-size:9px;font-weight:700;cursor:pointer">💬 預約諮詢</button>
+        <button onclick="event.stopPropagation();cpsAskConsult()" style="margin-top:4px;width:100%;background:rgba(255,255,255,.6);border:1px solid rgba(83,74,183,.25);color:var(--p3);border-radius:7px;padding:4px 2px;font-size:9px;font-weight:700;cursor:pointer">💬 預約諮詢</button>
       </div>
     </div>
     <!-- 上面三格點開後的明細／提示，跨版面顯示比較好讀 -->
