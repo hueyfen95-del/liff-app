@@ -217,7 +217,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-21b';
+var MX_BUILD = '2026-09-21d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -306,7 +306,7 @@ var MX_BUILD = '2026-09-21b';
     <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
     <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
     <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所時間表</div>
+    <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所管理</div>
     <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
     <div class="sb-sec">客戶內容管理</div>
     <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
@@ -674,13 +674,13 @@ var MX_BUILD = '2026-09-21b';
   </div>
 
   <!-- 可預約時間指引（管理人2026-08-10：原「本月可預約時間管理」卡是早期遺留，存的資料前台從未讀取、
-       也沒分診所，會誤導秘書以為設定有生效——已移除，改為指引到真正生效的「診所時間表」頁 -->
+       也沒分診所，會誤導秘書以為設定有生效——已移除，改為指引到真正生效的「診所管理」頁 -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-hd">
       <div class="card-title"><i class="ti ti-calendar-plus"></i>可預約時間設定</div>
     </div>
     <div class="card-body">
-      <div style="font-size:12px;color:var(--text2);line-height:1.8">各診所開放給客人預約的時段，請到側欄「<b style="color:var(--g3);cursor:pointer;text-decoration:underline" onclick="goPg('clinic-slots')">診所時間表</b>」設定——那裡是<b>分診所</b>管理（診所名稱＋地區＋可預約時段＋啟用/停用），客人前台預約時看到的就是那份資料。</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8">各診所開放給客人預約的時段，請到側欄「<b style="color:var(--g3);cursor:pointer;text-decoration:underline" onclick="goPg('clinic-slots')">診所管理</b>」設定——那裡是<b>分診所</b>管理（診所名稱＋地區＋可預約時段＋啟用/停用），客人前台預約時看到的就是那份資料。</div>
     </div>
   </div>
 
@@ -1866,7 +1866,7 @@ var MX_BUILD = '2026-09-21b';
 </div>
 
 <div class="pg" id="pg-clinic-slots">
-  <div class="hint-box">在這裡維護各診所的可預約時段。<b>每月 25 日</b>更新下個月的時段，客人在前台預約 IRCT 複檢時就會看到正確的時間。改完馬上生效。<br>💡 診所名稱直接從「分帳角色名單」裡的診所選，跟分潤結算、加測檢測的送往、逾期提醒用的是同一份名單，名稱不會兜不起來。還沒登錄的診所，先到「分帳角色名單」新增再回來選。</div>
+  <div class="hint-box">在這裡維護各診所的可預約時段，以及（創始人限定）IRCT 檢測費定價。<b>每月 25 日</b>更新下個月的時段，客人在前台預約 IRCT 複檢時就會看到正確的時間。改完馬上生效。<br>💡 診所名稱直接從「分帳角色名單」裡的診所選，跟分潤結算、加測檢測的送往、逾期提醒用的是同一份名單，名稱不會兜不起來。還沒登錄的診所，先到「分帳角色名單」新增再回來選。</div>
   <div class="card" style="margin-bottom:14px">
     <div class="card-hd"><div class="card-title"><i class="ti ti-calendar-plus"></i>新增可預約時段</div></div>
     <div class="card-body">
@@ -1885,6 +1885,14 @@ var MX_BUILD = '2026-09-21b';
     <div class="card-hd"><div class="card-title"><i class="ti ti-list"></i>目前的可預約時段</div>
       <button class="btn-ghost" onclick="loadClinicSlots()" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button></div>
     <div class="card-body"><div id="cs-list"><div style="color:var(--text3);font-size:13px">載入中…</div></div></div>
+  </div>
+  <!-- 2026-09-21新增：IRCT定價卡片——原本「改IRCT價格」「診所別定價」放在客人詳細頁，創始人反映
+       跟客人無關、不合理，而且價格以後會常改，要固定好找的位置——搬到這裡，跟「診所」放在同一頁，
+       只有創始人角色看得到（由 goPg 依角色切換 display，非創始人整張卡片都不會出現） -->
+  <div class="card" id="cs-pricing-card" style="display:none">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-currency-dollar"></i>IRCT 檢測費定價</div>
+      <button class="btn-ghost" onclick="loadIRCTPricing(renderCsPricingCard)" style="font-size:12px"><i class="ti ti-refresh"></i> 重新載入</button></div>
+    <div class="card-body"><div id="cs-pricing-body" style="font-size:12px;color:var(--text3)">載入中…</div></div>
   </div>
 </div>
 <div class="pg" id="pg-lab-integrate">
@@ -2187,6 +2195,14 @@ function goPg(id,el){
   if(id==='alerts' && typeof loadReportReadyList==='function') setTimeout(loadReportReadyList,150);
   if(id==='clinic-slots' && typeof loadClinicSlots==='function') setTimeout(loadClinicSlots,150);
   if(id==='clinic-slots' && typeof loadCsClinicOptions==='function') setTimeout(loadCsClinicOptions,150);
+  // 2026-09-21新增：IRCT定價卡片只有創始人角色看得到，切到「診所管理」頁時依角色切換顯示
+  if(id==='clinic-slots'){
+    var _pcEl = document.getElementById('cs-pricing-card');
+    if(_pcEl){
+      if(isFounderRoleFE_()){ _pcEl.style.display=''; setTimeout(function(){ loadIRCTPricing(renderCsPricingCard); },150); }
+      else { _pcEl.style.display='none'; }
+    }
+  }
   if(id==='accounts' && typeof loadAdminAccounts==='function') setTimeout(loadAdminAccounts,150);
   if(id==='inventory' && typeof loadInventoryList==='function') setTimeout(loadInventoryList,150);
   if(id==='inventory' && typeof loadProxyDemand==='function') setTimeout(loadProxyDemand,150);
@@ -2196,7 +2212,7 @@ function goPg(id,el){
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
   if(el)el.classList.add('on');
-  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒線體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所時間表','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表'};
+  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒線體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所管理','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表'};
   document.getElementById('page-title').textContent=titles[id]||id;
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
   if (typeof runPageLoader === 'function') runPageLoader(id);
@@ -3317,7 +3333,7 @@ function sendGiftToClient() {
 }
 </script>
 <script>
-// ── 可預約時間管理：舊卡已移除（前台從未讀取那份資料；正式功能在「診所時間表」頁）──
+// ── 可預約時間管理：舊卡已移除（前台從未讀取那份資料；正式功能在「診所管理」頁）──
 
 // ── 報告狀態管理 ──
 // 修正（管理人2026-08-10）：原本呼叫 getTodayRecords 卻讀不存在的 d.clients 欄位，
@@ -3884,7 +3900,7 @@ var PAGE_CATALOG = [
   {id:'review', label:'會計核查'}, {id:'stored-value', label:'儲值消費'}, {id:'settlement', label:'月結算'},
   {id:'rules', label:'分帳規則設定'}, {id:'roles', label:'分帳角色名單'}, {id:'inventory', label:'貨品進銷存'},
   {id:'sales-script', label:'銷售話術'}, {id:'faq-mgmt', label:'FAQ管理'}, {id:'food-mgmt', label:'外食速查管理'},
-  {id:'clinic-slots', label:'診所時間表'}, {id:'shop-mgmt', label:'好物推薦管理'},
+  {id:'clinic-slots', label:'診所管理'}, {id:'shop-mgmt', label:'好物推薦管理'},
   {id:'lab-integrate', label:'檢測整合'}, {id:'tracking', label:'自訂追蹤模組'}, {id:'remind', label:'複檢提醒警示'},
   {id:'keto-rest-mgmt', label:'粒線體友善餐廳'}, {id:'garden-mgmt', label:'代謝花園管理'},
   {id:'qa-list', label:'QA症狀編輯'}, {id:'upload', label:'上傳外部報告'}, {id:'diet-compare', label:'飲食模式對照'},
@@ -6145,11 +6161,9 @@ function openClientDetail(id, name){
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💉 加測檢測（IRCT 套組／單項→💉 檢體記錄；功能醫學→💉 功能醫學記錄） '
-      // 2026-09-10補：這顆「改IRCT價格」之前沒有角色判斷，所有角色（含秘書）都看得到、點得到，
-      // 後端setIRCTPricing雖然有擋（只有創始人能存），但前端失敗訊息原本吞掉真正原因只顯示「更新失敗，請重試」，
-      // 非創始人的人會一直以為是網路問題、找不出到底為什麼存不了——這裡比照其他創始人專屬功能，直接不顯示這顆連結
-      + (isFounderRoleFE_() ? '<span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTPricing()">改IRCT價格</span>' : '')
-      + (isFounderRoleFE_() ? ' <span style="font-size:10px;color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:400" onclick="editIRCTClinicPricing()">診所別定價</span>' : '')
+      // 2026-09-21移出：改IRCT價格／診所別定價這兩個設定跟「哪位客人」完全無關，卻放在客人詳細頁裡，
+      // 創始人反映「這樣很不合理」、而且以後價格會常改，要有固定好找的地方——已搬到側欄「診所管理」頁面
+      // （那裡本來就是列全部診所的地方，改價格也在那裡改，邏輯上比較合理，位置也固定好找）
       + '<span id="cd-badge-lab" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:7px">'
     + '<select id="cd-lab-sel" class="form-select" style="font-size:12px" onchange="onLabSelChange()"><option value="">載入檢測項目…</option></select>'
@@ -10460,6 +10474,8 @@ function loadIRCTPricing(cb){
       IRCT_PANELS[1].hint = '每隔兩個月・'+d.pricing.t1;
       IRCT_PANELS[2].hint = (d.pricing.t2Note||'已有慢性病用藥者')+'・'+d.pricing.t2;
       IRCT_PANELS[3].hint = '每隔兩個月・'+d.pricing.t2;
+      // 2026-09-21補：診所管理頁的定價卡片如果存在就順便刷新，不用另外呼叫
+      if(typeof renderCsPricingCard==='function') renderCsPricingCard();
     }
     if(cb) cb();
   });
@@ -10484,11 +10500,35 @@ function editIRCTPricing(){
 // 2026-09-21新增：診所別定價——某家診所送檢廠商成本不一樣時（例如台北原蘊改送優品，成本比其他
 // 還在用東泰的診所高很多），可以只針對那家診所設定專屬的t1/t2價格，其他診所繼續用全站預設價，
 // 不會被一起調漲。清單抓「📅診所可約時段」裡的診所名稱，避免手動打字打錯字導致比對不到。
+// 2026-09-21新增：診所管理頁的定價卡片——列出全站預設價＋所有已設定專屬定價的診所，一眼看到目前
+// 各家在用什麼價格，不用像prompt清單那樣要自己數編號；點「修改」還是走原本的prompt流程，邏輯不重寫
+function renderCsPricingCard(){
+  var body = document.getElementById('cs-pricing-body');
+  if(!body) return;
+  var ov = _irctClinicOverrides || {};
+  var names = Object.keys(ov);
+  var html = '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:8px;padding:9px 12px;margin-bottom:8px">'
+    + '<div><b>全站預設價</b><span style="color:var(--text3)">（沒有專屬定價的診所都用這個）</span><br>t1 $'+(_irctPricing?_irctPricing.t1:'–')+'　／　t2 $'+(_irctPricing?_irctPricing.t2:'–')+'</div>'
+    + '<span style="font-size:11px;color:var(--b3);text-decoration:underline;cursor:pointer;white-space:nowrap" onclick="editIRCTPricing()">修改</span>'
+    + '</div>';
+  if(names.length){
+    html += names.map(function(n){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border-radius:8px;padding:9px 12px;margin-bottom:6px">'
+        + '<div><b>'+escH(n)+'</b><span style="color:var(--text3)">（專屬定價）</span><br>t1 $'+ov[n].t1+'　／　t2 $'+ov[n].t2+'</div>'
+        + '<span style="font-size:11px;color:var(--b3);text-decoration:underline;cursor:pointer;white-space:nowrap" onclick="editIRCTClinicPricing()">修改</span>'
+        + '</div>';
+    }).join('');
+  } else {
+    html += '<div style="font-size:11px;color:var(--text3);margin-bottom:8px">目前沒有任何診所設定專屬定價，全部都用全站預設價。</div>';
+  }
+  html += '<button class="btn-g" style="margin-top:2px;font-size:12px" onclick="editIRCTClinicPricing()"><i class="ti ti-plus"></i> 新增／修改診所專屬定價</button>';
+  body.innerHTML = html;
+}
 function editIRCTClinicPricing(){
   adminAPI({action:'getClinicSlotsAdmin'}, function(d){
     var names = [];
     (d && d.slots || []).forEach(function(s){ if(s.clinic && names.indexOf(s.clinic) < 0) names.push(s.clinic); });
-    if(!names.length){ toast('⚠️ 還沒有設定任何診所的可約時段，請先到「診所預約時段管理」新增'); return; }
+    if(!names.length){ toast('⚠️ 還沒有設定任何診所的可約時段，請先到側欄「診所管理」新增'); return; }
     var overrideList = names.filter(function(n){ return _irctClinicOverrides[n]; })
       .map(function(n){ return n+'（t1:'+_irctClinicOverrides[n].t1+'／t2:'+_irctClinicOverrides[n].t2+'）'; });
     var listText = names.map(function(n,i){ return (i+1)+'. '+n+(_irctClinicOverrides[n]?'　［目前有專屬定價：t1 $'+_irctClinicOverrides[n].t1+'、t2 $'+_irctClinicOverrides[n].t2+'］':'　［目前用全站預設價］'); }).join('\n');
