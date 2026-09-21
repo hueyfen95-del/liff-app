@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-20g';
+var MX_BUILD = '2026-09-20j';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1426,6 +1426,30 @@ window.openHealthForm = function() {
     </div>
 
     <div onclick="goPage('sec-hub','秘書互動')" style="background:var(--g2);color:var(--g3);border-radius:12px;padding:12px 14px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px">💬 有任何問題，點這裡傳訊息給你的健康秘書</div>
+
+    <!-- 🎁 限時加贈：線上課程（2026-09-20新增，創辦人指示放在權益頁最下面）-->
+    <div style="background:linear-gradient(135deg,#B8860B,#D9A521);color:#fff;border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="font-size:13.5px;font-weight:800;margin-bottom:8px">🎁 限時加贈：線上課程</div>
+      <div style="font-size:11.5px;line-height:1.8;opacity:.95;margin-bottom:12px">為了讓你在這趟代謝調整的旅程走得更清楚、更有方向，元代謝特別為你準備了限時加贈的線上課程——把飲食調整背後的原理、常見的迷思，整理成完整的課程內容一次講給你聽，讓你不只是「跟著秘書的安排做」，更能真正看懂自己身體正在發生的變化，走得更安心、更有信心。</div>
+      <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:11px 13px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:5px">📚 線上課程註冊</div>
+        <div style="font-size:11px;line-height:1.7;opacity:.95;margin-bottom:10px">請你有空的時候，先到元代謝官網註冊會員。註冊完成後，我們就會直接把線上課程放進你的學習中心，之後隨時都可以回來上課。</div>
+        <a href="https://www.isometabolix.com/" target="_blank" style="display:block;text-align:center;background:#fff;color:#8A6410;border-radius:9px;padding:10px;font-size:12.5px;font-weight:800;text-decoration:none;margin-bottom:8px">前往元代謝官網註冊 →</a>
+        <div id="course-registered-btn" onclick="notifyCourseRegistered(this)" style="text-align:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);border-radius:9px;padding:9px;font-size:11.5px;font-weight:700;cursor:pointer">✅ 我已經完成官網註冊了，通知秘書</div>
+      </div>
+    </div>
+
+    <!-- 🎓 畢業禮物：重置自信・美學顧問陪購儀式（2026-09-20合併定案，創辦人指示放在權益頁最下面）-->
+    <div style="background:linear-gradient(135deg,#5B21B6,#9333EA);color:#fff;border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="font-size:13.5px;font-weight:800;margin-bottom:2px">🎓 畢業禮物：重置自信・美學顧問陪購儀式</div>
+      <div style="font-size:10.5px;opacity:.85;margin-bottom:8px">乙次・前15位開通陪跑的學員免費贈送</div>
+      <div style="font-size:11.5px;line-height:1.8;opacity:.95;margin-bottom:12px">當你完成代謝調整、脫胎換骨迎來全新的自己，很多人卻還是習慣性地拿起過去為了遮肉買的寬鬆舊衣——身體變輕盈了，心裡對自己的印象卻還沒跟上。這份禮物就是為了這一刻準備的：專屬美學顧問先陪你做線上諮詢，了解你想展現的場合與氣質，接著到百貨公司實體陪你選搭2小時，從專櫃精選幾套服裝現場試穿、微調版型比例，定案一套最襯你的「命定戰袍」，並在鏡前完成一張眼神發亮的煥新紀念照。</div>
+      <a href="https://youtu.be/JhdxUcOCrs8" target="_blank" style="display:block;text-align:center;background:#fff;color:#5B21B6;border-radius:9px;padding:10px;font-size:12.5px;font-weight:800;text-decoration:none;margin-bottom:8px">▶️ 看看這個儀式是什麼</a>
+      <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:11px 13px;margin-bottom:8px">
+        <div style="font-size:11px;line-height:1.7;opacity:.95">🎁 前15位開通陪跑的學員，免費贈送一次；額滿之後，原價NT$3,000，陪跑學員加購特價NT$2,000。</div>
+      </div>
+      <div onclick="goPage('sec-hub','秘書互動')" style="text-align:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);border-radius:9px;padding:9px;font-size:11.5px;font-weight:700;cursor:pointer">📅 想預約或確認名額，跟秘書說一聲</div>
+    </div>
   </div>
 </div>
 <!-- ══ IRCT 完整檢測數據對照表（多次檢測並排，含理想/正常區間） ══ -->
@@ -7514,6 +7538,19 @@ function askUnlockCoaching(el){
   callAPI({ action: 'addNote', clientId: CLIENT_ID, content: '客人點了「陪跑解鎖後使用」的鎖定畫面，想了解／開通陪跑方案，請主動聯繫', type: '陪跑諮詢', secretary: '系統' }, function(d){
     if (d && d.status === 'ok') toast('💬 已通知秘書，會盡快跟你聯繫！');
     else { toast('⚠️ 送出失敗，請直接 LINE 秘書'); _unlockAsked = false; }
+  });
+}
+// 🎁 限時加贈線上課程：客人在官網完成註冊後按這顆通知秘書/行政/管理者，
+// 讓他們知道要去官網後台把課程加進客人的學習中心（同一批人會在後台「客人互動信箱」看到，
+// 跟諮詢預約/禮物請求同一套機制，見 final_apps_script.js 的 getClientInteractions）
+var _courseNotifyAsked = false;
+function notifyCourseRegistered(el){
+  if (_courseNotifyAsked) { toast('已經通知過秘書囉，加好課程會再通知你 😊'); return; }
+  _courseNotifyAsked = true;
+  if (el) { el.style.opacity = '.6'; el.textContent = '通知中…'; }
+  callAPI({ action: 'addNote', clientId: CLIENT_ID, content: '客人在「我的陪跑權益」頁按了「已完成官網註冊」，請幫忙到元代謝官網後台把線上課程加進客人的學習中心', type: '線上課程註冊', secretary: '系統' }, function(d){
+    if (d && d.status === 'ok') { toast('✅ 已通知秘書，課程加好會再通知你！'); if (el) el.textContent = '✅ 已通知秘書，請等待課程開通'; }
+    else { toast('⚠️ 送出失敗，請直接 LINE 秘書'); _courseNotifyAsked = false; if (el) { el.style.opacity = ''; el.textContent = '✅ 我已經完成官網註冊了，通知秘書'; } }
   });
 }
 function removeLockBanners() {
