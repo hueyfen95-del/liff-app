@@ -17,6 +17,11 @@ body{background:var(--bg);min-height:100vh}
 .sb-nav{padding:8px 0;flex:1}
 .sb-sec{font-size:10.5px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.07em;text-transform:uppercase;padding:12px 15px 4px;border-top:1px solid rgba(255,255,255,.08);margin-top:2px}
 .sb-sec:first-child{border-top:none;margin-top:0}
+/* 2026-09-21新增：側欄分類色塊——每一類包一塊柔和的底色，一眼分辨這顆按鈕屬於哪一類，
+   不用整排白字看到頭昏。只加背景色跟外距，.si／.sb-sec本身的樣式完全沒動，
+   所以hover／選中狀態／角色主題色都跟原本一模一樣，不影響任何互動行為。 */
+.sb-cat{margin:5px 8px 9px;padding:5px 3px 9px;border-radius:12px}
+.sb-cat .sb-sec{border-top:none;margin-top:0}
 .si{display:flex;align-items:center;gap:8px;padding:9px 15px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);border-left:3px solid transparent;transition:all .12s}
 .si:hover{background:rgba(255,255,255,.07);color:#fff}
 .si.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:#4FD5A8}
@@ -217,7 +222,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-21d';
+var MX_BUILD = '2026-09-21f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -282,48 +287,61 @@ var MX_BUILD = '2026-09-21d';
     <div id="founder-manual-link" onclick="window.open('manual_founder.html','_blank')" style="display:none;margin-top:5px;font-size:11px;color:#FFE9B8;cursor:pointer;text-decoration:underline">👑 創辦人手冊</div>
   </div>
   <div class="sb-nav">
-    <div class="sb-sec">主要</div>
-    <div class="si nav-item on" onclick="goPg('dashboard',this)"><i class="ti ti-layout-dashboard"></i>儀表板</div>
-    <div class="si nav-item" onclick="goPg('clients',this)"><i class="ti ti-users"></i>客戶管理</div>
-    <div class="si nav-item" onclick="goPg('alerts',this)"><i class="ti ti-bell"></i>警示看板 <span class="si-badge r" id="sb-badge-alerts" style="display:none">–</span></div>
-    <div class="sb-sec">管理</div>
-    <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接 <span class="si-badge r" id="sb-badge-shiftgap" style="display:none">–</span></div>
-    <div class="si nav-item" onclick="goPg('report',this)"><i class="ti ti-file-text"></i>月報生成</div>
-    <!-- 2026-08-31 重新分類：原本「內容管理」塞了14個性質不同的項目（財務/排程/檢測都混在一起），
-         這次把財務類併進財務結算、檢測相關獨立一類、IRT模型（只剩1項）併進檢測類、商店管理（只剩1項）併進花園，
-         讓每一類的項目數量比較平均，也不會有名不符實的分類——她的原話「免得後台的人員看的眼花撩亂」 -->
-    <div class="sb-sec">財務結算</div>
-    <div class="si nav-item" onclick="goPg('roles',this)"><i class="ti ti-users-group"></i>分帳角色名單 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('accounts',this)"><i class="ti ti-shield-lock"></i>帳號管理 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('inventory',this)"><i class="ti ti-package"></i>貨品進銷存 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('rules',this)"><i class="ti ti-settings-2"></i>分帳規則設定 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('settlement',this)"><i class="ti ti-report-money"></i>月結算 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('finance-entry',this)"><i class="ti ti-cash"></i>財務登記 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
-    <div class="si nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
-    <div class="sb-sec">檢測與分型</div>
-    <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
-    <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
-    <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
-    <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所管理</div>
-    <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
-    <div class="sb-sec">客戶內容管理</div>
-    <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
-    <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
-    <div class="si nav-item" onclick="goPg('food-mgmt',this)"><i class="ti ti-tools-kitchen-2"></i>外食速查</div>
-    <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒線體友善餐廳 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
-    <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
-    <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
-    <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照 <span class="si-badge g">NEW</span></div>
-    <div class="sb-sec">追蹤管理</div>
-    <div class="si nav-item" onclick="goPg('tracking',this)"><i class="ti ti-activity"></i>自訂追蹤模組 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('remind',this)"><i class="ti ti-bell-ringing"></i>複檢提醒 <span class="si-badge r" id="sb-badge-remind" style="display:none">–</span></div>
-    <div class="si nav-item" onclick="goPg('upload',this)"><i class="ti ti-file-upload"></i>上傳外部報告 <span class="si-badge g">NEW</span></div>
-    <div class="sb-sec">商店與花園</div>
-    <div class="si nav-item" onclick="goPg('shop-mgmt',this)"><i class="ti ti-shopping-bag"></i>好物推薦管理 <span class="si-badge g">NEW</span></div>
-    <div class="si nav-item" onclick="goPg('garden-mgmt',this)"><i class="ti ti-plant"></i>代謝花園管理 <span class="si-badge g">NEW</span></div>
+    <!-- 2026-09-21重新分類：創始人要求整頓側欄——原本7個分類其實是照「功能性質」分（財務結算/檢測與分型…），
+         這次改成照「這個功能是在處理什麼」的直覺分法（跟客人有關／跟檢測診所有關／跟後台知識庫內容有關／
+         跟內部行政財務有關／跟商店花園有關），並且每一類都給一塊柔和的底色色塊，一眼就能分辨在哪一類，
+         不用整排字看到頭昏。這次純粹是分類跟視覺調整，每一顆按鈕的onclick／action／頁面本身完全沒有改變，
+         功能一個都沒少。 -->
+    <div class="sb-cat" style="background:rgba(79,213,168,.09)">
+      <div class="sb-sec" style="color:#7FE0C4">總覽提醒</div>
+      <div class="si nav-item on" onclick="goPg('dashboard',this)"><i class="ti ti-layout-dashboard"></i>儀表板</div>
+      <div class="si nav-item" onclick="goPg('alerts',this)"><i class="ti ti-bell"></i>警示看板 <span class="si-badge r" id="sb-badge-alerts" style="display:none">–</span></div>
+    </div>
+    <div class="sb-cat" style="background:rgba(140,210,110,.10)">
+      <div class="sb-sec" style="color:#A8DB85">客戶服務</div>
+      <div class="si nav-item" onclick="goPg('clients',this)"><i class="ti ti-users"></i>客戶管理</div>
+      <div class="si nav-item" onclick="goPg('report',this)"><i class="ti ti-file-text"></i>月報生成</div>
+      <div class="si nav-item" onclick="goPg('upload',this)"><i class="ti ti-file-upload"></i>上傳外部報告 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('tracking',this)"><i class="ti ti-activity"></i>自訂追蹤模組 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('remind',this)"><i class="ti ti-bell-ringing"></i>複檢提醒 <span class="si-badge r" id="sb-badge-remind" style="display:none">–</span></div>
+    </div>
+    <div class="sb-cat" style="background:rgba(99,179,237,.10)">
+      <div class="sb-sec" style="color:#8FC4F2">檢測與診所</div>
+      <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
+      <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
+      <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
+      <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所管理</div>
+      <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
+    </div>
+    <div class="sb-cat" style="background:rgba(179,157,255,.10)">
+      <div class="sb-sec" style="color:#C9B8FF">內容與知識庫</div>
+      <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
+      <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
+      <div class="si nav-item" onclick="goPg('food-mgmt',this)"><i class="ti ti-tools-kitchen-2"></i>外食速查</div>
+      <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒線體友善餐廳 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
+      <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
+      <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
+      <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照 <span class="si-badge g">NEW</span></div>
+    </div>
+    <div class="sb-cat" style="background:rgba(245,197,96,.10)">
+      <div class="sb-sec" style="color:#F5D98A">內部行政與財務</div>
+      <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接 <span class="si-badge r" id="sb-badge-shiftgap" style="display:none">–</span></div>
+      <div class="si nav-item" onclick="goPg('roles',this)"><i class="ti ti-users-group"></i>分帳角色名單 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('accounts',this)"><i class="ti ti-shield-lock"></i>帳號管理 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('inventory',this)"><i class="ti ti-package"></i>貨品進銷存 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('rules',this)"><i class="ti ti-settings-2"></i>分帳規則設定 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('settlement',this)"><i class="ti ti-report-money"></i>月結算 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('finance-entry',this)"><i class="ti ti-cash"></i>財務登記 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
+      <div class="si nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
+    </div>
+    <div class="sb-cat" style="background:rgba(255,159,122,.10)">
+      <div class="sb-sec" style="color:#FFB894">商店與花園</div>
+      <div class="si nav-item" onclick="goPg('shop-mgmt',this)"><i class="ti ti-shopping-bag"></i>好物推薦管理 <span class="si-badge g">NEW</span></div>
+      <div class="si nav-item" onclick="goPg('garden-mgmt',this)"><i class="ti ti-plant"></i>代謝花園管理 <span class="si-badge g">NEW</span></div>
+    </div>
   </div>
 </div>
 
@@ -11846,9 +11864,12 @@ function loadClinicSlots(){
     }
     box.innerHTML = d.slots.map(function(s){
       var disabled = s.status === '停用';
+      // 2026-09-21新增：「最後操作」直接接在原本的🕐時段那一行後面，不多長一整行，創始人要求
+      // 加稽核記錄但「不要佔用一大堆空間」
+      var lastByHtml = s.lastBy ? '　<span style="color:var(--text3);font-size:11px">・最後操作：'+escH(s.lastBy)+'</span>' : '';
       return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px'+(disabled?';opacity:.55':'')+'">'
         + '<div style="flex:1"><div style="font-weight:700;font-size:13px">'+escH(s.clinic)+'　<span style="color:var(--text3);font-weight:400">'+escH(s.region)+'</span>'+(disabled?'　<span style="color:var(--r,#C0392B)">（已停用）</span>':'')+'</div>'
-        + '<div style="font-size:12px;color:var(--text2);margin-top:2px">🕐 '+escH(s.datetime)+'</div></div>'
+        + '<div style="font-size:12px;color:var(--text2);margin-top:2px">🕐 '+escH(s.datetime)+lastByHtml+'</div></div>'
         + '<button class="btn-ghost" onclick="toggleClinicSlotUI('+s.row+','+(disabled?'true':'false')+')" style="font-size:11px;white-space:nowrap">'+(disabled?'重新啟用':'停用')+'</button>'
         + '</div>';
     }).join('');
@@ -11856,7 +11877,7 @@ function loadClinicSlots(){
 }
 function toggleClinicSlotUI(row, reEnable){
   if(!reEnable && !confirm('確定要停用這個時段嗎？停用後客人預約時就不會再看到這個選項（不會刪除資料，之後可以重新啟用）。')) return;
-  adminAPI({action:'toggleClinicSlot', row:row}, function(d){
+  adminAPI({action:'toggleClinicSlot', row:row, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
     if(d && d.status==='ok'){ toast(reEnable?'✅ 已重新啟用':'✅ 已停用'); loadClinicSlots(); }
     else { toast('⚠️ 操作失敗'); }
   });
@@ -11888,7 +11909,7 @@ function addClinicSlot(btn){
   var datetime = (document.getElementById('cs-datetime')||{}).value || '';
   if(!clinic || !datetime){ toast('請選擇診所（或手動輸入）並填時間'); return; }
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
-  adminAPI({action:'addClinicSlot', clinic:clinic, region:region, datetime:datetime}, function(d){
+  adminAPI({action:'addClinicSlot', clinic:clinic, region:region, datetime:datetime, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
     if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status==='ok'){
       toast('✅ 已新增時段');
