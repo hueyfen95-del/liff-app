@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-22c';
+var MX_BUILD = '2026-09-22d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -298,7 +298,7 @@ var MX_BUILD = '2026-09-22c';
     <!-- 2026-09-10新增：密碼輸入框旁加「眼睛」圖示，可以切換顯示/隱藏，方便打錯字時自己核對 -->
     <div style="margin-bottom:16px;position:relative">
       <input id="lg-pass" type="password" placeholder="密碼" style="width:100%;padding:11px 40px 11px 13px;border:1px solid #ddd;border-radius:9px;font-size:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')doLogin()">
-      <span onclick="toggleLoginPassVisible()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:15px;user-select:none" title="顯示/隱藏密碼">👁️</span>
+      <span id="lg-pass-eye" onclick="toggleLoginPassVisible()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:17px;user-select:none;line-height:1" title="顯示/隱藏密碼"><i class="ti ti-eye-off"></i></span>
     </div>
     <button onclick="doLogin()" style="width:100%;padding:12px;background:#0F6E56;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer">登入</button>
     <div id="lg-error" style="color:#D6455D;font-size:12px;text-align:center;margin-top:10px;min-height:16px"></div>
@@ -12793,13 +12793,21 @@ function isSweetSpotTier(){
 function toggleLoginPassVisible(){
   var el = document.getElementById('lg-pass');
   if(!el) return;
-  el.type = (el.type === 'password') ? 'text' : 'password';
+  var showing = (el.type === 'password'); // 這次動作之後會不會變成明碼
+  el.type = showing ? 'text' : 'password';
+  var ic = document.getElementById('lg-pass-eye');
+  if(ic) ic.innerHTML = '<i class="ti ti-'+(showing?'eye':'eye-off')+'"></i>';
 }
 // 2026-09-10補：通用版——改密碼視窗的「目前密碼」「新密碼」兩欄也比照辦理，共用同一個切換邏輯
+// 2026-09-22補：創始人反映眼睛圖示張開/閉著看不出差別——原本不管顯示或隱藏都是同一個emoji，只有input type在切換，
+// 圖示本身從來沒變過。這次改用睜眼／閉眼（畫斜線）兩個明顯不同的圖示，密碼目前是明碼就顯示睜眼，是星號就顯示閉眼。
 function togglePwFieldVisible(id){
   var el = document.getElementById(id);
   if(!el) return;
-  el.type = (el.type === 'password') ? 'text' : 'password';
+  var showing = (el.type === 'password');
+  el.type = showing ? 'text' : 'password';
+  var ic = document.getElementById(id+'-eye');
+  if(ic) ic.innerHTML = '<i class="ti ti-'+(showing?'eye':'eye-off')+'"></i>';
 }
 var _loginBusy = false;
 function doLogin(){
@@ -12949,12 +12957,12 @@ function changeMyPasswordUI(){
     + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">目前密碼</div>'
     + '<div style="position:relative;margin-bottom:10px">'
     + '<input id="cpw-old" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 40px 9px 11px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">'
-    + '<span onclick="togglePwFieldVisible(\'cpw-old\')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:14px;user-select:none" title="顯示/隱藏密碼">👁️</span>'
+    + '<span id="cpw-old-eye" onclick="togglePwFieldVisible(\'cpw-old\')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:16px;user-select:none;line-height:1" title="顯示/隱藏密碼"><i class="ti ti-eye-off"></i></span>'
     + '</div>'
     + '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px">新密碼（至少6碼，英文、數字皆可，不分大小寫）</div>'
     + '<div style="position:relative;margin-bottom:14px">'
     + '<input id="cpw-new" type="password" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:9px 40px 9px 11px;font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">'
-    + '<span onclick="togglePwFieldVisible(\'cpw-new\')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:14px;user-select:none" title="顯示/隱藏密碼">👁️</span>'
+    + '<span id="cpw-new-eye" onclick="togglePwFieldVisible(\'cpw-new\')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;color:#999;font-size:16px;user-select:none;line-height:1" title="顯示/隱藏密碼"><i class="ti ti-eye-off"></i></span>'
     + '</div>'
     + '<div style="display:flex;gap:8px;justify-content:flex-end">'
     + '<button onclick="document.getElementById(\'change-pw-modal\').remove()" style="background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:9px 16px;font-size:13px;cursor:pointer;color:var(--text2)">取消</button>'
