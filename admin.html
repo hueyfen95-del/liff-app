@@ -222,7 +222,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-22a';
+var MX_BUILD = '2026-09-22b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -292,12 +292,12 @@ var MX_BUILD = '2026-09-22a';
          跟內部行政財務有關／跟商店花園有關），並且每一類都給一塊柔和的底色色塊，一眼就能分辨在哪一類，
          不用整排字看到頭昏。這次純粹是分類跟視覺調整，每一顆按鈕的onclick／action／頁面本身完全沒有改變，
          功能一個都沒少。 -->
-    <div class="sb-cat" style="background:rgba(37,97,126,.6)">
+    <div class="sb-cat" style="background:rgba(46,107,138,.4)">
       <div class="sb-sec" style="color:#a0d4ee">總覽提醒</div>
       <div class="si nav-item on" onclick="goPg('dashboard',this)"><i class="ti ti-layout-dashboard"></i>儀表板</div>
       <div class="si nav-item" onclick="goPg('alerts',this)"><i class="ti ti-bell"></i>警示看板 <span class="si-badge r" id="sb-badge-alerts" style="display:none">–</span></div>
     </div>
-    <div class="sb-cat" style="background:rgba(37,41,126,.6)">
+    <div class="sb-cat" style="background:rgba(46,50,138,.4)">
       <div class="sb-sec" style="color:#a0a4ee">客戶服務</div>
       <div class="si nav-item" onclick="goPg('clients',this)"><i class="ti ti-users"></i>客戶管理</div>
       <div class="si nav-item" onclick="goPg('report',this)"><i class="ti ti-file-text"></i>月報生成</div>
@@ -305,7 +305,7 @@ var MX_BUILD = '2026-09-22a';
       <div class="si nav-item" onclick="goPg('tracking',this)"><i class="ti ti-activity"></i>自訂追蹤模組 <span class="si-badge g">NEW</span></div>
       <div class="si nav-item" onclick="goPg('remind',this)"><i class="ti ti-bell-ringing"></i>複檢提醒 <span class="si-badge r" id="sb-badge-remind" style="display:none">–</span></div>
     </div>
-    <div class="sb-cat" style="background:rgba(86,37,126,.6)">
+    <div class="sb-cat" style="background:rgba(96,46,138,.4)">
       <div class="sb-sec" style="color:#cba0ee">檢測與診所</div>
       <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
       <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
@@ -314,7 +314,7 @@ var MX_BUILD = '2026-09-22a';
       <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所管理</div>
       <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
     </div>
-    <div class="sb-cat" style="background:rgba(126,37,112,.6)">
+    <div class="sb-cat" style="background:rgba(138,46,122,.4)">
       <div class="sb-sec" style="color:#eea0e1">內容與知識庫</div>
       <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
       <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
@@ -325,7 +325,7 @@ var MX_BUILD = '2026-09-22a';
       <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
       <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照 <span class="si-badge g">NEW</span></div>
     </div>
-    <div class="sb-cat" style="background:rgba(126,37,56,.6)">
+    <div class="sb-cat" style="background:rgba(138,46,66,.4)">
       <div class="sb-sec" style="color:#eea0b1">內部行政與財務</div>
       <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接 <span class="si-badge r" id="sb-badge-shiftgap" style="display:none">–</span></div>
       <div class="si nav-item" onclick="goPg('roles',this)"><i class="ti ti-users-group"></i>分帳角色名單 <span class="si-badge g">NEW</span></div>
@@ -337,7 +337,7 @@ var MX_BUILD = '2026-09-22a';
       <div class="si nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
       <div class="si nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
     </div>
-    <div class="sb-cat" style="background:rgba(126,71,37,.6)">
+    <div class="sb-cat" style="background:rgba(138,81,46,.4)">
       <div class="sb-sec" style="color:#eebea0">商店與花園</div>
       <div class="si nav-item" onclick="goPg('shop-mgmt',this)"><i class="ti ti-shopping-bag"></i>好物推薦管理 <span class="si-badge g">NEW</span></div>
       <div class="si nav-item" onclick="goPg('garden-mgmt',this)"><i class="ti ti-plant"></i>代謝花園管理 <span class="si-badge g">NEW</span></div>
