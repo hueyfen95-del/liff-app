@@ -222,7 +222,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-21g';
+var MX_BUILD = '2026-09-22a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -9565,7 +9565,10 @@ function loadRemindList(){
           + '<i class="ti ti-'+(isOver?'alert-circle':'bell')+'" style="font-size:20px;color:var(--'+lv+');flex-shrink:0;margin-top:2px"></i>'
           + '<div style="flex:1">'
           + '<div style="font-size:13px;font-weight:700;color:var(--'+lv+'3);margin-bottom:3px">'+escH(clientName(it.clientId))+'・'+escH(it.type)+(isOver?'（已逾期）':'')+'</div>'
-          + '<div style="font-size:12px;color:var(--'+lv+'3);line-height:1.6;margin-bottom:7px">複驗日期：'+escH(it.remindDate)+(it.cycle?'・週期：'+escH(it.cycle):'')+'</div>'
+          + '<div style="font-size:12px;color:var(--'+lv+'3);line-height:1.6;margin-bottom:3px">複驗日期：'+escH(it.remindDate)+(it.cycle?'・週期：'+escH(it.cycle):'')+'</div>'
+          // 2026-09-22新增：已提醒次數——創始人要求知道客人被提醒過幾次；0次時用灰字提示「還沒提醒過」，
+          // 避免看起來像資料遺失；有次數時順便顯示最後一次是誰、什麼時候提醒的
+          + '<div style="font-size:11px;color:var(--text3);margin-bottom:7px">'+(it.remindCount>0?'🔔 已提醒 '+it.remindCount+' 次（最後一次：'+escH(it.lastRemindedAt)+'）':'⚪ 還沒提醒過')+'</div>'
           + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
           + '<button class="ai-btn '+lv+'" onclick="copyRemindMsg('+idx+')">複製提醒訊息</button>'
           + '<button class="ai-btn gray" onclick="markRemindDone('+idx+')">標記處理</button>'
@@ -9580,6 +9583,10 @@ function loadRemindList(){
 function copyRemindMsg(idx){
   var it=_remindData[idx]; if(!it)return;
   copyText(clientName(it.clientId)+' 您好 😊 提醒您「'+it.type+'」的複驗時間到囉（'+it.remindDate+'）。記得安排時間回檢，讓我們持續掌握身體的變化。需要幫您預約或有任何問題，隨時跟我說！','提醒訊息');
+  // 2026-09-22新增：複製提醒訊息的當下同步記一次「已提醒次數」，不用秘書另外手動記
+  adminAPIPost({action:'updateTracking', row:it.row, bumpRemind:true, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(d && d.status==='ok') loadRemindList();
+  });
 }
 function markRemindDone(idx){
   var it=_remindData[idx]; if(!it)return;
