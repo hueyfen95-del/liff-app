@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-21f';
+var MX_BUILD = '2026-09-22a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -361,7 +361,7 @@ window.openHealthForm = function() {
       <div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#7A5A12">我的陪跑權益</div><div style="font-size:10.5px;color:#9C7E3E;margin-top:2px">開通後你可以用哪些服務？飲食參考資料一次看</div></div>
       <i class="ti ti-chevron-right" style="color:#B4913F"></i>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px;align-items:start">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:8px;align-items:stretch">
       <!-- 🍚 碳水計畫摘要（有設定才顯示，點擊看完整份量圖鑑）－清綠色 -->
       <div id="carb-home-card" style="display:none;background:linear-gradient(160deg,#F0F8EA,#D9EDCC);border:1px solid #BEE0A8;border-radius:12px;padding:9px 8px;cursor:pointer;box-shadow:0 1px 2px rgba(16,24,40,.05)" onclick="goPage('food','外食指南')">
         <div style="font-size:9px;color:#5E8A4C;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🍚 碳水計畫</div>
