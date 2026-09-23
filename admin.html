@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-22d';
+var MX_BUILD = '2026-09-22g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1309,7 +1309,8 @@ var MX_BUILD = '2026-09-22d';
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="fin-pay-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
-        <input id="fin-pay-item" placeholder="項目（例：IRCT檢測費）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-pay-item" list="fin-pay-item-list" placeholder="項目（例：IRCT檢測費，之前打過的可以選）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <datalist id="fin-pay-item-list"></datalist>
         <input id="fin-pay-amount" type="number" placeholder="金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <select id="fin-pay-method" class="form-select" style="font-size:12px"><option value="現金">現金</option><option value="轉帳">轉帳</option><option value="信用卡">信用卡</option><option value="LINE Pay">LINE Pay</option></select>
         <input id="fin-pay-note" placeholder="備註（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
@@ -1323,8 +1324,9 @@ var MX_BUILD = '2026-09-22d';
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="fin-clinicfee-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
-        <input id="fin-clinicfee-name" list="fin-clinic-lab-list" placeholder="診所名稱（有登記過的會自動帶出）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
-        <input id="fin-clinicfee-item" placeholder="項目（例：IRCT檢測）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-clinicfee-name" list="fin-clinic-lab-list" placeholder="診所名稱（可以選之前登記過的，也可以直接打新的）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-clinicfee-item" list="fin-clinicfee-item-list" placeholder="項目（例：IRCT檢測，之前打過的可以選）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <datalist id="fin-clinicfee-item-list"></datalist>
         <input id="fin-clinicfee-pretax" type="number" placeholder="稅前金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <input id="fin-clinicfee-tax" type="number" placeholder="稅額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <input id="fin-clinicfee-total" type="number" placeholder="總額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
@@ -1341,9 +1343,10 @@ var MX_BUILD = '2026-09-22d';
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="fin-labfee-client" class="form-select" style="font-size:12px;grid-column:1/-1"><option value="">選擇客人…</option></select>
-        <input id="fin-labfee-name" list="fin-clinic-lab-list" placeholder="檢測中心名稱（有登記過的會自動帶出）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-labfee-name" list="fin-clinic-lab-list" placeholder="檢測中心名稱（可以選之前登記過的，也可以直接打新的）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
         <datalist id="fin-clinic-lab-list"></datalist>
-        <input id="fin-labfee-item" placeholder="項目" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-labfee-item" list="fin-labfee-item-list" placeholder="項目（之前打過的可以選，也可以直接打新的）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <datalist id="fin-labfee-item-list"></datalist>
         <select id="fin-labfee-method" class="form-select" style="font-size:12px"><option value="現金">現金</option><option value="轉帳">轉帳</option></select>
         <input id="fin-labfee-invno" placeholder="發票號碼（選填）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <input id="fin-labfee-pretax" type="number" placeholder="稅前金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
@@ -1358,9 +1361,11 @@ var MX_BUILD = '2026-09-22d';
     <div class="card-hd"><div class="card-title"><i class="ti ti-file-invoice"></i>🧾 請款申請</div></div>
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <input id="fin-inv-secretary" placeholder="申請人姓名" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <input id="fin-inv-secretary" list="fin-inv-secretary-list" placeholder="申請人姓名（打關鍵字可以選現有員工，也能直接打新的）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;grid-column:1/-1">
+        <datalist id="fin-inv-secretary-list"></datalist>
         <select id="fin-inv-idtype" class="form-select" style="font-size:12px"><option value="員工">員工</option><option value="承攬">承攬（需代扣稅）</option></select>
-        <input id="fin-inv-type" placeholder="請款類型（例：陪跑服務費）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <input id="fin-inv-type" list="fin-inv-type-list" placeholder="請款類型（例：陪跑服務費，之前打過的可以選）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
+        <datalist id="fin-inv-type-list"></datalist>
         <input id="fin-inv-amount" type="number" placeholder="金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <input id="fin-inv-pretax" type="number" placeholder="稅前金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
         <input id="fin-inv-withhold" type="number" placeholder="代扣稅額（承攬才需要）" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px">
@@ -1714,6 +1719,33 @@ var MX_BUILD = '2026-09-22d';
 
 <!-- ══ 複檢提醒警示 ══ -->
 <div class="pg" id="pg-remind">
+  <!-- 2026-09-22調整順序：創始人反映一打開「複檢提醒」看到的卻是要自己選客人的表單，不合理——
+       提醒應該是系統自動抓給妳看，不是要妳自己先操作。原本頁面順序是「建立方案／記錄收款」(手動工具)
+       排在最上面，「方案到期提醒／複檢提醒總覽」(系統自動抓的提醒清單) 反而要往下滑才看得到。
+       這次把兩份自動提醒清單搬到最上面，手動的建立方案／記錄收款工具移到下面，
+       每一顆按鈕的功能、抓資料的邏輯完全沒有改變，純粹只是調整卡片先後順序。 -->
+  <div class="hint-box" style="margin-bottom:12px">以下兩張卡片是系統自動幫妳抓出來的提醒，不用自己選客人；下面「建立客人方案」「記錄服務收款」是要手動操作的工具，需要新增或登記時才用到。</div>
+
+<div class="card" style="margin-bottom:12px">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-bell"></i>複檢提醒總覽（來自 💉 追蹤模組）</div><div style="display:flex;gap:7px;align-items:center"><span class="badge r" id="remind-badge">–</span><button class="tb-btn" onclick="loadRemindList()"><i class="ti ti-refresh" style="font-size:14px"></i>重新載入</button></div></div>
+    <div class="card-body" id="remind-list">
+      <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">載入中…</div>
+    </div>
+  </div>
+
+  <!-- 真實到期提醒清單 -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd">
+      <div class="card-title"><i class="ti ti-alert-triangle"></i>方案到期提醒</div>
+      <button onclick="loadExpiringPlans()" style="background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer">重新檢查</button>
+    </div>
+    <div class="card-body">
+      <div id="expiring-plans-list" style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- 客人方案建立 + 陪跑服務費收款 -->
   <div class="card" style="margin-bottom:12px">
     <div class="card-hd">
@@ -1774,26 +1806,6 @@ var MX_BUILD = '2026-09-22d';
       </div>
       <button onclick="recordServicePayment()" style="width:100%;background:var(--b);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">記錄收款（依目前生效規則自動分帳）</button>
       <div style="font-size:10px;color:var(--text3);margin-top:7px">這筆款項會依「分帳規則設定」裡目前生效的規則（依上面選的服務類型），自動算出各角色應得金額，包含元代謝跟合作單位之間怎麼分。還沒有妳要的服務類型（例如某個套裝服務）？先到「分帳規則設定」頁用「+新增」建立</div>
-    </div>
-  </div>
-
-  <!-- 真實到期提醒清單 -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd">
-      <div class="card-title"><i class="ti ti-alert-triangle"></i>方案到期提醒</div>
-      <button onclick="loadExpiringPlans()" style="background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:11px;cursor:pointer">重新檢查</button>
-    </div>
-    <div class="card-body">
-      <div id="expiring-plans-list" style="display:flex;flex-direction:column;gap:8px">
-        <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">點「重新檢查」查看即將到期的客人</div>
-      </div>
-    </div>
-  </div>
-
-<div class="card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-bell"></i>複檢提醒總覽（來自 💉 追蹤模組）</div><div style="display:flex;gap:7px;align-items:center"><span class="badge r" id="remind-badge">–</span><button class="tb-btn" onclick="loadRemindList()"><i class="ti ti-refresh" style="font-size:14px"></i>重新載入</button></div></div>
-    <div class="card-body" id="remind-list">
-      <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">載入中…</div>
     </div>
   </div>
 </div>
@@ -4214,10 +4226,25 @@ function loadRoles() {
       }).join('');
       // 同時把角色快取起來，給規則設定的下拉選單用
       window._cachedRoles = d.roles;
+      window._rolesCacheLoaded = true;
     } else {
       listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">尚未新增任何角色</div>';
       window._cachedRoles = [];
+      window._rolesCacheLoaded = true;
     }
+  });
+}
+// 2026-09-22補：創始人反映「分帳規則設定」頁的「選擇角色」下拉選單選不到任何角色——查證後發現角色清單
+// window._cachedRoles 原本只有真的打開過「分帳角色名單」那頁才會被loadRoles()順便快取起來，如果這次登入
+// session一次都沒去過那頁、直接來「分帳規則設定」新增規則，下拉選單就永遠是空的（只有「選擇角色」本身）。
+// 補上這支共用函式：不管有沒有去過「分帳角色名單」，第一次要用到角色清單時都會自己去抓一次，抓過一次
+// 這個session就不會再重複抓。
+function ensureRolesCache_(cb) {
+  if (window._rolesCacheLoaded) { if (cb) cb(); return; }
+  adminAPI({action: 'getRoles'}, function(d) {
+    window._cachedRoles = (d && d.roles) || [];
+    window._rolesCacheLoaded = true;
+    if (cb) cb();
   });
 }
 
@@ -4463,19 +4490,20 @@ function ruleToggleOwnVariant() {
   if (on && document.querySelectorAll('#rule-role-rows-own > div').length === 0) ruleAddRoleRow('rule-role-rows-own');
 }
 
+function ruleRoleOptionsHtml_() {
+  var roles = window._cachedRoles || [];
+  return '<option value="">選擇角色</option>' + roles.map(function(r) {
+    return '<option value="' + escH(r.roleId + '|' + r.roleName) + '">' + escH(r.roleName) + '（' + escH(r.roleType) + '）</option>';
+  }).join('');
+}
 // containerId 選填：預設的分帳角色列表，或「自己客人」專屬那組（'rule-role-rows-own'）
 function ruleAddRoleRow(containerId) {
   containerId = containerId || 'rule-role-rows';
   var container = document.getElementById(containerId);
   var rowId = 'rule-row-' + (ruleRoleRowCount++);
 
-  var roles = window._cachedRoles || [];
-  var optionsHtml = '<option value="">選擇角色</option>' + roles.map(function(r) {
-    return '<option value="' + escH(r.roleId + '|' + r.roleName) + '">' + escH(r.roleName) + '（' + escH(r.roleType) + '）</option>';
-  }).join('');
-
   var rowHtml = '<div id="' + rowId + '" style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:6px;align-items:center">' +
-    '<select class="rule-role-select" onchange="ruleCalcRemain(\'' + containerId + '\')" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text)">' + optionsHtml + '</select>' +
+    '<select class="rule-role-select" onchange="ruleCalcRemain(\'' + containerId + '\')" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text)">' + ruleRoleOptionsHtml_() + '</select>' +
     '<select class="rule-mode-select" onchange="ruleCalcRemain(\'' + containerId + '\')" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text)"><option value="percent">%</option><option value="fixed">NT$</option></select>' +
     '<input class="rule-value-input" type="number" placeholder="數值" oninput="ruleCalcRemain(\'' + containerId + '\')" style="border:0.5px solid var(--border);border-radius:8px;padding:7px 8px;font-size:12px;color:var(--text);text-align:center">' +
     '<button onclick="document.getElementById(\'' + rowId + '\').remove();ruleCalcRemain(\'' + containerId + '\')" style="background:var(--r2);color:var(--r);border:none;border-radius:8px;padding:7px 10px;font-size:12px;cursor:pointer">✕</button>' +
@@ -4483,6 +4511,14 @@ function ruleAddRoleRow(containerId) {
 
   container.insertAdjacentHTML('beforeend', rowHtml);
   ruleCalcRemain(containerId);
+  // 保險：萬一角色清單這時候還沒抓回來（理論上進頁面時就會先抓），抓到後把剛剛這個空的下拉選單重新填上，
+  // 不用使用者自己重新整理頁面
+  if (!window._rolesCacheLoaded) {
+    ensureRolesCache_(function () {
+      var sel = document.querySelector('#' + rowId + ' .rule-role-select');
+      if (sel) { var keep = sel.value; sel.innerHTML = ruleRoleOptionsHtml_(); sel.value = keep; }
+    });
+  }
 }
 
 function ruleCalcRemain(containerId) {
@@ -5322,15 +5358,67 @@ function markRewardPaidUI(row, clientId){
   });
 }
 // 財務登記：診所名稱/檢測中心名稱共用同一份清單自動完成，登記過一次以後就能選，不用每次重打也不怕打錯字
+// 2026-09-22改：創始人反映「診所名稱（有登記過的會自動帶出）」打開卻是空的——原本這格抓的是
+// 「🏥 診所預約時段」裡狀態＝啟用的診所（那是給客人預約用的清單），診所大多是「已停用」時這裡就抓不到
+// 東西，跟提示文字「有登記過的」（意思其實是「這張表自己打過的」）對不起來。改成呼叫新的
+// getFinClinicLabNames：合併「診所預約時段」（不分啟用/停用）＋這兩張費用表歷史上自己打過的名稱
 function loadFinClinicLabList(){
   var dl = document.getElementById('fin-clinic-lab-list');
   if(!dl) return;
-  adminAPI({action:'getClinicSlots'}, function(d){
+  adminAPI({action:'getFinClinicLabNames'}, function(d){
     dl = document.getElementById('fin-clinic-lab-list');
-    if(!dl || !d || !d.slots) return;
-    var seen = {}, names = [];
-    d.slots.forEach(function(s){ if(!seen[s.clinic]){ seen[s.clinic]=true; names.push(s.clinic); } });
-    dl.innerHTML = names.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
+    if(!dl || !d || !d.names) return;
+    dl.innerHTML = d.names.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
+  });
+}
+// 2026-09-22新增：創始人反映「付款記錄」「診所費用」「檢測中心費用」的「項目」欄位原本只能純手打，
+// 希望也能像診所/檢測中心名稱一樣選——比照同一套datalist自動完成做法：讀各自表格之前打過的項目名稱，
+// 選單裡選得到，也還是能直接打新的字
+function loadFinPayItemList(){
+  var dl = document.getElementById('fin-pay-item-list');
+  if(!dl) return;
+  adminAPI({action:'getPaymentItems'}, function(d){
+    dl = document.getElementById('fin-pay-item-list');
+    if(!dl || !d || !d.items) return;
+    dl.innerHTML = d.items.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
+  });
+}
+function loadFinClinicFeeItemList(){
+  var dl = document.getElementById('fin-clinicfee-item-list');
+  if(!dl) return;
+  adminAPI({action:'getClinicFeeItems'}, function(d){
+    dl = document.getElementById('fin-clinicfee-item-list');
+    if(!dl || !d || !d.items) return;
+    dl.innerHTML = d.items.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
+  });
+}
+function loadFinLabFeeItemList(){
+  var dl = document.getElementById('fin-labfee-item-list');
+  if(!dl) return;
+  adminAPI({action:'getLabFeeItems'}, function(d){
+    dl = document.getElementById('fin-labfee-item-list');
+    if(!dl || !d || !d.items) return;
+    dl.innerHTML = d.items.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
+  });
+}
+// 2026-09-22新增：「請款申請」的「申請人姓名」比照員工名單來選（跟其他頁面的秘書下拉同一份資料來源，
+// 不是像上面幾個項目欄位那樣猜歷史文字），「請款類型」則跟項目欄位一樣讀歷史上打過的字
+function loadFinInvSecretaryList(){
+  var dl = document.getElementById('fin-inv-secretary-list');
+  if(!dl) return;
+  adminAPI({action:'getStaffAccounts'}, function(d){
+    dl = document.getElementById('fin-inv-secretary-list');
+    if(!dl || !d || !d.staff) return;
+    dl.innerHTML = d.staff.map(function(s){ return '<option value="'+escH(s.name)+'">'; }).join('');
+  });
+}
+function loadFinInvTypeList(){
+  var dl = document.getElementById('fin-inv-type-list');
+  if(!dl) return;
+  adminAPI({action:'getInvoiceRequestTypes'}, function(d){
+    dl = document.getElementById('fin-inv-type-list');
+    if(!dl || !d || !d.items) return;
+    dl.innerHTML = d.items.map(function(n){ return '<option value="'+escH(n)+'">'; }).join('');
   });
 }
 // 2026-09-05f：移除原本的DOMContentLoaded註冊，改由runPageLoader('finance-entry')統一負責，避免登入前就呼叫adminAPI觸發「登入逾時」誤報
@@ -10212,6 +10300,9 @@ function runPageLoader(id){
   if (id === 'rules') {
     if(typeof loadRules === 'function') loadRules();
     if(typeof loadServiceTypes==='function') loadServiceTypes();
+    // 2026-09-22補：提前把角色清單抓回來、存進window._cachedRoles，這樣等一下不管是切換服務類型
+    // 還是按「+新增分帳角色」跳出的下拉選單，一開始就有真的角色可以選，不用等使用者先去過「分帳角色名單」頁
+    if(typeof ensureRolesCache_ === 'function') ensureRolesCache_();
   }
   if (id === 'global') loadGlobalFields();
   if (id === 'garden-mgmt') loadGardenAdmin();
@@ -10237,6 +10328,11 @@ function runPageLoader(id){
     // 2026-09-05e新增：這頁之前完全沒有wiring，客人下拉和診所/實驗室自動完成清單永遠是空的
     if(typeof loadClientsList==='function') loadClientsList(function(){});
     if(typeof loadFinClinicLabList==='function') loadFinClinicLabList();
+    if(typeof loadFinPayItemList==='function') loadFinPayItemList();
+    if(typeof loadFinClinicFeeItemList==='function') loadFinClinicFeeItemList();
+    if(typeof loadFinLabFeeItemList==='function') loadFinLabFeeItemList();
+    if(typeof loadFinInvSecretaryList==='function') loadFinInvSecretaryList();
+    if(typeof loadFinInvTypeList==='function') loadFinInvTypeList();
   }
   if (id === 'extra-test') {
     // 2026-09-05e新增：這頁客人下拉之前沒有wiring；本輪也剛開放醫師角色可看這頁，一併修復
