@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-22g';
+var MX_BUILD = '2026-09-23c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1092,6 +1092,7 @@ var MX_BUILD = '2026-09-22g';
             <option value="行政">📋 行政</option>
             <option value="財務主管">💰 財務主管</option>
             <option value="醫師">🩺 醫師</option>
+            <option value="教練">🏃 教練（合作機構教練：只看指派給自己的學員）</option>
             <option value="管理人">👑 管理人（看得到全部）</option>
           </select>
         </div>
@@ -6131,6 +6132,84 @@ var _cdCurrentId='';
 var _cdOpenGen = 0;
 // 客人詳細面板裡的快速切換(跟客人清單頁的unlockClient/lockClient邏輯一致，只是改成直接接收id，成功後重新整理面板本身)
 var _cdCurrentName = '';
+// ══ 2026-09-23c 新增：負責教練指派（客人詳情頁）＋ 教練專用的精簡學員卡 ══
+var _coachListCache = null;
+function loadCoachSelect_(clientId){
+  var sel = document.getElementById('cd-coach-sel'); if(!sel) return;
+  var cur = ((_clientsCache||[]).find(function(c){ return c.id === clientId; }) || {}).coach || '';
+  var render = function(list){
+    var s2 = document.getElementById('cd-coach-sel'); if(!s2) return;
+    s2.innerHTML = '<option value="">🏃 負責教練：未指派</option>' + list.map(function(n){ return '<option value="'+escH(n)+'"'+(n===cur?' selected':'')+'>🏃 '+escH(n)+'</option>'; }).join('');
+    if (cur && list.indexOf(cur) < 0) s2.innerHTML += '<option value="'+escH(cur)+'" selected>🏃 '+escH(cur)+'</option>';
+    if (!canEditClientsNow()) s2.disabled = true;
+  };
+  if (_coachListCache) { render(_coachListCache); return; }
+  adminAPI({action:'getStaffAccounts'}, function(d){
+    _coachListCache = ((d && d.staff) || []).filter(function(x){ return x.role === '教練'; }).map(function(x){ return x.name; });
+    render(_coachListCache);
+  });
+}
+function setClientCoachUI(id){
+  var sel = document.getElementById('cd-coach-sel'); if(!sel) return;
+  var v = sel.value;
+  adminAPIPost({action:'setClientCoach', clientId:id, coach:v}, function(d){
+    if(d && d.status==='ok'){ toast(v ? ('✅ 已指派教練：'+v) : '已取消指派教練'); var c=(_clientsCache||[]).find(function(x){ return x.id===id; }); if(c) c.coach=v; }
+    else toast('⚠️ 指派失敗：'+((d&&d.message)||'請重試'));
+  });
+}
+function openCoachClientDetail(id, name){
+  _cdCurrentId = id; _cdCurrentName = name || id;
+  var old = document.getElementById('client-detail-modal'); if(old) old.remove();
+  var cdColor = _cdClientColor(id);
+  var c = (_clientsCache||[]).find(function(x){ return x.id === id; }) || {};
+  var m = document.createElement('div');
+  m.id = 'client-detail-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;padding:18px 20px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    + '<div style="display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:'+cdColor+'"></span><div style="font-size:15px;font-weight:700">'+escH(name||id)+'・學員卡</div>'
+    + '<span style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--bg2);color:var(--text2)">'+escH(c.ketoStage||c.stage||'階段未設定')+'</span></div>'
+    + '<button class="cd-close-btn" onclick="document.getElementById(\'client-detail-modal\').remove()" style="border:none;background:none;cursor:pointer;font-size:18px;color:var(--text2)">✕</button></div>'
+    + '<div style="font-size:10.5px;color:var(--text3);margin-bottom:10px">教練帳號看到的是精簡版：近期記錄、檢測次數、運動甜蜜點與你的運動建議。飲食建議、用藥、財務等屬於秘書／醫師範圍，這裡不顯示。</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">📝 近 14 筆每日記錄</div><div id="cc-records" style="font-size:11.5px;color:var(--text3)">載入中…</div></div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍯 代謝甜蜜點分析（運動那一半可編輯）</div>'
+    + '<button class="ai-btn b" style="font-size:11.5px;padding:7px 12px" onclick="loadSweetSpotAnalysis(\''+escH(id)+'\')">🔍 分析這位學員的甜蜜點</button>'
+    + '<div id="cd-sweetspot-body" style="margin-top:9px"></div></div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">🏃 教練運動建議／備註（秘書與醫師也看得到）</div>'
+    + '<textarea id="cc-note-text" class="form-input" style="font-size:11.5px;width:100%;min-height:56px" placeholder="例：本週上課 2 次，深蹲改成箱蹲；建議下週不喘運動維持每週 3 次"></textarea>'
+    + '<button class="btn-g" style="font-size:11px;padding:7px 12px;margin-top:6px" onclick="submitCoachNote(\''+escH(id)+'\',this)">送出建議</button>'
+    + '<div id="cc-notes" style="margin-top:8px;font-size:11.5px;color:var(--text3)">載入中…</div></div>'
+    + '</div>';
+  document.body.appendChild(m);
+  adminAPI({action:'getRecords', clientId:id}, function(d){
+    var box = document.getElementById('cc-records'); if(!box) return;
+    var recs = ((d && d.records) || []).slice(-14).reverse();
+    if(!recs.length){ box.innerHTML = '還沒有每日記錄'; return; }
+    box.innerHTML = '<table style="width:100%;font-size:10.5px;border-collapse:collapse"><tr style="color:var(--text3)"><td style="padding:3px">日期</td><td style="padding:3px">酮體</td><td style="padding:3px">體重</td><td style="padding:3px">腰圍</td><td style="padding:3px">運動</td><td style="padding:3px">體感</td></tr>'
+      + recs.map(function(r){ var t = r.time ? String(r.time).slice(5,10) : ''; return '<tr style="border-top:1px solid var(--border)"><td style="padding:3px">'+escH(t)+'</td><td style="padding:3px">'+escH(r.ketone||'')+'</td><td style="padding:3px">'+escH(r.weight||'')+'</td><td style="padding:3px">'+escH(r.waist||'')+'</td><td style="padding:3px">'+escH(r.exercise||'')+'</td><td style="padding:3px">'+escH(r.feeling||'')+'</td></tr>'; }).join('') + '</table>';
+  });
+  loadCoachNotes_(id);
+}
+function loadCoachNotes_(id){
+  adminAPI({action:'getCoachNotes', clientId:id}, function(d){
+    var box = document.getElementById('cc-notes'); if(!box) return;
+    var items = (d && d.items) || [];
+    box.innerHTML = items.length ? items.map(function(n){ return '<div style="border-top:1px dashed var(--border);padding:5px 0"><span style="color:var(--text3)">'+escH(n.time)+'・'+escH(n.coach)+'</span><br>'+escH(n.content)+'</div>'; }).join('') : '還沒有教練建議';
+  });
+}
+function submitCoachNote(id, btn){
+  var ta = document.getElementById('cc-note-text'); var txt = ta ? ta.value.trim() : '';
+  if(!txt){ toast('請先輸入建議內容'); return; }
+  if(btn){ btn.disabled = true; btn.textContent = '送出中…'; }
+  adminAPIPost({action:'addNote', clientId:id, content:txt, type:'教練運動建議', secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(btn){ btn.disabled = false; btn.textContent = '送出建議'; }
+    if(d && d.status==='ok'){ toast('✅ 已送出'); if(ta) ta.value=''; loadCoachNotes_(id); }
+    else toast('⚠️ 送出失敗：'+((d&&d.message)||'請重試'));
+  });
+}
 function setClientSpecialCaseUI(id){
   var sel = document.getElementById('cd-special-sel');
   if(!sel) return;
@@ -6228,6 +6307,7 @@ function _cdClientColor(id){
   return 'hsl(' + hue + ',62%,45%)';
 }
 function openClientDetail(id, name){
+  if (isCoachRole_()) { openCoachClientDetail(id, name); return; } // 2026-09-23c：教練看精簡版學員卡
   _cdCurrentName = name || id;
   setTimeout(function(){ if(typeof loadDoctorsToSelects==='function') loadDoctorsToSelects(); }, 300);
   _cdCurrentId=id;
@@ -6258,6 +6338,7 @@ function openClientDetail(id, name){
     + '<select id="cd-special-sel" onchange="setClientSpecialCaseUI(\''+escH(id)+'\')" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)">'
     + ['','瘦瘦針/GLP-1用藥','運動員','其他特殊情況'].map(function(s){ return '<option value="'+s+'" '+(s===(cdClient?cdClient.specialCase:'')?'selected':'')+'>'+(s||'特殊情境：無（一般客人）')+'</option>'; }).join('')
     + '</select>'
+    + '<select id="cd-coach-sel" onchange="setClientCoachUI(\''+escH(id)+'\')" title="負責教練（諧動空間等合作機構的教練，指派後該教練登入後台只看得到自己的學員）" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)"><option value="">🏃 負責教練：載入中…</option></select>'
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '<span id="cd-abc-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;font-weight:700"></span>'
     + '</div>'
@@ -6658,6 +6739,7 @@ function openClientDetail(id, name){
     + '<div id="client-detail-body" style="font-size:12px;color:var(--text2)">載入中…</div></div>';
   m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
   document.body.appendChild(m);
+  loadCoachSelect_(id); // 2026-09-23c：負責教練下拉
   // 檢測後的代謝分型連動顯示（管理人2026-08-10）：十型是系統依最新IRCT資料自動判定的，
   // 這裡唯讀顯示、不給改；旁邊的下拉選單是「特殊情境」（原本標籤誤寫成代謝分型，已更正）
   adminAPI({action:'getIRCTAnalysisFull', clientId:id}, function(d){
@@ -8185,11 +8267,16 @@ function loadSweetSpotAnalysis(id){
         + d.dietTextOptions.map(function(o){ return '<span onclick="pickSweetSpotOption(\'diet\',\''+escH(o.key)+'\')" style="font-size:10.5px;color:var(--b3);background:var(--b2);border-radius:20px;padding:4px 10px;cursor:pointer;white-space:nowrap">'+escH(o.label)+'</span>'; }).join('')
         + '</div>';
     }
+    if (isCoachRole_()) {
+      // 2026-09-23c：教練只能看飲食分析，不能編輯／顯示給客人（飲食建議是秘書/醫師的專業範圍）
+      h += '<div style="font-size:10.5px;color:var(--text3);margin-top:6px">🔒 飲食建議由秘書／醫師確認，教練帳號僅供參考</div></div>';
+    } else {
     h += '<textarea id="cd-ss-diet-text" class="form-input" style="font-size:11.5px;width:100%;min-height:52px;margin-top:6px" placeholder="給客人看的溫和版文字（可點上面的選項快速帶入，帶入後仍可自行微調）">'+escH(d.draftDietText||'')+'</textarea>'
       + '<div style="display:flex;gap:6px;margin-top:5px">'
       + '<button class="btn-g" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'diet\',true)">✅ 顯示給客人</button>'
       + '<button class="ai-btn gray" style="font-size:10.5px;padding:5px 10px" onclick="confirmSweetSpotUI(\''+escH(id)+'\',\'diet\',false)">停用</button>'
       + '</div></div>';
+    }
 
     // 運動甜蜜點
     h += '<div style="border-top:1px dashed var(--border);padding-top:8px;margin-top:10px">';
@@ -9189,6 +9276,7 @@ function renderClientsTable(clients){
     if(c.plan) subInfo.push('方案：'+escH(c.plan));
     if(c.serviceSecretary) subInfo.push('服務：'+escH(c.serviceSecretary));
     if(c.internSecretaries) subInfo.push('實習：'+escH(c.internSecretaries));
+    if(c.coach) subInfo.push('教練：'+escH(c.coach));
     var subHtml = subInfo.length ? '<div style="font-size:9.5px;color:var(--text3);margin-top:2px">'+subInfo.join('・')+'</div>' : '';
     html += '<tr style="cursor:pointer" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">'
       + '<td>'+escH(c.id)+'</td><td style="font-weight:600">'+escH(c.name)+'</td>'
@@ -12829,7 +12917,11 @@ var ROLE_PAGES = {
   // 2026-09-04 新增：醫師——跟客人講解IRCT報告前要看到完整狀況（含用藥），只給客戶管理+儀表板，預設僅查看不可編輯
   // 2026-09-05d 依創辦人指示擴大：醫師額外開放IRCT相關頁面（全部客人檢測總表/檢測整合/功能醫學加測建議/IRCT區間管理/分型系統說明），
   // 方便醫師橫向比對數據、勾選加測建議；後端這些action本來就只檢查有無登入，不限定角色，這裡純粹是前端頁面顯示範圍的調整
-  '醫師': ['dashboard','clients','all-tests','lab-integrate','extra-test','irct-mgmt','irt-models']
+  '醫師': ['dashboard','clients','all-tests','lab-integrate','extra-test','irct-mgmt','irt-models'],
+  // 2026-09-23c 新增：教練（諧動空間架接第一步）——只有「客戶管理」一頁，而且後端只會回傳
+  // 「負責教練＝自己」的客人；點進客人開的是精簡版學員卡（近期記錄／檢測／運動甜蜜點／教練運動建議），
+  // 不是完整的客人詳情。沒有儀表板（儀表板是全站客人的警示與統計，不該給外部教練看）。
+  '教練': ['clients']
 };
 // 2026-09-05f 新增：每個角色登入後，左上角（側欄logo下方使用者資訊那一行）顯示一段簡短說明，
 // 讓剛登入、還不熟悉系統的人一眼知道自己這個身分大概能做什麼、該從哪裡開始，不用自己摸索側邊欄。
@@ -12842,7 +12934,8 @@ var ROLE_DESC = {
   '行政': ['排班', '庫存', '好物與診所時段', '衛教內容維護'],
   '會計': ['儲值消費核查（通過/退回）', '月結算查看', '分帳名單查看（異動找財務主管）'],
   '財務主管': ['合作單位設定', '分帳規則', '月結算'],
-  '醫師': ['客戶資料', 'IRCT檢測整合', '診斷交辦秘書', '調整IRCT區間（需附依據）']
+  '醫師': ['客戶資料', 'IRCT檢測整合', '診斷交辦秘書', '調整IRCT區間（需附依據）'],
+  '教練': ['只看指派給我的學員', '運動甜蜜點與建議', '學員近期記錄與檢測']
 };
 // 舊帳號顯示「老闆」時，畫面一律改顯示「管理人」（權限判斷不受影響）
 function roleDisplayName(r){ return r === '老闆' ? '管理人' : r; }
@@ -12877,8 +12970,9 @@ function isSweetSpotTier(){
   if (!CURRENT_USER) return false;
   var r = CURRENT_USER.role;
   var other = CURRENT_USER.otherRoles || [];
-  return r === '管理人' || r === '老闆' || r === '創始人' || r === '醫師' || other.indexOf('專業秘書') >= 0;
+  return r === '管理人' || r === '老闆' || r === '創始人' || r === '醫師' || r === '教練' || other.indexOf('專業秘書') >= 0; // 2026-09-23c：教練可看，運動那一半可編輯
 }
+function isCoachRole_(){ return !!(CURRENT_USER && CURRENT_USER.role === '教練'); }
 // 2026-08-28 登入強化（她回報「要按很多次都登入不進去」）：
 // (1) Apps Script 剛部署完或閒置後第一次連線要「喚醒」，可能等 5~20 秒——以前畫面只停在「登入中…」
 //     沒有任何回饋，看起來像壞掉，使用者就狂按；現在按鈕會鎖住並倒數提示，等太久會說明是後端喚醒中。
@@ -12954,7 +13048,7 @@ function applyPermissions(){
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');
   if(tbT && !document.getElementById('role-chip')){
-    var chipColors = {'管理人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C'],'醫師':['#E6F0FA','#154C79']};
+    var chipColors = {'管理人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C'],'醫師':['#E6F0FA','#154C79'],'教練':['#FFF1E6','#8A4B12']};
     var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['管理人'];
     var rc = document.createElement('span');
     rc.id = 'role-chip';
@@ -13037,9 +13131,13 @@ function applyPermissions(){
     var m = oc.match(/goPg\('([\w-]+)'/);
     if(m && Array.isArray(allowed)){ var pg = m[1]; if(allowed.indexOf(pg) < 0 && extra.indexOf(pg) < 0){ nav.style.display='none'; } }
   });
-  // 若目前显示的分页不允许，跳到 dashboard
+  // 若目前显示的分页不允许，跳到 dashboard（2026-09-23c：這個角色沒有儀表板的話，改跳到它允許的第一頁，例如教練→客戶管理）
   setTimeout(function(){
-    if(typeof goPg==='function') goPg('dashboard');
+    if(typeof goPg!=='function') return;
+    var landing = (Array.isArray(allowed) && allowed.indexOf('dashboard') < 0 && allowed.length) ? allowed[0] : 'dashboard';
+    var landingNav = null;
+    document.querySelectorAll('.nav-item').forEach(function(nav){ var oc = nav.getAttribute('onclick') || ''; if (!landingNav && oc.indexOf("goPg('" + landing + "'") >= 0) landingNav = nav; });
+    goPg(landing, landingNav || undefined);
   }, 100);
 }
 // 自行修改密碼（一頁填完；後端用登入token鎖定帳號＋舊密碼雙重確認）

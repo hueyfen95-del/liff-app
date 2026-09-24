@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-22b';
+var MX_BUILD = '2026-09-23b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4350,11 +4350,27 @@ var _mxForceManualLogin = false;
     if (location.search.indexOf('switchtest=1') >= 0) {
       localStorage.removeItem('mx_client_id');
       localStorage.removeItem('mx_client_name');
+      // 2026-09-23 修正：切換測試身分時只清了編號跟姓名，沒清掉上一位客人留下的登入憑證(mx_client_token)，
+      // 頁面一載入就拿著這組殘留憑證去打後端，後端判定對不上就退回來，登入頁還沒輸入任何東西就先跳出一句
+      // 「請重新輸入客人編號與姓名完成登入（系統已升級安全驗證機制）」的紅字，讓測試的人以為出錯了。
+      // 憑證一起清掉，換身分就是乾淨的從頭登入。正式 LINE 客人不會帶 switchtest=1，完全不受影響。
+      localStorage.removeItem('mx_client_token');
       _mxForceManualLogin = true;
       var _cleanUrl = location.pathname + location.search.replace(/[?&]switchtest=1/, '').replace(/^&/, '?') + location.hash;
       history.replaceState(null, '', _cleanUrl);
     }
   } catch(e){}
+})();
+// 2026-09-23b 補接「轉介連結」：後台「深度合作」產生的連結是 index.html?ref=REF…，後端 clientAuth 也早就會把
+// data.ref 寫進客人名單的「轉介來源」，但前台一直沒有讀網址上的 ref 參數、也沒在登入時送出，所以合作單位
+// 的轉介一直沒有真的被標記到。這裡把 ref 存進 localStorage（客人可能先看幾頁才登入，不能只存在記憶體），
+// 登入成功後才清掉；已經登入過的客人不會被重新標記（後端只在首次綁定且沒有消費紀錄時才寫入）。
+var _mxRefCode = (function(){
+  try {
+    var m = location.search.match(/[?&]ref=([A-Za-z0-9_-]+)/);
+    if (m && m[1]) { localStorage.setItem('mx_ref_code', m[1]); return m[1]; }
+    return localStorage.getItem('mx_ref_code') || '';
+  } catch(e){ return ''; }
 })();
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
@@ -4425,8 +4441,8 @@ function mxDoBind(){
   var er = document.getElementById('mx-login-err');
   if (!cid || !cname) { if(er) er.textContent = '請輸入客人編號和姓名'; return; }
   if (er) er.textContent = '驗證中…';
-  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname }, function(d){
-    if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken); }
+  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname, ref:_mxRefCode || '' }, function(d){
+    if (d && d.status === 'ok') { try { localStorage.removeItem('mx_ref_code'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
 }
@@ -4440,8 +4456,8 @@ function mxStartAuth(){
       return liff.getProfile().then(function(p){
         _LINE_UID = p.userId || '';
         var nm = p.displayName || '';
-        callAPI({ action:'clientAuth', lineId:_LINE_UID }, function(d){
-          if (d && d.status === 'ok') { mxSetIdentity(d.clientId, d.name, d.clientToken); }
+        callAPI({ action:'clientAuth', lineId:_LINE_UID, ref:_mxRefCode || '' }, function(d){
+          if (d && d.status === 'ok') { try { localStorage.removeItem('mx_ref_code'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
           else {
             var nmInp = document.getElementById('mx-bind-name');
             if (nmInp && !nmInp.value) nmInp.value = nm;
