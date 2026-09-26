@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-23c';
+var MX_BUILD = '2026-09-25';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2500,8 +2500,21 @@ function adminAPI(params, callback) {
     return k + '=' + encodeURIComponent(params[k]);
   }).join('&');
   var _acCalled = false; // 防止callback內丟例外時被catch再呼叫一次
-  fetch(ADMIN_API + '?' + query)
-    .then(function(r) { return r.json(); })
+  // 2026-09-25 補：多人同時使用時 Apps Script 偶爾回「API 正在執行」（空的 GET，什麼都沒執行）或回一頁 HTML；
+  // adminAPI 全是讀取類動作，這兩種情況都自動等 1.5 秒重試一次，不用使用者手動重新整理
+  var _acRetried = false;
+  function _acFetch(){
+    return fetch(ADMIN_API + '?' + query)
+      .then(function(r) { return r.text(); })
+      .then(function(t) {
+        var d; try { d = JSON.parse(t); } catch (e) { d = null; }
+        var busy = d && d.status === 'ok' && d.message === 'API 正在執行' && Object.keys(d).length <= 2;
+        if ((d === null || busy) && !_acRetried) { _acRetried = true; return new Promise(function(res){ setTimeout(res, 1500); }).then(_acFetch); }
+        if (d === null) throw new Error('nonjson');
+        return d;
+      });
+  }
+  _acFetch()
     .then(function(d) {
       _acCalled = true;
       if (d && d.code === 'auth') { if (typeof forceRelogin === 'function') forceRelogin(d.message); return; }
@@ -5773,8 +5786,18 @@ function loadExpiringPlans() {
 function adminAPIPost(params, callback){
   if (typeof ADMIN_TOKEN !== 'undefined' && ADMIN_TOKEN && !params.token) params.token = ADMIN_TOKEN;
   var _apCalled = false; // 防止callback內丟例外時被catch再呼叫一次
-  fetch(ADMIN_API, {method:'POST', body: JSON.stringify(params)})
-    .then(function(r){return r.json();})
+  // 2026-09-25 補：只有「API 正在執行」（後端什麼都沒執行）才自動重試一次；回 HTML 的情況不重試，避免寫入類動作重複送出
+  var _apRetried = false;
+  function _apFetch(){
+    return fetch(ADMIN_API, {method:'POST', body: JSON.stringify(params)})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        var busy = d && d.status === 'ok' && d.message === 'API 正在執行' && Object.keys(d).length <= 2;
+        if (busy && !_apRetried) { _apRetried = true; return new Promise(function(res){ setTimeout(res, 1500); }).then(_apFetch); }
+        return d;
+      });
+  }
+  _apFetch()
     .then(function(d){
       _apCalled = true;
       if (d && d.code === 'auth') { if (typeof forceRelogin === 'function') forceRelogin(d.message); return; }
@@ -6171,6 +6194,7 @@ function openCoachClientDetail(id, name){
     + '<span style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--bg2);color:var(--text2)">'+escH(c.ketoStage||c.stage||'階段未設定')+'</span></div>'
     + '<button class="cd-close-btn" onclick="document.getElementById(\'client-detail-modal\').remove()" style="border:none;background:none;cursor:pointer;font-size:18px;color:var(--text2)">✕</button></div>'
     + '<div style="font-size:10.5px;color:var(--text3);margin-bottom:10px">教練帳號看到的是精簡版：近期記錄、檢測次數、運動甜蜜點與你的運動建議。飲食建議、用藥、財務等屬於秘書／醫師範圍，這裡不顯示。</div>'
+    + (c.coachConsent === 'Y' ? '' : '<div style="background:var(--a2);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#B26A00">🔒 這位學員還沒有在APP按「同意分享給教練」，同意之前看不到記錄與檢測。可以請他打開元代謝APP首頁，勾選「我的教練」卡片裡的同意選項。</div>')
     + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">📝 近 14 筆每日記錄</div><div id="cc-records" style="font-size:11.5px;color:var(--text3)">載入中…</div></div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
@@ -6648,6 +6672,10 @@ function openClientDetail(id, name){
       : '<div style="font-size:11px;color:var(--text3)">🔒 這項屬於專業判讀，只開放給「專業秘書」、醫師、管理人查看——如需要，請跟創辦人申請把帳號的「身兼職務」加開「專業秘書」。</div>')
     + '</div>'
     + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">🏃 教練運動建議（負責教練在後台寫的，這裡唯讀）</div>'
+    + '<div id="cc-notes" style="font-size:11.5px;color:var(--text3)">載入中…</div>'
+    + '</div>'
+    + '<div style="background:var(--bg);border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:7px">💬 客人心得分享（客人在前台自己送出）<span id="cd-badge-testi" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div id="cd-testimonials">載入中…</div>'
     + '</div>'
@@ -6740,6 +6768,7 @@ function openClientDetail(id, name){
   m.addEventListener('click', function(e){ if(e.target===m) m.remove(); });
   document.body.appendChild(m);
   loadCoachSelect_(id); // 2026-09-23c：負責教練下拉
+  loadCoachNotes_(id); // 2026-09-24：教練運動建議（唯讀）
   // 檢測後的代謝分型連動顯示（管理人2026-08-10）：十型是系統依最新IRCT資料自動判定的，
   // 這裡唯讀顯示、不給改；旁邊的下拉選單是「特殊情境」（原本標籤誤寫成代謝分型，已更正）
   adminAPI({action:'getIRCTAnalysisFull', clientId:id}, function(d){
@@ -9276,7 +9305,7 @@ function renderClientsTable(clients){
     if(c.plan) subInfo.push('方案：'+escH(c.plan));
     if(c.serviceSecretary) subInfo.push('服務：'+escH(c.serviceSecretary));
     if(c.internSecretaries) subInfo.push('實習：'+escH(c.internSecretaries));
-    if(c.coach) subInfo.push('教練：'+escH(c.coach));
+    if(c.coach) subInfo.push('教練：'+escH(c.coach)+(c.coachConsent==='Y'?'（已同意分享）':'（待客人同意）'));
     var subHtml = subInfo.length ? '<div style="font-size:9.5px;color:var(--text3);margin-top:2px">'+subInfo.join('・')+'</div>' : '';
     html += '<tr style="cursor:pointer" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">'
       + '<td>'+escH(c.id)+'</td><td style="font-weight:600">'+escH(c.name)+'</td>'
@@ -13022,6 +13051,12 @@ function doLogin(){
     .then(function(r){ return r.json(); })
     .then(function(d){
       loginDone();
+      // 2026-09-25 補：多人同時登入時，Apps Script 偶爾會把 POST 當成空的 GET 回「API 正在執行」（status 仍是 ok
+      // 但沒有 token／role）。以前這種回應會被當成登入成功，畫面卻空空的；現在直接請使用者稍等再按一次。
+      if(d && d.status==='ok' && (!d.token || !d.role)){
+        err.textContent = '系統忙碌中（同一時間登入的人比較多），請等 5 秒再按一次登入';
+        return;
+      }
       if(d && d.status==='ok'){
         CURRENT_USER = { username:d.username, role:d.role, name:d.name, extraPages:d.extraPages||[], canEditClients:d.canEditClients !== false, otherRoles:d.otherRoles||[] };
         ADMIN_TOKEN = d.token || null;

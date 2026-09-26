@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-23b';
+var MX_BUILD = '2026-09-25';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -360,6 +360,18 @@ window.openHealthForm = function() {
       <div style="font-size:24px;flex-shrink:0">🎁</div>
       <div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#7A5A12">我的陪跑權益</div><div style="font-size:10.5px;color:#9C7E3E;margin-top:2px">開通後你可以用哪些服務？飲食參考資料一次看</div></div>
       <i class="ti ti-chevron-right" style="color:#B4913F"></i>
+    </div>
+    <!-- 2026-09-24新增（諧動空間架接第②步）：如果秘書幫這位客人指派了教練，首頁多一張「我的教練」卡，
+         客人自己決定要不要把每日記錄／檢測結果分享給教練看；沒指派教練的客人完全看不到這張卡 -->
+    <div id="my-coach-card" style="display:none;background:linear-gradient(160deg,#FFF3E8,#FBD9BF);border:1px solid #F0C29A;border-radius:14px;padding:13px 15px;margin-bottom:12px;box-shadow:0 1px 3px rgba(16,24,40,.06)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:24px;flex-shrink:0">🏃</div>
+        <div style="flex:1"><div style="font-size:13.5px;font-weight:700;color:#8A4B12">我的教練：<span id="my-coach-name"></span></div><div style="font-size:10.5px;color:#A86A3A;margin-top:2px">同意後，教練可以看到你的每日記錄、檢測結果與運動甜蜜點，並給你運動建議；隨時可以取消</div></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;color:#7A4A1C;cursor:pointer">
+        <input type="checkbox" id="my-coach-consent" onchange="setCoachConsentUI(this)" style="width:16px;height:16px">
+        <span id="my-coach-consent-label">我同意把我的記錄分享給教練</span>
+      </label>
     </div>
     <!-- 2026-09-22改：三張卡各自獨立由不同條件決定要不要顯示（碳水計畫／儲值餘額要有記錄／陪跑點數要已開通），
          原本用grid的1fr 1fr 1fr三欄固定分配，某一張被隱藏時，畫面上會留一塊空白（例如只有儲值餘額被隱藏，
@@ -4442,6 +4454,8 @@ function mxDoBind(){
   if (!cid || !cname) { if(er) er.textContent = '請輸入客人編號和姓名'; return; }
   if (er) er.textContent = '驗證中…';
   callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname, ref:_mxRefCode || '' }, function(d){
+    // 2026-09-25 補：多人同時登入時後端偶爾回「API 正在執行」（status ok 但沒有 clientId／clientToken），不能當成登入成功
+    if (d && d.status === 'ok' && (!d.clientId || !d.clientToken)) { if(er) er.textContent = '系統忙碌中（同一時間登入的人比較多），請等 5 秒再按一次登入'; return; }
     if (d && d.status === 'ok') { try { localStorage.removeItem('mx_ref_code'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
@@ -4457,7 +4471,7 @@ function mxStartAuth(){
         _LINE_UID = p.userId || '';
         var nm = p.displayName || '';
         callAPI({ action:'clientAuth', lineId:_LINE_UID, ref:_mxRefCode || '' }, function(d){
-          if (d && d.status === 'ok') { try { localStorage.removeItem('mx_ref_code'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
+          if (d && d.status === 'ok' && d.clientId && d.clientToken) { try { localStorage.removeItem('mx_ref_code'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
           else {
             var nmInp = document.getElementById('mx-bind-name');
             if (nmInp && !nmInp.value) nmInp.value = nm;
@@ -4604,6 +4618,29 @@ function loadCarbPlan(){
   });
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadCarbPlan, 1500); });
+// 2026-09-24新增（諧動空間架接第②步）：首頁「我的教練」卡——有指派教練才顯示，客人自己勾選同意分享
+function loadMyCoach(){
+  if (!CLIENT_ID) return;
+  callAPI({ action:'getMyCoach', clientId: CLIENT_ID }, function(d){
+    var card = document.getElementById('my-coach-card'); if (!card) return;
+    if (!(d && d.status === 'ok' && d.coach)) { card.style.display = 'none'; return; }
+    document.getElementById('my-coach-name').textContent = d.coach;
+    var cb = document.getElementById('my-coach-consent'); if (cb) cb.checked = !!d.consent;
+    var lb = document.getElementById('my-coach-consent-label'); if (lb) lb.textContent = d.consent ? '已同意分享給教練（取消勾選即停止分享）' : '我同意把我的記錄分享給教練';
+    card.style.display = 'block';
+  });
+}
+function setCoachConsentUI(cb){
+  var want = !!cb.checked;
+  if (want && !confirm('確定要把你的每日記錄、檢測結果分享給教練嗎？教練只看得到你的資料，不會看到其他人；你隨時可以取消。')) { cb.checked = false; return; }
+  cb.disabled = true;
+  callAPI({ action:'setCoachConsent', clientId: CLIENT_ID, consent: want }, function(d){
+    cb.disabled = false;
+    if (d && d.status === 'ok') { toast(want ? '✅ 已同意分享給教練' : '已停止分享'); loadMyCoach(); }
+    else { cb.checked = !want; toast('⚠️ 設定失敗，請再試一次'); }
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadMyCoach, 1800); });
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if(typeof loadReportStatus==='function') loadReportStatus(); }, 1000); });
 // 2026-08-12修正：首頁一開啟就該載入真實統計（連續打卡／本週小結），
 // 原本只有離開首頁又點回來（經過goPage）才會觸發loadMyStats，導致客人第一眼看到的都是舊的展示假資料。
@@ -4634,8 +4671,24 @@ function callAPI(params, callback) {
     toast('🌱 資料準備中，第一次連線可能要等一下下，不會太久喔');
   }, 2000);
   var _cbCalled = false; // 防止 callback 內丟例外時被 catch 再叫一次
-  fetch(API_URL, { method: 'POST', body: JSON.stringify(params) })
-    .then(function(r) { return r.json(); })
+  // 2026-09-25 補：多人同時使用時，Apps Script 偶爾會（a）把請求當成空的 GET 回「API 正在執行」（什麼都沒執行）、
+  // （b）回一頁 HTML 而不是 JSON。(a) 一律自動重試一次；(b) 只有「讀取類」動作才重試（寫入類不重試，避免重複寫入）。
+  var _mxRetried = false;
+  var _mxIsRead = /^(get|client)/.test(String(params.action || ''));
+  function _mxIsBusy(d){ return d && d.status === 'ok' && d.message === 'API 正在執行' && Object.keys(d).length <= 2; }
+  function _mxFetch(){
+    return fetch(API_URL, { method: 'POST', body: JSON.stringify(params) })
+      .then(function(r) { return r.text(); })
+      .then(function(t) {
+        var d; try { d = JSON.parse(t); } catch (e) { d = null; }
+        if ((d === null && _mxIsRead) || _mxIsBusy(d)) {
+          if (!_mxRetried) { _mxRetried = true; return new Promise(function(res){ setTimeout(res, 1500); }).then(_mxFetch); }
+        }
+        if (d === null) throw new Error('nonjson');
+        return d;
+      });
+  }
+  _mxFetch()
     .then(function(d) {
       clearTimeout(slowHintTimer);
       _cbCalled = true;

@@ -301,7 +301,20 @@ function vConfirm(msg,onYes){
 function api(params,cb){
   params.vendorCode=V_CODE; params.vendorPw=V_PW;
   var q=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
-  fetch(API_URL+'?'+q).then(function(r){return r.json();}).then(cb).catch(function(){cb(null);});
+  // 2026-09-25 補：多人同時使用時 Apps Script 偶爾回「API 正在執行」（什麼都沒執行）→ 一律自動重試一次；
+  // 回一頁 HTML（不是 JSON）→ 只有讀取類動作（vendorGet…／vendorPing／vendorStatement／vendorGroup…）才重試，避免扣款等寫入重複
+  var isRead=/^vendor(Get|Ping|Statement|Group|ClientLookup)/.test(String(params.action||''));
+  var retried=false;
+  function go(){
+    return fetch(API_URL+'?'+q).then(function(r){return r.text();}).then(function(t){
+      var d; try{ d=JSON.parse(t); }catch(e){ d=null; }
+      var busy=d&&d.status==='ok'&&d.message==='API 正在執行'&&Object.keys(d).length<=2;
+      if((busy||(d===null&&isRead))&&!retried){ retried=true; return new Promise(function(res){setTimeout(res,1500);}).then(go); }
+      if(d===null) throw new Error('nonjson');
+      return d;
+    });
+  }
+  go().then(cb).catch(function(){cb(null);});
 }
 function showWorkspace(skipAutoSwitch){
   document.getElementById('login-card').style.display='none';
@@ -347,6 +360,8 @@ function vLogin(){
   err.textContent='驗證中…';
   V_CODE=code; V_PW=pw;
   api({action:'vendorPing'},function(d){
+    // 2026-09-25 補：多人同時登入時後端偶爾回「API 正在執行」（status ok 但沒有 vendor 欄位），不能當成登入成功
+    if(d&&d.status==='ok'&&!d.vendor){ V_CODE='';V_PW=''; err.textContent='系統忙碌中（同一時間登入的人比較多），請等 5 秒再按一次登入'; return; }
     if(d&&d.status==='ok'){
       try{ localStorage.setItem('mx_v_code',V_CODE); localStorage.setItem('mx_v_pw',V_PW); }catch(e){}
       V_ROLETYPE = d.roleType || '';
