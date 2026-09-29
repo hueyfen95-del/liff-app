@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-26';
+var MX_BUILD = '2026-09-29';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7251,6 +7251,7 @@ function loadOverdueLabs(){
         + '<span style="color:var(--text2)">' + escH(o.item) + '</span>'
         + (o.sendTo ? '<span style="font-size:10px;color:var(--text3)">送往：' + escH(o.sendTo) + (o.contactPerson ? '（對接：'+escH(o.contactPerson)+'）' : '') + '</span>' : '')
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(o.sentDate) + ' 送檢</span>'
+        + (o.secretary ? '<span style="font-size:10px;color:var(--text3)">・登記：' + escH(o.secretary) + '</span>' : '')
         + '<span style="margin-left:auto;display:flex;gap:5px;align-items:center">'
         + (followedToday ? '<span style="font-size:10px;color:var(--g)">✅ 今天已跟催</span>' : '')
         + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="odueCopy(' + i + ')">📋 複製催收訊息</button>'
@@ -11077,7 +11078,8 @@ function loadLabHistory(clientId){
         + (h.note && h.note.indexOf('報告圖：')===0 ? '・<a href="'+escH(h.note.replace('報告圖：',''))+'" target="_blank" style="color:var(--b3);font-weight:700">📄 檢視報告圖</a>' : (h.note?'・'+escH(h.note):''))
         + (done&&h.doneDate?'・回報於 '+escH(h.doneDate):'')
         + (h.result&&h.result!=='已完成'?'・<span style="color:var(--g3);font-weight:700">結果 '+escH(h.result)+'</span>':'')
-        + (h.abnormal?'・<span style="color:var(--r3);font-weight:700">⚠ '+escH(h.abnormal)+'</span>':'') + '</div></div>'
+        + (h.abnormal?'・<span style="color:var(--r3);font-weight:700">⚠ '+escH(h.abnormal)+'</span>':'')
+        + (h.secretary?'・登記：'+escH(h.secretary):'') + '</div></div>'
         + '<span class="badge '+(done?'g':'a')+'" style="font-size:9px">'+(done?'✅ 已完成':'⏳ 已安排')+'</span>'
         + (done ? '' : '<button class="ai-btn gray" style="font-size:10px;padding:4px 8px" onclick="completeLab('+i+',\''+escH(String(clientId||''))+'\')">'+(h.src==='fm'?'填結果':'標記完成')+'</button>')
         + '<button class="ai-btn g" style="font-size:10px;padding:4px 8px" onclick="reLabOrder('+i+',\''+escH(String(clientId||''))+'\')">再次加測</button>'
