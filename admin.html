@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-29';
+var MX_BUILD = '2026-09-29b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -12922,6 +12922,13 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 });
 function forceRelogin(msg){
+  // 2026-09-29補：創始人反映登入畫面同時出現「登入中…」跟「登入逾時」兩個矛盾訊息，看起來像當機——
+  // 根本原因是「正在手動登入」跟「舊session過期被踢回登入頁」這兩件事幾乎同時發生：使用者按下登入的
+  // 瞬間，doLogin()會把錯誤訊息清空，但如果這時候「背景」剛好有另一個用舊token發出的請求也收到401，
+  // 也會呼叫這裡把訊息蓋回「登入逾時」，蓋掉使用者剛按下登入這個動作的畫面，看起來像卡住。
+  // 這裡加一個判斷：如果目前正在跑一次手動登入（_loginBusy是true），這次的過期訊息就不要蓋上去，
+  // 讓使用者能看清楚「登入中」這個真實狀態，等這次登入自己的成功/失敗結果出來就好。
+  if (typeof _loginBusy !== 'undefined' && _loginBusy) return;
   CURRENT_USER = null; ADMIN_TOKEN = null;
   try { sessionStorage.removeItem('mx_admin_sess'); } catch(e){}
   var ov = document.getElementById('login-overlay');

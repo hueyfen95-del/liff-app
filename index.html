@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-25';
+var MX_BUILD = '2026-09-29';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -333,7 +333,8 @@ window.openHealthForm = function() {
     <span style="font-size:19px">🔔</span>
     <span id="mx-bell-dot" style="display:none;position:absolute;top:4px;right:3px;min-width:15px;height:15px;background:#E24B4A;color:#fff;border-radius:10px;font-size:9.5px;font-weight:800;line-height:15px;text-align:center;padding:0 3px;border:1.5px solid #fff"></span>
   </div>
-  <div class="tbar-av">美</div>
+  <!-- 2026-09-29：頭像圓圈改成可以點，點了可切換帳號（創始人指示：團隊身兼數職，需要在同一支手機上換身分） -->
+  <div class="tbar-av" onclick="mxSwitchAccount()" title="切換帳號" style="cursor:pointer;-webkit-tap-highlight-color:transparent">美</div>
 </div>
 <!-- 秘書訊息已併入「秘書互動」專區（2026-08-29 創始人指示與既有功能結合），鈴鐺是入口 -->
 
@@ -4357,6 +4358,14 @@ var LIFF_ID = ""; // 例如 "2001234567-AbCdEfGh"
 // 秘書/測試人員不是「加入LIFF頻道的測試者」時會卡在LINE的400錯誤頁面出不去。
 // 現在 switchtest=1 會多記一個「這次要用手動客人編號登入」的旗標，讓 mxStartAuth() 跳過LINE登入。
 var _mxForceManualLogin = false;
+// 2026-09-29 新增：右上角頭像圓圈可以點，點了會切換帳號——創始人指示：團隊大家身兼數職（秘書同時也是客人、
+// 又要用測試帳號看畫面），需要能在同一支手機／瀏覽器上換身分，不能只靠在網址加 ?switchtest=1 這種秘書才知道的方法。
+// 做法直接沿用下面 switchtest=1 那條已經驗證過的路徑（清掉編號／姓名／憑證、跳過LINE自動登入、回到手動登入畫面），
+// 不另外寫一套清除邏輯，避免兩邊漏東漏西。先跳一個確認框避免誤點；取消就什麼都不做。
+function mxSwitchAccount(){
+  if(!confirm('要切換帳號嗎？\n切換後要重新輸入客人編號與姓名才能進來。')) return;
+  location.href = location.pathname + '?switchtest=1';
+}
 (function(){
   try {
     if (location.search.indexOf('switchtest=1') >= 0) {
