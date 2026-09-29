@@ -1523,16 +1523,18 @@ window.openHealthForm = function() {
     </div>
 
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📬 你和秘書的訊息</div>
-    <div id="sechub-msg-list" style="margin-bottom:8px">
-      <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有訊息，秘書的建議和關心都會出現在這裡 🌱</div>
-    </div>
     <!-- 2026-09-16新增：以前這裡只有秘書傳給客人的訊息，客人自己沒有地方可以直接回覆——
          創辦人回報「為什麼只有秘書可以發訊息給我，我卻沒有辦法接著發訊息給秘書」。
          這裡補上輸入框：送出後會存進「未回答問題」給秘書看到並回覆（跟「問答」頁的邏輯共用），
-         同時也會存一份在這裡的訊息匣裡，讓客人自己看得到剛剛傳了什麼給秘書 -->
-    <div style="display:flex;gap:7px;margin-bottom:18px">
-      <input id="sechub-msg-input" class="chat-inp" style="flex:1" placeholder="想跟秘書說什麼呢？" onkeydown="if(event.key==='Enter'){sendSecHubMsg();}">
+         同時也會存一份在這裡的訊息匣裡，讓客人自己看得到剛剛傳了什麼給秘書
+         2026-09-29移位：輸入框原本放在所有訊息的最下面，訊息一多就被推到看不到的地方，創辦人自己又找不到
+         「要怎麼回秘書」。改放在標題正下方、訊息列表上面，一進來就看得到，不用往下滑。功能沒變。 -->
+    <div style="display:flex;gap:7px;margin-bottom:10px">
+      <input id="sechub-msg-input" class="chat-inp" style="flex:1" placeholder="想跟秘書說什麼呢？在這裡回覆" onkeydown="if(event.key==='Enter'){sendSecHubMsg();}">
       <button class="send-btn" onclick="sendSecHubMsg()"><i class="ti ti-send"></i></button>
+    </div>
+    <div id="sechub-msg-list" style="margin-bottom:18px">
+      <div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">還沒有訊息，秘書的建議和關心都會出現在這裡 🌱</div>
     </div>
 
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">📋 我問過的問題</div>
