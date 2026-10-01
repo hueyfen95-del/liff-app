@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-01';
+var MX_BUILD = '2026-10-01b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -850,6 +850,21 @@ var MX_BUILD = '2026-10-01';
         <div style="grid-column:1/-1;text-align:center;color:var(--text3);font-size:12px;padding:16px 0">載入中…</div>
       </div>
       <div id="fs-invite-pop" style="display:none;position:fixed;z-index:80;background:var(--card);border:1px solid var(--border2);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);padding:8px;min-width:150px;max-height:260px;overflow-y:auto"></div>
+    </div>
+  </div>
+  <!-- 2026-10-01 新增：打卡記錄總表（只給管理人／行政）。創始人問「打卡成功後在哪裡看得到」——以前只有自己當天那一行，
+       全部人的要去開試算表。這張卡選月份，列出每個人每天的上班／下班時間，並跟排班總表對照：有排班但沒打上班卡的標紅。 -->
+  <div class="card" id="clock-month-card" style="margin-bottom:14px;display:none">
+    <div class="card-hd">
+      <div class="card-title"><i class="ti ti-report"></i>🗂️ 打卡記錄總表（全部人）</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input id="clock-month" type="month" class="form-input" style="font-size:12px;padding:6px 9px" onchange="loadClockRecordsMonth()">
+        <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="loadClockRecordsMonth()"><i class="ti ti-refresh" style="font-size:13px"></i>重新載入</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.6">每個人每天的上班／下班打卡時間。<span style="color:#A32D2D;font-weight:700">紅色</span>＝這天有排班但沒打上班卡；<span style="color:#8A6A1F;font-weight:700">黃色</span>＝有打上班卡但沒打下班卡（今天的不算）。資料來源：試算表「⏰ 打卡記錄」。</div>
+      <div id="clock-month-body" style="font-size:12px;color:var(--text3)">載入中…</div>
     </div>
   </div>
   <div class="card" style="margin-bottom:14px">
@@ -9567,17 +9582,67 @@ function loadClockStatus(){
     }).join(''));
   });
 }
+// ── 2026-10-01 新增：打卡記錄總表（整月、全部人，只給管理人／行政）──
+// 兩支既有/新增的讀取 API 合起來畫：getClockRecordsMonth（打卡）＋ getShiftScheduleMonth（排班，管理視角會回全部人）。
+// 以「秘書＋日期」為一列：上班時間、下班時間、有沒有排班；排了班卻沒打上班卡 → 整列紅底；有上班沒下班（且不是今天）→ 黃底。
+function loadClockRecordsMonth(){
+  var card = document.getElementById('clock-month-card');
+  if(!card) return;
+  if(!(typeof mxIsDutyAdmin === 'function' && mxIsDutyAdmin())){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  var mInp = document.getElementById('clock-month');
+  if(mInp && !mInp.value){ var now = new Date(); mInp.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0'); }
+  var month = mInp ? mInp.value : '';
+  var body = document.getElementById('clock-month-body');
+  if(body) body.textContent = '載入中…';
+  adminAPI({action:'getClockRecordsMonth', month:month}, function(d){
+    if(!d || d.status !== 'ok'){ if(body) body.textContent = (d && d.message) || '讀取失敗，請再按一次重新載入'; return; }
+    var clocks = d.items || [];
+    var todayStr = d.todayStr || '';
+    adminAPI({action:'getShiftScheduleMonth', month:month}, function(s){
+      var shifts = (s && s.status === 'ok' && !s.restricted) ? (s.items || []) : [];
+      var rows = {}; // key = date|secretary
+      function row(date, sec){ var k = date + '|' + sec; if(!rows[k]) rows[k] = {date:date, secretary:sec, ins:[], outs:[], shift:''}; return rows[k]; }
+      clocks.forEach(function(c){ var r = row(c.date, c.secretary); if(c.type === '上班') r.ins.push(c.time); else r.outs.push(c.time); });
+      shifts.forEach(function(sh){ var r = row(sh.date, sh.secretary); r.shift = (sh.shift || '') + (sh.startTime ? ' ' + sh.startTime + '–' + (sh.endTime || '') : ''); });
+      var list = Object.keys(rows).map(function(k){ return rows[k]; });
+      if(!list.length){ if(body) body.textContent = '這個月還沒有任何打卡或排班記錄'; return; }
+      list.sort(function(a,b){ return a.date === b.date ? a.secretary.localeCompare(b.secretary) : b.date.localeCompare(a.date); });
+      var missIn = 0, missOut = 0;
+      var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+        + '<tr style="background:var(--bg);color:var(--text2)"><th style="text-align:left;padding:6px 8px">日期</th><th style="text-align:left;padding:6px 8px">秘書</th><th style="text-align:left;padding:6px 8px">排班</th><th style="text-align:left;padding:6px 8px">上班</th><th style="text-align:left;padding:6px 8px">下班</th><th style="text-align:left;padding:6px 8px">狀態</th></tr>';
+      list.forEach(function(r){
+        var bg = '', status = '';
+        if(r.shift && !r.ins.length && r.date <= todayStr){ bg = '#FBEAEA'; status = '<span style="color:#A32D2D;font-weight:700">有排班、沒打上班卡</span>'; missIn++; }
+        else if(r.ins.length && !r.outs.length && r.date < todayStr){ bg = '#FFF8E1'; status = '<span style="color:#8A6A1F;font-weight:700">沒打下班卡</span>'; missOut++; }
+        else if(r.ins.length && !r.shift){ status = '<span style="color:var(--text3)">沒排班但有打卡</span>'; }
+        else if(r.ins.length){ status = '<span style="color:#0F6E56">✓</span>'; }
+        else if(r.shift && r.date > todayStr){ status = '<span style="color:var(--text3)">未到</span>'; }
+        html += '<tr style="border-top:1px solid var(--border);background:' + bg + '">'
+          + '<td style="padding:6px 8px;white-space:nowrap">' + escH(r.date.slice(5)) + '</td>'
+          + '<td style="padding:6px 8px;white-space:nowrap">' + escH(r.secretary) + '</td>'
+          + '<td style="padding:6px 8px">' + escH(r.shift || '—') + '</td>'
+          + '<td style="padding:6px 8px;white-space:nowrap">' + (r.ins.length ? '🟢 ' + escH(r.ins.join('、')) : '—') + '</td>'
+          + '<td style="padding:6px 8px;white-space:nowrap">' + (r.outs.length ? '🔴 ' + escH(r.outs.join('、')) : '—') + '</td>'
+          + '<td style="padding:6px 8px">' + status + '</td></tr>';
+      });
+      html += '</table></div>';
+      var summary = '<div style="font-size:11px;color:var(--text2);margin-bottom:8px">共 ' + list.length + ' 筆' + (missIn ? '・<span style="color:#A32D2D;font-weight:700">' + missIn + ' 天有排班沒打卡</span>' : '') + (missOut ? '・<span style="color:#8A6A1F;font-weight:700">' + missOut + ' 天沒打下班卡</span>' : '') + '</div>';
+      if(body) body.innerHTML = summary + html;
+    });
+  });
+}
 function doClockIn(){
   if(!CURRENT_USER || !CURRENT_USER.name){ toast('⚠️ 請先登入'); return; }
   adminAPIPost({action:'clockIn', secretary:CURRENT_USER.name}, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 上班打卡成功'); loadClockStatus(); }
+    if(d && d.status === 'ok'){ toast('✅ 上班打卡成功'); loadClockStatus(); if(typeof loadClockRecordsMonth==='function') loadClockRecordsMonth(); }
     else toast('⚠️ 打卡失敗，請重試');
   });
 }
 function doClockOut(){
   if(!CURRENT_USER || !CURRENT_USER.name){ toast('⚠️ 請先登入'); return; }
   adminAPIPost({action:'clockOut', secretary:CURRENT_USER.name}, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 下班打卡成功'); loadClockStatus(); }
+    if(d && d.status === 'ok'){ toast('✅ 下班打卡成功'); loadClockStatus(); if(typeof loadClockRecordsMonth==='function') loadClockRecordsMonth(); }
     else toast('⚠️ 打卡失敗，請重試');
   });
 }
@@ -10453,6 +10518,7 @@ function runPageLoader(id){
     if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags');
     if(typeof loadShiftWishSummary==='function') loadShiftWishSummary();
     if(typeof loadClockStatus==='function') loadClockStatus();
+    if(typeof loadClockRecordsMonth==='function') loadClockRecordsMonth(); // 2026-10-01：打卡記錄總表（管理人／行政）
   }
   if (id === 'all-tests') {
     if(typeof loadAllClientsIRCTTable==='function') loadAllClientsIRCTTable();
