@@ -392,6 +392,20 @@ var MX_BUILD = '2026-10-01';
 
 <!-- ══ 儀表板 ══ -->
 <div class="pg on" id="pg-dashboard">
+      <!-- ⏰ 2026-10-01 新增：打卡放到儀表板最上面。創辦人先說「打卡拉到最上面」，我移到排班交接頁第一張，
+           她接著在儀表板問「打卡在哪裡？」——她要的是登入第一眼就看到，不是在某一頁的最上面。
+           這裡是一條精簡版（狀態＋兩顆按鈕），跟排班交接頁那張卡共用同一套 doClockIn/doClockOut/loadClockStatus，
+           兩邊的狀態文字都掛 clock-status-el 這個 class，打完卡兩邊一起更新。 -->
+      <div class="card" id="dash-clock-card" style="margin-bottom:14px;border:1.5px solid #0F6E56;background:#F2FAF7">
+        <div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px">
+          <div style="font-size:13px;font-weight:700;color:#0F6E56;white-space:nowrap"><i class="ti ti-clock-hour-4"></i> ⏰ 上下班打卡</div>
+          <div class="clock-status-el" style="flex:1;min-width:160px;font-size:12px;color:var(--text3)">載入中…</div>
+          <div style="display:flex;gap:8px">
+            <button onclick="doClockIn()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🟢 上班打卡</button>
+            <button onclick="doClockOut()" style="background:#8A6A1F;color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🔴 下班打卡</button>
+          </div>
+        </div>
+      </div>
       <!-- 🔗 合併快速導覽列：提醒卡片（有內容才顯示）＋ 常駐統計，全部可點擊跳轉（2026-08-26）-->
       <div id="mx-dash-nav" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);border-radius:12px;padding:10px 12px"></div>
       <!-- 🎯 今日待辦（系統自動偵測，登入第一眼）-->
@@ -808,7 +822,7 @@ var MX_BUILD = '2026-10-01';
   <div class="card" style="margin-bottom:14px" id="clock-card">
     <div class="card-hd"><div class="card-title"><i class="ti ti-clock-hour-4"></i>⏰ 上下班打卡</div></div>
     <div class="card-body">
-      <div id="clock-status" style="font-size:12px;color:var(--text3);margin-bottom:11px">載入中…</div>
+      <div id="clock-status" class="clock-status-el" style="font-size:12px;color:var(--text3);margin-bottom:11px">載入中…</div>
       <div style="display:flex;gap:8px">
         <button onclick="doClockIn()" style="flex:1;background:var(--g);color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🟢 上班打卡</button>
         <button onclick="doClockOut()" style="flex:1;background:#8A6A1F;color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🔴 下班打卡</button>
@@ -9140,6 +9154,7 @@ function submitVoice(btn){
 }
 // ── 儀表板 ──
 function loadDashboard(){
+  if(typeof loadClockStatus==='function') loadClockStatus(); // 2026-10-01：儀表板最上面的打卡狀態
   if(typeof loadFounderMetrics==='function') loadFounderMetrics();
   if(typeof loadHandover==='function') loadHandover();
   if(typeof loadTodayDuty==='function') loadTodayDuty();
@@ -9538,18 +9553,18 @@ function saveHandoverNote(){
 // submitShiftWish（原本「送出排班意願」按鈕的處理函式）2026-09-15第二次重新設計時移除——
 // 「下月排班意願」卡片已經拿掉，改成秘書直接在「本月／下月排班總表」對確切日期自助登記排班（見 claimSlot）。
 // ── 2026-09-03 新增：上下班打卡（秘書自己按按鈕，系統記錄時間）──
+// 2026-10-01：儀表板最上面也放了一條打卡（見 #dash-clock-card），狀態文字改成更新所有 .clock-status-el，兩邊同步
 function loadClockStatus(){
-  var el = document.getElementById('clock-status');
-  if(!el) return;
-  if(!CURRENT_USER || !CURRENT_USER.name){ el.textContent = '請先登入'; return; }
+  var els = document.querySelectorAll('.clock-status-el');
+  if(!els.length) return;
+  function setAll(html){ document.querySelectorAll('.clock-status-el').forEach(function(e){ e.innerHTML = html; }); }
+  if(!CURRENT_USER || !CURRENT_USER.name){ setAll('請先登入'); return; }
   adminAPI({action:'getClockStatus', secretary:CURRENT_USER.name}, function(d){
-    el = document.getElementById('clock-status');
-    if(!el) return;
     var items = (d && d.items) || [];
-    if(items.length === 0){ el.textContent = '今天還沒有打卡記錄'; return; }
-    el.innerHTML = '今天：' + items.map(function(it){
+    if(items.length === 0){ setAll('今天還沒有打卡記錄'); return; }
+    setAll('今天：' + items.map(function(it){
       return '<span style="display:inline-block;margin-right:10px">' + (it.type === '上班' ? '🟢 上班 ' : '🔴 下班 ') + escH(it.time) + '</span>';
-    }).join('');
+    }).join(''));
   });
 }
 function doClockIn(){
@@ -13171,6 +13186,10 @@ function applyPermissions(){
   if(_supHint) _supHint.style.display = _price ? 'none' : '';
   if(allowed === null) return; // 管理人／老闆看全部
   var extra = (CURRENT_USER.extraPages || []);
+  // 2026-10-01：儀表板最上面的打卡條只給有「排班交接」頁權限的角色（秘書／行政／管理層）看，
+  // 會計、財務主管、醫師不用在這套系統打卡，不要讓他們看到一條不相干的按鈕
+  var _dashClock = document.getElementById('dash-clock-card');
+  if(_dashClock && Array.isArray(allowed) && allowed.indexOf('duty') < 0 && extra.indexOf('duty') < 0) _dashClock.style.display = 'none';
   // 隐藏不该看的分页（基本角色允許的 或 額外加開的，兩者取聯集，都不隱藏）
   document.querySelectorAll('.nav-item').forEach(function(nav){
     var oc = nav.getAttribute('onclick') || '';
