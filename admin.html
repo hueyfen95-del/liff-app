@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-09-29b';
+var MX_BUILD = '2026-10-01';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -801,6 +801,20 @@ var MX_BUILD = '2026-09-29b';
        依在職秘書人數自動算，人多上限就降、人少上限就升），避免一個人把整個月的班都登記光、其他人都排
        不進來。管理人／行政（isDutyAdminRole_）看得到全部人的班表跟身分，一般秘書只看得到自己排的和
        還空著能登記的時段，達成「盡快排班進去」＋「盡快找到誰沒排班」＋「能提醒秘書」三個目的。 -->
+  <!-- 2026-09-03 新增：秘書自己按「上班/下班打卡」按鈕，系統記錄時間（她確認過的打卡方式）。
+       配合排班表用，忘記打卡的話 maybeCheckMissedClockIns_ 會自動寫一則「打卡提醒」給行政
+       2026-10-01 移位：原本排在「排班總表」「新增排班」兩張大卡片後面，要往下滑很久才看得到，創辦人反映
+       「找不到」。打卡是每天上下班都要按的動作，改放在這一頁最上面，一進來第一眼就是它。功能沒變。 -->
+  <div class="card" style="margin-bottom:14px" id="clock-card">
+    <div class="card-hd"><div class="card-title"><i class="ti ti-clock-hour-4"></i>⏰ 上下班打卡</div></div>
+    <div class="card-body">
+      <div id="clock-status" style="font-size:12px;color:var(--text3);margin-bottom:11px">載入中…</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="doClockIn()" style="flex:1;background:var(--g);color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🟢 上班打卡</button>
+        <button onclick="doClockOut()" style="flex:1;background:#8A6A1F;color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🔴 下班打卡</button>
+      </div>
+    </div>
+  </div>
   <div class="card" id="full-schedule-card" style="margin-bottom:14px">
     <div class="card-hd">
       <div class="card-title"><i class="ti ti-calendar-month"></i>📅 本月／下月排班總表</div>
@@ -844,18 +858,6 @@ var MX_BUILD = '2026-09-29b';
         <input id="duty-note" class="form-input" style="font-size:12px;grid-column:1/-1" placeholder="備註（選填）">
       </div>
       <button onclick="submitShift(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增排班</button>
-    </div>
-  </div>
-  <!-- 2026-09-03 新增：秘書自己按「上班/下班打卡」按鈕，系統記錄時間（她確認過的打卡方式）。
-       配合排班表用，忘記打卡的話 maybeCheckMissedClockIns_ 會自動寫一則「打卡提醒」給行政 -->
-  <div class="card" style="margin-bottom:14px" id="clock-card">
-    <div class="card-hd"><div class="card-title"><i class="ti ti-clock-hour-4"></i>⏰ 上下班打卡</div></div>
-    <div class="card-body">
-      <div id="clock-status" style="font-size:12px;color:var(--text3);margin-bottom:11px">載入中…</div>
-      <div style="display:flex;gap:8px">
-        <button onclick="doClockIn()" style="flex:1;background:var(--g);color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🟢 上班打卡</button>
-        <button onclick="doClockOut()" style="flex:1;background:#8A6A1F;color:#fff;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer">🔴 下班打卡</button>
-      </div>
     </div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
