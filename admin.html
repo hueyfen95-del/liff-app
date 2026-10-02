@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-01c';
+var MX_BUILD = '2026-10-02c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -443,7 +443,7 @@ var MX_BUILD = '2026-10-01c';
       <div class="card" id="odue-card" style="margin-bottom:14px;display:none;border:1px solid #F0C0B0">
         <div class="card-hd">
           <div class="card-title" style="color:#A32D2D"><i class="ti ti-flask"></i>檢測逾期未回報・該去催了</div>
-          <button class="ai-btn gray" style="font-size:10px;padding:4px 9px" onclick="odueEditThreshold()">⚙️ 調整天數</button>
+          <button class="ai-btn gray" id="odue-threshold-btn" style="font-size:10px;padding:4px 9px" onclick="odueEditThreshold()">⚙️ 調整天數</button>
         </div>
         <div class="card-body" id="odue-body" style="padding-top:4px"></div>
       </div>
@@ -2198,13 +2198,17 @@ function _mxDashNavRender(){
     if(it.count > 0) btns.push(_mxNavBtn(it.act, it.icon, it.label, it.count, true));
   });
   // 常駐統計：一律顯示，需要留意時用紅色數字區分
+  // 2026-10-02：依角色過濾（DASH_STATS_BY_ROLE），管理層全部顯示
+  var _statAllow = (CURRENT_USER && typeof DASH_STATS_BY_ROLE !== 'undefined') ? DASH_STATS_BY_ROLE[CURRENT_USER.role] : null;
+  var _statOK = function(label){ return !Array.isArray(_statAllow) || _statAllow.indexOf(label) >= 0; };
+  var _pushStat = function(act, icon, label, n, warn){ if(_statOK(label)) btns.push(_mxNavBtn(act, icon, label, n, warn)); };
   if(_mxDashStats){
     var dt = _mxDashStats;
-    if(typeof dt.totalClients==='number') btns.push(_mxNavBtn("goPg('clients',document.querySelectorAll('.si')[1])", 'ti ti-users', '服務中', dt.totalClients, false));
-    if(typeof dt.recorded==='number') btns.push(_mxNavBtn("scrollToCard('today-records-body')", 'ti ti-activity', '今日已記錄', dt.recorded, false));
+    if(typeof dt.totalClients==='number') _pushStat("goPg('clients',document.querySelectorAll('.si')[1])", 'ti ti-users', '服務中', dt.totalClients, false);
+    if(typeof dt.recorded==='number') _pushStat("scrollToCard('today-records-body')", 'ti ti-activity', '今日已記錄', dt.recorded, false);
     // 飲食求助改常駐顯示（2026-08-30 管理人反映「不見了」——原本沒未回覆就隱藏，改成一直在，0灰色/有未回覆紅色）
-    if(typeof dt.mealHelp==='number') btns.push(_mxNavBtn("scrollToCard('mealhelp-card')", 'ti ti-tools-kitchen-2', '飲食求助', dt.mealHelp, dt.mealHelp>0));
-    if(typeof dt.clientInbox==='number') btns.push(_mxNavBtn("scrollToCard('client-inbox-card')", 'ti ti-inbox', '互動信箱', dt.clientInbox, dt.clientInbox>0));
+    if(typeof dt.mealHelp==='number') _pushStat("scrollToCard('mealhelp-card')", 'ti ti-tools-kitchen-2', '飲食求助', dt.mealHelp, dt.mealHelp>0);
+    if(typeof dt.clientInbox==='number') _pushStat("scrollToCard('client-inbox-card')", 'ti ti-inbox', '互動信箱', dt.clientInbox, dt.clientInbox>0);
     // 分開兩顆而不是合併成一顆「待關心」：沒記錄的客人跟症狀警示的客人是不同名單、不同卡片，
     // 合併成一個數字點下去只能跳一個地方，另一半的人反而找不到（2026-08-26修正）
     // 2026-09-15修正：「今日沒記錄」「症狀警示」這兩顆原本在這裡用dt.noRecord／dt.alerts又畫一次，
@@ -2213,9 +2217,9 @@ function _mxDashNavRender(){
     // （dt.alerts是不重複客人數，卡片實際列出的是症狀警示「筆數」，兩個數字本來就對不上；
     // dt.noRecord跟新卡的筆數雖然算法一致，但還是會看到兩顆長得幾乎一樣的按鈕，很奇怪）。
     // 既然這兩張卡自己都已經會正確註冊，這裡拿掉重複的那一份，只留卡片自己算出來、保證跟實際內容一致的版本。
-    if(typeof dt.purchasesShipping==='number') btns.push(_mxNavBtn("scrollToCard('proxy-card')", 'ti ti-truck', '待處理出貨', dt.purchasesShipping, dt.purchasesShipping>0));
-    if(typeof dt.pendingReviews==='number') btns.push(_mxNavBtn("goPg('review')", 'ti ti-receipt', '待核查', dt.pendingReviews, dt.pendingReviews>0));
-    if(typeof dt.balanceDeficit==='number') btns.push(_mxNavBtn("goPg('stored-value')", 'ti ti-credit-card', '餘額異常', dt.balanceDeficit, dt.balanceDeficit>0));
+    if(typeof dt.purchasesShipping==='number') _pushStat("scrollToCard('proxy-card')", 'ti ti-truck', '待處理出貨', dt.purchasesShipping, dt.purchasesShipping>0);
+    if(typeof dt.pendingReviews==='number') _pushStat("goPg('review')", 'ti ti-receipt', '待核查', dt.pendingReviews, dt.pendingReviews>0);
+    if(typeof dt.balanceDeficit==='number') _pushStat("goPg('stored-value')", 'ti ti-credit-card', '餘額異常', dt.balanceDeficit, dt.balanceDeficit>0);
   }
   if(btns.length===0){ wrap.style.display='none'; return; }
   wrap.style.display='flex';
@@ -4242,6 +4246,7 @@ function loadRoles() {
   listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中...</div>';
 
   adminAPI({action: 'getRoles'}, function(d) {
+    window._cachedRoles = d.roles || []; window._rolesCacheLoaded = true; // 2026-10-01：編輯診所時要列出檢驗所名單用
     refreshRoleTypeOptions(d.roles || []);
     if (d.status === 'ok' && d.roles && d.roles.length > 0) {
       var typeIcons = {'診所':'🏥','實驗室':'🧪','醫師':'👨‍⚕️','秘書':'💁','行政':'📋','講師':'🎤','教練':'🏃','供應商':'📦','內部':'🌱','其他':'•'};
@@ -4259,7 +4264,7 @@ function loadRoles() {
         // （後端 updateRole/deleteRole/setPartnerFeatures 也都已經擋下非財務主管層級的帳號）
         var roleActionBtns = isFinanceTier()
           ? '<button onclick="openPartnerFeatures(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:#E6F3EE;color:#0F6E56;border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">深度合作</button>' +
-            '<button onclick="editRole(this)" data-id="' + r.roleId + '" data-type="' + r.roleType + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" data-cp="' + (r.contactPerson||'').replace(/"/g,'&quot;') + '" data-ci="' + (r.contactInfo||'').replace(/"/g,'&quot;') + '" data-dd="' + (r.defaultDays||'') + '" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>' +
+            '<button onclick="editRole(this)" data-id="' + r.roleId + '" data-type="' + r.roleType + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" data-cp="' + (r.contactPerson||'').replace(/"/g,'&quot;') + '" data-ci="' + (r.contactInfo||'').replace(/"/g,'&quot;') + '" data-dd="' + (r.defaultDays||'') + '" data-lab="' + (r.labName||'').replace(/"/g,'&quot;') + '" data-chase="' + (r.chaseTarget||'') + '" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>' +
             '<button onclick="deleteRole(this)" data-id="' + r.roleId + '" data-name="' + r.roleName.replace(/"/g,'&quot;') + '" style="background:var(--r2);color:var(--r);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">刪除</button>'
           : '<span style="font-size:10px;color:var(--text3)">僅查看</span>';
         return '<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border);border-radius:9px;padding:9px 12px">' +
@@ -4314,6 +4319,18 @@ function editRole(btn) {
     payload.contactPerson = cp.trim();
     payload.contactInfo = ci.trim();
     payload.defaultDays = dd.trim();
+    // 2026-10-01新增：診所要再問「檢體實際送到哪家檢驗所」「逾期時要催誰」——創始人說明：原蘊／新立／安生送東泰、
+    // 診所和東泰都催；瑞絲得送優品、只催瑞絲得；其他診所只催診所。逾期催收卡就靠這兩個設定決定要列出誰的電話
+    if (currentType === '診所') {
+      var labCands = (window._cachedRoles || []).filter(function(x){ var t = String(x.roleType||''); return t.indexOf('實驗') >= 0 || t.indexOf('檢驗') >= 0 || t.indexOf('檢測') >= 0; }).map(function(x){ return x.roleName; });
+      var lab = prompt('這家診所的檢體實際送到哪家檢驗所？（沒有或就是診所自己驗，請留空）' + (labCands.length ? '\n目前名單裡的檢驗所：' + labCands.join('、') : '\n（分帳角色名單裡還沒有「實驗室」類型的角色，可以先新增）'), btn.getAttribute('data-lab') || '');
+      if (lab === null) return;
+      var chaseDefault = btn.getAttribute('data-chase') || (lab.trim() ? '兩者都催' : '只催診所');
+      var chase = prompt('報告逾期時要催誰？請輸入 1、2 或 3：\n1＝只催診所\n2＝只催檢驗所\n3＝診所和檢驗所都催', chaseDefault === '只催檢驗所' ? '2' : chaseDefault === '兩者都催' ? '3' : '1');
+      if (chase === null) return;
+      payload.labName = lab.trim();
+      payload.chaseTarget = chase.trim() === '2' ? '只催檢驗所' : chase.trim() === '3' ? '兩者都催' : '只催診所';
+    }
   }
   adminAPI(payload, function(d) {
     if (d.status === 'ok') {
@@ -7021,9 +7038,20 @@ var _handoverCache = [];
 // 可見性規則（管理人2026-08-10）：「排班意願」是給排班的管理者看的，
 // 只有管理人（含舊「老闆」帳號）和留言者本人看得到；一般交接留言則每個登入者都看得到
 function canSeeHandoverItem(h){
-  if(String(h.important||'') !== '排班意願') return true;
   if(!CURRENT_USER) return false;
-  return CURRENT_USER.role === '管理人' || CURRENT_USER.role === '老闆' || CURRENT_USER.role === '創始人' || h.fromSecretary === CURRENT_USER.name;
+  var r = CURRENT_USER.role;
+  var isMgr = (r === '管理人' || r === '老闆' || r === '創始人');
+  if(String(h.important||'') === '排班意願') return isMgr || h.fromSecretary === CURRENT_USER.name;
+  if(isMgr) return true;
+  // 2026-10-02：依「跟誰有關」標籤收斂——會計／財務主管只看標給財務／會計的；醫師只看標給醫師的（目前沒有這個標籤，等於只看自己發的）；
+  // 秘書看一般＋秘書；行政看一般＋行政。自己發的留言永遠看得到。
+  var to = String(h.toSecretary || '');
+  if(h.fromSecretary === CURRENT_USER.name) return true;
+  if(r === '會計' || r === '財務主管') return to === '財務主管' || to === '會計';
+  if(r === '醫師') return to === '醫師';
+  if(r === '行政') return to === '' || to === '行政';
+  if(r === '秘書') return to === '' || to === '秘書';
+  return to === '';
 }
 // 2026-09-03 新增：交接留言「跟誰有關」標籤——純標示用，不限制誰看得到（她的決定：資訊越透明，
 // 越不用互相問來問去；只有上面「排班意願」那種本來就設計成私密的例外不受影響）。顏色沿用帳號管理
@@ -7209,7 +7237,11 @@ function loadHandover(){
         pendingLine = '<div style="font-size:11px;color:var(--text2);margin-bottom:2px">' + (isClockAlert ? '尚未打卡：' : '待處理客人：') + (isClockAlert ? escH(h.pendingClients) : renderHandoverClientLinks(h.pendingClients)) + '</div>';
       }
       var claimBtn = isGapNotice ? '<button class="ai-btn g" style="font-size:11px;padding:5px 11px;margin-top:6px;font-weight:700" onclick="claimShiftGap(' + i + ')">✋ 我可以補這班</button>' : '';
-      return '<div style="padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px">'
+      // 2026-10-01：創辦人問「已看過之後呢？也不知道要做什麼，是否要能去補班那一頁」——
+      // 只要留言跟排班有關（缺人通知、排班意願、或留言內容提到排班交接），就多一顆直接跳去「排班交接」的按鈕
+      var goDutyBtn = (isGapNotice || String(h.important||'').indexOf('排班') >= 0 || String(h.note||'').indexOf('排班') >= 0)
+        ? '<button class="ai-btn" style="font-size:11px;padding:5px 11px;margin-top:6px;margin-left:' + (isGapNotice ? '6px' : '0') + ';background:#EEEDFE;color:#3C3489;border:1px solid #D9D6F5;font-weight:700" onclick="goPg(\'duty\')">📅 去排班交接登記</button>' : '';
+      return '<div id="ho-item-' + h.row + '" style="padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px">'
         + '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:3px">'
         + '<span style="font-size:11px;font-weight:700;color:#6D4AA8;background:#EFE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<b style="color:var(--text)">' + escH(h.fromSecretary || '前一班') + '</b>'
@@ -7220,17 +7252,55 @@ function loadHandover(){
         + '</div>'
         + pendingLine
         + (h.note ? '<div style="font-size:11.5px;color:var(--text)">' + escH(h.note) + '</div>' : '')
-        + claimBtn
+        + claimBtn + goDutyBtn
         + '</div>';
     }).join('');
+    // 2026-10-01：管理人／行政多一顆「全部標為已看過」——舊的排班意願留言（7、8、9月的）已經沒有意義，一則一則按太慢
+    var hoHd = card.querySelector('.card-hd > div:last-child');
+    if(hoHd && !document.getElementById('ho-ack-all') && typeof mxIsDutyAdmin === 'function' && mxIsDutyAdmin()){
+      var b = document.createElement('button');
+      b.id = 'ho-ack-all'; b.className = 'tb-btn'; b.style.cssText = 'font-size:11px;padding:5px 10px';
+      b.innerHTML = '<i class="ti ti-checks" style="font-size:13px"></i>全部標為已看過';
+      b.onclick = ackAllHandoverUI;
+      hoHd.appendChild(b);
+    }
+  });
+}
+// 2026-10-01 改寫：創辦人反映「按已看過好像沒反應，數字也不會減少」。原因是多人同時用的時候，後端偶爾回
+// 「API 正在執行」這種假成功（什麼都沒做），前端當成成功去重載，留言當然還在。現在：按下去那一則先立刻變淡
+// （讓人知道有反應），後端回假成功或失敗就自動再試最多 2 次，真的成功才重載並跳提示；都失敗就恢復原狀＋提示。
+function _ackHandoverOnce(row, cb){
+  adminAPIPost({action:'ackHandover', row:row, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
+    var fakeOk = d && d.status === 'ok' && d.message === 'API 正在執行';
+    cb(!!(d && d.status === 'ok' && !fakeOk));
   });
 }
 function ackHandoverUI(i){
   var h = _handoverCache[i]; if(!h) return;
-  adminAPIPost({action:'ackHandover', row:h.row, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
-    if(d && d.status === 'ok'){ loadHandover(); }
-    else toast('⚠️ 操作失敗');
-  });
+  var el = document.getElementById('ho-item-' + h.row);
+  if(el){ el.style.opacity = '.35'; el.style.pointerEvents = 'none'; }
+  var tries = 0;
+  (function attempt(){
+    tries++;
+    _ackHandoverOnce(h.row, function(ok){
+      if(ok){ toast('✅ 已標記已看過'); loadHandover(); return; }
+      if(tries < 3){ setTimeout(attempt, 1500); return; }
+      if(el){ el.style.opacity = ''; el.style.pointerEvents = ''; }
+      toast('⚠️ 標記失敗（後端忙碌），請再按一次');
+    });
+  })();
+}
+function ackAllHandoverUI(){
+  var list = (_handoverCache || []).slice();
+  if(!list.length) return;
+  if(!confirm('確定把目前這 ' + list.length + ' 則交接留言全部標為已看過？\n（資料不會刪，之後在「歷史」還是查得到）')) return;
+  var btn = document.getElementById('ho-ack-all'); if(btn){ btn.disabled = true; btn.textContent = '處理中…'; }
+  var idx = 0, failed = 0;
+  (function next(){
+    if(idx >= list.length){ toast(failed ? ('⚠️ 有 ' + failed + ' 則沒成功，請重新整理後再試') : '✅ 已全部標為已看過'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="ti ti-checks" style="font-size:13px"></i>全部標為已看過'; } loadHandover(); return; }
+    var row = list[idx++].row;
+    _ackHandoverOnce(row, function(ok){ if(!ok){ _ackHandoverOnce(row, function(ok2){ if(!ok2) failed++; next(); }); } else next(); });
+  })();
 }
 // 2026-09-03 新增：秘書在「排班缺人通知」底下點「我可以補這班」。
 // 2026-09-03 修正（她提醒：同一則通知可能同時發給好幾位秘書，依回覆順序填入，比較晚點的人要被告知
@@ -7256,6 +7326,45 @@ function claimShiftGap(i){
 }
 // ── 檢測逾期未回報看板 ──
 var _odueCache = [];
+// 2026-10-01 改版：創辦人指示逾期催收要「連結到這個報告是哪個檢驗所測的，去催那個檢驗所或診所，而不是只貼文」。
+// 改成「依送往單位分組」：每個單位一個區塊，標題列出對接人＋聯絡方式（電話可直接點、可複製），一顆「複製給這家的催收訊息」
+// 會把這家所有逾期項目列在同一則訊息裡、一顆「這家全部已跟催」一次標完；每筆底下仍保留單筆的催收／已跟催。
+// 沒填送往（舊資料）或送往被蓋掉的，集中在「尚未填送往單位」區塊，每筆旁邊有下拉可直接補選，選完就會歸到那家底下。
+var _odueLabOpts = null;
+function odueLoadLabOptions(cb){
+  if(_odueLabOpts){ cb(_odueLabOpts); return; }
+  var opts = [], seen = {};
+  adminAPI({action:'getClinicSlots'}, function(d){
+    ((d && d.slots) || []).forEach(function(sl){
+      var full = sl.clinic + (sl.region ? '・' + sl.region : '');
+      if(!seen[full]){ seen[full] = true; opts.push(full); }
+    });
+    ensureRolesCache_(function(){
+      (window._cachedRoles || []).forEach(function(r){
+        var t = String(r.roleType || ''), nm = String(r.roleName || '');
+        if(!nm || seen[nm]) return;
+        if(t.indexOf('診所') >= 0 || t.indexOf('實驗') >= 0 || t.indexOf('檢測') >= 0 || t.indexOf('檢驗') >= 0 || t.indexOf('藥局') >= 0){ seen[nm] = true; opts.push(nm); }
+      });
+      _odueLabOpts = opts; cb(opts);
+    });
+  });
+}
+// 2026-10-01：一筆逾期可能要催不只一個單位（例如原蘊診所＋東泰檢驗所），後端回 contacts 清單，這裡每個都列出來
+function _odueOneContact(c){
+  var info = String(c.info || '');
+  var tel = info.replace(/[^\d+]/g, '');
+  var infoHtml = info ? (tel.length >= 7 ? '<a href="tel:' + escH(tel) + '" style="color:#0F6E56;font-weight:700">' + escH(info) + '</a>' : escH(info)) : '<span style="color:#A32D2D">未填聯絡方式</span>';
+  return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);background:#fff;border:1px solid var(--border);border-radius:7px;padding:2px 8px">'
+    + '<span style="font-size:9.5px;color:var(--text3)">' + escH(c.kind) + '</span><b>' + escH(c.name) + '</b>'
+    + (c.person ? '・' + escH(c.person) : '') + '　' + infoHtml
+    + (info ? ' <button class="tb-btn" style="font-size:10px;padding:1px 6px" onclick="copyText(' + JSON.stringify(info).replace(/"/g,'&quot;') + ',\'聯絡方式\')">複製</button>' : '')
+    + '</span>';
+}
+function _odueContactHtml(o){
+  var cs = (o.contacts && o.contacts.length) ? o.contacts : ((o.contactPerson || o.contactInfo) ? [{kind:'送往單位', name:o.sendTo, person:o.contactPerson, info:o.contactInfo}] : []);
+  if(!cs.length) return '<span style="font-size:10.5px;color:#A32D2D">未設定對接人／聯絡方式（到「分帳角色名單」這家按「編輯」填對接人、聯絡方式、送檢檢驗所、催收對象）</span>';
+  return cs.map(_odueOneContact).join(' ');
+}
 function loadOverdueLabs(){
   var card = document.getElementById('odue-card');
   var body = document.getElementById('odue-body');
@@ -7270,25 +7379,111 @@ function loadOverdueLabs(){
     if(_odueCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
     var todayStr = new Date().toISOString().slice(0,10);
-    body.innerHTML = _odueCache.map(function(o, i){
-      var followedToday = o.followedUp && o.followedUp.indexOf(todayStr) === 0;
-      var thr = o.threshold || (o.src === 'fm' ? _odueThresholds.fm : _odueThresholds.general) || 1;
-      var severe = o.days >= thr * 1.5; // 超過門檻的1.5倍才算「很急」，兩類天數基準不同，用比例判斷比固定天數合理
-      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
-        + '<span style="font-size:11px;font-weight:700;color:#A32D2D;background:#FBE3DB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
-        + '<span style="font-size:9.5px;font-weight:700;color:#fff;background:' + (severe ? '#A32D2D' : '#B26A00') + ';border-radius:5px;padding:1px 6px">逾 ' + o.days + ' 天</span>'
-        + '<span style="font-size:9px;color:var(--text3)">（門檻 ' + thr + ' 天）</span>'
-        + '<b style="color:var(--text)">' + escH(clientName(o.clientId)) + '</b>'
-        + '<span style="color:var(--text2)">' + escH(o.item) + '</span>'
-        + (o.sendTo ? '<span style="font-size:10px;color:var(--text3)">送往：' + escH(o.sendTo) + (o.contactPerson ? '（對接：'+escH(o.contactPerson)+'）' : '') + '</span>' : '')
-        + '<span style="color:var(--text3);font-size:10.5px">' + escH(o.sentDate) + ' 送檢</span>'
-        + (o.secretary ? '<span style="font-size:10px;color:var(--text3)">・登記：' + escH(o.secretary) + '</span>' : '')
-        + '<span style="margin-left:auto;display:flex;gap:5px;align-items:center">'
-        + (followedToday ? '<span style="font-size:10px;color:var(--g)">✅ 今天已跟催</span>' : '')
-        + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="odueCopy(' + i + ')">📋 複製催收訊息</button>'
-        + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px" onclick="odueFollowUp(' + i + ')">' + (followedToday ? '再次標記' : '已跟催') + '</button>'
-        + '</span></div>';
+    // 2026-10-02：創辦人定的分工——檢驗所／診所由行政和管理者對接，由行政去催；秘書不直接催外面，秘書催行政。
+    // 所以同一張卡依角色長不一樣：行政／管理層看得到對接人電話、複製催收訊息、已跟催；秘書只有「📣 請行政催」。
+    var isChaser = (typeof mxIsDutyAdmin === 'function' && mxIsDutyAdmin());
+    var thrBtn = document.getElementById('odue-threshold-btn'); if(thrBtn) thrBtn.style.display = isChaser ? '' : 'none'; // 門檻天數只有行政／管理層能調
+    var roleNote = isChaser
+      ? '<div style="font-size:11px;color:var(--text3);margin:2px 0 6px">行政／管理人請直接聯絡下面列出的單位催報告。標「秘書已請行政催」的，是秘書按了「請行政催」送來的（交接記錄也會有一則）。</div>'
+      : '<div style="font-size:11px;color:#8A4B12;background:#FFF4E5;border:1px solid #F5D9A8;border-radius:8px;padding:6px 10px;margin:2px 0 8px">檢驗所／診所由<b>行政</b>對接。報告逾期時，秘書按「📣 請行政催」，行政會在儀表板的交接記錄收到並去催；按過的會顯示日期，同一筆不用重複按。</div>';
+    // 依送往單位分組；沒填的放最後
+    var groups = {}, order = [];
+    _odueCache.forEach(function(o, i){
+      var key = o.sendTo || '';
+      if(!groups[key]){ groups[key] = []; order.push(key); }
+      groups[key].push(i);
+    });
+    order.sort(function(a, b){ if(!a) return 1; if(!b) return -1; return 0; });
+    var html = order.map(function(key){
+      var idxs = groups[key];
+      var first = _odueCache[idxs[0]];
+      var head;
+      if(key){
+        head = '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#F2FAF7;border:1px solid #CFE8DC;border-radius:9px;padding:7px 10px;margin:10px 0 4px">'
+          + '<b style="font-size:12.5px;color:#0F6E56">🏥 ' + escH(key) + (first.labName ? ' <span style="font-weight:400;color:var(--text3)">→ 送</span> 🧪 ' + escH(first.labName) : '') + '</b>'
+          + '<span style="font-size:10.5px;color:var(--text3)">' + idxs.length + ' 筆逾期' + (first.chaseTarget ? '・' + escH(first.chaseTarget) : '') + '</span>'
+          + (isChaser ? _odueContactHtml(first)
+            + '<span style="margin-left:auto;display:flex;gap:5px">'
+            + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="odueCopyLab(' + JSON.stringify(key).replace(/"/g,'&quot;') + ')">📋 複製給這家的催收訊息（' + idxs.length + ' 筆）</button>'
+            + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px" onclick="odueFollowUpLab(' + JSON.stringify(key).replace(/"/g,'&quot;') + ')">這家全部已跟催</button>'
+            + '</span>' : '')
+          + '</div>';
+      } else {
+        head = '<div style="background:#FBEAEA;border:1px solid #F0C0B0;border-radius:9px;padding:7px 10px;margin:10px 0 4px;font-size:11.5px;color:#A32D2D"><b>⚠️ 尚未填送往單位（' + idxs.length + ' 筆）</b>　'
+          + (isChaser ? '不知道要催誰——請在每筆右邊的下拉選一個單位，選完就會歸到那家底下。' : '請登記的秘書到客人詳情頁補填送往單位，或直接按「請行政催」由行政處理。') + '</div>';
+      }
+      var rowsHtml = idxs.map(function(i){
+        var o = _odueCache[i];
+        var followedToday = o.followedUp && o.followedUp.indexOf(todayStr) === 0;
+        var thr = o.threshold || (o.src === 'fm' ? _odueThresholds.fm : _odueThresholds.general) || 1;
+        var severe = o.days >= thr * 1.5;
+        var setSel = (!o.sendTo && isChaser) ? '<select class="form-select odue-sendto-sel" data-i="' + i + '" style="font-size:10.5px;padding:3px 6px;max-width:220px" onchange="odueSetSendTo(this)"><option value="">選送往單位…</option></select>' : '';
+        var reqTxt = o.chaseRequested ? String(o.chaseRequested) : '';
+        var reqBadge = reqTxt ? '<span style="font-size:10px;color:#8A4B12;background:#FFF4E5;border-radius:5px;padding:1px 6px">📣 秘書已請行政催 ' + escH(reqTxt.slice(5,10)) + escH(reqTxt.slice(10)) + '</span>' : '';
+        var actionBtns = isChaser
+          ? (followedToday ? '<span style="font-size:10px;color:var(--g)">✅ 今天已跟催</span>' : '')
+            + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="odueCopy(' + i + ')">📋 單筆訊息</button>'
+            + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px" onclick="odueFollowUp(' + i + ')">' + (followedToday ? '再次標記' : '已跟催') + '</button>'
+          : (reqTxt && reqTxt.indexOf(todayStr) === 0 ? '<span style="font-size:10px;color:var(--g)">✅ 今天已請行政</span>'
+            : '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px" onclick="odueRequestChase(' + i + ')">📣 請行政催</button>');
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0 7px 8px;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
+          + '<span style="font-size:9.5px;font-weight:700;color:#fff;background:' + (severe ? '#A32D2D' : '#B26A00') + ';border-radius:5px;padding:1px 6px">逾 ' + o.days + ' 天</span>'
+          + '<span style="font-size:9px;color:var(--text3)">（門檻 ' + thr + ' 天）</span>'
+          + '<b style="color:var(--text)">' + escH(clientName(o.clientId)) + '</b>'
+          + '<span style="color:var(--text2)">' + escH(o.item) + '</span>'
+          + '<span style="color:var(--text3);font-size:10.5px">' + escH(o.sentDate) + ' 送檢</span>'
+          + (o.secretary ? '<span style="font-size:10px;color:var(--text3)">・登記：' + escH(o.secretary) + '</span>' : '')
+          + (o.followedUp && !followedToday ? '<span style="font-size:10px;color:var(--text3)">・上次跟催 ' + escH(String(o.followedUp).slice(0,10)) + '</span>' : '')
+          + reqBadge
+          + '<span style="margin-left:auto;display:flex;gap:5px;align-items:center">'
+          + setSel
+          + actionBtns
+          + '</span></div>';
+      }).join('');
+      return head + rowsHtml;
     }).join('');
+    body.innerHTML = roleNote + html;
+    if(body.querySelector('.odue-sendto-sel')){
+      odueLoadLabOptions(function(opts){
+        body.querySelectorAll('.odue-sendto-sel').forEach(function(sel){
+          sel.innerHTML = '<option value="">選送往單位…</option>' + opts.map(function(n){ return '<option value="' + escH(n) + '">' + escH(n) + '</option>'; }).join('');
+        });
+      });
+    }
+  });
+}
+function odueSetSendTo(sel){
+  var i = parseInt(sel.getAttribute('data-i'), 10); var o = _odueCache[i]; if(!o || !sel.value) return;
+  sel.disabled = true;
+  adminAPIPost({action:'setLabOrderSendTo', src:o.src, row:o.row, sendTo:sel.value}, function(d){
+    if(d && d.status === 'ok' && d.message !== 'API 正在執行'){ toast('✅ 已填送往：' + sel.value); loadOverdueLabs(); }
+    else { sel.disabled = false; toast('⚠️ 沒存成功，請再選一次'); }
+  });
+}
+function odueRequestChase(i){
+  var o = _odueCache[i]; if(!o) return;
+  adminAPIPost({action:'requestLabChase', src:o.src, row:o.row, clientId:o.clientId, clientName:clientName(o.clientId), item:o.item, sendTo:o.sendTo||'', sentDate:o.sentDate, days:o.days,
+    secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
+    if(d && d.status === 'ok' && d.message !== 'API 正在執行'){ toast('📣 已通知行政去催，交接記錄會有一則'); loadOverdueLabs(); if(typeof loadHandover==='function') loadHandover(); }
+    else toast('⚠️ 沒送出，請再按一次');
+  });
+}
+function _odueMsgLine(o){ return '・' + clientName(o.clientId) + '（' + o.clientId + '）「' + o.item + '」，' + o.sentDate + ' 送檢，已 ' + o.days + ' 天'; }
+function odueCopyLab(key){
+  var items = _odueCache.filter(function(o){ return (o.sendTo || '') === key; });
+  if(!items.length) return;
+  var cs = (items[0].contacts && items[0].contacts.length) ? items[0].contacts : [{kind:'送往單位', name:key, person:items[0].contactPerson, info:items[0].contactInfo}];
+  var body = '元代謝這邊跟您確認以下 ' + items.length + ' 筆檢測報告的進度：\n' + items.map(_odueMsgLine).join('\n') + '\n麻煩幫忙查詢一下，謝謝！';
+  // 要催兩個單位時，各出一則（開頭稱呼不同），用分隔線隔開，秘書複製後分別貼給兩邊
+  var msgs = cs.map(function(c){ return '【給 ' + c.name + '】\n' + (c.person ? c.person + '您好' : c.name + ' 您好') + '，' + body; });
+  copyText(msgs.join('\n\n────────\n\n'), '催收訊息' + (msgs.length > 1 ? '（' + msgs.length + ' 則）' : ''));
+}
+function odueFollowUpLab(key){
+  var items = _odueCache.filter(function(o){ return (o.sendTo || '') === key; });
+  if(!items.length) return;
+  var left = items.length;
+  items.forEach(function(o){
+    adminAPIPost({action:'markLabFollowUp', row:o.row, src:o.src, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(){ if(--left === 0){ toast('✅ 已標記這家 ' + items.length + ' 筆今天跟催過'); loadOverdueLabs(); } });
   });
 }
 var _odueThresholds = {general:5, fm:12};
@@ -13054,6 +13249,25 @@ var ROLE_PAGES = {
 // 純顯示用的說明文字，不影響任何實際權限判斷（權限一律看ROLE_PAGES／後端）。
 // 2026-09-08d改成陣列（管理人反映一整句話擠在側欄很昏，看不清楚）——每個身分列出幾個短短的
 // 能力關鍵字，前端會拆成一個一個色塊小標籤呈現，取代原本一大串逗號分隔的長句子
+// 2026-10-02：各角色在儀表板看得到的卡片（id）與統計按鈕（標籤）。管理人／老闆／創始人＝全部，不列。
+// 秘書：客人第一線，幾乎全部；行政：排班、預約、檢測催收、出貨、心得、生日；會計／財務主管：只有交接留言（給財務的）、
+// 待核查、餘額異常、服務中；醫師：個案討論、醫師交辦、症狀警示。
+var DASH_CARDS_BY_ROLE = {
+  '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','birthday-card','award-card','norecord-card'],
+  '行政': ['dash-clock-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card'],
+  '會計': ['handover-card'],
+  '財務主管': ['handover-card'],
+  '醫師': ['handover-card','disc-card','dxtask-card','alert-card'],
+  '教練': []
+};
+var DASH_STATS_BY_ROLE = {
+  '秘書': ['服務中','今日已記錄','飲食求助','互動信箱','待處理出貨','餘額異常'],
+  '行政': ['服務中','待處理出貨'],
+  '會計': ['服務中','待核查','餘額異常'],
+  '財務主管': ['服務中','待核查','餘額異常'],
+  '醫師': ['服務中'],
+  '教練': []
+};
 var ROLE_DESC = {
   '管理人': ['全系統管理', '帳號與權限設定'],
   '秘書': ['排班交接', '每日記錄', '提醒與客人互動'],
@@ -13173,6 +13387,13 @@ function doLogin(){
 function applyPermissions(){
   if(!CURRENT_USER) return;
   var allowed = ROLE_PAGES[CURRENT_USER.role];
+  // 2026-10-02 修：以前「角色名稱查不到」（例如帳號管理裡角色打成「主管」「財務」或多了空白）會被當成「沒有限制」，
+  // 整個選單全部打開——創始人用「測試主管」帳號讓財務同仁登入，看到全部頁面，就是這個原因之一。
+  // 改成預設拒絕：查不到的角色只給儀表板＋客戶管理（唯讀），並明顯提示請管理人到帳號管理修正角色名稱。
+  if(allowed === undefined){
+    allowed = ['dashboard','clients'];
+    setTimeout(function(){ toast('⚠️ 這個帳號的角色「' + (CURRENT_USER.role||'（空白）') + '」系統不認得，只開放基本頁面。請管理人到「帳號管理」把角色改成：管理人／秘書／行政／會計／財務主管／醫師／教練 其中之一'); }, 800);
+  }
   // 👑 創辦人手冊入口只給管理人/老闆看（2026-08-30：功能太多，給經營者一頁看懂的地圖）
   var fmlLink = document.getElementById('founder-manual-link');
   if(fmlLink) fmlLink.style.display = (CURRENT_USER.role==='管理人'||CURRENT_USER.role==='老闆'||CURRENT_USER.role==='創始人') ? '' : 'none';
@@ -13257,6 +13478,16 @@ function applyPermissions(){
   if(_supHint) _supHint.style.display = _price ? 'none' : '';
   if(allowed === null) return; // 管理人／老闆看全部
   var extra = (CURRENT_USER.extraPages || []);
+  // 2026-10-02 新增：儀表板卡片依角色收斂。創始人反映「財務人員看得到全部的項目」——以前儀表板對每個角色都長一樣，
+  // 會計看到飲食求助、未回答問題、檢測逾期這些跟他無關的卡片。現在每個角色只留跟自己工作有關的卡片與統計按鈕；
+  // 不在清單裡的卡片直接從畫面移除（對應的載入函式找不到卡片就不會去打後端，省時間也省流量）。
+  // 管理人／老闆／創始人不受影響（上面已經 return）。
+  var _dc = DASH_CARDS_BY_ROLE[CURRENT_USER.role];
+  if(Array.isArray(_dc)){
+    document.querySelectorAll('#pg-dashboard .card[id]').forEach(function(c){
+      if(_dc.indexOf(c.id) < 0) c.parentNode.removeChild(c);
+    });
+  }
   // 2026-10-01：儀表板最上面的打卡條只給有「排班交接」頁權限的角色（秘書／行政／管理層）看，
   // 會計、財務主管、醫師不用在這套系統打卡，不要讓他們看到一條不相干的按鈕
   var _dashClock = document.getElementById('dash-clock-card');
