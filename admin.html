@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-02c';
+var MX_BUILD = '2026-10-02d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -381,8 +381,8 @@ var MX_BUILD = '2026-10-02c';
 <div class="topbar">
   <div class="tb-title" id="page-title">儀表板</div>
   <div class="tb-duty"><div class="duty-dot"></div><span id="duty-label">值班：（點右側切換值班設定）</span></div>
-  <button class="tb-btn" onclick="switchDuty()"><i class="ti ti-arrows-exchange" style="font-size:14px"></i>切換值班</button>
-  <button class="tb-btn" onclick="genWeeklyBroadcast()"><i class="ti ti-send" style="font-size:14px"></i>發週報</button>
+  <button class="tb-btn" id="tb-duty-btn" onclick="switchDuty()"><i class="ti ti-arrows-exchange" style="font-size:14px"></i>切換值班</button>
+  <button class="tb-btn" id="tb-weekly-btn" onclick="genWeeklyBroadcast()"><i class="ti ti-send" style="font-size:14px"></i>發週報</button>
   <button class="tb-btn g" onclick="refreshCurrentPage()"><i class="ti ti-refresh" style="font-size:14px"></i>重新整理</button>
 </div>
 
@@ -404,6 +404,17 @@ var MX_BUILD = '2026-10-02c';
             <button onclick="doClockIn()" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🟢 上班打卡</button>
             <button onclick="doClockOut()" style="background:#8A6A1F;color:#fff;border:none;border-radius:9px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🔴 下班打卡</button>
           </div>
+        </div>
+      </div>
+      <!-- 💰 2026-10-02b：財務角色（會計／財務主管）的儀表板收斂後幾乎是空的，放一張快捷卡，三顆按鈕直接到他們的工作頁 -->
+      <div class="card" id="finance-quick-card" style="margin-bottom:14px;display:none;border:1.5px solid #1A6B3C;background:#F2FAF5">
+        <div class="card-body" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px">
+          <div style="font-size:13px;font-weight:700;color:#1A6B3C">💰 財務工作區</div>
+          <button class="ai-btn g" style="font-size:12px;padding:8px 14px" onclick="goPg('review')">🧾 會計核查（待核查）</button>
+          <button class="ai-btn b" style="font-size:12px;padding:8px 14px" onclick="goPg('stored-value')">💳 儲值消費／餘額</button>
+          <button class="ai-btn b" style="font-size:12px;padding:8px 14px" onclick="goPg('settlement')">📊 月結算</button>
+          <button class="ai-btn gray" style="font-size:12px;padding:8px 14px" onclick="goPg('roles')">🤝 分帳角色名單</button>
+          <span style="font-size:11px;color:var(--text3)">上方按鈕列的「待核查」「餘額異常」數字會告訴你今天有沒有要處理的。</span>
         </div>
       </div>
       <!-- 🔗 合併快速導覽列：提醒卡片（有內容才顯示）＋ 常駐統計，全部可點擊跳轉（2026-08-26）-->
@@ -544,7 +555,7 @@ var MX_BUILD = '2026-10-02c';
       </div>
 
       <!-- 今日客人記錄 -->
-      <div class="card" style="margin-bottom:14px">
+      <div class="card" id="today-records-card" style="margin-bottom:14px">
         <div class="card-hd">
           <div class="card-title"><i class="ti ti-activity"></i>今日客人記錄</div>
           <button class="tb-btn g" onclick="loadTodayRecords()"><i class="ti ti-refresh" style="font-size:14px"></i>重新整理</button>
@@ -556,20 +567,20 @@ var MX_BUILD = '2026-10-02c';
         </div>
       </div>
 
-  <div class="stat-grid">
+  <div class="stat-grid" id="dash-stat-grid">
     <div class="stat"><div class="stat-label">服務中客人</div><div class="stat-val" id="dash-stat-clients">–</div><div class="stat-sub info">來自客人名單</div></div>
     <div class="stat"><div class="stat-label">今日已填記錄</div><div class="stat-val" id="dash-stat-today">–</div><div class="stat-sub up" id="dash-stat-today-sub">–</div></div>
     <div class="stat"><div class="stat-label">需要關心</div><div class="stat-val" style="color:#A32D2D" id="dash-stat-alerts">–</div><div class="stat-sub warn">由每日記錄自動判斷</div></div>
     <div class="stat"><div class="stat-label">狀態正常</div><div class="stat-val" style="color:#0F6E56" id="dash-stat-normal">–</div><div class="stat-sub up">無需操作</div></div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-    <div class="card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" id="dash-two-col">
+    <div class="card" id="dash-alerts-card">
       <div class="card-hd"><div class="card-title"><i class="ti ti-bell"></i>今日需要關心</div><span class="badge r" id="dash-alert-badge">–</span></div>
       <div class="card-body" id="dash-alerts">
         <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">載入中…</div>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="dash-clients-card">
       <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>客人最新狀態</div><button class="tb-btn" style="font-size:11px" onclick="goPg('clients',document.querySelectorAll('.si')[1])">全部查看</button></div>
       <div class="card-body" id="dash-clients">
         <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">載入中…</div>
@@ -13253,11 +13264,11 @@ var ROLE_PAGES = {
 // 秘書：客人第一線，幾乎全部；行政：排班、預約、檢測催收、出貨、心得、生日；會計／財務主管：只有交接留言（給財務的）、
 // 待核查、餘額異常、服務中；醫師：個案討論、醫師交辦、症狀警示。
 var DASH_CARDS_BY_ROLE = {
-  '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','birthday-card','award-card','norecord-card'],
-  '行政': ['dash-clock-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card'],
-  '會計': ['handover-card'],
-  '財務主管': ['handover-card'],
-  '醫師': ['handover-card','disc-card','dxtask-card','alert-card'],
+  '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','birthday-card','award-card','norecord-card','today-records-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
+  '行政': ['dash-clock-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card','dash-clients-card'],
+  '會計': ['finance-quick-card','handover-card'],
+  '財務主管': ['finance-quick-card','handover-card'],
+  '醫師': ['handover-card','disc-card','dxtask-card','alert-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
   '教練': []
 };
 var DASH_STATS_BY_ROLE = {
@@ -13484,9 +13495,16 @@ function applyPermissions(){
   // 管理人／老闆／創始人不受影響（上面已經 return）。
   var _dc = DASH_CARDS_BY_ROLE[CURRENT_USER.role];
   if(Array.isArray(_dc)){
-    document.querySelectorAll('#pg-dashboard .card[id]').forEach(function(c){
+    document.querySelectorAll('#pg-dashboard .card[id], #pg-dashboard #dash-stat-grid').forEach(function(c){
       if(_dc.indexOf(c.id) < 0) c.parentNode.removeChild(c);
     });
+    var _fq = document.getElementById('finance-quick-card'); if(_fq) _fq.style.display = '';
+    var _twoCol = document.getElementById('dash-two-col');
+    if(_twoCol && !_twoCol.querySelector('.card')) _twoCol.parentNode.removeChild(_twoCol);
+    // 2026-10-02b 補：值班切換／發週報是秘書的事，財務、醫師不該看到這兩顆（創始人用財務主管帳號登入時指出）
+    var _isDutyRole = (typeof mxIsDutyAdmin === 'function' && mxIsDutyAdmin()) || CURRENT_USER.role === '秘書';
+    ['tb-duty-btn','tb-weekly-btn'].forEach(function(id){ var b = document.getElementById(id); if(b && !_isDutyRole) b.style.display = 'none'; });
+    var _dutyLbl = document.querySelector('.tb-duty'); if(_dutyLbl && !_isDutyRole) _dutyLbl.style.display = 'none';
   }
   // 2026-10-01：儀表板最上面的打卡條只給有「排班交接」頁權限的角色（秘書／行政／管理層）看，
   // 會計、財務主管、醫師不用在這套系統打卡，不要讓他們看到一條不相干的按鈕
@@ -13497,6 +13515,11 @@ function applyPermissions(){
     var oc = nav.getAttribute('onclick') || '';
     var m = oc.match(/goPg\('([\w-]+)'/);
     if(m && Array.isArray(allowed)){ var pg = m[1]; if(allowed.indexOf(pg) < 0 && extra.indexOf(pg) < 0){ nav.style.display='none'; } }
+  });
+  // 2026-10-02b 補：整組都被藏起來的側欄分類（例如財務看到空的「檢測與診所」「內容與知識庫」標題）一併隱藏
+  document.querySelectorAll('.sb-cat').forEach(function(cat){
+    var anyVisible = Array.prototype.some.call(cat.querySelectorAll('.nav-item'), function(n){ return n.style.display !== 'none'; });
+    if(!anyVisible) cat.style.display = 'none';
   });
   // 若目前显示的分页不允许，跳到 dashboard（2026-09-23c：這個角色沒有儀表板的話，改跳到它允許的第一頁，例如教練→客戶管理）
   setTimeout(function(){
