@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-02d';
+var MX_BUILD = '2026-10-03';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7644,12 +7644,13 @@ function _pickedGift(el){
 // ── 💌 傳訊息給客人（專注撰寫視窗；重用 _quickReplyUI 的罐頭句＋小圖案機制）──
 var _composeTypes = {
   meal:    { label: '🍽 飲食建議', set: 'MEAL_REPLY_TEMPLATES',    prefix: '🍽 飲食建議：' },
+  remind:  { label: '📝 提醒記錄', set: 'REMIND_TEMPLATES',        prefix: '📝 秘書提醒：' },
   care:    { label: '💛 關心問候', set: 'MOOD_REPLY_TEMPLATES',    prefix: '💛 秘書的關心：' },
   service: { label: '🛍 服務介紹', set: 'SVC_REPLY_TEMPLATES',     prefix: '🛍 服務介紹：' }
 };
-function openCompose(cid, cname){
+function openCompose(cid, cname, startType){
   var old = document.getElementById('compose-modal'); if(old) old.remove();
-  window._composeCid = cid; window._composeType = 'meal';
+  window._composeCid = cid; window._composeType = (startType && _composeTypes[startType]) ? startType : 'meal';
   var m = document.createElement('div');
   m.id = 'compose-modal';
   m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999999;display:flex;align-items:center;justify-content:center;padding:14px';
@@ -7667,7 +7668,7 @@ function openCompose(cid, cname){
     + '<button class="btn-g" style="width:100%;padding:11px;font-size:13.5px;margin-top:9px" onclick="composeSend(this)">💌 送出給客人</button>'
     + '</div>';
   document.body.appendChild(m);
-  composePickType('meal');
+  composePickType(window._composeType);
 }
 function composePickType(k){
   window._composeType = k;
@@ -7795,12 +7796,17 @@ var MEAL_REPLY_TEMPLATES = [
   '建議進食順序：先喝湯或吃菜、再吃蛋白質、最後才吃碳水，血糖會更穩。',
   '您這幾天流汗或飲水量較多，記得補充電解質，避免頭暈、無力。',
   '低碳飲食容易流失鈉離子，記得同時補充電解質＋鹽，才不會不舒服。',
-  '如果有便秘或口渴的狀況，記得補充一點鹽分就會改善，這是很常見的情況，不用擔心 🙂',
-  // 2026-10-01 新增：創始人反映清單裡「沒有提醒客人要記得記錄的選項」——這組常用回覆同時用在飲食求助回覆
-  // 和「傳訊息給客人」，補三句催記錄的，秘書看到「今日沒記錄」名單就能一鍵提醒
+  '如果有便秘或口渴的狀況，記得補充一點鹽分就會改善，這是很常見的情況，不用擔心 🙂'
+];
+// 2026-10-03 新增：「提醒記錄」獨立一組（創始人問「今日沒記錄的提醒在哪讓秘書選？」——10-01 先塞在飲食建議清單最後面，
+// 秘書找不到）。現在「傳訊息給客人」視窗多一個「📝 提醒記錄」分頁，儀表板「今日沒記錄」「今日需要關心」名單每筆也有「傳提醒」直達
+var REMIND_TEMPLATES = [
   '今天還沒看到您的飲食記錄，有空的時候記得補一下，秘書才能幫您看哦 🙂',
   '這幾天的記錄少了一些，記錄是進步最好的證明，明天開始再接著記起來吧 💪',
-  '提醒您今天記得量血酮／體重並填進記錄，連續記才看得出趨勢 📈'
+  '提醒您今天記得量血酮／體重並填進記錄，連續記才看得出趨勢 📈',
+  '歡迎加入！第一步很簡單：今天先記一餐＋量一次體重就好，秘書會陪著您一起看 🌱',
+  '好幾天沒看到您的記錄了，是不是最近比較忙？不用全部補，從今天這一餐開始就好 😊',
+  '記錄不是考試，少記幾天沒關係，重新開始就是進步。今天先記一筆吧！'
 ];
 function _mealReplyUI(uid){
   return '<div class="mr-wrap" style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
@@ -8960,7 +8966,8 @@ function loadNoRecordClients(){
         + '<span style="font-size:11px;font-weight:700;color:#8A6D1A;background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ci + 1) + '</span>'
         + '<b style="color:var(--text)">'+escH(c.name||c.clientId)+'</b>'
         + '<span style="font-size:10px;color:var(--text3)">'+escH(c.clientId)+(c.lastRecordDate?'・上次記錄 '+escH(c.lastRecordDate):'・還沒有任何記錄')+'</span>'
-        + '<button class="tb-btn" style="font-size:10.5px;padding:3px 9px;margin-left:auto" onclick="openClientDetail(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\')">開啟</button>'
+        + '<button class="ai-btn g" style="font-size:10.5px;padding:3px 9px;margin-left:auto" onclick="openCompose(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\',\'remind\')">💌 傳提醒</button>'
+        + '<button class="tb-btn" style="font-size:10.5px;padding:3px 9px" onclick="openClientDetail(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\')">開啟</button>'
         + '</div>';
     }).join('');
   });
@@ -9442,6 +9449,9 @@ function alertCardHTML(a, idx){
   var icon = lv==='r' ? 'alert-circle' : 'chart-line';
   var btns = '';
   btns += '<button class="ai-btn '+lv+'" onclick="callClientAlert('+idx+')">電話關心</button>';
+  // 2026-10-03：直接從系統傳訊息給客人（未填／從未記錄 → 開「提醒記錄」分頁；其他 → 開「關心問候」分頁），不用再手動複製貼到 LINE
+  var _isNoRec = (String(a.type||'').indexOf('未填')>=0 || String(a.type||'').indexOf('從未')>=0);
+  btns += '<button class="ai-btn g" onclick="openCompose(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\',\''+(_isNoRec?'remind':'care')+'\')">'+(_isNoRec?'💌 傳提醒':'💌 傳關心')+'</button>';
   btns += '<button class="ai-btn gray" onclick="copyAlertMsg('+idx+')">複製訊息</button>';
   btns += '<button class="ai-btn gray" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name)+'\')">查看記錄</button>';
   btns += '<button class="ai-btn gray" onclick="resolveAlertUI(this,'+idx+')">標記處理中</button>';
