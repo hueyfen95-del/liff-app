@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-03';
+var MX_BUILD = '2026-10-03b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -9670,7 +9670,7 @@ function saveClientForm(btn){
       document.getElementById('new-cl-active').checked = false;
       document.getElementById('add-client-form').classList.remove('on');
       _clientsCache=null; loadClientsPage();
-    } else toast('⚠️ 新增失敗，請重試');
+    } else toast('⚠️ ' + ((d && d.message) || '新增失敗，請重試')); // 2026-10-03：把後端的原因顯示出來（例如客人編號已被使用）
   });
 }
 function exportClientsCSV(){
