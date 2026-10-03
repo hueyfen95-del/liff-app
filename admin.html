@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-03b';
+var MX_BUILD = '2026-10-03c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7926,7 +7926,7 @@ function loadUnknownQuestions(){
       } else {
         box += '<div style="display:flex;gap:6px">'
           + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="approveUnknownQuestion(' + i + ')">✍️ 輸入答案並加入QA</button>'
-          + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已用LINE回覆，標記完成</button>'
+          + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已另外回覆，標記完成</button>'
           + '</div>';
       }
       // 2026-08-30（管理人）：回覆QA時能直接搜部落格/Podcast有沒有相關文章，找到就一鍵傳給客人
@@ -8037,7 +8037,14 @@ function unqSendArticle(i, j){
   adminAPIPost({action:'sendGift', clientId:q.clientId, giftType: uaGift || 'message',
     message:'📚 關於你問的「' + q.question + '」，秘書推薦你看：\n《' + a.title + '》\n' + a.link,
     secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
-    if(d && d.status==='ok') toast('💌 文章已傳給 ' + q.clientId + '，客人前台鈴鐺會亮紅點');
+    if(d && d.status==='ok' && d.message !== 'API 正在執行'){
+      // 2026-10-03：創始人問「傳給客人的下一步是什麼？」——以前傳完文章這題還留在清單上，要再按一次「標記完成」才會消失。
+      // 傳文章本身就是回覆了，直接把這題結案（標記已處理），清單上消失、數字減一；客人要追問會再出現一題新的。
+      adminAPIPost({ action: 'dismissUnknown', row: q.row }, function(d2){
+        if(d2 && d2.status === 'ok'){ toast('💌 文章已傳給 ' + clientName(q.clientId) + '，這題已結案'); loadUnknownQuestions(); }
+        else toast('💌 文章已傳出，但沒能自動結案，請按「標記完成」');
+      });
+    }
     else toast('⚠️ 傳送失敗，請重試');
   });
 }
