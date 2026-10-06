@@ -161,6 +161,8 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 .fs-slot-invite{background:transparent;border:1px dashed #C9A227;color:#8A6A1F;cursor:pointer}
 .fs-slot-invite:hover{background:#FCF3D9}
 .fs-slot-muted{background:var(--bg);border:1px solid var(--border2);color:var(--text3);cursor:default}
+.fs-slot-sel{background:#F5C518 !important;border:1px solid #C9A227 !important;color:#3B2F00 !important}
+.fs-multi-on .fs-slot-open,.fs-multi-on .fs-slot-invite{cursor:cell}
 #fs-invite-pop .fs-inv-item{padding:7px 9px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--text)}
 #fs-invite-pop .fs-inv-item:hover{background:var(--bg)}
 #fs-invite-pop .fs-inv-cancel{margin-top:4px;text-align:center;font-size:11px;color:var(--text3);cursor:pointer;padding:5px 0}
@@ -253,7 +255,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-06b';
+var MX_BUILD = '2026-10-06c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -850,6 +852,16 @@ var MX_BUILD = '2026-10-06b';
       </div>
     </div>
     <div class="card-body">
+      <!-- 2026-10-06新增：多選模式——創辦人說「選一天一個時段要按一次，很複雜，能否在班表裡面點，這樣就排好了」。
+           開了多選，點空格只是先打勾（黃色），點好幾格再按一次「排入」整批送出；管理者／行政可先選「幫誰排」。 -->
+      <div id="fs-multi-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;background:#FFFBEA;border:1px solid #F1DFA0;border-radius:8px;padding:7px 10px">
+        <button class="tb-btn" id="fs-multi-btn" style="font-size:11.5px;padding:5px 11px;font-weight:700" onclick="fsToggleMulti()">☑️ 多選模式：關</button>
+        <span id="fs-multi-who-wrap" style="display:none;font-size:11.5px;color:var(--text2);align-items:center;gap:5px">幫誰排：<select id="fs-multi-who" class="form-select" style="font-size:11.5px;width:auto;padding:4px 8px"></select></span>
+        <span id="fs-multi-hint" style="font-size:11px;color:var(--text3)">開啟後在月曆上點空的時段，點好幾格再一次排入，不用一格一格按。</span>
+        <span id="fs-multi-count" style="display:none;font-size:11.5px;font-weight:700;color:#8A6A1F">已選 0 班</span>
+        <button class="ai-btn g" id="fs-multi-submit" style="display:none;font-size:11.5px;padding:5px 12px;font-weight:700" onclick="fsSubmitMulti(this)">✅ 一次排入</button>
+        <button class="tb-btn" id="fs-multi-clear" style="display:none;font-size:11px;padding:5px 9px" onclick="fsClearMulti()">清除</button>
+      </div>
       <div id="full-sched-legend" style="font-size:11px;color:var(--text3);margin-bottom:8px;background:var(--bg);border-radius:7px;padding:6px 9px;line-height:1.6"></div>
       <div id="full-sched-summary" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
       <div id="full-sched-gaps" style="display:none;font-size:11.5px;color:#A32D2D;background:#FBEAEA;border:1px solid #F0C0B0;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.7"></div>
@@ -883,7 +895,14 @@ var MX_BUILD = '2026-10-06b';
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="duty-secretary" class="form-select" style="font-size:12px" onchange="loadSecretaryPayInfo()"><option value="">選擇秘書…</option></select>
-        <input id="duty-date" type="date" class="form-input" style="font-size:12px">
+        <input id="duty-date" type="date" class="form-input" style="font-size:12px" title="開始日期（只排一天就只填這格）">
+        <!-- 2026-10-06新增：填「排到」就會把區間裡勾選的星期全部排進去，一次新增好幾天 -->
+        <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--text2);background:#FFFBEA;border:1px solid #F1DFA0;border-radius:8px;padding:6px 9px">
+          <span>📆 一次排好幾天：排到</span><input id="duty-date-end" type="date" class="form-input" style="font-size:12px;width:auto;padding:4px 8px" onchange="dutyBatchPreview()">
+          <span>每週的</span>
+          <label><input type="checkbox" class="duty-wd" value="1" checked onchange="dutyBatchPreview()">一</label><label><input type="checkbox" class="duty-wd" value="2" checked onchange="dutyBatchPreview()">二</label><label><input type="checkbox" class="duty-wd" value="3" checked onchange="dutyBatchPreview()">三</label><label><input type="checkbox" class="duty-wd" value="4" checked onchange="dutyBatchPreview()">四</label><label><input type="checkbox" class="duty-wd" value="5" checked onchange="dutyBatchPreview()">五</label><label><input type="checkbox" class="duty-wd" value="6" checked onchange="dutyBatchPreview()">六</label><label><input type="checkbox" class="duty-wd" value="0" checked onchange="dutyBatchPreview()">日</label>
+          <span id="duty-batch-preview" style="color:var(--text3)">（不填「排到」就只排上面那一天）</span>
+        </div>
         <select id="duty-shift" class="form-select" style="font-size:12px" onchange="dutyShiftPresetChange()">
           <option value="">選擇班別…</option>
           <option value="上午">上午班・早餐（07:00–11:00）</option>
@@ -5109,10 +5128,12 @@ function loadFullSchedule(){
         if(isPast){
           return '<span class="fs-slot fs-slot-muted" title="已過期">'+sd.key.slice(0,1)+'</span>';
         }
+        // 2026-10-06：多選模式開著時，點空格只是先打勾，點好幾格再一次送出（fsSlotClick 判斷）
+        var selCls = (window._fsMultiSel && window._fsMultiSel[dateStr+'|'+sd.key]) ? ' fs-slot-sel' : '';
         if(isFullView){
-          return '<span class="fs-slot fs-slot-invite" title="邀請秘書排'+escH(sd.label)+'班" onclick="openInvitePopover(\''+dateStr+'\',\''+sd.key+'\',this)">👑</span>';
+          return '<span class="fs-slot fs-slot-invite'+selCls+'" data-date="'+dateStr+'" data-slot="'+sd.key+'" title="邀請秘書排'+escH(sd.label)+'班" onclick="fsSlotClick(\''+dateStr+'\',\''+sd.key+'\',this,true)">'+(selCls?'✔':'👑')+'</span>';
         }
-        return '<span class="fs-slot fs-slot-open" title="登記'+escH(sd.label)+'班" onclick="claimSlot(\''+dateStr+'\',\''+sd.key+'\',this)">'+sd.key.slice(0,1)+'</span>';
+        return '<span class="fs-slot fs-slot-open'+selCls+'" data-date="'+dateStr+'" data-slot="'+sd.key+'" title="登記'+escH(sd.label)+'班" onclick="fsSlotClick(\''+dateStr+'\',\''+sd.key+'\',this,false)">'+(selCls?'✔':sd.key.slice(0,1))+'</span>';
       }).join('');
       var openSlots = DUTY_SLOTS.filter(function(sd){ return !takenSlots[dateStr+'|'+sd.key]; });
       var allOpen = openSlots.length === DUTY_SLOTS.length;
@@ -5155,6 +5176,69 @@ function loadFullSchedule(){
 // 2026-09-15第二次重新設計：秘書自己點「⚪登記OO班」——不用等管理人確認，送出當下後端就用鎖檢查是否還沒被
 // 登記走、有沒有超過這個月的上限，第一個送到的人立刻變成正式排班。結果馬上用toast告訴你成功/已經被登記走了/
 // 額滿了，不會像舊版「確認排班」那樣只是把表單帶出來、按了以後不知道跑到哪裡去。
+// ══════ 2026-10-06 多選模式 ══════
+window._fsMulti = false; window._fsMultiSel = {};
+function fsSlotClick(dateStr, slotKey, el, isAdminView){
+  if(!window._fsMulti){
+    if(isAdminView) openInvitePopover(dateStr, slotKey, el); else claimSlot(dateStr, slotKey, el);
+    return;
+  }
+  var k = dateStr+'|'+slotKey;
+  if(window._fsMultiSel[k]){ delete window._fsMultiSel[k]; el.classList.remove('fs-slot-sel'); el.textContent = isAdminView ? '👑' : slotKey.slice(0,1); }
+  else { window._fsMultiSel[k] = {date:dateStr, slotKey:slotKey}; el.classList.add('fs-slot-sel'); el.textContent = '✔'; }
+  fsUpdateMultiBar();
+}
+function fsToggleMulti(){
+  window._fsMulti = !window._fsMulti;
+  var grid = document.getElementById('full-sched-grid');
+  if(grid) grid.classList.toggle('fs-multi-on', window._fsMulti);
+  var btn = document.getElementById('fs-multi-btn');
+  if(btn){ btn.textContent = window._fsMulti ? '☑️ 多選模式：開' : '☑️ 多選模式：關'; btn.style.background = window._fsMulti ? 'var(--g)' : ''; btn.style.color = window._fsMulti ? '#fff' : ''; btn.style.borderColor = window._fsMulti ? 'var(--g)' : ''; }
+  var whoWrap = document.getElementById('fs-multi-who-wrap');
+  if(whoWrap){
+    var isAdmin = mxIsDutyAdmin();
+    whoWrap.style.display = (window._fsMulti && isAdmin) ? 'inline-flex' : 'none';
+    if(window._fsMulti && isAdmin){
+      var who = document.getElementById('fs-multi-who');
+      var names = (_dutySecretaryAccounts || []).map(function(a){ return a.name; }).filter(function(v, i, arr){ return v && arr.indexOf(v) === i; });
+      var me = (CURRENT_USER && CURRENT_USER.name) || '';
+      if(who){ who.innerHTML = names.map(function(n){ return '<option value="'+escH(n)+'"'+(n===me?' selected':'')+'>'+escH(n)+'</option>'; }).join(''); }
+    }
+  }
+  var hint = document.getElementById('fs-multi-hint');
+  if(hint) hint.textContent = window._fsMulti ? '點月曆上空的時段打勾（再點一次取消），選完按「一次排入」。' : '開啟後在月曆上點空的時段，點好幾格再一次排入，不用一格一格按。';
+  if(!window._fsMulti){ window._fsMultiSel = {}; loadFullSchedule(); }
+  fsUpdateMultiBar();
+}
+function fsUpdateMultiBar(){
+  var n = Object.keys(window._fsMultiSel||{}).length;
+  var show = window._fsMulti ? '' : 'none';
+  var c = document.getElementById('fs-multi-count'); if(c){ c.style.display = show; c.textContent = '已選 '+n+' 班'; }
+  var s = document.getElementById('fs-multi-submit'); if(s){ s.style.display = (window._fsMulti && n>0) ? '' : 'none'; s.textContent = '✅ 一次排入 '+n+' 班'; }
+  var cl = document.getElementById('fs-multi-clear'); if(cl) cl.style.display = (window._fsMulti && n>0) ? '' : 'none';
+}
+function fsClearMulti(){ window._fsMultiSel = {}; loadFullSchedule(); fsUpdateMultiBar(); }
+function fsSubmitMulti(btn){
+  var items = Object.keys(window._fsMultiSel||{}).map(function(k){ return window._fsMultiSel[k]; });
+  if(items.length===0){ toast('還沒選任何班'); return; }
+  var who = document.getElementById('fs-multi-who');
+  var sec = (mxIsDutyAdmin() && who && who.value) ? who.value : ((CURRENT_USER && CURRENT_USER.name) || '');
+  if(!confirm('要把這 '+items.length+' 班排給「'+sec+'」嗎？')) return;
+  if(btn){ btn.disabled = true; btn.style.opacity = '.5'; }
+  adminAPIPost({action:'addShiftBatch', secretary:sec, items:JSON.stringify(items)}, function(d){
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+    if(d && d.status==='ok'){
+      var added = (d.added||[]).length, skipped = d.skipped||[];
+      var msg = '✅ 已排入 '+added+' 班';
+      if(skipped.length){ msg += '；'+skipped.length+' 班沒排：'+skipped.map(function(s){ return s.date.slice(5).replace('-','/')+' '+s.slotKey+'（'+s.reason+'）'; }).join('、'); }
+      toast(msg);
+      window._fsMultiSel = {};
+      loadFullSchedule(); fsUpdateMultiBar();
+      if(typeof loadShiftSchedule==='function') loadShiftSchedule();
+      if(typeof refreshSidebarBadges==='function') refreshSidebarBadges();
+    } else toast('⚠️ 排班失敗：'+((d&&d.message)||'請重試'));
+  });
+}
 function claimSlot(dateStr, slotKey, el){
   if(el){ el.style.opacity = '.4'; el.style.pointerEvents = 'none'; }
   adminAPIPost({action:'claimShift', date:dateStr, slotKey:slotKey}, function(d){
@@ -5306,6 +5390,25 @@ function dutyShiftPresetChange(){
     if(endSel) endSel.value = '';
   }
 }
+// 2026-10-06：「新增排班記錄」一次排好幾天——從開始日期到「排到」，只取勾選的星期
+function dutyBatchDates(){
+  var s = document.getElementById('duty-date').value, e = document.getElementById('duty-date-end').value;
+  if(!s || !e || e < s) return [];
+  var wds = {}; document.querySelectorAll('.duty-wd:checked').forEach(function(cb){ wds[cb.value] = true; });
+  var out = [], cur = new Date(s+'T00:00:00'), end = new Date(e+'T00:00:00'), guard = 0;
+  while(cur <= end && guard++ < 120){
+    if(wds[String(cur.getDay())]) out.push(cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0'));
+    cur.setDate(cur.getDate()+1);
+  }
+  return out;
+}
+function dutyBatchPreview(){
+  var p = document.getElementById('duty-batch-preview'); if(!p) return;
+  var e = document.getElementById('duty-date-end').value;
+  if(!e){ p.textContent = '（不填「排到」就只排上面那一天）'; return; }
+  var ds = dutyBatchDates();
+  p.textContent = ds.length ? ('→ 會排 '+ds.length+' 天：'+ds.map(function(x){return x.slice(5).replace('-','/');}).join('、')) : '→ 區間裡沒有符合的日期（開始日期要先填、排到不能早於開始）';
+}
 function submitShift(btn){
   var secretary = document.getElementById('duty-secretary').value.trim();
   if(!secretary){ toast('請選擇秘書'); return; }
@@ -5324,6 +5427,26 @@ function submitShift(btn){
   var startTime = document.getElementById('duty-start').value;
   var endTime = document.getElementById('duty-end').value;
   if(!startTime || !endTime){ toast('請選擇上下班時間'); return; }
+  // 2026-10-06：有填「排到」就走批次（只支援三個固定班別；自訂班別請一天一天新增）
+  var endDateEl = document.getElementById('duty-date-end');
+  if(endDateEl && endDateEl.value){
+    if(shiftSel === '其他'){ toast('自訂班別不能批次，請把「排到」清掉、一天一天新增'); return; }
+    var dates = dutyBatchDates();
+    if(dates.length===0){ toast('區間裡沒有符合勾選星期的日期'); return; }
+    if(!confirm('要把 '+secretary+' 的「'+shiftLabel+'」排進這 '+dates.length+' 天嗎？\n'+dates.map(function(x){return x.slice(5).replace('-','/');}).join('、'))) return;
+    if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
+    adminAPIPost({action:'addShiftBatch', secretary:secretary, items:JSON.stringify(dates.map(function(x){ return {date:x, slotKey:shiftSel}; })), note:document.getElementById('duty-note').value}, function(d){
+      if(btn){ btn.disabled=false; btn.style.opacity=''; }
+      if(d && d.status==='ok'){
+        var added=(d.added||[]).length, skipped=d.skipped||[];
+        toast('✅ 已排入 '+added+' 班'+(skipped.length?('；'+skipped.length+' 班沒排：'+skipped.map(function(s){ return s.date.slice(5).replace('-','/')+'（'+s.reason+'）'; }).join('、')):''));
+        endDateEl.value=''; dutyBatchPreview();
+        if(typeof loadShiftSchedule==='function') loadShiftSchedule();
+        if(typeof loadFullSchedule==='function') loadFullSchedule();
+      } else toast('⚠️ 儲存失敗：'+((d&&d.message)||'請重試'));
+    });
+    return;
+  }
   // 2026-09-09補：薪資類型/金額改由後端直接查帳號表，不用前端先查得到才能送出——
   // 之前這裡要求acc.payType/acc.payRate才能繼續，但一般秘書/行政帳號沒有權限查到薪資設定
   // （查詢會被後端拒絕），導致這顆「新增排班」按鈕對非創始人帳號永遠是擋住的，就算薪資其實已經設定好了
