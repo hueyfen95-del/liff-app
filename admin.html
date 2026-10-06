@@ -253,7 +253,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-03c';
+var MX_BUILD = '2026-10-06b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -886,9 +886,9 @@ var MX_BUILD = '2026-10-03c';
         <input id="duty-date" type="date" class="form-input" style="font-size:12px">
         <select id="duty-shift" class="form-select" style="font-size:12px" onchange="dutyShiftPresetChange()">
           <option value="">選擇班別…</option>
-          <option value="上午">上午班（09:00–13:00）</option>
-          <option value="下午">下午班（13:00–17:00）</option>
-          <option value="晚上">晚上班（18:00–21:00）</option>
+          <option value="上午">上午班・早餐（07:00–11:00）</option>
+          <option value="下午">下午班・午餐（11:00–15:00）</option>
+          <option value="晚上">晚上班・晚餐（17:00–21:00）</option>
           <option value="其他">➕ 其他（自訂班別／時間）</option>
         </select>
         <div id="duty-pay-display" style="font-size:11px;color:var(--text3);display:flex;align-items:center;padding:0 4px">先選秘書才會帶出薪資設定</div>
@@ -4987,9 +4987,10 @@ function fsQuickMonth(offset){
 // 導致邀請排班送出的上下班時間永遠是空的，邀請進去的班在月曆格子裡比對不到任何時段、永遠不會顯示成綠色，
 // 這是「還是沒有寫上誰排班」的另一個原因（自助登記則是另一個原因，已在後端duty_timeCellToStr_修掉）。
 var DUTY_SLOTS = [
-  { key:'上午', label:'上午', start:'09:00', end:'13:00' },
-  { key:'下午', label:'下午', start:'13:00', end:'17:00' },
-  { key:'晚上', label:'晚上', start:'18:00', end:'21:00' }
+  // 2026-10-05改：按三餐——上午（早餐）07:00-11:00、下午（午餐）11:00-15:00、晚上（晚餐）17:00-21:00，跟後端一致
+  { key:'上午', label:'上午', start:'07:00', end:'11:00' },
+  { key:'下午', label:'下午', start:'11:00', end:'15:00' },
+  { key:'晚上', label:'晚上', start:'17:00', end:'21:00' }
 ];
 function duty_timeToMinutes(t){
   var m = String(t||'').match(/^(\d{1,2}):(\d{2})$/);
@@ -7697,6 +7698,8 @@ function composeSend(btnEl){
     if (d && d.status === 'ok') {
       var cm = document.getElementById('compose-modal'); if (cm) cm.remove();
       toast('💌 已送出，客人前台鈴鐺會亮紅點');
+      // 2026-10-06：傳的是「提醒記錄」就重新整理「今天還沒記錄」卡，那列馬上變成 ✅ 已提醒
+      if ((window._composeType||'') === 'remind' && typeof loadNoRecordClients === 'function') loadNoRecordClients();
     } else toast('⚠️ 送出失敗，請重試');
   });
 }
@@ -8965,15 +8968,30 @@ function loadNoRecordClients(){
     var card=document.getElementById('norecord-card'), box=document.getElementById('norecord-body');
     if(!box) return;
     var items = (d && d.list) || [];
-    _mxDashNavSet('norecord-card', items.length, '今日沒記錄', 'ti ti-notes');
+    // 2026-10-06：創辦人回報「已經傳了提醒，但記錄還留著，會不知道已經傳過」——後端現在會帶 reminded
+    // （今天幾點、哪位秘書、客人讀了沒）。名單照樣留著（客人還是沒記錄），但已提醒的那列變淡、
+    // 顯示 ✅ 已提醒，按鈕改成灰色「再傳一次」；順序不變（創辦人不要客人跳來跳去）。導覽列數字也標出幾位已提醒。
+    var remindedN = items.filter(function(c){ return c.reminded; }).length;
+    var pendingN = items.length - remindedN;
+    _mxDashNavSet('norecord-card', items.length, '今日沒記錄' + (remindedN ? '（'+remindedN+' 已提醒）' : ''), 'ti ti-notes');
     if(items.length===0){ card.style.display='none'; return; }
     card.style.display='block';
-    box.innerHTML = items.map(function(c, ci){
-      return '<div style="background:var(--bg);border-radius:9px;margin-bottom:6px;padding:8px 10px;display:flex;align-items:center;gap:8px">'
+    var head = '<div style="font-size:11px;color:var(--text3);margin-bottom:8px">還沒提醒 <b style="color:#B26A00">'+pendingN+'</b> 位・已提醒 <b style="color:var(--g3)">'+remindedN+'</b> 位。客人記錄後才會從名單消失；已提醒的會標 ✅ 並變淡，順序不變。</div>';
+    box.innerHTML = head + items.map(function(c, ci){
+      var rm = c.reminded;
+      var rowStyle = rm ? 'background:#F6F8F6;opacity:.78;' : 'background:var(--bg);';
+      var tag = rm
+        ? '<span style="font-size:10px;font-weight:700;color:var(--g3);background:var(--mint);border-radius:5px;padding:1px 6px;white-space:nowrap">✅ 已提醒 '+escH(rm.time)+(rm.by?'・'+escH(rm.by):'')+(rm.read?'・客人已讀':'・客人還沒看')+'</span>'
+        : '';
+      var btn = rm
+        ? '<button class="tb-btn" style="font-size:10.5px;padding:3px 9px;margin-left:auto" onclick="openCompose(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\',\'remind\')">再傳一次</button>'
+        : '<button class="ai-btn g" style="font-size:10.5px;padding:3px 9px;margin-left:auto" onclick="openCompose(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\',\'remind\')">💌 傳提醒</button>';
+      return '<div style="'+rowStyle+'border-radius:9px;margin-bottom:6px;padding:8px 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
         + '<span style="font-size:11px;font-weight:700;color:#8A6D1A;background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ci + 1) + '</span>'
         + '<b style="color:var(--text)">'+escH(c.name||c.clientId)+'</b>'
         + '<span style="font-size:10px;color:var(--text3)">'+escH(c.clientId)+(c.lastRecordDate?'・上次記錄 '+escH(c.lastRecordDate):'・還沒有任何記錄')+'</span>'
-        + '<button class="ai-btn g" style="font-size:10.5px;padding:3px 9px;margin-left:auto" onclick="openCompose(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\',\'remind\')">💌 傳提醒</button>'
+        + tag
+        + btn
         + '<button class="tb-btn" style="font-size:10.5px;padding:3px 9px" onclick="openClientDetail(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\')">開啟</button>'
         + '</div>';
     }).join('');
@@ -12148,14 +12166,18 @@ function loadCareAwards(){
     if(awards.length===0){
       html += '<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">這個月還沒有足夠記錄可以自動偵測頒獎，等客人多記錄幾天就會出現 🌱</div>';
     } else {
-      html += '<div style="font-size:11px;color:var(--text3);margin-bottom:9px">這些是鼓勵用的溫柔稱讚，可以複製到 LINE 給客人打氣（非競賽排名）</div>';
+      html += '<div style="font-size:11px;color:var(--text3);margin-bottom:9px">這些是鼓勵用的溫柔稱讚（非競賽排名）。「💌 傳給客人」會送進客人前台的秘書互動；「複製祝賀」是複製文字、自己貼到 LINE。兩種都可以用、不衝突</div>';
+      window._careAwards = awards;
       awards.forEach(function(a, ai){
         html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--mint);border-radius:11px;margin-bottom:7px">'
           + '<span style="font-size:11px;font-weight:700;color:var(--g3);background:#fff;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (ai + 1) + '</span>'
           + '<span style="font-size:26px">'+escH(a.icon)+'</span>'
           + '<div style="flex:1"><div style="font-weight:800;color:var(--g3);font-size:13px">'+escH(a.title)+'</div>'
           + '<div style="font-size:11px;color:var(--text2);margin-top:1px">'+escH(a.name)+'　'+escH(a.desc)+'</div></div>'
-          + '<button class="tb-btn" style="font-size:11px;padding:4px 10px" onclick="copyAward(\''+escH(a.name)+'\',\''+escH(a.title)+'\',\''+escH(a.desc)+'\')">複製祝賀</button>'
+          + '<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
+          + '<button class="tb-btn" id="award-send-'+ai+'" style="font-size:11px;padding:4px 10px;background:var(--g3);color:#fff" onclick="sendAwardUI('+ai+')">💌 傳給客人</button>'
+          + '<button class="tb-btn" style="font-size:11px;padding:4px 10px" onclick="copyAward(\''+escH(a.name)+'\',\''+escH(a.title)+'\',\''+escH(a.desc)+'\')">📋 複製祝賀</button>'
+          + '</div>'
           + '</div>';
       });
     }
@@ -12163,6 +12185,7 @@ function loadCareAwards(){
     // 選一位客人、套用這個獎項的地方，管理頁面新增的東西才有意義
     if(manualAwards.length){
       html += '<div style="font-size:11px;font-weight:700;color:var(--text2);margin:14px 0 6px">✋ 手動頒發（自己選客人、自己選時機）</div>';
+      window._careManualAwards = manualAwards;
       manualAwards.forEach(function(a, mi){
         var selId = 'award-manual-cl-'+mi;
         html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:11px;margin-bottom:7px;flex-wrap:wrap">'
@@ -12170,7 +12193,8 @@ function loadCareAwards(){
           + '<div style="flex:1;min-width:140px"><div style="font-weight:800;color:var(--text);font-size:13px">'+escH(a.title)+'</div>'
           + '<div style="font-size:11px;color:var(--text2);margin-top:1px">'+escH(a.desc)+'</div></div>'
           + '<select id="'+selId+'" class="form-select" style="width:auto;flex:none;font-size:11.5px">'+clientPickerOptionsHtml_()+'</select>'
-          + '<button class="tb-btn" style="font-size:11px;padding:4px 10px" onclick="copyManualAward(\''+selId+'\',\''+escH(a.title)+'\',\''+escH(a.desc)+'\')">複製祝賀</button>'
+          + '<button class="tb-btn" style="font-size:11px;padding:4px 10px;background:var(--g3);color:#fff" onclick="sendManualAwardUI(\''+selId+'\','+mi+')">💌 傳給客人</button>'
+          + '<button class="tb-btn" style="font-size:11px;padding:4px 10px" onclick="copyManualAward(\''+selId+'\',\''+escH(a.title)+'\',\''+escH(a.desc)+'\')">📋 複製祝賀</button>'
           + '</div>';
       });
     }
@@ -12181,7 +12205,8 @@ function loadCareAwards(){
 function clientPickerOptionsHtml_(){
   var list = _clientsCache || [];
   if(!list.length) return '<option value="">（名單載入中…）</option>';
-  return '<option value="">選客人…</option>' + list.map(function(c){ return '<option value="'+escH(c.name||c.id)+'">'+escH(c.name||c.id)+'</option>'; }).join('');
+  // 2026-10-03d：option 的 value 改成客人編號（傳進系統要靠編號），姓名放在文字和 data-name，複製祝賀仍用姓名
+  return '<option value="">選客人…</option>' + list.map(function(c){ return '<option value="'+escH(c.id||'')+'" data-name="'+escH(c.name||c.id)+'">'+escH(c.name||c.id)+'</option>'; }).join('');
 }
 function copyAward(name, title, desc){
   var text = name + '，恭喜你獲得「' + title + '」🎉\n' + desc + '。繼續為自己加油，我們一直都在 💚';
@@ -12190,11 +12215,45 @@ function copyAward(name, title, desc){
   copyText(text, '祝賀語');
 }
 function copyManualAward(selId, title, desc){
+  var pick = _awardPickedClient_(selId);
+  if(!pick){ toast('請先選一位客人'); return; }
+  copyText(awardText_(pick.name, title, desc), '祝賀語');
+}
+function awardText_(name, title, desc){
+  return name + '，恭喜你獲得「' + title + '」🎉\n' + desc + '。繼續為自己加油，我們一直都在 💚';
+}
+function _awardPickedClient_(selId){
   var sel = document.getElementById(selId);
-  var name = sel ? sel.value : '';
-  if(!name){ toast('請先選一位客人'); return; }
-  var text = name + '，恭喜你獲得「' + title + '」🎉\n' + desc + '。繼續為自己加油，我們一直都在 💚';
-  copyText(text, '祝賀語');
+  if(!sel || !sel.value) return null;
+  var opt = sel.options[sel.selectedIndex];
+  return { id: sel.value, name: (opt && opt.getAttribute('data-name')) || sel.value };
+}
+// 2026-10-03d：創始人裁定「系統和 LINE 手動複製貼上兩種功能都要有」——複製祝賀保留（貼 LINE 用），
+// 另外加「💌 傳給客人」直接送進客人前台的秘書互動（走 sendGift，跟送禮物同一條路，不扣 LINE 點數）
+function _sendAwardToClient_(cid, name, title, desc, btn){
+  if(!cid){ toast('請先選一位客人'); return; }
+  if(!confirm('要把這則祝賀直接傳到 '+name+' 的前台嗎？\n\n'+awardText_(name, title, desc)+'\n\n（LINE 要另外用「複製祝賀」貼上）')) return;
+  if(btn){ btn.disabled = true; btn.textContent = '傳送中…'; }
+  adminAPIPost({action:'sendGift', clientId:cid, giftType:'star', message:awardText_(name, title, desc),
+    secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d && d.status==='ok'){
+      toast('✅ 祝賀已傳到 '+name+' 的前台（秘書互動）。要同步 LINE 請再按「複製祝賀」貼上');
+      if(btn){ btn.textContent = '✅ 已傳'; }
+    } else {
+      toast('⚠️ 送出失敗，請重試');
+      if(btn){ btn.disabled = false; btn.textContent = '💌 傳給客人'; }
+    }
+  });
+}
+function sendAwardUI(ai){
+  var a = (window._careAwards||[])[ai]; if(!a) return;
+  _sendAwardToClient_(a.clientId, a.name, a.title, a.desc, document.getElementById('award-send-'+ai));
+}
+function sendManualAwardUI(selId, mi){
+  var a = (window._careManualAwards||[])[mi]; if(!a) return;
+  var pick = _awardPickedClient_(selId);
+  if(!pick){ toast('請先選一位客人'); return; }
+  _sendAwardToClient_(pick.id, pick.name, a.title, a.desc, null);
 }
 
 
