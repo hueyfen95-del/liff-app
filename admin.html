@@ -147,6 +147,14 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 .fs-cal-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
 .fs-cal-wd span{text-align:center;font-size:10.5px;font-weight:700;color:var(--text3);padding:2px 0}
 .fs-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.duty-cal-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;font-size:10.5px;color:var(--text3);text-align:center;margin-bottom:3px}
+.duty-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.duty-cal-d{height:30px;border:1px solid var(--border2);border-radius:7px;background:var(--card);font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+.duty-cal-d:hover{border-color:var(--g);color:var(--g3)}
+.duty-cal-d.sel{background:#F5C518;border-color:#C9A227;color:#3B2F00}
+.duty-cal-d.past{background:var(--bg);color:var(--text3);cursor:not-allowed;border-style:dashed}
+.duty-cal-d.today{box-shadow:inset 0 0 0 2px var(--g)}
+.duty-cal-d.blank{border:none;background:transparent;cursor:default}
 .fs-cal-day{border:1px solid var(--border2);border-radius:8px;padding:4px;min-height:56px;display:flex;flex-direction:column;gap:4px;background:var(--card)}
 .fs-cal-day.fs-empty{border:none;background:transparent}
 .fs-cal-day.fs-today{border-color:var(--g);box-shadow:0 0 0 1px var(--g) inset;background:var(--g2)}
@@ -255,7 +263,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-06c';
+var MX_BUILD = '2026-10-08';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -895,13 +903,24 @@ var MX_BUILD = '2026-10-06c';
     <div class="card-body">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="duty-secretary" class="form-select" style="font-size:12px" onchange="loadSecretaryPayInfo()"><option value="">選擇秘書…</option></select>
-        <input id="duty-date" type="date" class="form-input" style="font-size:12px" title="開始日期（只排一天就只填這格）">
-        <!-- 2026-10-06新增：填「排到」就會把區間裡勾選的星期全部排進去，一次新增好幾天 -->
-        <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--text2);background:#FFFBEA;border:1px solid #F1DFA0;border-radius:8px;padding:6px 9px">
-          <span>📆 一次排好幾天：排到</span><input id="duty-date-end" type="date" class="form-input" style="font-size:12px;width:auto;padding:4px 8px" onchange="dutyBatchPreview()">
-          <span>每週的</span>
-          <label><input type="checkbox" class="duty-wd" value="1" checked onchange="dutyBatchPreview()">一</label><label><input type="checkbox" class="duty-wd" value="2" checked onchange="dutyBatchPreview()">二</label><label><input type="checkbox" class="duty-wd" value="3" checked onchange="dutyBatchPreview()">三</label><label><input type="checkbox" class="duty-wd" value="4" checked onchange="dutyBatchPreview()">四</label><label><input type="checkbox" class="duty-wd" value="5" checked onchange="dutyBatchPreview()">五</label><label><input type="checkbox" class="duty-wd" value="6" checked onchange="dutyBatchPreview()">六</label><label><input type="checkbox" class="duty-wd" value="0" checked onchange="dutyBatchPreview()">日</label>
-          <span id="duty-batch-preview" style="color:var(--text3)">（不填「排到」就只排上面那一天）</span>
+        <!-- 2026-10-08重做：創辦人說「應該是整月的日期給我一次選，而不是前後矛盾」——不要「開始日期＋排到＋星期」那套，
+             直接給一個整月的小月曆，想排哪幾天就點哪幾天（再點一次取消），排一天就點一天。 -->
+        <div id="duty-cal-wrap" style="grid-column:1/-1;background:#FFFBEA;border:1px solid #F1DFA0;border-radius:9px;padding:8px 10px">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:11.5px;color:var(--text2)">
+            <b>📆 點選日期（可多選）</b>
+            <button type="button" class="tb-btn" style="font-size:11px;padding:3px 8px" onclick="dutyCalShift(-1)">‹</button>
+            <b id="duty-cal-month" style="min-width:86px;text-align:center"></b>
+            <button type="button" class="tb-btn" style="font-size:11px;padding:3px 8px" onclick="dutyCalShift(1)">›</button>
+            <span style="color:var(--text3)">快速：</span>
+            <button type="button" class="tb-btn" style="font-size:11px;padding:3px 8px" onclick="dutyCalQuick('wk')">一～五全選</button>
+            <button type="button" class="tb-btn" style="font-size:11px;padding:3px 8px" onclick="dutyCalQuick('we')">六日全選</button>
+            <button type="button" class="tb-btn" style="font-size:11px;padding:3px 8px" onclick="dutyCalQuick('all')">整月全選</button>
+            <button type="button" class="tb-btn" style="font-size:11px;padding:3px 8px" onclick="dutyCalQuick('clear')">清除</button>
+            <span id="duty-cal-count" style="margin-left:auto;font-weight:700;color:#8A6A1F">已選 0 天</span>
+          </div>
+          <div class="duty-cal-wd"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+          <div id="duty-cal-grid" class="duty-cal-grid"></div>
+          <div id="duty-cal-list" style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.6"></div>
         </div>
         <select id="duty-shift" class="form-select" style="font-size:12px" onchange="dutyShiftPresetChange()">
           <option value="">選擇班別…</option>
@@ -5390,30 +5409,62 @@ function dutyShiftPresetChange(){
     if(endSel) endSel.value = '';
   }
 }
-// 2026-10-06：「新增排班記錄」一次排好幾天——從開始日期到「排到」，只取勾選的星期
-function dutyBatchDates(){
-  var s = document.getElementById('duty-date').value, e = document.getElementById('duty-date-end').value;
-  if(!s || !e || e < s) return [];
-  var wds = {}; document.querySelectorAll('.duty-wd:checked').forEach(function(cb){ wds[cb.value] = true; });
-  var out = [], cur = new Date(s+'T00:00:00'), end = new Date(e+'T00:00:00'), guard = 0;
-  while(cur <= end && guard++ < 120){
-    if(wds[String(cur.getDay())]) out.push(cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0'));
-    cur.setDate(cur.getDate()+1);
+// 2026-10-08重做：「新增排班記錄」改成整月小月曆直接點日期（可多選）——創辦人說「應該是整月的日期給我一次選」。
+// 取代原本「開始日期＋排到＋星期勾選」那套（她試的時候開始日期沒填、預覽就說沒日期，覺得前後矛盾）。
+var _dutyCalYM = '', _dutyCalSel = {};
+function _dutyTodayStr(){ var n=new Date(); return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0'); }
+function dutyCalRender(){
+  var grid = document.getElementById('duty-cal-grid'); if(!grid) return;
+  if(!_dutyCalYM) _dutyCalYM = _dutyTodayStr().slice(0,7);
+  var y = parseInt(_dutyCalYM.slice(0,4),10), m = parseInt(_dutyCalYM.slice(5,7),10);
+  var mEl = document.getElementById('duty-cal-month'); if(mEl) mEl.textContent = y+'年'+m+'月';
+  var today = _dutyTodayStr();
+  var days = new Date(y, m, 0).getDate();
+  var lead = new Date(y, m-1, 1).getDay();
+  var html = '';
+  for(var b=0;b<lead;b++) html += '<div class="duty-cal-d blank"></div>';
+  for(var d=1; d<=days; d++){
+    var ds = _dutyCalYM+'-'+String(d).padStart(2,'0');
+    var past = ds < today;
+    var cls = 'duty-cal-d' + (past?' past':'') + (_dutyCalSel[ds]?' sel':'') + (ds===today?' today':'');
+    html += '<div class="'+cls+'" data-d="'+ds+'"'+(past?' title="已過期"':' onclick="dutyCalToggle(\''+ds+'\')"')+'>'+d+'</div>';
   }
-  return out;
+  grid.innerHTML = html;
+  dutyCalUpdateCount();
 }
-function dutyBatchPreview(){
-  var p = document.getElementById('duty-batch-preview'); if(!p) return;
-  var e = document.getElementById('duty-date-end').value;
-  if(!e){ p.textContent = '（不填「排到」就只排上面那一天）'; return; }
-  var ds = dutyBatchDates();
-  p.textContent = ds.length ? ('→ 會排 '+ds.length+' 天：'+ds.map(function(x){return x.slice(5).replace('-','/');}).join('、')) : '→ 區間裡沒有符合的日期（開始日期要先填、排到不能早於開始）';
+function dutyCalShift(n){
+  var y = parseInt(_dutyCalYM.slice(0,4),10), m = parseInt(_dutyCalYM.slice(5,7),10) + n;
+  var d = new Date(y, m-1, 1); _dutyCalYM = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  dutyCalRender();
+}
+function dutyCalToggle(ds){
+  if(_dutyCalSel[ds]) delete _dutyCalSel[ds]; else _dutyCalSel[ds] = true;
+  var el = document.querySelector('#duty-cal-grid .duty-cal-d[data-d="'+ds+'"]'); if(el) el.classList.toggle('sel', !!_dutyCalSel[ds]);
+  dutyCalUpdateCount();
+}
+function dutyCalQuick(kind){
+  if(kind==='clear'){ _dutyCalSel = {}; dutyCalRender(); return; }
+  var y = parseInt(_dutyCalYM.slice(0,4),10), m = parseInt(_dutyCalYM.slice(5,7),10), today=_dutyTodayStr();
+  var days = new Date(y, m, 0).getDate();
+  for(var d=1; d<=days; d++){
+    var ds = _dutyCalYM+'-'+String(d).padStart(2,'0'); if(ds < today) continue;
+    var wd = new Date(y, m-1, d).getDay();
+    if(kind==='all' || (kind==='wk' && wd>=1 && wd<=5) || (kind==='we' && (wd===0||wd===6))) _dutyCalSel[ds] = true;
+  }
+  dutyCalRender();
+}
+function dutyCalSelected(){ return Object.keys(_dutyCalSel).sort(); }
+function dutyCalUpdateCount(){
+  var ds = dutyCalSelected();
+  var c = document.getElementById('duty-cal-count'); if(c) c.textContent = '已選 '+ds.length+' 天';
+  var l = document.getElementById('duty-cal-list'); if(l) l.textContent = ds.length ? ('→ '+ds.map(function(x){ return x.slice(5).replace('-','/'); }).join('、')) : '還沒選日期——點上面的格子，排一天就點一天、排很多天就點很多天（跨月用 ‹ › 翻頁，選的會一起留著）';
 }
 function submitShift(btn){
   var secretary = document.getElementById('duty-secretary').value.trim();
   if(!secretary){ toast('請選擇秘書'); return; }
-  var date = document.getElementById('duty-date').value;
-  if(!date){ toast('請選擇日期'); return; }
+  var dates = dutyCalSelected();
+  if(dates.length===0){ toast('請在月曆上點選要排的日期'); return; }
+  var date = dates[0];
   var shiftSel = document.getElementById('duty-shift').value;
   if(!shiftSel){ toast('請選擇班別'); return; }
   var shiftLabel;
@@ -5427,47 +5478,40 @@ function submitShift(btn){
   var startTime = document.getElementById('duty-start').value;
   var endTime = document.getElementById('duty-end').value;
   if(!startTime || !endTime){ toast('請選擇上下班時間'); return; }
-  // 2026-10-06：有填「排到」就走批次（只支援三個固定班別；自訂班別請一天一天新增）
-  var endDateEl = document.getElementById('duty-date-end');
-  if(endDateEl && endDateEl.value){
-    if(shiftSel === '其他'){ toast('自訂班別不能批次，請把「排到」清掉、一天一天新增'); return; }
-    var dates = dutyBatchDates();
-    if(dates.length===0){ toast('區間裡沒有符合勾選星期的日期'); return; }
-    if(!confirm('要把 '+secretary+' 的「'+shiftLabel+'」排進這 '+dates.length+' 天嗎？\n'+dates.map(function(x){return x.slice(5).replace('-','/');}).join('、'))) return;
-    if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
-    adminAPIPost({action:'addShiftBatch', secretary:secretary, items:JSON.stringify(dates.map(function(x){ return {date:x, slotKey:shiftSel}; })), note:document.getElementById('duty-note').value}, function(d){
+  // 2026-10-08：月曆選了幾天就排幾天。固定班別走 addShiftBatch 一次送（會回報哪幾天沒排成、為什麼）；
+  // 自訂班別（其他）後端批次不認得自訂時間，就逐天呼叫 addShift。
+  var dateLabels = dates.map(function(x){ return x.slice(5).replace('-','/'); }).join('、');
+  if(!confirm('要把 '+secretary+' 的「'+shiftLabel+' '+startTime+'–'+endTime+'」排進這 '+dates.length+' 天嗎？\n'+dateLabels)) return;
+  var noteVal = document.getElementById('duty-note').value;
+  function _afterDone(msg){
+    toast(msg);
+    _dutyCalSel = {}; dutyCalRender();
+    ['duty-shift','duty-shift-custom','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    var cw = document.getElementById('duty-shift-custom'); if(cw) cw.style.display='none';
+    if(typeof loadShiftSchedule==='function') loadShiftSchedule();
+    if(typeof loadFullSchedule==='function') loadFullSchedule();
+  }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
+  if(shiftSel !== '其他'){
+    adminAPIPost({action:'addShiftBatch', secretary:secretary, items:JSON.stringify(dates.map(function(x){ return {date:x, slotKey:shiftSel}; })), note:noteVal}, function(d){
       if(btn){ btn.disabled=false; btn.style.opacity=''; }
       if(d && d.status==='ok'){
         var added=(d.added||[]).length, skipped=d.skipped||[];
-        toast('✅ 已排入 '+added+' 班'+(skipped.length?('；'+skipped.length+' 班沒排：'+skipped.map(function(s){ return s.date.slice(5).replace('-','/')+'（'+s.reason+'）'; }).join('、')):''));
-        endDateEl.value=''; dutyBatchPreview();
-        if(typeof loadShiftSchedule==='function') loadShiftSchedule();
-        if(typeof loadFullSchedule==='function') loadFullSchedule();
+        _afterDone('✅ 已排入 '+added+' 班'+(skipped.length?('；'+skipped.length+' 班沒排：'+skipped.map(function(x){ return x.date.slice(5).replace('-','/')+'（'+x.reason+'）'; }).join('、')):'')+(d.payType?'':'（這位帳號還沒設定薪資，小計暫記0）'));
       } else toast('⚠️ 儲存失敗：'+((d&&d.message)||'請重試'));
     });
     return;
   }
-  // 2026-09-09補：薪資類型/金額改由後端直接查帳號表，不用前端先查得到才能送出——
-  // 之前這裡要求acc.payType/acc.payRate才能繼續，但一般秘書/行政帳號沒有權限查到薪資設定
-  // （查詢會被後端拒絕），導致這顆「新增排班」按鈕對非創始人帳號永遠是擋住的，就算薪資其實已經設定好了
-  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
-  adminAPIPost({
-    action:'addShift', secretary:secretary, date:date,
-    shift:shiftLabel, startTime:startTime, endTime:endTime,
-    note:document.getElementById('duty-note').value
-  }, function(d){
-    if(btn){ btn.disabled=false; btn.style.opacity=''; }
-    if(d && d.status==='ok'){
-      // 2026-09-09補：後端沒查到薪資設定時payType會是空字串——排班本身還是照存，只是提醒一下
-      // 薪資小計還沒算（等創始人去帳號管理補設定），不擋住排班這個動作本身
-      toast(d.payType ? ('✅ 排班已記錄，小計 '+d.subtotal) : '✅ 排班已記錄（這位帳號還沒設定薪資，小計暫記0，補設定後之後結算會抓得到）');
-      ['duty-secretary','duty-shift','duty-shift-custom','duty-start','duty-end','duty-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
-      var cw = document.getElementById('duty-shift-custom'); if(cw) cw.style.display='none';
-      document.getElementById('duty-pay-display').textContent = '先選秘書才會帶出薪資設定';
-      if(typeof loadShiftSchedule==='function') loadShiftSchedule();
-      if(typeof loadFullSchedule==='function') loadFullSchedule();
-    } else toast('⚠️ 儲存失敗');
-  });
+  var okN = 0, failN = 0, idx = 0;
+  (function nextOne(){
+    if(idx >= dates.length){ if(btn){ btn.disabled=false; btn.style.opacity=''; } _afterDone('✅ 自訂班別已排入 '+okN+' 天'+(failN?('，'+failN+' 天失敗'):'')); return; }
+    var dcur = dates[idx++];
+    adminAPIPost({action:'addShift', secretary:secretary, date:dcur, shift:shiftLabel, startTime:startTime, endTime:endTime, note:noteVal}, function(d){
+      if(d && d.status==='ok') okN++; else failN++;
+      nextOne();
+    });
+  })();
+  return;
 }
 function submitReferral(referrerId, referrerName, btn){
   var referredId = document.getElementById('cd-ref-referredId').value.trim();
@@ -10881,7 +10925,7 @@ function runPageLoader(id){
     // 統一補進runPageLoader，確保每次切換到這頁都會用當下已登入的身份重新載入
     if(typeof loadShiftSchedule==='function') loadShiftSchedule();
     if(typeof loadFullSchedule==='function') loadFullSchedule();
-    if(typeof loadDutySecretaryOptions==='function') loadDutySecretaryOptions();
+    if(typeof loadDutySecretaryOptions==='function') loadDutySecretaryOptions(); if(typeof dutyCalRender==='function') dutyCalRender();
     if(typeof loadRecentHandovers==='function') loadRecentHandovers();
     if(typeof loadHandoverClientOptions==='function') loadHandoverClientOptions();
     if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags');
