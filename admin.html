@@ -263,7 +263,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-08';
+var MX_BUILD = '2026-10-08b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -967,11 +967,13 @@ var MX_BUILD = '2026-10-08';
         <div id="handover-clients-chips" style="display:flex;flex-wrap:wrap;gap:5px"></div>
       </div>
       <div style="margin-bottom:8px">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px">🤝 交接快選（點一下加入備註，提醒下一班）</div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px">🤝 交接快選（點一下加進下面備註，再點一次取消；綠色＝已加入）</div>
       <div id="handover-chips" style="display:flex;flex-wrap:wrap;gap:5px"></div>
     </div>
-    <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px">📝 一般備註</div>
-    <textarea id="handover-note" placeholder="其他想交接的事…" style="width:100%;height:65px;resize:none;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit;line-height:1.6"></textarea>
+    <!-- 2026-10-08：創辦人問「一般備註要怎麼選？好像不能選」——這格本來就是可以打字的文字框，快選只是把句子貼進來。
+         改成：快選可以再點一次取消（綠色＝已加入）、框加高可拉、標題寫清楚可直接打字、「○○客人」會自動換成上面加入的客人名字。 -->
+    <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:5px">📝 一般備註 <span style="font-weight:400">（這裡可以直接打字、修改；上面快選的句子會貼進來，「○○」請改成客人名字）</span></div>
+    <textarea id="handover-note" placeholder="直接打字，或點上面的快選句子加進來…" style="width:100%;height:96px;resize:vertical;font-size:12px;border:1px solid var(--border2);border-radius:9px;padding:9px 12px;outline:none;background:var(--card);font-family:inherit;line-height:1.6"></textarea>
       <button onclick="saveHandoverNote()" style="margin-top:8px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:9px;font-size:13px;cursor:pointer;width:100%;font-weight:600">儲存交接</button>
     </div></div>
     <!-- 2026-09-05f：移除，改由runPageLoader('duty')統一負責（見下方），避免登入前CURRENT_USER還是null時就呼叫adminAPI，觸發「登入逾時」誤報 -->
@@ -9971,7 +9973,7 @@ function saveHandoverNote(){
       toast('✅ 交接已寫入，下一班登入就看得到');
       ta.value='';
       document.getElementById('handover-important').value='';
-      _handoverPendingClients=[]; renderHandoverClientChips();
+      _handoverPendingClients=[]; renderHandoverClientChips(); if(typeof renderHandoverChips==='function') renderHandoverChips();
       if(typeof hoRenderTagPicker==='function') hoRenderTagPicker('handover-tags');
       loadRecentHandovers();
     }
@@ -12155,15 +12157,38 @@ var HANDOVER_ITEMS = [
 function renderHandoverChips(){
   var box=document.getElementById('handover-chips');
   if(!box) return;
-  box.innerHTML = HANDOVER_ITEMS.map(function(c){
-    return '<span class="chip" style="cursor:pointer;font-size:11px" onclick="addHandoverItem(\''+c.replace(/'/g,"\\'")+'\')">＋'+escH(c)+'</span>';
+  box.innerHTML = HANDOVER_ITEMS.map(function(c, i){
+    return '<span class="chip" id="ho-chip-'+i+'" style="cursor:pointer;font-size:11px" onclick="toggleHandoverItem('+i+')">＋'+escH(c)+'</span>';
   }).join('');
 }
-function addHandoverItem(text){
-  var el=document.getElementById('handover-note');
-  if(!el) return;
-  el.value = el.value ? (el.value.replace(/\s*$/,'') + '\n' + text) : text;
-  toast('已加入交接');
+// 2026-10-08：快選改成可以「再點一次取消」——以前只會一直往下加，創辦人以為是選單選不到。
+// 「○○客人」如果上面「待處理客人」已經加了人，自動換成最後加入那位的名字。
+function _hoItemText(i){
+  var t = HANDOVER_ITEMS[i] || '';
+  if(t.indexOf('○○') >= 0 && _handoverPendingClients.length){
+    var last = _handoverPendingClients[_handoverPendingClients.length-1];
+    t = t.replace('○○', clientName(last));
+  }
+  return t;
+}
+function toggleHandoverItem(i){
+  var el=document.getElementById('handover-note'); if(!el) return;
+  var chip=document.getElementById('ho-chip-'+i);
+  var text=_hoItemText(i), raw=HANDOVER_ITEMS[i];
+  var lines = el.value ? el.value.split('\n') : [];
+  var idx = lines.indexOf(text); if(idx < 0) idx = lines.indexOf(raw);
+  if(idx >= 0){
+    lines.splice(idx, 1); el.value = lines.join('\n');
+    if(chip){ chip.style.background=''; chip.style.color=''; chip.textContent='＋'+raw; }
+    toast('已從備註移除');
+  } else {
+    el.value = el.value ? (el.value.replace(/\s*$/,'') + '\n' + text) : text;
+    if(chip){ chip.style.background='var(--g)'; chip.style.color='#fff'; chip.textContent='✓'+raw; }
+    toast(text.indexOf('○○')>=0 ? '已加入，記得把「○○」改成客人名字（或先在上面加入待處理客人會自動帶入）' : '已加入交接');
+  }
+}
+function addHandoverItem(text){ // 舊名稱保留給其他地方呼叫
+  var i = HANDOVER_ITEMS.indexOf(text); if(i >= 0) toggleHandoverItem(i);
 }
 
 
