@@ -264,7 +264,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-09e';
+var MX_BUILD = '2026-10-10';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -428,12 +428,10 @@ var MX_BUILD = '2026-10-09e';
           <span style="font-size:11px;color:var(--text3)">上方按鈕列的「待核查」「餘額異常」數字會告訴你今天有沒有要處理的。</span>
         </div>
       </div>
-      <!-- 🔗 合併快速導覽列：提醒卡片（有內容才顯示）＋ 常駐統計，全部可點擊跳轉（2026-08-26）-->
-      <div id="mx-dash-nav" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);border-radius:12px;padding:10px 12px"></div>
-      <!-- 🎯 今日待辦（系統自動偵測，登入第一眼）-->
+      <!-- 🎯 今天要做的事（2026-10-10：依角色排好順序，登入第一眼）-->
       <div class="card" id="duty-card" style="margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);border:none">
         <div class="card-hd" style="border:none">
-          <div class="card-title" style="color:#fff"><i class="ti ti-checklist"></i>今日待辦・<span id="dash-duty-date" style="font-weight:400;opacity:.85"></span></div>
+          <div class="card-title" style="color:#fff;font-size:16px"><i class="ti ti-checklist"></i>今天要做的事・<span id="dash-duty-date" style="font-weight:400;opacity:.85"></span></div>
           <button class="tb-btn" onclick="loadTodayDuty()" style="background:rgba(255,255,255,.2);color:#fff;border:none"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button>
         </div>
         <div class="card-body" id="duty-body" style="padding-top:6px">
@@ -441,6 +439,8 @@ var MX_BUILD = '2026-10-09e';
         </div>
       </div>
 
+      <!-- 🔗 數字總覽列（2026-10-10 移到「今天要做的事」下面：上面那張已經有順序與按鈕，這一排只當快速跳轉）-->
+      <div id="mx-dash-nav" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);border-radius:12px;padding:10px 12px"></div>
       <!-- 💉 新預約待聯繫（管理人2026-08-10：最緊急，置頂） -->
       <div class="card" id="bkg-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9F2">
         <div class="card-hd">
@@ -2258,6 +2258,7 @@ function _mxNavBtn(act, icon, label, count, warn){
     + '</button>';
 }
 function _mxDashNavRender(){
+  if(typeof renderTodayFlow==='function') renderTodayFlow(); // 2026-10-10：任何一張卡的數字更新，「今天要做的事」跟著重畫
   var wrap = document.getElementById('mx-dash-nav');
   if(!wrap) return;
   var btns = [];
@@ -7411,9 +7412,10 @@ function renderHandoverHistory(){
 function loadShiftWishSummary(){
   var ym0 = new Date(); var ymStr0 = ym0.getFullYear()+'-'+String(ym0.getMonth()+1).padStart(2,'0');
   adminAPI({action:'getShiftScheduleMonth', month:ymStr0}, function(d){
+    var n = computeGapDayCount(d);
+    _tf.shiftGap = n; if(typeof renderTodayFlow==='function') renderTodayFlow();
     var badge = document.getElementById('sb-badge-shiftgap');
     if(!badge) return;
-    var n = computeGapDayCount(d);
     badge.textContent = n; badge.style.display = n > 0 ? '' : 'none';
   });
 }
@@ -9171,6 +9173,7 @@ function loadMyDoctorTasks(){
     body = document.getElementById('dxtask-body');
     if(!card || !body) return;
     var items = (d && d.items) || [];
+    _tf.dxTasks = items.length; if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(items.length===0){ card.style.display = 'none'; return; }
     card.style.display = '';
     body.innerHTML = items.map(function(t){
@@ -9707,6 +9710,7 @@ function loadDashboard(){
   if(typeof loadMealHelp==='function') loadMealHelp();
   if(typeof loadClientInbox==='function') loadClientInbox();
   if(typeof loadOverdueLabs==='function') loadOverdueLabs();
+  if(typeof loadShiftWishSummary==='function' && typeof mxIsDutyAdmin==='function' && mxIsDutyAdmin()) loadShiftWishSummary(); // 2026-10-10：排班缺人天數給「今天要做的事」
   loadClientsList(function(clients){
     var box = document.getElementById('dash-clients');
     if(box){
@@ -9758,6 +9762,7 @@ function loadCareQualityKPI(){
     card=document.getElementById('carekpi-card'); box=document.getElementById('carekpi-body');
     if(!card || !box) return;
     if(!d || d.status!=='ok'){ card.style.display='none'; return; }
+    _tf.kpi = d; if(typeof renderTodayFlow==='function') renderTodayFlow();
     card.style.display='block';
     var tile=function(label, val, sub, color){ return '<div style="flex:1;min-width:120px;background:'+color+';border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--text2)">'+label+'</div><div style="font-size:22px;font-weight:800;color:var(--text)">'+val+'</div><div style="font-size:10.5px;color:var(--text3)">'+sub+'</div></div>'; };
     var pv=function(v){ return v===null||v===undefined ? '–' : v+'%'; };
@@ -9778,18 +9783,53 @@ function loadCareQualityKPI(){
   });
 }
 // 2026-10-08新增：儀表板「系統自動替你發的訊息」卡——資料來源後端 getAutoCareLog（🤖 自動訊息記錄 近 3 天）
+// 2026-10-09f：創辦人看完第一次自動執行的紅色項目問「我要怎麼處理？」，照我說的去交接留言找，回「沒地方按已看過」——
+// 原因是交接留言卡片一次只顯示 15 則，自動執行一口氣寫了 14 則，別的都被擠掉了。所以現在紅色項目「自己帶一顆已看過」：
+// 讀 getHandoverHistory（最多 300 則，含狀態），把「系統自動」且還 pending 的留言跟紅色項目對上（同一天＋同客人＋同一句話），
+// 對得上就顯示按鈕，按了直接 ackHandover 那一列；對不上（表示已經有人按過）就顯示「✅ 已處理」並把色塊淡掉。
+var _acHoPending = null;
+function _acFindHo(it){
+  if(!_acHoPending) return null;
+  var sum = String(it.summary||'');
+  for(var i=0;i<_acHoPending.length;i++){
+    var h=_acHoPending[i];
+    if(String(h.date||'').slice(0,10) !== it.date) continue;
+    if(String(h.pendingClients||'') !== String(it.clientId||'')) continue;
+    if(String(h.important||'').slice(0,40) !== sum) continue;
+    return h;
+  }
+  return null;
+}
+function acAckUI(row, btn){
+  if(btn){ btn.disabled=true; btn.textContent='處理中…'; }
+  _ackHandoverOnce(row, function(ok){
+    if(ok){ toast('✅ 已標記已看過'); loadAutoCareLog(); loadHandover(); return; }
+    _ackHandoverOnce(row, function(ok2){
+      if(ok2){ toast('✅ 已標記已看過'); loadAutoCareLog(); loadHandover(); return; }
+      if(btn){ btn.disabled=false; btn.textContent='✅ 已看過'; }
+      toast('⚠️ 沒成功，請重新整理後再按一次');
+    });
+  });
+}
 function loadAutoCareLog(){
   var card=document.getElementById('autocare-card'), box=document.getElementById('autocare-body');
   if(!card || !box) return;
+  adminAPI({action:'getHandoverHistory'}, function(hd){
+    _tf.hoHist = (hd && hd.items) || [];
+    _acHoPending = _tf.hoHist.filter(function(h){ return String(h.fromSecretary||'')==='系統自動' && String(h.status||'pending')==='pending'; });
   adminAPI({action:'getAutoCareLog', days:3}, function(d){
     card=document.getElementById('autocare-card'); box=document.getElementById('autocare-body');
     if(!card || !box) return;
     var items=(d && d.items)||[];
+    // 2026-10-10：算出「紅色且還沒按已看過」的件數給「今天要做的事」用
+    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1};
+    _tf.acRed = items.filter(function(it){ return _acStaff[it.type] && _acFindHo(it); }).length;
+    if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
     var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱' };
-    var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>（也在交接留言）　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
+    var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
     Object.keys(byDate).sort().reverse().forEach(function(ds){
@@ -9800,13 +9840,13 @@ function loadAutoCareLog(){
       var infoTypes = {'創始人週報':1};
       // 2026-10-09：創辦人看到「沒打上班卡・要你處理」問「我要怎麼處理？」——每種紅色都寫清楚下一步，打卡那種對象是秘書不是客人
       var howTo = {
-        '沒打上班卡':'提醒這位同事補按「上班打卡」（補打會記當下時間，沒關係）；如果那天其實沒上班或是測試排班，到排班交接刪掉那筆排班，再到交接留言按「已看過」。',
-        '沒打下班卡':'提醒這位同事補按「下班打卡」；忘了就算了，到交接留言按「已看過」即可，不影響薪資計算。',
-        '連續7天':'請用 LINE 或電話親自聯絡這位客人，不要再靠系統訊息。聯絡完到交接留言按「已看過」。',
+        '沒打上班卡':'提醒這位同事補按「上班打卡」（補打會記當下時間，沒關係）；如果那天其實沒上班或是測試排班，到排班交接刪掉那筆排班。弄好按右邊「已看過」。',
+        '沒打下班卡':'提醒這位同事補按「下班打卡」；忘了就算了，直接按右邊「已看過」即可，不影響薪資計算。',
+        '連續7天':'請用 LINE 或電話親自聯絡這位客人，不要再靠系統訊息；聯絡完按右邊「已看過」。測試帳號或已經沒在陪跑的人，直接按「已看過」就好（要讓系統以後都跳過他，到客人管理把陪跑狀態改成一般客人）。',
         '報告待講解':'跟講解醫師約時間，約好後在客人詳情頁把報告狀態改成「講解完成」。',
         '自動請行政催':'行政依留言裡的對接人電話去催檢驗所／診所，催完在逾期卡按「已跟催」。',
         '儲值待核查':'會計到「儲值核查」把那筆核查掉（或退回）。',
-        '交接未讀':'管理人看一下哪幾則沒人按已看過，提醒相關的人去看。',
+        '交接未讀':'管理人到下面「交接留言」卡片看一下哪幾則沒人按已看過，提醒相關的人去看；看完按右邊「已看過」。',
         '續約跟催':'秘書主動跟客人聊續約；談好後新增方案記錄，系統就不會再提醒。',
         '心情未回2h':'秘書到「客人互動信箱」回覆那位客人，系統已準備好接住的第一句。',
         '心情未回24h':'管理人指派一位秘書立刻回覆。',
@@ -9818,10 +9858,13 @@ function loadAutoCareLog(){
       var staffSubject = {'沒打上班卡':1,'沒打下班卡':1,'交接未讀':1};
       html+=byDate[ds].map(function(it){
         var isStaff = !!staffTypes[it.type], isInfo = !!infoTypes[it.type];
-        var bg = isStaff ? '#F8D7D7' : isInfo ? '#FFF1BF' : '#D9F0E3';
-        var border = isStaff ? '#D9534F' : isInfo ? '#D4A017' : '#2E9E5B';
-        var tagColor = isStaff ? '#A32D2D' : isInfo ? '#7A5A00' : '#1A6B3C';
-        var lead = isStaff ? '要你處理' : isInfo ? '給你參考' : '已替你發給客人';
+        var ho = isStaff ? _acFindHo(it) : null;
+        var done = isStaff && !ho; // 紅色項目但交接留言已經不是 pending ＝ 有人按過已看過
+        var bg = done ? '#EFEFEF' : isStaff ? '#F8D7D7' : isInfo ? '#FFF1BF' : '#D9F0E3';
+        var border = done ? '#9E9E9E' : isStaff ? '#D9534F' : isInfo ? '#D4A017' : '#2E9E5B';
+        var tagColor = done ? '#555' : isStaff ? '#A32D2D' : isInfo ? '#7A5A00' : '#1A6B3C';
+        var lead = done ? '✅ 已處理' : isStaff ? '要你處理' : isInfo ? '給你參考' : '已替你發給客人';
+        var ackBtn = ho ? '<button class="ai-btn g" style="font-size:12.5px;font-weight:800;padding:7px 12px;white-space:nowrap;flex-shrink:0" onclick="acAckUI('+ho.row+', this)">✅ 已看過</button>' : '';
         return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:6px;background:'+bg+';border-left:6px solid '+border+'">'
           +'<span style="font-size:20px">'+(icon[it.type]||'💌')+'</span>'
           +'<div style="flex:1;min-width:0">'
@@ -9831,13 +9874,15 @@ function loadAutoCareLog(){
           +'<span style="font-size:11.5px;font-weight:700;color:'+tagColor+'">'+lead+'</span>'
           +'</div>'
           +(staffSubject[it.type] ? '' : '<div style="font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5">'+escH(it.summary)+'…</div>')
-          +(isStaff && howTo[it.type] ? '<div style="font-size:12px;color:#7A1F1F;margin-top:4px;line-height:1.5">👉 怎麼處理：'+escH(howTo[it.type])+'</div>' : '')
+          +(isStaff && !done && howTo[it.type] ? '<div style="font-size:12px;color:#7A1F1F;margin-top:4px;line-height:1.5">👉 怎麼處理：'+escH(howTo[it.type])+'</div>' : '')
           +'</div>'
           +'<span style="font-size:12px;color:var(--text3);white-space:nowrap">'+escH(it.time.slice(6))+'</span>'
+          +ackBtn
           +'</div>';
       }).join('');
     });
     box.innerHTML=html;
+  });
   });
 }
 
@@ -9855,7 +9900,7 @@ function alertCardHTML(a, idx){
   var _isNoRec = (String(a.type||'').indexOf('未填')>=0 || String(a.type||'').indexOf('從未')>=0);
   btns += '<button class="ai-btn g" onclick="openCompose(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\',\''+(_isNoRec?'remind':'care')+'\')">'+(_isNoRec?'💌 傳提醒':'💌 傳關心')+'</button>';
   btns += '<button class="ai-btn gray" onclick="copyAlertMsg('+idx+')">複製訊息</button>';
-  btns += '<button class="ai-btn gray" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name)+'\')">查看記錄</button>';
+  btns += '<button class="ai-btn gray" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name)+'\')">📂 打開客人檔案</button>';
   btns += '<button class="ai-btn gray" onclick="resolveAlertUI(this,'+idx+')">標記處理中</button>';
   return '<div class="alert-item '+lv+'"><div class="ai-icon"><i class="ti ti-'+icon+'" style="color:var(--'+lv+')"></i></div>'
     + '<div style="flex:1"><div class="ai-title '+lv+'">'+escH(a.name||a.clientId)+'・'+escH(a.type)+'</div>'
@@ -9967,7 +10012,7 @@ function renderClientsTable(clients){
       + '<td>'+escH(c.id)+'</td><td style="font-weight:600">'+escH(c.name)+'</td>'
       + '<td>'+clientDisplayStage_(c)+'</td><td>'+escH(c.irt||'未確認')+'</td>'
       + '<td>'+escH(c.secretary||'–')+subHtml+'</td><td>'+rsBadge+'</td>'
-      + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">查看記錄</button>'
+      + '<td onclick="event.stopPropagation()"><button class="ai-btn gray" title="基本資料、每日記錄、秘書備註、方案、IRCT 報告、三個甜蜜點、教練建議都在這裡" onclick="openClientDetail(\''+escH(c.id)+'\',\''+escH(c.name)+'\')">📂 打開客人檔案</button>'
       // 2026-08-26修正：跟「新增客人」按鈕一樣，行政/會計等只有查看權限的帳號不該看到這顆刪除按鈕
       // 2026-09-09補：刪除客人後台已限定只有創始人層級能執行，前端這裡跟著只給管理人/老闆看到這顆按鈕，
       // 一般秘書/醫師即使有客人編輯權限，也不該看到（點了也會被後端擋下來，這裡只是不要讓畫面顯示誤導）
@@ -10199,6 +10244,9 @@ function loadClockStatus(){
   if(!CURRENT_USER || !CURRENT_USER.name){ setAll('請先登入'); return; }
   adminAPI({action:'getClockStatus', secretary:CURRENT_USER.name}, function(d){
     var items = (d && d.items) || [];
+    var _in = items.filter(function(it){ return it.type === '上班'; }), _out = items.filter(function(it){ return it.type !== '上班'; });
+    _tf.clock = { inTime: _in.length ? String(_in[0].time || '') : '', outTime: _out.length ? String(_out[_out.length-1].time || '') : '' };
+    if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(items.length === 0){ setAll('今天還沒有打卡記錄'); return; }
     setAll('今天：' + items.map(function(it){
       return '<span style="display:inline-block;margin-right:10px">' + (it.type === '上班' ? '🟢 上班 ' : '🔴 下班 ') + escH(it.time) + '</span>';
@@ -10515,7 +10563,7 @@ function loadRemindList(){
           + '<button class="ai-btn '+lv+'" onclick="copyRemindMsg('+idx+')">複製提醒訊息</button>'
           + '<button class="ai-btn gray" onclick="markRemindDone('+idx+')">標記處理</button>'
           + '<button class="ai-btn gray" onclick="adjustRemindDate('+idx+')">調整日期</button>'
-          + '<button class="ai-btn gray" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(clientName(it.clientId))+'\')">查看記錄</button>'
+          + '<button class="ai-btn gray" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(clientName(it.clientId))+'\')">📂 打開客人檔案</button>'
           + '</div></div></div>';
       });
       box.innerHTML=html;
@@ -12555,8 +12603,11 @@ function copyBirthdayWish(bi, name){
 // ══════ 溫和鼓勵獎項 ══════
 function loadCareAwards(){
   var box=document.getElementById('award-body');
-  if(box) box.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:12px">載入中…</div>';
-  document.getElementById('award-card').style.display='block';
+  // 2026-10-10 修：行政／會計／醫師的儀表板沒有這張卡（2026-10-02 依角色移除），這裡以前直接 .style 會丟錯，
+  // 把 loadDashboard 後面的載入全部中斷——所以行政從來沒看到過 🤖 自動發送卡、心得待審核卡、今天沒記錄卡。
+  var _awCard=document.getElementById('award-card');
+  if(!box || !_awCard) return;
+  _awCard.style.display='block';
   loadClientsList(function(){}); // 手動頒發要選客人，順便把名單快取準備好
   adminAPI({action:'getCareAwards'}, function(d){
     var awards=d.awards||[];
@@ -12784,75 +12835,199 @@ function disableKetoRest(region, name){
 // ══════ 今日待辦（系統自動偵測）══════
 function loadTodayDuty(){
   var body=document.getElementById('duty-body');
+  if(!body) return;
   adminAPI({action:'getTodayDuty'}, function(d){
+    body=document.getElementById('duty-body'); if(!body) return;
     if(!d || d.status!=='ok'){ body.innerHTML='<div style="color:#fff;opacity:.8;text-align:center;padding:12px;font-size:12px">載入失敗，點更新重試</div>'; return; }
     var dt=d.duty;
-    document.getElementById('dash-duty-date').textContent = d.date;
-    // 待辦項目：系統偵測到才顯示，數字+一鍵處理
-    var items=[];
-    // 新預約放最上面（管理人2026-08-10：這最緊急）
-    // 2026-09-15修正：backlog24是「飲食判斷求助」跟「客人互動信箱」兩種逾期訊息加總的數字，原本這裡
-    // 「處理」按鈕寫死永遠跳去飲食判斷求助卡片，如果這次逾期的其實是互動信箱那邊的訊息，點過去只會看到
-    // 一堆早就已回覆的舊記錄、找不到真正逾期的是哪幾筆（創辦人回報「按了處理卻跳到不相關的畫面」）。
-    // 改成依實際逾期來源決定要跳去哪張卡片；如果兩邊都有逾期，文字裡註明清楚，跳去互動信箱那張（優先跳
-    // 去互動信箱是因為那裡的求助類型比較急，飲食判斷求助另外還有自己獨立一行提醒，兩邊都會顯示）。
-    // 2026-10-09：創辦人「有不順的部份請大力提醒秘書盡快回覆」——永遠排第一條、紅色、寫最久等了多久
-    if(dt.moodPending>0){
-      var _mw = dt.moodMaxWaitHours||0;
-      var _mwTxt = _mw>=48 ? ('最久已等 <b>'+Math.round(_mw/24)+' 天</b>') : _mw>=1 ? ('最久已等 <b>'+Math.round(_mw)+' 小時</b>') : '剛剛才說';
-      items.push({icon:'🌧',text:'<b style="font-size:14px">'+dt.moodPending+' 位客人說今天不順</b>，還沒有人回覆（'+_mwTxt+(dt.moodNames&&dt.moodNames.length?'：'+dt.moodNames.map(escH).join('、'):'')+'）。<b>先接住情緒，現在就回</b>',act:"scrollToCard('client-inbox-card')",urgent:true,top:true});
-    }
-    if(dt.backlog24>0){
-      var _bl24MH = dt.mealHelpBacklog24||0, _bl24CIB = dt.inboxBacklog24||0;
-      var _bl24Target = _bl24CIB>0 ? 'client-inbox-card' : 'mealhelp-card';
-      var _bl24Note = (_bl24MH>0 && _bl24CIB>0) ? '（互動信箱 '+_bl24CIB+' 筆、飲食判斷求助 '+_bl24MH+' 筆，兩邊都要看）' : '';
-      items.push({icon:'⏰',text:'<b>'+dt.backlog24+' 筆</b>客人訊息超過<b>24小時</b>還沒回覆'+_bl24Note+'，請優先處理',act:"scrollToCard('"+_bl24Target+"')",urgent:true});
-    }
-    if(dt.clientInbox>0) items.push({icon:'📥',text:'<b>'+dt.clientInbox+' 筆</b>客人互動（諮詢預約/心情關心/禮物請求）還沒回覆',act:"scrollToCard('client-inbox-card')"});
-    if(dt.mealHelp>0) items.push({icon:'🍽',text:'<b>'+dt.mealHelp+' 筆</b>客人的飲食判斷求助還沒回覆，回覆了客人才學得會',act:"scrollToCard('mealhelp-card')"});
-    if(dt.newBookings>0) items.push({icon:'💉',text:'<b>'+dt.newBookings+' 筆</b>新預約還沒聯繫，先跟客人確認檢測日期',act:"scrollToCard('bkg-card')"});
-    if(dt.alertsCritical>0) items.push({icon:'🚨',text:'<b>'+dt.alertsCritical+' 位</b>客人可能有酮酸風險',act:"scrollToCard('alert-card')",urgent:true});
-    if(dt.alerts>0) items.push({icon:'⚠️',text:'<b>'+dt.alerts+' 位</b>客人近期有不適症狀，需關心',act:"scrollToCard('alert-card')"});
-    if(dt.birthdays>0) items.push({icon:'🎂',text:'今天有 <b>'+dt.birthdays+' 位</b>客人生日，記得送祝福',act:"scrollToCard('birthday-card')"});
-    if(dt.noRecord>0) items.push({icon:'📝',text:'<b>'+dt.noRecord+' 位</b>客人今天還沒記錄，溫柔提醒一下',act:"scrollToCard('norecord-card')"});
-    if(dt.planExpiring>0) items.push({icon:'📆',text:'<b>'+dt.planExpiring+' 位</b>客人方案 14 天內到期或已到期，記得續約',act:"goPg('remind')"});
-    if(dt.balanceDeficit>0) items.push({icon:'💳',text:'<b>'+dt.balanceDeficit+' 位</b>客人儲值餘額是負的，記得提醒補款',act:"goPg('stored-value')"});
-    if(dt.purchasesNewPending>0) items.push({icon:'🛒',text:'<b>'+dt.purchasesNewPending+' 筆</b>新的代購需求還沒確認，記得跟客人回覆',act:"scrollToCard('proxy-card')"});
-    if(dt.purchasesShipping>0) items.push({icon:'📦',text:'<b>'+dt.purchasesShipping+' 筆</b>代購已確認訂購，出貨/收貨還沒完成',act:"scrollToCard('proxy-card')"});
-    if(dt.pendingReviews>0) items.push({icon:'🧾',text:'<b>'+dt.pendingReviews+' 筆</b>儲值/消費記錄還沒核查',act:"goPg('review')"});
-    if(dt.unknownFoodPending>0) items.push({icon:'🍱',text:'<b>'+dt.unknownFoodPending+' 筆</b>客人查不到的外食還沒補充',act:"goPg('food-mgmt')"});
-    if(dt.foodRecommendPending>0) items.push({icon:'🥗',text:'<b>'+dt.foodRecommendPending+' 筆</b>客人推薦的食材還沒審核',act:"goPg('food-mgmt')"});
-    // 2026-09-15修正：原本跳去客戶管理總覽頁，完全沒說是哪幾位客人的心得，秘書得自己一個一個點開找
-    // （創辦人要求把類似的跳轉問題一併抓出來修）。現在儀表板已經有「客人心得待審核」總覽卡，改跳去那裡。
-    if(dt.testimonialPending>0) items.push({icon:'💬',text:'<b>'+dt.testimonialPending+' 則</b>客人心得分享還沒審核',act:"scrollToCard('testimonial-card')"});
-    if(dt.reportReadyPending>0) items.push({icon:'📋',text:'<b>'+dt.reportReadyPending+' 位</b>客人報告已出，還沒跟他們講解（最久等了 '+dt.reportReadyMaxDays+' 天）',act:"goPg('alerts')",urgent:dt.reportReadyMaxDays>=3});
-
-    // 統計數字現在併到頁面最上方的合併快速導覽列（mx-dash-nav）一起顯示，這裡不再重複畫一次
-    // （2026-08-26：她覺得原本這裡的統計列跟上面的快速導覽列重複很亂，要求合併成一排）
+    var de=document.getElementById('dash-duty-date'); if(de) de.textContent = d.date;
+    // 2026-10-10：「今日待辦」改成依角色排好順序的「今天要做的事」（renderTodayFlow），這裡只負責把數字存起來。
+    // 統計數字併到快速導覽列（mx-dash-nav）一起顯示（2026-08-26 她要求合併成一排）
+    _tf.duty = dt;
     _mxDashNavSetStats(dt);
-
-    if(items.length===0){
-      body.innerHTML='<div style="text-align:center;padding:14px;color:#fff;font-size:13px"><span style="font-size:22px">✨</span><br>今天沒有緊急待辦，客人們狀態都不錯！<br><span style="opacity:.8;font-size:11px">記得照常關心大家的記錄與 LINE 訊息 🌱</span></div>';
-      return;
-    }
-    var html=items.map(function(it){
-      return '<div onclick="'+it.act+'" style="display:flex;align-items:center;gap:10px;background:'+(it.top?'#C62828':it.urgent?'rgba(255,80,80,.25)':'rgba(255,255,255,.12)')+(it.top?';box-shadow:0 0 0 3px rgba(255,255,255,.6);animation:mxPulse 1.6s infinite':'')+';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:#fff'+(it.urgent?';border:1px solid rgba(255,150,150,.5)':'')+'">'
-        +'<span style="font-size:18px">'+it.icon+'</span>'
-        +'<span style="flex:1;font-size:13px">'+it.text+'</span>'
-        +'<span style="font-size:11px;opacity:.7">處理 ›</span>'
-        +'</div>';
-    }).join('');
-    // 完整版工作表連結
-    html+='<div style="text-align:center;margin-top:8px"><span onclick="showFullDuty()" style="color:#fff;opacity:.85;font-size:11px;cursor:pointer;text-decoration:underline">查看完整工作表（每週/每月/觸發式）</span></div>';
-    body.innerHTML=html;
+    renderTodayFlow();
   });
 }
 function scrollToCard(id){
   var el=document.getElementById(id);
   if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.transition='box-shadow .3s'; el.style.boxShadow='0 0 0 3px rgba(15,110,86,.4)'; setTimeout(function(){el.style.boxShadow='';},1600); }
 }
+// ══════ 2026-10-10 「今天要做的事」：登入第一眼，依角色排好順序 ══════
+// 創辦人睡前交代：「用我的角度把後台的邏輯想一遍，讓秘書……一登入就知道要做什麼，要很直覺，找出合理邏輯。」
+// 以前的問題：①「今日待辦」是一長串平的清單，沒有先後、沒有「做完了沒」；②同一個數字在導覽列、今日待辦、各卡片
+// 出現三次；③交接留言、🤖 要你處理、打卡、排班缺人這些根本不在今日待辦裡；④行政／會計／醫師看不到今日待辦，
+// 登入只看到幾張卡片，不知道從哪裡開始。
+// 現在的邏輯：每個角色一條「工作流」，分四段——① 先接班（打卡、看交接、看系統替你做了什麼）② 回客人（急的先：
+// 不順→超過 24h→其他訊息→風險→預約→報告）③ 主動關心（今天內做完就好）④ 下班前（寫交接、打下班卡）。
+// 每一步都有「幾件」＋一顆按鈕直接跳過去；做完的（0 件）收到最下面變成灰色小標籤；還沒載入的顯示「…」。
+// 數字來源全部沿用既有的載入函式（getTodayDuty、各卡片 _mxDashNavSet 的 count、打卡狀態、🤖 紅色項目、排班缺人），
+// 沒有新的後端 API，所以不用重新部署。
+var _tf = { duty:null, clock:null, acRed:null, hoHist:null, dxTasks:null, shiftGap:null, kpi:null };
+function _tfNav(id){ var it = (typeof MX_DASH_NAV_ITEMS !== 'undefined') ? MX_DASH_NAV_ITEMS[id] : null; return it ? it.count : null; }
+function _tfHasCard(id){ return !!document.getElementById(id); }
+function _tfCanPg(id){
+  if(!CURRENT_USER) return false;
+  var a = ROLE_PAGES[CURRENT_USER.role]; if(a === null || a === undefined) return true;
+  return a.indexOf(id) >= 0 || (CURRENT_USER.extraPages || []).indexOf(id) >= 0;
+}
+function _tfRoleKey(){
+  if(!CURRENT_USER) return '';
+  var r = CURRENT_USER.role;
+  if(r === '管理人' || r === '老闆' || r === '創始人') return 'mgr';
+  if(r === '會計' || r === '財務主管') return 'fin';
+  return r; // 秘書／行政／醫師／教練
+}
+function _tfWroteHandoverToday(){
+  if(!_tf.hoHist || !CURRENT_USER) return null;
+  var today = _tfTodayStr();
+  return _tf.hoHist.some(function(h){ return String(h.fromSecretary||'') === CURRENT_USER.name && String(h.date||'').slice(0,10) === today; });
+}
+function _tfTodayStr(){ var n = new Date(); return n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0'); }
+// 每一步：{g:分組, icon, n:數量(null=載入中), text(有事時), done(沒事時), act(按鈕動作), btn(按鈕字), urgent, top, need:'card:xxx'|'pg:xxx'}
+function _tfSteps(){
+  var dt = _tf.duty || {};
+  var rk = _tfRoleKey();
+  var isDuty = (rk === '秘書' || rk === '行政' || rk === 'mgr') && (_tfCanPg('duty'));
+  var S = [];
+  var pushIf = function(st){
+    if(st.need){
+      var p = st.need.split(':');
+      if(p[0] === 'card' && !_tfHasCard(p[1])) return;
+      if(p[0] === 'pg' && !_tfCanPg(p[1])) return;
+    }
+    S.push(st);
+  };
+  var num = function(v){ return (v === null || v === undefined) ? null : (Number(v) || 0); };
+  var dutyN = function(k){ return _tf.duty ? (Number(dt[k]) || 0) : null; };
+
+  // ── ① 先接班 ──
+  if(isDuty && _tfHasCard('dash-clock-card')){
+    var ck = _tf.clock;
+    S.push({ g:1, icon:'🟢', n: ck === null ? null : (ck.inTime ? 0 : 1), text:'打上班卡', done:'已打上班卡 ' + (ck && ck.inTime ? ck.inTime : ''), act:'doClockIn()', btn:'打卡' });
+  }
+  pushIf({ g:1, icon:'📋', n:_tfNav('handover-card'), text:'看交接留言，<b>{n} 則</b>還沒看（看完按「已看過」）', done:'交接留言都看過了', act:"scrollToCard('handover-card')", btn:'去看', need:'card:handover-card' });
+  pushIf({ g:1, icon:'🤖', n:num(_tf.acRed), text:'系統替你發的訊息裡，有 <b>{n} 件</b>要你親自處理', done:'系統自動發的都處理完了', act:"scrollToCard('autocare-card')", btn:'去處理', need:'card:autocare-card' });
+
+  if(rk === '秘書' || rk === 'mgr'){
+    // ── ② 回客人（急的先）──
+    pushIf({ g:2, icon:'🌧', n:dutyN('moodPending'), text:'<b>{n} 位</b>客人說今天不順，還沒有人回' + (dt.moodMaxWaitHours >= 1 ? '（最久已等 <b>' + (dt.moodMaxWaitHours >= 48 ? Math.round(dt.moodMaxWaitHours/24) + ' 天' : Math.round(dt.moodMaxWaitHours) + ' 小時') + '</b>）' : '') + (dt.moodNames && dt.moodNames.length ? '：' + dt.moodNames.map(escH).join('、') : '') + '。<b>先接住情緒，現在就回</b>', done:'沒有不順的心情等著回', act:"scrollToCard('client-inbox-card')", btn:'現在就回', urgent:true, top:true, need:'card:client-inbox-card' });
+    pushIf({ g:2, icon:'⏰', n:dutyN('backlog24'), text:'<b>{n} 筆</b>客人訊息超過 <b>24 小時</b>沒回', done:'沒有超過 24 小時的訊息', act:"scrollToCard('" + ((dt.inboxBacklog24 || 0) > 0 ? 'client-inbox-card' : 'mealhelp-card') + "')", btn:'去回', urgent:true, need:'card:client-inbox-card' });
+    pushIf({ g:2, icon:'📥', n:dutyN('clientInbox'), text:'互動信箱 <b>{n} 筆</b>（諮詢、禮物、心情）還沒回', done:'互動信箱都回完了', act:"scrollToCard('client-inbox-card')", btn:'去回', need:'card:client-inbox-card' });
+    pushIf({ g:2, icon:'🍽', n:dutyN('mealHelp'), text:'<b>{n} 筆</b>飲食判斷求助還沒回（回了客人才學得會）', done:'飲食求助都回完了', act:"scrollToCard('mealhelp-card')", btn:'去回', need:'card:mealhelp-card' });
+    pushIf({ g:2, icon:'🚨', n:dutyN('alertsCritical'), text:'<b>{n} 位</b>客人可能有酮酸風險，請立刻聯絡', done:'沒有酮酸風險', act:"scrollToCard('alert-card')", btn:'去看', urgent:true, need:'card:alert-card' });
+    pushIf({ g:2, icon:'⚠️', n:dutyN('alerts'), text:'<b>{n} 位</b>客人近期有不適症狀，要關心一下', done:'沒有症狀警示', act:"scrollToCard('alert-card')", btn:'去看', need:'card:alert-card' });
+    pushIf({ g:2, icon:'💉', n:_tfNav('bkg-card'), text:'<b>{n} 筆</b>新預約，先跟客人確認檢測日期', done:'新預約都聯繫過了', act:"scrollToCard('bkg-card')", btn:'去聯繫', need:'card:bkg-card' });
+    pushIf({ g:2, icon:'📋', n:dutyN('reportReadyPending'), text:'<b>{n} 位</b>客人報告已出，還沒跟他們講解' + (dt.reportReadyMaxDays ? '（最久等了 <b>' + dt.reportReadyMaxDays + ' 天</b>）' : '') + '，請約講解醫師', done:'沒有報告等著講解', act:"goPg('alerts')", btn:'去約', urgent:(dt.reportReadyMaxDays || 0) >= 3, need:'pg:alerts' });
+    // ── ③ 主動關心（今天內）──
+    pushIf({ g:3, icon:'📝', n:_tfNav('norecord-card'), text:'<b>{n} 位</b>客人今天還沒記錄。晚上 8 點系統會自動提醒一次；你先關心<b>最近幾天都沒記錄</b>的人', done:'大家今天都記錄了', act:"scrollToCard('norecord-card')", btn:'去看', need:'card:norecord-card' });
+    pushIf({ g:3, icon:'🎂', n:_tfNav('birthday-card'), text:'<b>{n} 位</b>客人今天或這幾天生日（系統當天會自動祝福，你可以再親自補一句）', done:'這幾天沒有人生日', act:"scrollToCard('birthday-card')", btn:'去看', need:'card:birthday-card' });
+    pushIf({ g:3, icon:'📆', n:dutyN('planExpiring'), text:'<b>{n} 位</b>客人方案 14 天內到期或已到期，找機會聊續約', done:'沒有快到期的方案', act:"goPg('remind')", btn:'去看', need:'pg:remind' });
+    pushIf({ g:3, icon:'🔬', n:_tfNav('odue-card'), text:'<b>{n} 筆</b>檢測逾期沒回報（秘書不用自己催，按「請行政催」）', done:'沒有逾期的檢測', act:"scrollToCard('odue-card')", btn:'去看', need:'card:odue-card' });
+    pushIf({ g:3, icon:'🛒', n:dutyN('purchasesNewPending'), text:'<b>{n} 筆</b>新代購需求還沒跟客人確認', done:'代購需求都確認了', act:"scrollToCard('proxy-card')", btn:'去看', need:'card:proxy-card' });
+    pushIf({ g:3, icon:'💬', n:_tfNav('testimonial-card'), text:'<b>{n} 則</b>客人心得等你審核', done:'心得都審核了', act:"scrollToCard('testimonial-card')", btn:'去審', need:'card:testimonial-card' });
+    pushIf({ g:3, icon:'❓', n:_tfNav('unknown-q-card'), text:'<b>{n} 個</b>客人的問題系統答不出來，請你回', done:'沒有答不出來的問題', act:"scrollToCard('unknown-q-card')", btn:'去回', need:'card:unknown-q-card' });
+    pushIf({ g:3, icon:'🩺', n:num(_tf.dxTasks), text:'醫師交辦給你 <b>{n} 件</b>事', done:'沒有醫師交辦', act:"scrollToCard('dxtask-card')", btn:'去做', need:'card:dxtask-card' });
+    pushIf({ g:3, icon:'💭', n:_tfNav('disc-card'), text:'<b>{n} 個</b>個案討論等你的意見', done:'沒有等你意見的討論', act:"scrollToCard('disc-card')", btn:'去看', need:'card:disc-card' });
+  }
+  if(rk === '行政' || rk === 'mgr'){
+    pushIf({ g:2, icon:'🔬', n:_tfNav('odue-card'), text:'<b>{n} 筆</b>檢測逾期沒回報，請跟檢驗所／診所催（催完按「已跟催」）', done:'沒有要催的檢測', act:"scrollToCard('odue-card')", btn:'去催', urgent:true, need:'card:odue-card' });
+    if(rk === '行政') pushIf({ g:2, icon:'💉', n:_tfNav('bkg-card'), text:'<b>{n} 筆</b>新預約，先跟客人確認檢測日期', done:'新預約都聯繫過了', act:"scrollToCard('bkg-card')", btn:'去聯繫', need:'card:bkg-card' });
+    pushIf({ g:2, icon:'📦', n:dutyN('purchasesShipping'), text:'<b>{n} 筆</b>代購已訂購，出貨／收貨還沒完成', done:'沒有待出貨的代購', act:"scrollToCard('proxy-card')", btn:'去看', need:'card:proxy-card' });
+    pushIf({ g:2, icon:'📅', n:num(_tf.shiftGap), text:'這個月還有 <b>{n} 天</b>完全沒人排班', done:'這個月每天都有人排班', act:"goPg('duty')", btn:'去排班', urgent:true, need:'pg:duty' });
+    pushIf({ g:3, icon:'🍱', n:dutyN('unknownFoodPending'), text:'<b>{n} 筆</b>客人查不到的外食還沒補進食物庫', done:'外食都補好了', act:"goPg('food-mgmt')", btn:'去補', need:'pg:food-mgmt' });
+    pushIf({ g:3, icon:'🥗', n:dutyN('foodRecommendPending'), text:'<b>{n} 筆</b>客人推薦的食材還沒審核', done:'食材推薦都審核了', act:"goPg('food-mgmt')", btn:'去審', need:'pg:food-mgmt' });
+    if(rk === '行政'){
+      pushIf({ g:3, icon:'💬', n:_tfNav('testimonial-card'), text:'<b>{n} 則</b>客人心得等你審核', done:'心得都審核了', act:"scrollToCard('testimonial-card')", btn:'去審', need:'card:testimonial-card' });
+      pushIf({ g:3, icon:'🎂', n:_tfNav('birthday-card'), text:'<b>{n} 位</b>客人今天或這幾天生日', done:'這幾天沒有人生日', act:"scrollToCard('birthday-card')", btn:'去看', need:'card:birthday-card' });
+    }
+  }
+  if(rk === 'fin' || rk === 'mgr'){
+    pushIf({ g:2, icon:'🧾', n:dutyN('pendingReviews'), text:'<b>{n} 筆</b>儲值／消費記錄等核查（通過或退回）', done:'沒有待核查的記錄', act:"goPg('review')", btn:'去核查', urgent:true, need:'pg:review' });
+    pushIf({ g:2, icon:'💳', n:dutyN('balanceDeficit'), text:'<b>{n} 位</b>客人儲值餘額是負的，確認後提醒補儲值（系統已先傳一則給客人）', done:'沒有餘額是負的客人', act:"goPg('stored-value')", btn:'去看', need:'pg:stored-value' });
+    var dom = new Date().getDate();
+    if(dom <= 7) pushIf({ g:3, icon:'📊', n:1, info:true, text:'月初了，做<b>上個月的月結算</b>（各合作單位分帳）', done:'', act:"goPg('settlement')", btn:'去結算', need:'pg:settlement' });
+  }
+  if(rk === '醫師'){
+    pushIf({ g:2, icon:'💭', n:_tfNav('disc-card'), text:'<b>{n} 個</b>個案討論等你的意見', done:'沒有等你意見的討論', act:"scrollToCard('disc-card')", btn:'去看', need:'card:disc-card' });
+    pushIf({ g:2, icon:'📋', n:dutyN('reportReadyPending'), text:'<b>{n} 位</b>客人報告已出、等講解' + (dt.reportReadyMaxDays ? '（最久等了 <b>' + dt.reportReadyMaxDays + ' 天</b>）' : '') + '，講解前先到客人檔案看完整狀況', done:'沒有報告等著講解', act:"goPg('clients')", btn:'去看客人', urgent:(dt.reportReadyMaxDays || 0) >= 3, need:'pg:clients' });
+    pushIf({ g:2, icon:'🚨', n:dutyN('alertsCritical'), text:'<b>{n} 位</b>客人可能有酮酸風險', done:'沒有酮酸風險', act:"scrollToCard('alert-card')", btn:'去看', urgent:true, need:'card:alert-card' });
+    pushIf({ g:2, icon:'⚠️', n:dutyN('alerts'), text:'<b>{n} 位</b>客人近期有不適症狀', done:'沒有症狀警示', act:"scrollToCard('alert-card')", btn:'去看', need:'card:alert-card' });
+  }
+  if(rk === 'mgr'){
+    var k = _tf.kpi;
+    pushIf({ g:3, icon:'💛', n: k ? (Number(k.openOver24h) || 0) : null, text:'<b>{n} 位</b>客人說不順超過 24 小時沒人接住——請指派秘書立刻回', done:'接住情緒：沒有超過 24 小時沒回的', act:"scrollToCard('carekpi-card')", btn:'看指標', urgent:true, need:'card:carekpi-card' });
+    pushIf({ g:3, icon:'📈', n:1, info:true, text:'看一眼經營指標（新客、記錄率、流失風險）', done:'', act:"scrollToCard('founder-metrics-card')", btn:'去看', need:'card:founder-metrics-card' });
+  }
+  // ── ④ 下班前 ──
+  if(isDuty && _tfHasCard('handover-card')){
+    var wrote = _tfWroteHandoverToday();
+    S.push({ g:4, icon:'✍️', n: wrote === null ? null : (wrote ? 0 : 1), text:'寫交接留言：今天發生什麼、哪位客人要接著追（下班前）', done:'今天已經寫過交接留言', act:'openHandoverQuickAdd()', btn:'寫留言' });
+  }
+  if(isDuty && _tfHasCard('dash-clock-card')){
+    var ck2 = _tf.clock;
+    S.push({ g:4, icon:'🔴', n: ck2 === null ? null : (ck2.outTime ? 0 : 1), text:'打下班卡（下班前）', done:'已打下班卡 ' + (ck2 && ck2.outTime ? ck2.outTime : ''), act:'doClockOut()', btn:'打卡' });
+  }
+  return S;
+}
+var TF_GROUP_NAMES = { 1:'① 先接班（5 分鐘）', 2:'② 回客人（急的先）', 3:'③ 今天內做完', 4:'④ 下班前' };
+var TF_GROUP_NAMES_FIN = { 1:'① 先看留言', 2:'② 今天要核的', 3:'③ 本月', 4:'④' };
+var TF_GROUP_NAMES_DOC = { 1:'① 先看留言', 2:'② 等你的', 3:'③', 4:'④' };
+var TF_GROUP_NAMES_MGR = { 1:'① 先接班', 2:'② 客人這邊（監督秘書有沒有跟上）', 3:'③ 今天內看一下', 4:'④ 下班前' };
+function renderTodayFlow(){
+  var body = document.getElementById('duty-body');
+  if(!body || !CURRENT_USER) return;
+  var rk = _tfRoleKey();
+  var names = rk === 'fin' ? TF_GROUP_NAMES_FIN : rk === '醫師' ? TF_GROUP_NAMES_DOC : rk === 'mgr' ? TF_GROUP_NAMES_MGR : TF_GROUP_NAMES;
+  var steps = _tfSteps();
+  var todo = steps.filter(function(s){ return s.n !== null && s.n > 0; });
+  var todoN = todo.filter(function(s){ return !s.info; }).length;
+  var done = steps.filter(function(s){ return s.n !== null && s.n === 0; });
+  var loading = steps.filter(function(s){ return s.n === null; });
+  var dateEl = document.getElementById('dash-duty-date');
+  var html = '';
+  // 進度條
+  var total = todoN + done.length;
+  var pct = total ? Math.round(done.length / total * 100) : 0;
+  html += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;color:#fff">'
+    + '<div style="font-size:14px;font-weight:800">' + escH(roleDisplayName(CURRENT_USER.role)) + '・' + escH(CURRENT_USER.name || '') + '</div>'
+    + '<div style="font-size:13px">' + (todoN ? ('還有 <b style="font-size:16px">' + todoN + '</b> 件要做') : (loading.length ? '整理中…' : '<b>今天的事都做完了 ✨</b>')) + (done.length ? '・已完成 ' + done.length + ' 件' : '') + (loading.length ? '<span style="opacity:.7">・' + loading.length + ' 項還在載入</span>' : '') + '</div>'
+    + '<div style="flex:1;min-width:120px;height:8px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:#fff;border-radius:4px;transition:width .4s"></div></div>'
+    + '</div>';
+  var groups = {};
+  todo.forEach(function(s){ (groups[s.g] = groups[s.g] || []).push(s); });
+  [1,2,3,4].forEach(function(g){
+    var list = groups[g]; if(!list || !list.length) return;
+    html += '<div style="font-size:12px;font-weight:800;color:#fff;opacity:.9;margin:8px 0 5px;letter-spacing:.5px">' + escH(names[g] || '') + '</div>';
+    list.forEach(function(s){
+      var txt = String(s.text).replace(/\{n\}/g, s.n);
+      html += '<div onclick="' + s.act + '" style="display:flex;align-items:center;gap:10px;background:' + (s.top ? '#C62828' : s.urgent ? 'rgba(255,80,80,.28)' : s.info ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.14)') + (s.top ? ';box-shadow:0 0 0 3px rgba(255,255,255,.6);animation:mxPulse 1.6s infinite' : '') + ';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:#fff' + (s.urgent ? ';border:1px solid rgba(255,150,150,.5)' : '') + '">'
+        + '<span style="font-size:20px">' + s.icon + '</span>'
+        + '<span style="flex:1;font-size:13.5px;line-height:1.5">' + txt + '</span>'
+        + '<button onclick="event.stopPropagation();' + s.act + '" style="background:#fff;color:#0F6E56;border:none;border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap">' + escH(s.btn || '處理') + ' ›</button>'
+        + '</div>';
+    });
+  });
+  if(!todoN && !loading.length){
+    html += '<div style="text-align:center;padding:14px;color:#fff;font-size:13px"><span style="font-size:24px">✨</span><br>今天沒有要處理的事，客人們狀態都不錯！<br><span style="opacity:.8;font-size:11px">下面各卡片有需要時會自己跳出來</span></div>';
+  }
+  if(loading.length){
+    html += '<div style="font-size:11px;color:#fff;opacity:.7;margin-top:4px">載入中：' + loading.map(function(s){ return s.icon; }).join(' ') + '</div>';
+  }
+  if(done.length){
+    html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">' + done.map(function(s){
+      return '<span style="font-size:11px;color:#fff;opacity:.75;background:rgba(0,0,0,.18);border-radius:14px;padding:3px 10px">✅ ' + s.icon + ' ' + escH(String(s.done || '')) + '</span>';
+    }).join('') + '</div>';
+  }
+  html += '<div style="text-align:center;margin-top:8px"><span onclick="showFullDuty()" style="color:#fff;opacity:.75;font-size:11px;cursor:pointer;text-decoration:underline">順序是怎麼定的？</span></div>';
+  body.innerHTML = html;
+}
 function showFullDuty(){
-  alert('完整工作表（每週檢視、每月結算、觸發式處理、服務原則）在教學手冊與獨立網頁版中。\n\n每天登入只要看這張「今日待辦」，系統會自動幫你盯生日、沒記錄、症狀警示、方案到期。');
+  var rk = _tfRoleKey();
+  var msg = rk === 'fin' ? '會計／財務的順序：\n① 先看標給財務的交接留言、系統自動發的裡要你處理的（餘額為負、儲值待核查）\n② 待核查的儲值／消費、餘額為負的客人\n③ 每月 1～7 號做上個月的月結算'
+    : rk === '醫師' ? '醫師的順序：\n① 先看交接留言\n② 個案討論、報告已出等講解的客人（講解前先看客人檔案）、酮酸風險與症狀警示'
+    : rk === '行政' ? '行政的順序：\n① 先接班：打卡 → 看交接留言 → 看系統自動發的（自動請行政催）\n② 要催的：檢測逾期（跟檢驗所／診所催）、新預約、代購出貨、排班缺人\n③ 今天內：外食補充、食材審核、心得審核、生日\n④ 下班前：寫交接留言、打下班卡'
+    : '秘書的順序：\n① 先接班（5 分鐘）：打卡 → 看交接留言 → 看系統昨晚替你發了什麼、哪些要你親自處理\n② 回客人，急的先：說「不順」的（2 小時內要回）→ 超過 24 小時的訊息 → 互動信箱 → 飲食求助 → 酮酸風險 → 症狀 → 新預約 → 報告等講解\n③ 今天內做完：今天沒記錄（晚上 8 點系統會自動提醒一次）、生日、方案到期、檢測逾期（按請行政催）、代購、心得、答不出的問題\n④ 下班前：寫交接留言、打下班卡\n\n做完的會收到最下面變成灰色標籤；0 件的不會占你的視線。';
+  alert(msg);
 }
 
 
@@ -13747,10 +13922,10 @@ var ROLE_PAGES = {
 // 待核查、餘額異常、服務中；醫師：個案討論、醫師交辦、症狀警示。
 var DASH_CARDS_BY_ROLE = {
   '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','birthday-card','award-card','autocare-card','norecord-card','today-records-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
-  '行政': ['dash-clock-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card','autocare-card','dash-clients-card'],
-  '會計': ['finance-quick-card','handover-card'],
-  '財務主管': ['finance-quick-card','handover-card'],
-  '醫師': ['handover-card','disc-card','dxtask-card','alert-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
+  '行政': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card','autocare-card','dash-clients-card'],
+  '會計': ['duty-card','finance-quick-card','handover-card'],
+  '財務主管': ['duty-card','finance-quick-card','handover-card'],
+  '醫師': ['duty-card','handover-card','disc-card','dxtask-card','alert-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
   '教練': []
 };
 var DASH_STATS_BY_ROLE = {
