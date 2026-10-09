@@ -263,7 +263,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-08b';
+var MX_BUILD = '2026-10-09';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -556,6 +556,15 @@ var MX_BUILD = '2026-10-08b';
            （today-records-body／getTodayRecords）顯示的其實是今天『已經』記錄的客人名單，剛好是
            相反的名單，秘書永遠找不到真正沒記錄的是誰。這裡補一張真正列出「沒記錄的人是誰」的卡，
            跳轉才對得起來） -->
+      <!-- 2026-10-08新增：系統自動發送紀錄——創辦人問「這些自動發送的，是否讓秘書知道？」秘書接班先看這張，
+           就知道昨晚系統替誰發了什麼（生日、到期、檢測前一天、新客人引導、沒記錄提醒），不會重複關心、客人回「謝謝」也不會狀況外 -->
+      <div class="card" id="autocare-card" style="margin-bottom:14px;display:none;border:1px solid #CFE3D6">
+        <div class="card-hd">
+          <div class="card-title" style="color:var(--g3)"><i class="ti ti-robot"></i>🤖 系統自動替你發的訊息（近 3 天）</div>
+          <button class="tb-btn" onclick="loadAutoCareLog()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
+        </div>
+        <div class="card-body" id="autocare-body" style="padding-top:4px"></div>
+      </div>
       <div class="card" id="norecord-card" style="margin-bottom:14px;display:none;border:1px solid #E3D8B8">
         <div class="card-hd">
           <div class="card-title" style="color:#8A6D1A"><i class="ti ti-notes"></i>今天還沒記錄的客人</div>
@@ -6861,6 +6870,12 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">完整分析（依血糖／血脂／胰島素／體組成四大分類，僅醫師/秘書可見）</div>'
     + '<div id="irct-f-analysis" style="font-size:11.5px;color:var(--text2);line-height:1.8">載入中…</div>'
     + '</div>'
+    // 2026-10-09：三個甜蜜點旅程（創辦人大方向：前期治療性生酮 → 代謝甜蜜點 → 碳水甜蜜點 → 運動甜蜜點，接力進行）
+    + '<div id="cd-ssj" style="background:#FFF8E7;border:1px solid #F0D9A8;border-left:5px solid #D4A017;border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:#8A5A00;margin-bottom:4px">🍯 三個甜蜜點（接力：代謝 → 碳水 → 運動）<span id="cd-ssj-phase" style="float:right;font-size:11px;font-weight:700;background:#fff;border-radius:10px;padding:2px 9px;color:#8A5A00">…</span></div>'
+    + '<div style="font-size:10.5px;color:var(--text3);margin-bottom:8px">系統每天自動判定「條件已符合」並留言給秘書（不會通知客人）；探索中每階滿 14 天提醒評估；碳水探索血酮連跌 3 天提醒。代謝甜蜜點的判定標準暫定（創始人與負責人確認中），可在全域設定調整。</div>'
+    + '<div id="cd-ssj-body" style="font-size:12px;color:var(--text2)">載入中…</div>'
+    + '</div>'
     + '<div style="background:#F9ECE9;border:1px solid var(--border);border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:3px">🍚 碳水計畫（寫入 👤 客人名單）<span id="cd-badge-carb" style="float:right;font-size:10px;font-weight:700;border-radius:10px;padding:2px 8px;background:var(--bg2);color:var(--text3)">…</span></div>'
     + '<div style="font-size:10px;color:var(--text3);margin-bottom:7px">代謝靈活性調整期間分兩段：嚴格期（內部：治療性生酮）不建議吃碳水；碳水回補期（內部：營養性生酮）以 15g 為單位往上加，找客人的碳水甜蜜點。客人前台只會看到中性用語（嚴格期／碳水回補期），不會出現「治療」或「生酮」。</div>'
@@ -7056,6 +7071,7 @@ function openClientDetail(id, name){
   renderIRCTMedCategories();
   loadChronicMedList();
   loadCarbPlanAdmin(id);
+  if(typeof loadSweetSpotJourney==='function') loadSweetSpotJourney(id);
   loadCarePointsAdmin(id);
   loadStyleGiftAdmin(id);
   loadMealRecordsAdmin(id);
@@ -8643,6 +8659,51 @@ function cpsGrantMonthly(){
     else toast('⚠️ '+(d.message||'發放失敗'));
   });
 }
+// ══════ 2026-10-09 三個甜蜜點旅程 ══════
+var SSJ_STATUS_STYLE = { '未開始':['#EEE','#666'], '條件已符合':['#FDE68A','#92400E'], '探索中':['#BFDBFE','#1E3A8A'], '已確認':['#BBF7D0','#14532D'], '暫停':['#E5E7EB','#374151'] };
+function loadSweetSpotJourney(id){
+  var _gen = _cdOpenGen;
+  var box = document.getElementById('cd-ssj-body'); if(!box) return;
+  adminAPI({action:'getSweetSpotJourney', clientId:id}, function(d){
+    if(_cdOpenGen !== _gen) return;
+    box = document.getElementById('cd-ssj-body'); var ph = document.getElementById('cd-ssj-phase');
+    if(!box) return;
+    if(!d || d.status!=='ok'){ box.textContent='載入失敗'; return; }
+    if(ph) ph.textContent = d.phase || '';
+    window._ssjItems = d.items || [];
+    box.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px">' + d.items.map(function(it, i){
+      var st = SSJ_STATUS_STYLE[it.status] || SSJ_STATUS_STYLE['未開始'];
+      var stageTxt = it.status==='探索中' ? ('第 '+(it.stage||1)+' 階'+(it.type==='carb'?'（每天 '+((it.stage||1)*15)+'g）':'')+'・第 '+it.stageDays+' 天'+(it.stageDays>=14?' <b style="color:#B45309">⏰ 該評估</b>':'')) : '';
+      return '<div style="background:#fff;border:1px solid #F0D9A8;border-radius:9px;padding:9px 10px">'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><span style="font-size:18px">'+it.icon+'</span><b style="font-size:12.5px;color:var(--text)">第 '+it.order+' 關・'+escH(it.label)+'</b>'
+        + '<span style="margin-left:auto;font-size:11px;font-weight:800;background:'+st[0]+';color:'+st[1]+';border-radius:6px;padding:2px 8px">'+escH(it.status)+'</span></div>'
+        + (stageTxt ? '<div style="font-size:11px;color:#1E3A8A;margin-bottom:3px">'+stageTxt+'</div>' : '')
+        + (it.carbDropAlert ? '<div style="font-size:11px;color:#A32D2D;font-weight:700;margin-bottom:3px">⚠️ 血酮連續 3 天偏低，可能超過甜蜜點</div>' : '')
+        + '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">'+(it.ready?'✅ ':'')+escH(it.readyReason||'')+'</div>'
+        + (it.content ? '<div style="font-size:11.5px;color:#14532D;background:#F0FDF4;border-radius:7px;padding:6px 8px;margin-bottom:5px;line-height:1.5">'+escH(it.content)+(it.confirmedAt?'<span style="color:var(--text3);font-size:10px">　'+escH(it.confirmedAt)+'</span>':'')+'</div>' : '')
+        + '<details style="font-size:11px"><summary style="cursor:pointer;color:var(--b3)">✏️ 更新狀態／內容</summary>'
+        + '<div style="display:grid;grid-template-columns:1fr auto;gap:5px;margin-top:5px">'
+        + '<select id="ssj-st-'+i+'" class="form-select" style="font-size:11.5px">'+['未開始','條件已符合','探索中','已確認','暫停'].map(function(x){ return '<option value="'+x+'"'+(x===it.status?' selected':'')+'>'+x+'</option>'; }).join('')+'</select>'
+        + '<input id="ssj-stage-'+i+'" class="form-input" type="number" min="0" style="font-size:11.5px;width:70px" placeholder="第幾階" value="'+(it.stage||'')+'">'
+        + '</div>'
+        + '<textarea id="ssj-txt-'+i+'" class="form-input" style="font-size:11.5px;margin-top:5px;min-height:48px;width:100%;box-sizing:border-box" placeholder="確認後給客人看的一句話（例：血酮 1.5–2.5、一天兩餐、16 小時斷食）">'+escH(it.content||'')+'</textarea>'
+        + '<button class="ai-btn g" style="font-size:11px;margin-top:5px" onclick="saveSweetSpotJourney(\''+escH(id)+'\','+i+',this)">儲存</button>'
+        + '</details>'
+        + '</div>';
+    }).join('') + '</div>';
+  });
+}
+function saveSweetSpotJourney(cid, i, btn){
+  var it = (window._ssjItems||[])[i]; if(!it) return;
+  var st = document.getElementById('ssj-st-'+i).value, stage = document.getElementById('ssj-stage-'+i).value, txt = document.getElementById('ssj-txt-'+i).value.trim();
+  if(st==='已確認' && !txt){ toast('已確認要填給客人看的一句話'); return; }
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
+  adminAPIPost({action:'setSweetSpotJourney', clientId:cid, type:it.type, status:st, stage:stage, content:txt, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(btn){ btn.disabled=false; btn.style.opacity=''; }
+    if(d && d.status==='ok'){ toast('✅ 已更新「'+it.label+'」'+(st==='已確認'?'，客人前台會收到通知':'')); loadSweetSpotJourney(cid); }
+    else toast('⚠️ '+((d&&d.message)||'儲存失敗'));
+  });
+}
 function loadCarbPlanAdmin(id){
   var _gen = _cdOpenGen; // 2026-09-09補：防止面板換到別的客人後，這筆查詢才回來，把上一位客人的碳水計畫設定畫進新客人的表單裡
   adminAPI({action:'getCarbPlan', clientId:id}, function(d){
@@ -9150,7 +9211,7 @@ function loadNoRecordClients(){
       var rm = c.reminded;
       var rowStyle = rm ? 'background:#F6F8F6;opacity:.78;' : 'background:var(--bg);';
       var tag = rm
-        ? '<span style="font-size:10px;font-weight:700;color:var(--g3);background:var(--mint);border-radius:5px;padding:1px 6px;white-space:nowrap">✅ 已提醒 '+escH(rm.time)+(rm.by?'・'+escH(rm.by):'')+(rm.read?'・客人已讀':'・客人還沒看')+'</span>'
+        ? '<span style="font-size:10px;font-weight:700;color:var(--g3);background:var(--mint);border-radius:5px;padding:1px 6px;white-space:nowrap">'+(rm.by==='系統自動'?'🤖 系統已自動提醒 ':'✅ 已提醒 ')+escH(rm.time)+(rm.by&&rm.by!=='系統自動'?'・'+escH(rm.by):'')+(rm.read?'・客人已讀':'・客人還沒看')+'</span>'
         : '';
       var btn = rm
         ? '<button class="tb-btn" style="font-size:10.5px;padding:3px 9px;margin-left:auto" onclick="openCompose(\''+escH(c.clientId)+'\',\''+escH(c.name||c.clientId)+'\',\'remind\')">再傳一次</button>'
@@ -9631,6 +9692,51 @@ function loadDashboard(){
   loadCareAwards();
   if(typeof loadTestimonialsPending==='function') loadTestimonialsPending();
   if(typeof loadNoRecordClients==='function') loadNoRecordClients();
+  if(typeof loadAutoCareLog==='function') loadAutoCareLog();
+}
+// 2026-10-08新增：儀表板「系統自動替你發的訊息」卡——資料來源後端 getAutoCareLog（🤖 自動訊息記錄 近 3 天）
+function loadAutoCareLog(){
+  var card=document.getElementById('autocare-card'), box=document.getElementById('autocare-body');
+  if(!card || !box) return;
+  adminAPI({action:'getAutoCareLog', days:3}, function(d){
+    card=document.getElementById('autocare-card'); box=document.getElementById('autocare-body');
+    if(!card || !box) return;
+    var items=(d && d.items)||[];
+    if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
+    card.style.display='block';
+    _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱' };
+    var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>（也在交接留言）　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
+    if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
+    var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
+    Object.keys(byDate).sort().reverse().forEach(function(ds){
+      html+='<div style="font-size:13px;font-weight:800;color:var(--text);margin:10px 0 6px">📅 '+escH(ds.slice(5).replace('-','/'))+'　'+byDate[ds].length+' 則</div>';
+      // 2026-10-08：創辦人「要通知秘書的、已經做的，底色色塊要更明顯，秘書也有年紀了」——字放大、色塊分三種：
+      // 紅＝要秘書親自處理（連續7天／待講解／催收／打卡／待核查／交接未讀）、黃＝給同事看的統計（週報）、綠＝已替客人發出的
+      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1};
+      var infoTypes = {'創始人週報':1};
+      html+=byDate[ds].map(function(it){
+        var isStaff = !!staffTypes[it.type], isInfo = !!infoTypes[it.type];
+        var bg = isStaff ? '#F8D7D7' : isInfo ? '#FFF1BF' : '#D9F0E3';
+        var border = isStaff ? '#D9534F' : isInfo ? '#D4A017' : '#2E9E5B';
+        var tagColor = isStaff ? '#A32D2D' : isInfo ? '#7A5A00' : '#1A6B3C';
+        var lead = isStaff ? '要你處理' : isInfo ? '給你參考' : '已替你發給客人';
+        return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:6px;background:'+bg+';border-left:6px solid '+border+'">'
+          +'<span style="font-size:20px">'+(icon[it.type]||'💌')+'</span>'
+          +'<div style="flex:1;min-width:0">'
+          +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+          +(it.clientId?'<b style="font-size:14px;color:var(--text);cursor:pointer;text-decoration:underline dotted" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name)+'\')">'+escH(it.name)+'</b>':'<b style="font-size:14px;color:var(--text)">'+escH(it.name||'全體')+'</b>')
+          +'<span style="font-size:12px;font-weight:800;color:#fff;background:'+border+';border-radius:6px;padding:2px 8px">'+escH(it.type)+'</span>'
+          +'<span style="font-size:11.5px;font-weight:700;color:'+tagColor+'">'+lead+'</span>'
+          +'</div>'
+          +'<div style="font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5">'+escH(it.summary)+'…</div>'
+          +'</div>'
+          +'<span style="font-size:12px;color:var(--text3);white-space:nowrap">'+escH(it.time.slice(6))+'</span>'
+          +'</div>';
+      }).join('');
+    });
+    box.innerHTML=html;
+  });
 }
 
 // ── 警示引擎 ──
@@ -13532,8 +13638,8 @@ var ROLE_PAGES = {
 // 秘書：客人第一線，幾乎全部；行政：排班、預約、檢測催收、出貨、心得、生日；會計／財務主管：只有交接留言（給財務的）、
 // 待核查、餘額異常、服務中；醫師：個案討論、醫師交辦、症狀警示。
 var DASH_CARDS_BY_ROLE = {
-  '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','birthday-card','award-card','norecord-card','today-records-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
-  '行政': ['dash-clock-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card','dash-clients-card'],
+  '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','birthday-card','award-card','autocare-card','norecord-card','today-records-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
+  '行政': ['dash-clock-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card','autocare-card','dash-clients-card'],
   '會計': ['finance-quick-card','handover-card'],
   '財務主管': ['finance-quick-card','handover-card'],
   '醫師': ['handover-card','disc-card','dxtask-card','alert-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],

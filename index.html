@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-09-29';
+var MX_BUILD = '2026-10-09';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -907,7 +907,9 @@ window.openHealthForm = function() {
     </div>
     <!-- 2026-08-12新增：代謝甜蜜點——秘書確認過的才會顯示，平常隱藏，避免資料還不夠時就跟客人講得太篤定 -->
     <div id="sweetspot-card" style="display:none;background:linear-gradient(135deg,#FFF7E6,#FEF0D9);border:1px solid #F0D9A8;border-radius:14px;padding:14px 15px;margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:#8A5A00;margin-bottom:8px">🍯 你的代謝甜蜜點</div>
+      <div style="font-size:13px;font-weight:700;color:#8A5A00;margin-bottom:8px">🍯 你的甜蜜點旅程</div>
+      <!-- 2026-10-09：三個甜蜜點接力（代謝 → 碳水 → 運動），只顯示中性的「現在在哪一關」，不顯示判定細節 -->
+      <div id="sweetspot-journey" style="display:none;margin-bottom:8px"></div>
       <div id="sweetspot-card-body" style="font-size:12px;color:#6B4900;line-height:1.7"></div>
     </div>
     <!-- 2026-09-05新增：對照手冊「健康趨勢：七大關鍵指標變化趨勢圖」功能描述新增——沿用IRCT完整檢測數據對照表同一個action(getIRCTFullTable)，不用另開後端action；這7項數字客人本來就在「完整檢測數據對照表」頁看得到原始值，這裡只是換個走勢圖畫法，跟下面「本週」的每日自我記錄趨勢是不同資料來源(這裡是每次IRCT檢測才有的數據) -->
@@ -9012,15 +9014,36 @@ function loadMonthlyLog(){
 // 沒有任何確認過的內容時整張卡片都不顯示，不會讓客人看到「資料不足」這種內部狀態 ──
 function loadMySweetSpot(){
   if(!CLIENT_ID) return;
+  var card = document.getElementById('sweetspot-card'), body = document.getElementById('sweetspot-card-body'), jbox = document.getElementById('sweetspot-journey');
+  if(!card || !body) return;
+  var hasText = false, hasJourney = false;
+  function show(){ card.style.display = (hasText || hasJourney) ? '' : 'none'; }
   callAPI({action:'getMySweetSpot', clientId:CLIENT_ID}, function(d){
-    var card = document.getElementById('sweetspot-card'), body = document.getElementById('sweetspot-card-body');
-    if(!card || !body) return;
-    if(!d || d.status !== 'ok' || !d.items || d.items.length === 0){ card.style.display = 'none'; return; }
-    card.style.display = '';
-    body.innerHTML = d.items.map(function(it){
-      var icon = it.type === 'diet' ? '🍚' : '🏃';
-      return '<div style="margin-bottom:8px">' + icon + ' ' + escHtml(it.text) + '</div>';
-    }).join('');
+    if(d && d.status === 'ok' && d.items && d.items.length){
+      hasText = true;
+      body.innerHTML = d.items.map(function(it){
+        var icon = it.type === 'diet' ? '🍯' : '🏃';
+        return '<div style="margin-bottom:8px">' + icon + ' ' + escHtml(it.text) + '</div>';
+      }).join('');
+    } else body.innerHTML = '';
+    show();
+  });
+  // 2026-10-09：旅程進度條（代謝 → 碳水 → 運動）。還沒開始任何一關就不顯示，避免讓客人看到「未開始」這種內部狀態
+  callAPI({action:'getMyJourney', clientId:CLIENT_ID}, function(d){
+    if(!jbox || !d || d.status !== 'ok' || !d.steps) return;
+    var started = d.steps.some(function(st){ return st.status !== '未開始'; });
+    if(!started){ jbox.style.display = 'none'; show(); return; }
+    hasJourney = true;
+    var colors = { '未開始':['#F3E9D2','#9A7B3A'], '準備中':['#FDE68A','#92400E'], '探索中':['#BFDBFE','#1E3A8A'], '已確認':['#BBF7D0','#14532D'], '暫停':['#E5E7EB','#374151'] };
+    jbox.innerHTML = '<div style="display:flex;gap:6px;margin-bottom:6px">' + d.steps.map(function(st, i){
+      var c = colors[st.status] || colors['未開始'];
+      return '<div style="flex:1;background:'+c[0]+';color:'+c[1]+';border-radius:9px;padding:7px 6px;text-align:center">'
+        + '<div style="font-size:16px">'+st.icon+'</div><div style="font-size:11px;font-weight:700">'+escHtml(st.label)+'</div>'
+        + '<div style="font-size:10px">'+(st.status==='已確認'?'✓ 已確認':st.status==='探索中'?'探索中':st.status==='準備中'?'準備開始':'')+'</div></div>';
+    }).join('') + '</div>'
+    + (d.phase ? '<div style="font-size:11px;color:#8A5A00">現在：'+escHtml(d.phase).replace('（治療性生酮）','')+'</div>' : '');
+    jbox.style.display = '';
+    show();
   });
 }
 function loadMyStats(){
