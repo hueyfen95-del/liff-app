@@ -170,6 +170,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 .fs-slot-invite:hover{background:#FCF3D9}
 .fs-slot-muted{background:var(--bg);border:1px solid var(--border2);color:var(--text3);cursor:default}
 .fs-slot-sel{background:#F5C518 !important;border:1px solid #C9A227 !important;color:#3B2F00 !important}
+@keyframes mxPulse{0%{box-shadow:0 0 0 3px rgba(255,255,255,.6)}50%{box-shadow:0 0 0 7px rgba(255,255,255,.15)}100%{box-shadow:0 0 0 3px rgba(255,255,255,.6)}}
 .fs-multi-on .fs-slot-open,.fs-multi-on .fs-slot-invite{cursor:cell}
 #fs-invite-pop .fs-inv-item{padding:7px 9px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--text)}
 #fs-invite-pop .fs-inv-item:hover{background:var(--bg)}
@@ -263,7 +264,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-09';
+var MX_BUILD = '2026-10-09c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -472,7 +473,7 @@ var MX_BUILD = '2026-10-09';
       <!-- 📥 客人互動信箱（2026-08-30：點數諮詢預約＋今日心情需要關心——前台送出但原本後台看不到的互動） -->
       <div class="card" id="client-inbox-card" style="margin-bottom:14px;display:none;border:1px solid #C9B8F5">
         <div class="card-hd">
-          <div class="card-title" style="color:#5B3FA8"><i class="ti ti-inbox"></i>客人互動信箱</div>
+          <div class="card-title" style="color:#5B3FA8"><i class="ti ti-inbox"></i>客人互動信箱 <span id="client-inbox-mood-badge" style="display:none;margin-left:8px;font-size:12px;font-weight:800;color:#fff;background:#C62828;border-radius:12px;padding:2px 10px">🌧 0 位說不順，請盡快回</span></div>
         </div>
         <div class="card-body" id="client-inbox-body" style="padding-top:4px"></div>
       </div>
@@ -558,6 +559,14 @@ var MX_BUILD = '2026-10-09';
            跳轉才對得起來） -->
       <!-- 2026-10-08新增：系統自動發送紀錄——創辦人問「這些自動發送的，是否讓秘書知道？」秘書接班先看這張，
            就知道昨晚系統替誰發了什麼（生日、到期、檢測前一天、新客人引導、沒記錄提醒），不會重複關心、客人回「謝謝」也不會狀況外 -->
+      <!-- 2026-10-09新增：「接住情緒」品質指標（創辦人：健康陪跑最關鍵的品質指標）——只有管理人／創始人看得到 -->
+      <div class="card" id="carekpi-card" style="margin-bottom:14px;display:none;border:1px solid #F3D6A4">
+        <div class="card-hd">
+          <div class="card-title" style="color:#8A5A00"><i class="ti ti-heart-handshake"></i>💛 接住情緒・品質指標（近 30 天）</div>
+          <button class="tb-btn" onclick="loadCareQualityKPI()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
+        </div>
+        <div class="card-body" id="carekpi-body" style="padding-top:4px"></div>
+      </div>
       <div class="card" id="autocare-card" style="margin-bottom:14px;display:none;border:1px solid #CFE3D6">
         <div class="card-hd">
           <div class="card-title" style="color:var(--g3)"><i class="ti ti-robot"></i>🤖 系統自動替你發的訊息（近 3 天）</div>
@@ -7793,14 +7802,31 @@ var COURSE_REPLY_TEMPLATES = [
   '看到你完成官網註冊了！正在幫你加課程，加好會再通知你。'
 ];
 // 心情關心的罐頭回覆
+// 2026-10-09改寫：創始人定「接住情緒是健康陪跑最關鍵的品質指標」——每一句都是三段式：
+// ①先接情緒（他要的不是答案） ②讓他知道被理解（不是你不夠努力） ③才給一個小動作。
+// MOOD_REPLY_BY_OPTION 依客人勾的「不順」選項對應，客人互動信箱會自動把第一句填進輸入框，秘書改一改就送。
+var MOOD_REPLY_BY_OPTION = {
+  '今天有點累': '今天累了吧，辛苦了。累的時候什麼都不想做是正常的，身體在跟你要休息，不是你偷懶。今晚就好好睡，記錄明天再補都可以，我在 🌙',
+  '嘴饞好想吃澱粉': '好想吃澱粉的那種感覺很難熬，我懂。這不是意志力的問題，是身體還在換能量模式，這幾天特別明顯。先喝一杯水、吃一口好油，撐過這一下就好；真的很想吃，跟我說，我們一起想辦法 🤝',
+  '心情悶悶的': '悶悶的時候，不用硬撐著開心。心情會影響數字很正常，不是你做錯什麼。想說什麼就在這裡說，不想說也沒關係，我陪著；要不要我們約個時間聊聊？💛',
+  '身體不太舒服': '身體不舒服一定很難受，先放下記錄，照顧自己最重要。調整期身體會有一些反應，不是你哪裡做壞了。方便的話跟我說一下是哪裡不舒服、從什麼時候開始，我幫你看看要不要調整；如果很不舒服，請先就醫 🙏',
+  '太忙差點沒空記錄': '這麼忙還記得來記一下，真的很不容易。生活先來了，記錄少一點完全沒關係，不用補。忙的時候只要拍一張餐點就算數，其他交給我 😊'
+};
 var MOOD_REPLY_TEMPLATES = [
-  '秘書看到你今天的心情了，辛苦了！你不是一個人，有什麼想說的隨時跟我說 🌿',
-  '嘴饞很正常，代表身體正在切換能量模式。多喝水、補點好油，撐過這幾天就會輕鬆很多 💪',
-  '身體不舒服要多休息、記得補電解質（鹽最重要）；如果持續不舒服，請告訴秘書具體症狀。',
-  '今天累就好好休息，有記錄就已經很棒了。睡飽一點，明天我們繼續 🌱',
-  '忙碌的日子還願意記錄，真的很不容易！健康就是這樣一點一點累積的 😊',
-  '看到你心情悶悶的，想聊聊嗎？也可以約秘書諮詢，我們一起想辦法 🤝'
+  '秘書看到你今天的心情了，辛苦了。不管順不順，願意說出來就很好，你不是一個人。想多說一點的話，我在這裡 🌿',
+  MOOD_REPLY_BY_OPTION['今天有點累'],
+  MOOD_REPLY_BY_OPTION['嘴饞好想吃澱粉'],
+  MOOD_REPLY_BY_OPTION['心情悶悶的'],
+  MOOD_REPLY_BY_OPTION['身體不太舒服'],
+  MOOD_REPLY_BY_OPTION['太忙差點沒空記錄']
 ];
+// 依客人心情內容（例：「今天有點累、嘴饞好想吃澱粉、自己打的字」）挑出最貼的一句
+function moodSuggestReply(content){
+  var c = String(content || '');
+  var keys = Object.keys(MOOD_REPLY_BY_OPTION);
+  for (var i = 0; i < keys.length; i++) { if (c.indexOf(keys[i]) >= 0) return MOOD_REPLY_BY_OPTION[keys[i]]; }
+  return MOOD_REPLY_TEMPLATES[0];
+}
 // 2026-08-30（管理人）：每個回覆都可以附一個可愛小圖案——客人收到回覆的同時，
 // 花園會跳出對應動畫（陽光/雨水/新芽/新葉/星星/花朵），回應不只有文字還有溫度
 var GIFT_PICK_OPTIONS = [['','🚫 不加'],['sunshine','☀️ 陽光'],['rain','🌧 雨水'],['sprout','🌱 新芽'],['leaf','🍃 新葉'],['star','⭐ 星星'],['flower','🌸 花朵']];
@@ -7920,19 +7946,29 @@ function loadClientInbox(){
     _ciCache = (d && d.items) || [];
     if(_ciCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
+    // 2026-10-09：不順的心情數量放在卡片標題紅標，卡片邊框跟著變紅
+    var _moodN = _ciCache.filter(function(x){ return x.src==='mood'; }).length;
+    var _mb = document.getElementById('client-inbox-mood-badge');
+    if(_mb){ _mb.style.display = _moodN ? '' : 'none'; _mb.textContent = '🌧 '+_moodN+' 位說不順，請盡快回'; }
+    card.style.borderColor = _moodN ? '#C62828' : '#C9B8F5';
     body.innerHTML = _ciCache.map(function(it, i){
       var setName = it.src === 'mood' ? 'MOOD_REPLY_TEMPLATES' : (it.noteType === '進階服務詢問' ? 'SVC_REPLY_TEMPLATES' : (it.noteType === '禮物請求' ? 'GIFT_REQUEST_REPLY_TEMPLATES' : (it.noteType === '線上課程註冊' ? 'COURSE_REPLY_TEMPLATES' : 'CONSULT_REPLY_TEMPLATES')));
       var ciBadgeBg = it.src==='mood' ? '#EFF6FF' : (it.noteType==='禮物請求' ? '#ECFDF5' : (it.noteType==='線上課程註冊' ? '#FEF3C7' : '#F5F3FF'));
       var ciBadgeColor = it.src==='mood' ? '#1E40AF' : (it.noteType==='禮物請求' ? '#065F46' : (it.noteType==='線上課程註冊' ? '#92400E' : '#5B21B6'));
-      return '<div style="padding:9px 0;border-bottom:1px dashed var(--border)">'
+      var _isMood = it.src==='mood', _wh = Number(it.waitHours)||0;
+      var _waitTxt = _wh>=48 ? ('已等 '+Math.round(_wh/24)+' 天') : _wh>=1 ? ('已等 '+Math.round(_wh)+' 小時') : ('已等 '+Math.round(_wh*60)+' 分鐘');
+      var _waitColor = _wh>=24 ? '#C62828' : _wh>=2 ? '#D9534F' : '#B26A00';
+      return '<div style="padding:9px '+(_isMood?'10px':'0')+';border-bottom:1px dashed var(--border);'+(_isMood?'background:#FDECEC;border-left:6px solid '+_waitColor+';border-radius:8px;margin-bottom:6px;':'')+'">'
         + '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">'
         + '<span style="font-size:11px;font-weight:700;color:#5B3FA8;background:#EDE7FB;border-radius:50%;width:20px;height:20px;line-height:20px;text-align:center;flex-shrink:0">' + (i + 1) + '</span>'
         + '<span style="font-size:10.5px;background:'+ciBadgeBg+';color:'+ciBadgeColor+';border-radius:20px;padding:2px 8px;font-weight:700">'+escH(it.kind)+'</span>'
+        + (_isMood ? '<span style="font-size:12px;font-weight:800;color:#fff;background:'+_waitColor+';border-radius:6px;padding:2px 9px">⏰ '+_waitTxt+'，請盡快回</span>' : '')
         + '<span style="font-size:11px;color:var(--text3)">'+escH(it.time)+'</span>'
         + '<b style="font-size:12px">'+escH(it.name || it.clientId)+'</b>'
         + '<span style="font-size:10.5px;color:var(--text3)">'+escH(it.clientId)+'</span>'
         + '</div>'
         + '<div style="font-size:12px;color:var(--text2);line-height:1.6">'+escH(it.content)+'</div>'
+        + (it.src==='mood' ? '<div style="font-size:11px;color:#1E40AF;background:#EFF6FF;border-radius:7px;padding:5px 8px;margin-top:6px">💛 系統依他勾的心情先準備好「接住」的第一句（已填進下面），改一改就送；結構：先接情緒 → 讓他知道被理解 → 才給一個小動作</div>' : '')
         + _quickReplyUI('ci'+i, setName)
         + '<div style="display:flex;gap:6px;margin-top:6px">'
         + '<button class="btn-g" style="flex:2;padding:8px;font-size:12px" onclick="ciSendReply('+i+',this)">💌 送出回覆給客人（自動標記完成）</button>'
@@ -7940,6 +7976,12 @@ function loadClientInbox(){
         + '</div>'
         + '</div>';
     }).join('');
+    // 2026-10-09：心情需要關心的，自動把對應的「接住」句填進輸入框（秘書可直接改）
+    _ciCache.forEach(function(it, i){
+      if(it.src !== 'mood') return;
+      var ta = document.getElementById('mr-txt-ci'+i);
+      if(ta && !ta.value) ta.value = moodSuggestReply(it.content);
+    });
   });
 }
 function ciSendReply(i, btnEl){
@@ -7988,13 +8030,14 @@ var MEAL_REPLY_TEMPLATES = [
 ];
 // 2026-10-03 新增：「提醒記錄」獨立一組（創始人問「今日沒記錄的提醒在哪讓秘書選？」——10-01 先塞在飲食建議清單最後面，
 // 秘書找不到）。現在「傳訊息給客人」視窗多一個「📝 提醒記錄」分頁，儀表板「今日沒記錄」「今日需要關心」名單每筆也有「傳提醒」直達
+// 2026-10-09改寫成三段式（接住 → 理解 → 一小步），見 MOOD_REPLY_BY_OPTION 上方說明
 var REMIND_TEMPLATES = [
-  '今天還沒看到您的飲食記錄，有空的時候記得補一下，秘書才能幫您看哦 🙂',
-  '這幾天的記錄少了一些，記錄是進步最好的證明，明天開始再接著記起來吧 💪',
-  '提醒您今天記得量血酮／體重並填進記錄，連續記才看得出趨勢 📈',
-  '歡迎加入！第一步很簡單：今天先記一餐＋量一次體重就好，秘書會陪著您一起看 🌱',
-  '好幾天沒看到您的記錄了，是不是最近比較忙？不用全部補，從今天這一餐開始就好 😊',
-  '記錄不是考試，少記幾天沒關係，重新開始就是進步。今天先記一筆吧！'
+  '今天還沒看到你的記錄，是不是忙了一整天？沒關係，一天沒記不會怎樣。晚餐拍一張照片就算記錄了，不用打字 🙂',
+  '這幾天記錄少了一些，我猜是生活先來了。不是你不夠努力，是真的忙。不用把漏掉的補回來，從今天這一餐重新開始就好 💪',
+  '最近有量血酮、體重嗎？沒有也沒關係，很多人一忙就忘。今天睡前量一次就好，數字不漂亮也沒關係，我要的是看到趨勢，不是看到完美 📈',
+  '歡迎加入 🌱 剛開始什麼都不熟很正常，不用一次做對。今天只要做一件事：記一餐、量一次體重。其他的我陪你慢慢來。',
+  '好幾天沒看到你了，有點想念，也有點擔心。不管是忙、是累、還是不順，都可以跟我說，不會被念。今天先記一筆就好，不用補 😊',
+  '記錄不是考試，少記幾天真的沒關係，我不會算分。重新開始的那一天就是進步。今天先記一筆，我在這裡等你 💚'
 ];
 function _mealReplyUI(uid){
   return '<div class="mr-wrap" style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
@@ -9368,19 +9411,19 @@ var _discSearchQAs = [];
 // ══ 關心用語範本選單（管理人2026-08-10：秘書要能從常用情境話術裡「選」，不是系統寫死一句）══
 var CARE_MSG_TEMPLATES = [
   { label:'許久未記錄・想念關心', text:'{name} 您好 😊 這幾天沒看到您的記錄，有點想念您～最近過得如何呢？如果遇到什麼卡關的地方，隨時跟我說，我們一起想辦法！' },
-  { label:'血酮偏高・關心狀況', text:'{name} 您好 😊 看到您最近血酮數值比較高，想關心一下您的狀況。方便的話，我們可以聊聊最近的飲食和身體感受，也可以幫您安排一次諮詢喔！' },
-  { label:'血酮偏低・溫柔提醒', text:'{name} 您好 😊 看到您最近血酮數值比較低，想了解一下最近的飲食狀況，可能有些小地方調整一下就會回穩囉，隨時跟我聊聊！' },
+  { label:'血酮偏高・關心狀況', text:'{name} 您好 😊 最近身體還好嗎？看到血酮比平常高一些，先不用擔心，這不代表做錯什麼，有時是吃得少或水喝得少。方便的話跟我說說這幾天的飲食和感受，我幫您看看，需要的話也可以約一次諮詢。' },
+  { label:'血酮偏低・溫柔提醒', text:'{name} 您好 😊 最近是不是比較忙、或外食多了一點？看到血酮低了一些，很正常，不是您不夠努力。通常只是一兩個小地方調一下就回來了，跟我聊聊最近吃什麼，我們一起找。' },
   { label:'數據進步・讚美鼓勵', text:'{name} 太棒了！看到您最近的記錄很穩定，數字也一直在進步 👏 繼續保持這個節奏，有任何問題隨時找我！' },
   { label:'不適症狀・主動關心', text:'{name} 您好，看到您記錄裡提到身體有些不舒服，想關心一下現在的狀況。這些感受有時是調整期的正常反應，跟我說說細節，我幫您看看要不要調整做法 😊' },
   { label:'複測時間到・回檢提醒', text:'{name} 您好 😊 距離上次檢測已經滿 8 週了，正是回來複測、看看身體進步多少的好時機！要幫您安排時間嗎？' },
-  { label:'剛加入・打氣鼓勵', text:'{name} 您好 😊 想跟您說聲加油，記得有空可以來記錄一下今天的狀況喔，我們一起陪您走這段旅程！有任何不舒服或想討論的，隨時跟我說 💛' },
+  { label:'剛加入・打氣鼓勵', text:'{name} 您好 😊 剛開始一定有很多不熟悉、不確定的地方，這很正常，不用一次做到位。今天只要記一餐就好，其他我陪您慢慢來。有任何不舒服或想問的，隨時跟我說 💛' },
   { label:'一般問候', text:'{name} 您好 😊 想主動關心一下您最近的狀況，有任何問題隨時跟我說喔！' },
   { label:'體重停滯・穩住心情', text:'{name} 您好 😊 看到您最近體重在一個平台期，先跟您說：這是身體在重新整隊，很正常！只要方向對，數字一定會再動起來。我們可以一起看看最近的餐盤，找找可以微調的小地方 💪' },
   { label:'聚餐破酮・溫柔拉回', text:'{name} 您好 😊 聚餐開心最重要，偶爾一餐不影響大局！今天開始我們把餐盤拉回來：好油脂＋適量蛋白質＋纖維，兩三天就會回穩囉。需要外食建議隨時問我！' },
   { label:'抽筋頭暈・電解質提醒', text:'{name} 您好，看到您提到有抽筋／頭暈的狀況，這常常是電解質流失的訊號——記得鈉鉀鎂要補夠，特別是鎂。補充的量和方式我可以幫您看一下，跟我說說最近的狀況 😊' },
   { label:'睡眠不足・提醒重要性', text:'{name} 您好 😊 注意到您最近睡眠比較少。睡眠對代謝的影響非常大——睡不夠時壓力荷爾蒙會偷偷把血糖推高，努力容易打折扣。這陣子我們把「睡飽」也當成一個目標好嗎？' },
   { label:'壓力大・逃難模式關心', text:'{name} 您好 😊 感覺您最近壓力比較大，想跟您說：壓力荷爾蒙高的時候，身體會進入「逃難模式」，數字卡住不是您不夠努力。先照顧好心情和睡眠，其他的我們一步一步來，我都在 💛' },
-  { label:'喝水不足・提醒補水', text:'{name} 您好 😊 小提醒：燃脂期身體特別需要水分，記得今天的水量要喝夠喔（起床先一大杯！）水喝足，代謝和酮體都會更漂亮 ✨' },
+  { label:'喝水不足・提醒補水', text:'{name} 您好 😊 最近是不是比較忙，水常常忘了喝？很多人都這樣，不是您的問題。燃脂期身體特別需要水，明天起床先一大杯就好，一個小習慣，代謝和酮體都會更漂亮 ✨' },
   { label:'報告出爐・邀請講解', text:'{name} 您好 😊 跟您說個好消息：您的檢測報告出來了！裡面有幾個值得好好聊的重點，想約個時間跟您講解，看看身體給了我們什麼訊息。您這幾天什麼時段方便呢？' },
   { label:'久未回檢・召回關心', text:'{name} 您好 😊 好一陣子沒看到您了，有點想念～不知道最近身體狀況如何？隨時歡迎回來測一次，看看這段時間身體的變化，也讓我們幫您把把關 💛' },
   { label:'天氣變化・貼心叮嚀', text:'{name} 您好 😊 最近天氣變化比較大，記得留意保暖和補水喔！身體在適應溫差時特別需要照顧，有任何不舒服隨時跟我說 🍵' },
@@ -9693,6 +9736,36 @@ function loadDashboard(){
   if(typeof loadTestimonialsPending==='function') loadTestimonialsPending();
   if(typeof loadNoRecordClients==='function') loadNoRecordClients();
   if(typeof loadAutoCareLog==='function') loadAutoCareLog();
+  if(typeof loadCareQualityKPI==='function') loadCareQualityKPI();
+}
+// 2026-10-09：接住情緒品質指標（管理人／創始人）
+function loadCareQualityKPI(){
+  var card=document.getElementById('carekpi-card'), box=document.getElementById('carekpi-body');
+  if(!card || !box || !CURRENT_USER) return;
+  var r = CURRENT_USER.role;
+  if(!(r==='管理人' || r==='老闆' || r==='創始人')){ card.style.display='none'; return; }
+  adminAPI({action:'getCareQualityKPI', days:30}, function(d){
+    card=document.getElementById('carekpi-card'); box=document.getElementById('carekpi-body');
+    if(!card || !box) return;
+    if(!d || d.status!=='ok'){ card.style.display='none'; return; }
+    card.style.display='block';
+    var tile=function(label, val, sub, color){ return '<div style="flex:1;min-width:120px;background:'+color+';border-radius:10px;padding:10px 12px"><div style="font-size:11px;color:var(--text2)">'+label+'</div><div style="font-size:22px;font-weight:800;color:var(--text)">'+val+'</div><div style="font-size:10.5px;color:var(--text3)">'+sub+'</div></div>'; };
+    var pv=function(v){ return v===null||v===undefined ? '–' : v+'%'; };
+    var html='<div style="font-size:11.5px;color:var(--text2);margin-bottom:8px;line-height:1.6">客人勾「不順」之後：<b>多快回</b>（一快）、回完之後<b>人有沒有留下</b>（3 天內繼續記錄＝接住了）。這兩個數字就是「接住情緒」的替身。</div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">'
+      + tile('不順的心情', d.total, '已回 '+d.replied+'・超過 24h 沒回 <b style="color:#A32D2D">'+d.openOver24h+'</b>', '#FFF1BF')
+      + tile('平均多久回', d.avgHours===null?'–':d.avgHours+' 小時', '2 小時內 '+pv(d.within2hPct)+'・24 小時內 '+pv(d.within24hPct), '#DDEBF7')
+      + tile('接住率', pv(d.retainedPct), '回覆後 3 天內繼續記錄（'+d.retainBase+' 位可評估）', '#D9F0E3')
+      +'</div>';
+    if(d.bySecretary && d.bySecretary.length){
+      html+='<div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">各秘書</div>'
+        +'<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:var(--bg)"><th style="text-align:left;padding:5px 8px">秘書</th><th style="padding:5px 8px">回了幾則</th><th style="padding:5px 8px">平均時數</th><th style="padding:5px 8px">24h 內</th><th style="padding:5px 8px">接住率</th></tr>'
+        + d.bySecretary.map(function(b){ return '<tr><td style="padding:5px 8px"><b>'+escH(b.secretary)+'</b></td><td style="text-align:center;padding:5px 8px">'+b.n+'</td><td style="text-align:center;padding:5px 8px">'+(b.avgHours===null?'–':b.avgHours)+'</td><td style="text-align:center;padding:5px 8px">'+pv(b.within24hPct)+'</td><td style="text-align:center;padding:5px 8px">'+pv(b.retainedPct)+(b.retainBase?'<span style="color:var(--text3);font-size:10px">（'+b.retainBase+'）</span>':'')+'</td></tr>'; }).join('')
+        +'</table>';
+    }
+    html+='<div style="font-size:10.5px;color:var(--text3);margin-top:8px">資料來源：客人「今日心情」勾不順的記錄（關心時間、關心秘書）＋每日記錄。只有管理者看得到這張卡。</div>';
+    box.innerHTML=html;
+  });
 }
 // 2026-10-08新增：儀表板「系統自動替你發的訊息」卡——資料來源後端 getAutoCareLog（🤖 自動訊息記錄 近 3 天）
 function loadAutoCareLog(){
@@ -12694,6 +12767,12 @@ function loadTodayDuty(){
     // 一堆早就已回覆的舊記錄、找不到真正逾期的是哪幾筆（創辦人回報「按了處理卻跳到不相關的畫面」）。
     // 改成依實際逾期來源決定要跳去哪張卡片；如果兩邊都有逾期，文字裡註明清楚，跳去互動信箱那張（優先跳
     // 去互動信箱是因為那裡的求助類型比較急，飲食判斷求助另外還有自己獨立一行提醒，兩邊都會顯示）。
+    // 2026-10-09：創辦人「有不順的部份請大力提醒秘書盡快回覆」——永遠排第一條、紅色、寫最久等了多久
+    if(dt.moodPending>0){
+      var _mw = dt.moodMaxWaitHours||0;
+      var _mwTxt = _mw>=48 ? ('最久已等 <b>'+Math.round(_mw/24)+' 天</b>') : _mw>=1 ? ('最久已等 <b>'+Math.round(_mw)+' 小時</b>') : '剛剛才說';
+      items.push({icon:'🌧',text:'<b style="font-size:14px">'+dt.moodPending+' 位客人說今天不順</b>，還沒有人回覆（'+_mwTxt+(dt.moodNames&&dt.moodNames.length?'：'+dt.moodNames.map(escH).join('、'):'')+'）。<b>先接住情緒，現在就回</b>',act:"scrollToCard('client-inbox-card')",urgent:true,top:true});
+    }
     if(dt.backlog24>0){
       var _bl24MH = dt.mealHelpBacklog24||0, _bl24CIB = dt.inboxBacklog24||0;
       var _bl24Target = _bl24CIB>0 ? 'client-inbox-card' : 'mealhelp-card';
@@ -12728,7 +12807,7 @@ function loadTodayDuty(){
       return;
     }
     var html=items.map(function(it){
-      return '<div onclick="'+it.act+'" style="display:flex;align-items:center;gap:10px;background:'+(it.urgent?'rgba(255,80,80,.25)':'rgba(255,255,255,.12)')+';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:#fff'+(it.urgent?';border:1px solid rgba(255,150,150,.5)':'')+'">'
+      return '<div onclick="'+it.act+'" style="display:flex;align-items:center;gap:10px;background:'+(it.top?'#C62828':it.urgent?'rgba(255,80,80,.25)':'rgba(255,255,255,.12)')+(it.top?';box-shadow:0 0 0 3px rgba(255,255,255,.6);animation:mxPulse 1.6s infinite':'')+';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:#fff'+(it.urgent?';border:1px solid rgba(255,150,150,.5)':'')+'">'
         +'<span style="font-size:18px">'+it.icon+'</span>'
         +'<span style="flex:1;font-size:13px">'+it.text+'</span>'
         +'<span style="font-size:11px;opacity:.7">處理 ›</span>'
