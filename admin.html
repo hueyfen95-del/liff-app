@@ -264,7 +264,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-09c';
+var MX_BUILD = '2026-10-09e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4918,14 +4918,24 @@ function mxIsDutyAdmin(){
   var other = CURRENT_USER.otherRoles || [];
   return other.indexOf('行政') >= 0;
 }
+var _dutySecRetry = 0;
 function loadDutySecretaryOptions(){
   var sel = document.getElementById('duty-secretary');
   if(!sel) return;
+  if(sel.options.length <= 1) sel.innerHTML = '<option value="">選擇秘書…（名單載入中）</option>';
   // 2026-09-05e改用getStaffAccounts（一般帳號輕量版），修復秘書/醫師登入時排班交接選單是空的bug；
   // getAdminAccounts限定創始人/老闆才能呼叫，這裡額外補call一次只用來補薪資顯示，非創始人/老闆呼叫會被拒絕但不影響上面選單
   adminAPI({action:'getStaffAccounts'}, function(d){
     sel = document.getElementById('duty-secretary');
-    if(!sel || !d || !d.staff) return;
+    if(!sel) return;
+    // 2026-10-09：創辦人回報「無法選秘書」——後端偶爾回假的「API 正在執行」或逾時，名單就空著、也沒提示。
+    // 改成：失敗時下拉寫清楚、自動再試兩次（間隔 4 秒），還是不行就顯示「點此重試」
+    if(!d || !d.staff || !d.staff.length){
+      if(_dutySecRetry < 2){ _dutySecRetry++; sel.innerHTML = '<option value="">選擇秘書…（名單載入中，第 '+(_dutySecRetry+1)+' 次嘗試）</option>'; setTimeout(loadDutySecretaryOptions, 4000); }
+      else { sel.innerHTML = '<option value="">⚠️ 名單載入失敗，請按右上角「重新整理」</option>'; _dutySecRetry = 0; }
+      return;
+    }
+    _dutySecRetry = 0;
     _dutySecretaryAccounts = d.staff;
     // 2026-09-15新增：創辦人指示只有管理者/行政能幫別人排班——一般秘書的下拉直接只列自己，
     // 避免選到別人、送出時被後端擋下才發現
@@ -9786,8 +9796,26 @@ function loadAutoCareLog(){
       html+='<div style="font-size:13px;font-weight:800;color:var(--text);margin:10px 0 6px">📅 '+escH(ds.slice(5).replace('-','/'))+'　'+byDate[ds].length+' 則</div>';
       // 2026-10-08：創辦人「要通知秘書的、已經做的，底色色塊要更明顯，秘書也有年紀了」——字放大、色塊分三種：
       // 紅＝要秘書親自處理（連續7天／待講解／催收／打卡／待核查／交接未讀）、黃＝給同事看的統計（週報）、綠＝已替客人發出的
-      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1};
+      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1};
       var infoTypes = {'創始人週報':1};
+      // 2026-10-09：創辦人看到「沒打上班卡・要你處理」問「我要怎麼處理？」——每種紅色都寫清楚下一步，打卡那種對象是秘書不是客人
+      var howTo = {
+        '沒打上班卡':'提醒這位同事補按「上班打卡」（補打會記當下時間，沒關係）；如果那天其實沒上班或是測試排班，到排班交接刪掉那筆排班，再到交接留言按「已看過」。',
+        '沒打下班卡':'提醒這位同事補按「下班打卡」；忘了就算了，到交接留言按「已看過」即可，不影響薪資計算。',
+        '連續7天':'請用 LINE 或電話親自聯絡這位客人，不要再靠系統訊息。聯絡完到交接留言按「已看過」。',
+        '報告待講解':'跟講解醫師約時間，約好後在客人詳情頁把報告狀態改成「講解完成」。',
+        '自動請行政催':'行政依留言裡的對接人電話去催檢驗所／診所，催完在逾期卡按「已跟催」。',
+        '儲值待核查':'會計到「儲值核查」把那筆核查掉（或退回）。',
+        '交接未讀':'管理人看一下哪幾則沒人按已看過，提醒相關的人去看。',
+        '續約跟催':'秘書主動跟客人聊續約；談好後新增方案記錄，系統就不會再提醒。',
+        '心情未回2h':'秘書到「客人互動信箱」回覆那位客人，系統已準備好接住的第一句。',
+        '心情未回24h':'管理人指派一位秘書立刻回覆。',
+        '甜蜜點條件符合':'到客人詳情頁「三個甜蜜點」看理由，決定要不要開始探索。',
+        '甜蜜點評估':'看血酮、體重、體感三項，決定進一階或退一階，在「碳水計畫」調份數。',
+        '碳水探索血酮下降':'評估退回上一階（碳水計畫減 15g）。',
+        '餘額為負':'會計確認後提醒客人補儲值（系統已先傳一則給客人）。'
+      };
+      var staffSubject = {'沒打上班卡':1,'沒打下班卡':1,'交接未讀':1};
       html+=byDate[ds].map(function(it){
         var isStaff = !!staffTypes[it.type], isInfo = !!infoTypes[it.type];
         var bg = isStaff ? '#F8D7D7' : isInfo ? '#FFF1BF' : '#D9F0E3';
@@ -9798,11 +9826,12 @@ function loadAutoCareLog(){
           +'<span style="font-size:20px">'+(icon[it.type]||'💌')+'</span>'
           +'<div style="flex:1;min-width:0">'
           +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-          +(it.clientId?'<b style="font-size:14px;color:var(--text);cursor:pointer;text-decoration:underline dotted" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name)+'\')">'+escH(it.name)+'</b>':'<b style="font-size:14px;color:var(--text)">'+escH(it.name||'全體')+'</b>')
+          +(it.clientId?'<b style="font-size:14px;color:var(--text);cursor:pointer;text-decoration:underline dotted" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name)+'\')">'+escH(it.name)+'</b>':'<b style="font-size:14px;color:var(--text)">'+escH(staffSubject[it.type] ? ('同事：'+(it.summary||'').replace(/…$/,'')) : (it.name||'全體'))+'</b>')
           +'<span style="font-size:12px;font-weight:800;color:#fff;background:'+border+';border-radius:6px;padding:2px 8px">'+escH(it.type)+'</span>'
           +'<span style="font-size:11.5px;font-weight:700;color:'+tagColor+'">'+lead+'</span>'
           +'</div>'
-          +'<div style="font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5">'+escH(it.summary)+'…</div>'
+          +(staffSubject[it.type] ? '' : '<div style="font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5">'+escH(it.summary)+'…</div>')
+          +(isStaff && howTo[it.type] ? '<div style="font-size:12px;color:#7A1F1F;margin-top:4px;line-height:1.5">👉 怎麼處理：'+escH(howTo[it.type])+'</div>' : '')
           +'</div>'
           +'<span style="font-size:12px;color:var(--text3);white-space:nowrap">'+escH(it.time.slice(6))+'</span>'
           +'</div>';
