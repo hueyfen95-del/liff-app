@@ -264,7 +264,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-10';
+var MX_BUILD = '2026-10-10c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7427,7 +7427,8 @@ function renderHandoverClientLinks(text){
     var m = p.match(/^(.*)\(([^)]+)\)$/);
     if(m){
       var nm = m[1], id = m[2];
-      return '<span onclick="openClientDetail(\''+escH(id)+'\',\''+escH(nm)+'\')" style="color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:600">'+escH(nm)+'</span>';
+      return '<span onclick="openClientDetail(\''+escH(id)+'\',\''+escH(nm)+'\')" style="color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:600">'+escH(nm)+'</span>'
+        + '<span onclick="openCompose(\''+escH(id)+'\',\''+escH(nm)+'\',\'care\')" title="傳訊息給 '+escH(nm)+'" style="cursor:pointer;margin-left:3px">💌</span>'; // 2026-10-10：留言裡提到的客人，直接可以傳訊息
     }
     return escH(p); // 舊格式（沒有編號）就照原樣顯示文字，不強行轉連結
   }).join('、');
@@ -7436,7 +7437,7 @@ function loadHandover(){
   var card = document.getElementById('handover-card');
   var body = document.getElementById('handover-body');
   if(!card || !body) return;
-  adminAPI({action:'getHandover'}, function(d){
+  adminAPI({action:'getHandover'}, function(d){ loadClientsList(function(){ // 2026-10-10：先確保客人名單快取有了，系統自動留言才能顯示姓名
     card = document.getElementById('handover-card');
     body = document.getElementById('handover-body');
     if(!card || !body) return;
@@ -7451,7 +7452,21 @@ function loadHandover(){
       var isGapNotice = h.important === '排班缺人通知';
       var isClockAlert = h.important === '打卡提醒';
       var pendingLine = '';
-      if(h.pendingClients && !isGapNotice){
+      // 2026-10-10：系統自動寫的留言，待處理客人欄只存客人編號（例如 C00009）——改成顯示「姓名（編號）」可點開檔案，
+      // 並直接給「下一步」按鈕：傳訊息／打電話／打開檔案／聯絡完按已看過（創辦人：「應該跳到下一個步驟，讓秘書聯絡，或管理人自己跟客人聯絡」）
+      var sysCid = (h.fromSecretary === '系統自動' && /^[A-Za-z]\d+$/.test(String(h.pendingClients||'').trim())) ? String(h.pendingClients).trim() : '';
+      var sysName = sysCid ? clientName(sysCid) : '';
+      if(sysCid){
+        var _noRec = String(h.important||'').indexOf('沒記錄') >= 0;
+        pendingLine = '<div style="font-size:12px;color:var(--text2);margin-bottom:4px">客人：<span onclick="openClientDetail(\''+escH(sysCid)+'\',\''+escH(sysName)+'\')" style="color:var(--b3);text-decoration:underline;cursor:pointer;font-weight:700">'+escH(sysName)+'</span>（'+escH(sysCid)+'）</div>'
+          + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 2px">'
+          + '<span style="font-size:11.5px;color:#7A1F1F;font-weight:700;line-height:28px">👉 下一步：</span>'
+          + '<button class="ai-btn g" style="font-size:12px;padding:5px 11px;font-weight:700" onclick="openCompose(\''+escH(sysCid)+'\',\''+escH(sysName)+'\',\''+(_noRec?'remind':'care')+'\')">💌 傳訊息給客人</button>'
+          + '<button class="ai-btn b" style="font-size:12px;padding:5px 11px;font-weight:700" onclick="callClient(\''+escH(sysCid)+'\')">📞 打電話</button>'
+          + '<button class="ai-btn gray" style="font-size:12px;padding:5px 11px" onclick="openClientDetail(\''+escH(sysCid)+'\',\''+escH(sysName)+'\')">📂 打開客人檔案</button>'
+          + '<button class="ai-btn" style="font-size:12px;padding:5px 11px;background:#E1F5EE;color:#085041;border:1px solid #BFE5D4;font-weight:700" onclick="ackHandoverUI(' + i + ')">✅ 聯絡完了，已看過</button>'
+          + '</div>';
+      } else if(h.pendingClients && !isGapNotice){
         pendingLine = '<div style="font-size:11px;color:var(--text2);margin-bottom:2px">' + (isClockAlert ? '尚未打卡：' : '待處理客人：') + (isClockAlert ? escH(h.pendingClients) : renderHandoverClientLinks(h.pendingClients)) + '</div>';
       }
       var claimBtn = isGapNotice ? '<button class="ai-btn g" style="font-size:11px;padding:5px 11px;margin-top:6px;font-weight:700" onclick="claimShiftGap(' + i + ')">✋ 我可以補這班</button>' : '';
@@ -7482,7 +7497,7 @@ function loadHandover(){
       b.onclick = ackAllHandoverUI;
       hoHd.appendChild(b);
     }
-  });
+  }); });
 }
 // 2026-10-01 改寫：創辦人反映「按已看過好像沒反應，數字也不會減少」。原因是多人同時用的時候，後端偶爾回
 // 「API 正在執行」這種假成功（什麼都沒做），前端當成成功去重載，留言當然還在。現在：按下去那一則先立刻變淡
@@ -7872,6 +7887,11 @@ var _composeTypes = {
   care:    { label: '💛 關心問候', set: 'MOOD_REPLY_TEMPLATES',    prefix: '💛 秘書的關心：' },
   service: { label: '🛍 服務介紹', set: 'SVC_REPLY_TEMPLATES',     prefix: '🛍 服務介紹：' }
 };
+// 2026-10-10：帶一段預填文字打開「傳訊息」視窗（複檢提醒、餘額、生日祝福等「看了卻不能傳」的地方用）
+function openComposeWithText(cid, cname, startType, text){
+  openCompose(cid, cname, startType);
+  setTimeout(function(){ var ta = document.getElementById('mr-txt-compose'); if(ta && text){ ta.value = text; ta.focus(); } }, 50);
+}
 function openCompose(cid, cname, startType){
   var old = document.getElementById('compose-modal'); if(old) old.remove();
   window._composeCid = cid; window._composeType = (startType && _composeTypes[startType]) ? startType : 'meal';
@@ -8390,8 +8410,10 @@ function loadBookings(){
         + (b.birthDate ? '<span style="font-size:10px;background:var(--bg);color:var(--text2);border-radius:5px;padding:1px 6px">🎂 ' + escH(b.birthDate) + '</span>' : '<span style="font-size:10px;background:#FDEAEA;color:#A32D2D;border-radius:5px;padding:1px 6px">⚠️ 未填出生年月日</span>')
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(b.date) + ' 送出</span>'
         + '<span style="margin-left:auto;display:flex;gap:5px">'
+        + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 9px;font-weight:700" onclick="bkgSendMsg(' + i + ')">💌 傳訊息確認日期</button>'
+        + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 9px" onclick="callClient(\'' + escH(b.clientId) + '\')">📞</button>'
         + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="bkgCopyLine(' + i + ')">💬 複製LINE訊息</button>'
-        + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 10px" onclick="bkgConfirm(' + i + ')">✅ 已加LINE確認日期</button>'
+        + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 10px" onclick="bkgConfirm(' + i + ')">✅ 已確認日期</button>'
         + '<button class="ai-btn gray" style="font-size:10.5px;padding:4px 9px" onclick="bkgCancel(' + i + ')">取消</button>'
         + '</span>'
         + (b.medications
@@ -8402,6 +8424,12 @@ function loadBookings(){
         + '</div>';
     }).join('');
   });
+}
+// 2026-10-10：直接在系統內傳訊息跟客人確認檢測日期（系統收到預約時已自動回一句「收到了」，這裡是秘書真的來約日期）
+function bkgSendMsg(i){
+  var b = _bkgCache[i]; if(!b) return;
+  var nm = clientName(b.clientId);
+  openComposeWithText(b.clientId, nm, 'care', nm + ' 你好 😊 收到你的檢測預約（' + (b.clinic||'') + (b.time ? '・' + b.time : '') + '）。想跟你確認：這個時間可以嗎？還是有其他方便的日期？確認後我會幫你跟診所約好，檢測前一天也會提醒你空腹。');
 }
 function bkgCopyLine(i){
   var b = _bkgCache[i]; if(!b) return;
@@ -9181,9 +9209,19 @@ function loadMyDoctorTasks(){
         + '<b style="color:var(--text)">'+escH(t.clientName||t.clientId)+'</b>'
         + '<span style="color:var(--text2);flex:1;min-width:150px">'+escH(t.taskContent)+'</span>'
         + '<span style="color:var(--text3);font-size:10.5px">醫師：'+escH(t.staffName)+'</span>'
-        + '<button class="ai-btn g" style="font-size:11px;padding:5px 11px" onclick="openClientDetail(\''+escH(t.clientId)+'\',\''+escH(t.clientName||'')+'\')">去處理</button>'
+        + '<button class="ai-btn g" style="font-size:11px;padding:5px 11px" onclick="openClientDetail(\''+escH(t.clientId)+'\',\''+escH(t.clientName||'')+'\')">📂 去處理</button>'
+        + '<button class="ai-btn" style="font-size:11px;padding:5px 11px;background:#E1F5EE;color:#085041;border:1px solid #BFE5D4;font-weight:700" onclick="completeDoctorTaskUI('+t.row+',this)">✅ 完成</button>'
         + '</div>';
     }).join('');
+  });
+}
+// 2026-10-10：醫師交辦做完了要有地方按（以前只能去處理、沒有閉環）
+function completeDoctorTaskUI(row, btn){
+  if(!confirm('這件交辦已經處理完成？')) return;
+  if(btn){ btn.disabled=true; btn.textContent='處理中…'; }
+  adminAPIPost({action:'completeDoctorTask', row:row, staffName:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已標記完成'); loadMyDoctorTasks(); }
+    else { toast('⚠️ 操作失敗，請重試'); if(btn){ btn.disabled=false; btn.textContent='✅ 完成'; } }
   });
 }
 function loadClientTestimonials(clientId){
@@ -9828,7 +9866,7 @@ function loadAutoCareLog(){
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱' };
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬' };
     var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
@@ -9865,6 +9903,8 @@ function loadAutoCareLog(){
         var tagColor = done ? '#555' : isStaff ? '#A32D2D' : isInfo ? '#7A5A00' : '#1A6B3C';
         var lead = done ? '✅ 已處理' : isStaff ? '要你處理' : isInfo ? '給你參考' : '已替你發給客人';
         var ackBtn = ho ? '<button class="ai-btn g" style="font-size:12.5px;font-weight:800;padding:7px 12px;white-space:nowrap;flex-shrink:0" onclick="acAckUI('+ho.row+', this)">✅ 已看過</button>' : '';
+        // 2026-10-10：紅色且有客人的項目，直接給「傳訊息／打電話」，不用再去找客人（創辦人：「應該跳到下一個步驟」）
+        var contactBtns = (ho && it.clientId) ? '<button class="ai-btn b" style="font-size:12px;font-weight:700;padding:6px 10px;white-space:nowrap;flex-shrink:0" onclick="openCompose(\''+escH(it.clientId)+'\',\''+escH(it.name)+'\',\''+(it.type==='連續7天'?'remind':'care')+'\')">💌 傳訊息</button><button class="ai-btn gray" style="font-size:12px;padding:6px 10px;white-space:nowrap;flex-shrink:0" onclick="callClient(\''+escH(it.clientId)+'\')">📞</button>' : '';
         return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;margin-bottom:6px;background:'+bg+';border-left:6px solid '+border+'">'
           +'<span style="font-size:20px">'+(icon[it.type]||'💌')+'</span>'
           +'<div style="flex:1;min-width:0">'
@@ -9877,7 +9917,7 @@ function loadAutoCareLog(){
           +(isStaff && !done && howTo[it.type] ? '<div style="font-size:12px;color:#7A1F1F;margin-top:4px;line-height:1.5">👉 怎麼處理：'+escH(howTo[it.type])+'</div>' : '')
           +'</div>'
           +'<span style="font-size:12px;color:var(--text3);white-space:nowrap">'+escH(it.time.slice(6))+'</span>'
-          +ackBtn
+          +contactBtns+ackBtn
           +'</div>';
       }).join('');
     });
@@ -10560,7 +10600,8 @@ function loadRemindList(){
           // 避免看起來像資料遺失；有次數時順便顯示最後一次是誰、什麼時候提醒的
           + '<div style="font-size:11px;color:var(--text3);margin-bottom:7px">'+(it.remindCount>0?'🔔 已提醒 '+it.remindCount+' 次（最後一次：'+escH(it.lastRemindedAt)+'）':'⚪ 還沒提醒過')+'</div>'
           + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-          + '<button class="ai-btn '+lv+'" onclick="copyRemindMsg('+idx+')">複製提醒訊息</button>'
+          + '<button class="ai-btn g" style="font-weight:700" onclick="sendRemindMsg('+idx+')">💌 傳提醒給客人</button>'
+          + '<button class="ai-btn '+lv+'" onclick="copyRemindMsg('+idx+')">📋 複製（貼 LINE）</button>'
           + '<button class="ai-btn gray" onclick="markRemindDone('+idx+')">標記處理</button>'
           + '<button class="ai-btn gray" onclick="adjustRemindDate('+idx+')">調整日期</button>'
           + '<button class="ai-btn gray" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(clientName(it.clientId))+'\')">📂 打開客人檔案</button>'
@@ -10569,6 +10610,13 @@ function loadRemindList(){
       box.innerHTML=html;
     });
   });
+}
+// 2026-10-10：複檢提醒直接從系統傳（提醒日 3 天內系統也會自動傳一次；這裡是秘書要再親自提醒時用），送出後次數＋1
+function sendRemindMsg(idx){
+  var it=_remindData[idx]; if(!it)return;
+  var nm=clientName(it.clientId);
+  openComposeWithText(it.clientId, nm, 'care', nm+' 你好 😊 提醒你「'+it.type+'」的複檢時間快到了（'+it.remindDate+'）。有空的話這幾天約一下，讓我們持續掌握身體的變化；需要幫忙約時間跟我說 🙏');
+  adminAPIPost({action:'updateTracking', row:it.row, bumpRemind:true, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){ if(d && d.status==='ok') loadRemindList(); });
 }
 function copyRemindMsg(idx){
   var it=_remindData[idx]; if(!it)return;
@@ -12470,6 +12518,8 @@ function renderSymptomAlertsInto_(alerts, cardId, bodyId, navId){
       + '<span style="font-size:10.5px;color:var(--text3)">'+escH(a.date)+'・'+escH(a.tag)+(a.isInsulin?'・💉胰島素客人':'')+'</span>'
       + '<span style="margin-left:auto;display:flex;gap:5px">'
       + '<button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="openClientDetail(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\')">開啟</button>'
+      + '<button class="tb-btn g" style="font-size:11px;padding:3px 9px;font-weight:700" onclick="openCompose(\''+escH(a.clientId)+'\',\''+escH(a.name||a.clientId)+'\',\'care\')">💌 傳關心</button>'
+      + '<button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="callClient(\''+escH(a.clientId)+'\')">📞</button>'
       + '<button class="tb-btn" style="font-size:11px;padding:3px 9px" onclick="resolveSymptomAlertUI(this,\''+escH(a.clientId)+'\',\''+escH(a.alertKey||a.tag)+'\')">✅ 標記已處理</button>'
       + '</span>'
       + '</div>'
@@ -12543,7 +12593,8 @@ function loadBirthdays(){
         + '</div>'
         + '<div style="display:flex;gap:6px;margin-top:7px">'
         + '<select id="bday-wish-'+bi+'" class="form-select" style="font-size:11px;flex:1;padding:5px 8px"></select>'
-        + '<button class="tb-btn g" style="font-size:11px;padding:5px 10px" onclick="copyBirthdayWish('+bi+',\''+escH(b.name)+'\')">複製祝福</button>'
+        + '<button class="tb-btn g" style="font-size:11px;padding:5px 10px;font-weight:700" onclick="sendBirthdayWish('+bi+',\''+escH(b.clientId)+'\',\''+escH(b.name)+'\',this)">💌 傳祝福給客人</button>'
+        + '<button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="copyBirthdayWish('+bi+',\''+escH(b.name)+'\')">📋 複製（貼 LINE）</button>'
         + '<button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="quickRecordBirthdayGift(\''+escH(b.clientId)+'\',\''+escH(b.name)+'\')">🎁 記錄生日禮</button>'
         + '</div>'
         + '</div>';
@@ -12589,6 +12640,18 @@ function quickRecordBirthdayGift(cid, name){
     _bdayGiftSaving = false;
     if(d && d.status === 'ok') toast('🎁 已記錄 ' + name + ' 的生日禮，客人前台的「你獲得的獎勵」會看到');
     else toast('⚠️ ' + ((d && d.message) || '記錄失敗，請重試'));
+  });
+}
+// 2026-10-10：生日祝福直接傳到客人前台（系統早上 8 點會自動發一則，這裡是秘書親自再補一句，選的祝福語不同）
+function sendBirthdayWish(bi, cid, name, btn){
+  var wsel=document.getElementById('bday-wish-'+bi);
+  var wish = (wsel && _birthdayWishes.length) ? _birthdayWishes[parseInt(wsel.value)||0] : '生日快樂 🎂';
+  var text = name + '，' + wish;
+  if(!confirm('要把這則祝福傳到 '+name+' 的前台嗎？\n\n'+text)) return;
+  if(btn){ btn.disabled=true; btn.textContent='傳送中…'; }
+  adminAPIPost({action:'sendGift', clientId:cid, giftType:'flower', message:'🎂 '+text, secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 祝福已傳到 '+name+' 的前台'); if(btn) btn.textContent='✅ 已傳'; }
+    else { toast('⚠️ 送出失敗，請重試'); if(btn){ btn.disabled=false; btn.textContent='💌 傳祝福給客人'; } }
   });
 }
 function copyBirthdayWish(bi, name){
@@ -13423,7 +13486,8 @@ function loadBalanceDeficitList(){
     box.innerHTML = items.map(function(it){
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);cursor:pointer" onclick="svJumpToClient(\''+escH(it.clientId)+'\')">'
         + '<span style="font-size:12px;font-weight:600">'+escH(it.clientName)+'（'+escH(it.clientId)+'）</span>'
-        + '<span style="font-size:13px;font-weight:700;color:#C25">-$'+Math.abs(it.balance).toLocaleString()+'</span>'
+        + '<span style="display:flex;gap:6px;align-items:center"><span style="font-size:13px;font-weight:700;color:#C25">-$'+Math.abs(it.balance).toLocaleString()+'</span>'
+        + '<button class="ai-btn g" style="font-size:11px;padding:4px 9px;font-weight:700" onclick="event.stopPropagation();openComposeWithText(\''+escH(it.clientId)+'\',\''+escH(it.clientName)+'\',\'care\',\''+escH(it.clientName)+' 你好，跟你說一聲：儲值餘額目前是負的（-'+Math.abs(it.balance).toLocaleString()+' 元），很多人忙起來沒注意到，不是什麼大事。有空時補一下儲值，之後的檢測和服務才不會卡住；有任何疑問跟我說 🙏\')">💌 提醒補儲值</button></span>'
         + '</div>';
     }).join('');
   });
