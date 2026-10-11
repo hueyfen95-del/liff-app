@@ -264,7 +264,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-10d';
+var MX_BUILD = '2026-10-10g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7799,10 +7799,27 @@ function loadMealRecordsAdmin(id){
 // ══════ 📥 客人互動信箱（2026-08-30 管理人指示：所有前台互動都要有後台顯示＋選擇題回覆）══════
 // 諮詢預約的罐頭回覆
 // 進階服務詢問的罐頭回覆（2026-08-30：客人在商店按「我想了解」後，秘書用選的就能回）
+// 2026-10-10：創辦人「可否幫客人直接連結過去？給答案時不要讓客人自己找」——六張進階服務卡的介紹影片連結（跟客人 APP 商店同一份），
+// 客人互動信箱的「進階服務詢問」會自動把對應影片連結填進回覆（客人前台訊息裡的網址可以直接點）
+var SVC_VIDEO_LINKS = {
+  '全方位陪跑服務': 'https://youtu.be/8RC6sPwuwJ0',
+  '代謝私廚服務': 'https://youtu.be/Zs-8QISFfoI',
+  '法式雞湯': 'https://youtu.be/TyyICV_tcEA',
+  '畢業禮物：風格重設・重生加冕儀式': 'https://youtu.be/JhdxUcOCrs8',
+  '企業合作方案': 'https://youtu.be/Hdn8EV_aEkM',
+  '朵蜜法式廚藝教室': 'https://youtu.be/eJEBCwjGMVs'
+};
+function svcVideoFor(text){ // 從「我想了解：XXX」或任何含服務名的文字找出影片連結
+  var t = String(text || '');
+  var keys = Object.keys(SVC_VIDEO_LINKS);
+  for (var i = 0; i < keys.length; i++) if (t.indexOf(keys[i]) >= 0) return { name: keys[i], url: SVC_VIDEO_LINKS[keys[i]] };
+  for (var j = 0; j < keys.length; j++) if (t.indexOf(keys[j].slice(0, 4)) >= 0) return { name: keys[j], url: SVC_VIDEO_LINKS[keys[j]] };
+  return null;
+}
 var SVC_REPLY_TEMPLATES = [
   '收到您的詢問！稍後為您詳細介紹這項服務的內容與價格 😊',
   '這項服務很適合您現在的階段，我把詳細說明用LINE傳給您。',
-  '可以先看服務卡上的介紹影片，看完有任何問題隨時問我。',
+  '這是「{服務}」的介紹影片，點了就能看：{影片連結}\n看完有任何問題隨時問我 😊',
   '幫您預約一次線上說明好嗎？請告訴我您方便的時段。',
   '這項服務目前有優惠方案，詳情我整理好傳給您。'
 ];
@@ -7823,10 +7840,12 @@ var GIFT_REQUEST_REPLY_TEMPLATES = [
 ];
 // 線上課程註冊確認的罐頭回覆（2026-09-20新增：客人在「我的陪跑權益」頁按「已完成官網註冊」，
 // 秘書/行政/管理者要去元代謝官網後台把課程加進客人的學習中心，這裡是加好之後回覆客人用的）
+// 2026-10-10：創辦人「其他給的資料也是類似的邏輯」——提到官網、課程就直接附連結，不讓客人自己找
 var COURSE_REPLY_TEMPLATES = [
-  '收到！已經幫你把線上課程加到學習中心囉，登入官網會員就可以開始上課 😊',
-  '已經幫你設定好了，稍後就能在學習中心看到課程，有問題隨時問我。',
-  '看到你完成官網註冊了！正在幫你加課程，加好會再通知你。'
+  '收到！已經幫你把線上課程加到學習中心囉，點這裡登入官網會員就可以開始上課 😊 https://www.isometabolix.com/challenges',
+  '已經幫你設定好了，稍後就能在學習中心看到課程：https://www.isometabolix.com/challenges 有問題隨時問我。',
+  '看到你完成官網註冊了！正在幫你加課程，加好會再通知你。',
+  '還沒註冊的話，先到官網註冊會員（用你在 APP 的同一個 Email）：https://www.isometabolix.com/ 註冊完跟我說一聲，我幫你開課程。'
 ];
 // 心情關心的罐頭回覆
 // 2026-10-09改寫：創始人定「接住情緒是健康陪跑最關鍵的品質指標」——每一句都是三段式：
@@ -7963,7 +7982,16 @@ function qrPick(sel, setName){
   var wrap = sel.closest('.mr-wrap');
   var ta = wrap ? wrap.querySelector('textarea') : null;
   var tpl = window[setName] || [];
-  if (ta && tpl[i]) ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + tpl[i];
+  if (ta && tpl[i]){
+    var line = tpl[i];
+    // 2026-10-10：服務介紹句的 {服務}／{影片連結} 用這則互動的服務名稱帶入（loadClientInbox 會把服務名寫在 textarea 的 data-svc）
+    if (line.indexOf('{服務}') >= 0 || line.indexOf('{影片連結}') >= 0){
+      var sv = svcVideoFor(ta.getAttribute('data-svc') || '');
+      if (sv) line = line.replace('{服務}', sv.name).replace('{影片連結}', sv.url);
+      else line = line.replace('「{服務}」', '這項服務').replace('{影片連結}', '（請到 APP 商店「🌟 進階服務」按「▶️ 看介紹影片」）');
+    }
+    ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + line;
+  }
   sel.value = '';
 }
 var _ciCache = [];
@@ -8009,10 +8037,18 @@ function loadClientInbox(){
         + '</div>';
     }).join('');
     // 2026-10-09：心情需要關心的，自動把對應的「接住」句填進輸入框（秘書可直接改）
+    // 2026-10-10：進階服務詢問的，自動把那項服務的介紹影片連結填進去（創辦人：不要讓客人自己找）
     _ciCache.forEach(function(it, i){
-      if(it.src !== 'mood') return;
       var ta = document.getElementById('mr-txt-ci'+i);
-      if(ta && !ta.value) ta.value = moodSuggestReply(it.content);
+      if(!ta) return;
+      if(it.src === 'mood'){ if(!ta.value) ta.value = moodSuggestReply(it.content); return; }
+      if(it.noteType === '進階服務詢問'){
+        var sv = svcVideoFor(it.content);
+        if(sv){
+          ta.setAttribute('data-svc', sv.name);
+          if(!ta.value) ta.value = (it.name || '') + ' 你好 😊 這是「' + sv.name + '」的介紹影片，點了就能看：' + sv.url + '\n看完有任何問題隨時問我，想了解價格或想預約也直接跟我說。';
+        }
+      }
     });
   });
 }
