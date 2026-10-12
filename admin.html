@@ -264,7 +264,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-10g';
+var MX_BUILD = '2026-10-11d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7807,7 +7807,8 @@ var SVC_VIDEO_LINKS = {
   '法式雞湯': 'https://youtu.be/TyyICV_tcEA',
   '畢業禮物：風格重設・重生加冕儀式': 'https://youtu.be/JhdxUcOCrs8',
   '企業合作方案': 'https://youtu.be/Hdn8EV_aEkM',
-  '朵蜜法式廚藝教室': 'https://youtu.be/eJEBCwjGMVs'
+  '朵蜜法式廚藝教室': 'https://youtu.be/eJEBCwjGMVs',
+  '元代謝料理包': 'https://youtu.be/Ll-_2QOEJbw' // 2026-10-11 陪跑客人專屬，客人 APP 商店最上面那張
 };
 function svcVideoFor(text){ // 從「我想了解：XXX」或任何含服務名的文字找出影片連結
   var t = String(text || '');
@@ -8046,7 +8047,10 @@ function loadClientInbox(){
         var sv = svcVideoFor(it.content);
         if(sv){
           ta.setAttribute('data-svc', sv.name);
-          if(!ta.value) ta.value = (it.name || '') + ' 你好 😊 這是「' + sv.name + '」的介紹影片，點了就能看：' + sv.url + '\n看完有任何問題隨時問我，想了解價格或想預約也直接跟我說。';
+          if(!ta.value){
+            if(sv.name === '元代謝料理包') ta.value = (it.name || '') + ' 你好 😊 這是料理包的介紹影片，點了就能看：' + sv.url + '\n想訂的話直接填這張訂購單（勾你要的就好）：https://forms.gle/zmRb85ThUwrjZ3gH6\n填完我會給你客製報價，確認後約 2 週做好，冷凍宅配或超商冷凍取貨。有任何問題隨時問我。';
+            else ta.value = (it.name || '') + ' 你好 😊 這是「' + sv.name + '」的介紹影片，點了就能看：' + sv.url + '\n看完有任何問題隨時問我，想了解價格或想預約也直接跟我說。';
+          }
         }
       }
     });
@@ -9896,13 +9900,13 @@ function loadAutoCareLog(){
     if(!card || !box) return;
     var items=(d && d.items)||[];
     // 2026-10-10：算出「紅色且還沒按已看過」的件數給「今天要做的事」用
-    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1};
+    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1};
     _tf.acRed = items.filter(function(it){ return _acStaff[it.type] && _acFindHo(it); }).length;
     if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚' };
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱' };
     var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
@@ -9910,7 +9914,7 @@ function loadAutoCareLog(){
       html+='<div style="font-size:13px;font-weight:800;color:var(--text);margin:10px 0 6px">📅 '+escH(ds.slice(5).replace('-','/'))+'　'+byDate[ds].length+' 則</div>';
       // 2026-10-08：創辦人「要通知秘書的、已經做的，底色色塊要更明顯，秘書也有年紀了」——字放大、色塊分三種：
       // 紅＝要秘書親自處理（連續7天／待講解／催收／打卡／待核查／交接未讀）、黃＝給同事看的統計（週報）、綠＝已替客人發出的
-      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1};
+      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1};
       var infoTypes = {'創始人週報':1};
       // 2026-10-09：創辦人看到「沒打上班卡・要你處理」問「我要怎麼處理？」——每種紅色都寫清楚下一步，打卡那種對象是秘書不是客人
       var howTo = {
@@ -9927,7 +9931,8 @@ function loadAutoCareLog(){
         '甜蜜點條件符合':'到客人詳情頁「三個甜蜜點」看理由，決定要不要開始探索。',
         '甜蜜點評估':'看血酮、體重、體感三項，決定進一階或退一階，在「碳水計畫」調份數。',
         '碳水探索血酮下降':'評估退回上一階（碳水計畫減 15g）。',
-        '餘額為負':'會計確認後提醒客人補儲值（系統已先傳一則給客人）。'
+        '餘額為負':'會計確認後提醒客人補儲值（系統已先傳一則給客人）。',
+        '料理包詢問':'主廚（盼臨／心苹）按「💌 傳訊息」回覆客人，會自動帶介紹影片＋訂購單連結；談好報價請客人填訂購單；行政準備冷凍宅配／超商取貨；管理人知悉即可。'
       };
       var staffSubject = {'沒打上班卡':1,'沒打下班卡':1,'交接未讀':1};
       html+=byDate[ds].map(function(it){
