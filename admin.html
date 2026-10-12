@@ -264,7 +264,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-11d';
+var MX_BUILD = '2026-10-11e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -8307,27 +8307,47 @@ function unqSearchArticles(i){
   var box = document.getElementById('unq-art-' + i);
   if (!inp || !box) return;
   var kw = inp.value.trim();
-  if (!kw) { toast('⚠️ 先輸入關鍵字'); inp.focus(); return; }
-  box.innerHTML = '<span style="font-size:11px;color:var(--text3)">搜尋文章中…（第一次要抓清單，稍等幾秒）</span>';
-  admLoadRSS(function(){
-    var lk = kw.toLowerCase();
-    var hit = function(it){ return (it.title||'').toLowerCase().indexOf(lk) >= 0 || (it.description||'').toLowerCase().indexOf(lk) >= 0; };
-    var arts = _admVocus.filter(hit).map(function(it){ return {t:'📝 文章', title: it.title, link: it.link}; })
-      .concat(_admPod.filter(hit).map(function(it){ return {t:'🎧 Podcast', title: it.title, link: it.link}; }));
-    _unqArtCache[i] = arts;
-    if (arts.length === 0) {
-      box.innerHTML = window._admVocusDown
-        ? '<span style="font-size:11px;color:#B45309">⚠️ 方格子文章來源暫時連不上（剛剛只搜到 Podcast）——不是沒有相關文章。稍後重新整理頁面再試一次</span>'
-        : '<span style="font-size:11px;color:var(--text3)">「' + escH(kw) + '」沒有比對到文章，換個關鍵字試試（例如拆短一點）</span>';
+  var q0 = (_unknownQCache[i] && _unknownQCache[i].question) || '';
+  if (!kw && !q0) { toast('⚠️ 先輸入關鍵字'); inp.focus(); return; }
+  box.innerHTML = '<span style="font-size:11px;color:var(--text3)">比對全部文章內文中…</span>';
+  // 2026-10-11：先比對「📚 文章全文」（後端 searchArticles，用關鍵字＋客人原本的問題一起找），列出文章＋命中的那一段；
+  // 全文比對沒找到才退回原本的標題／摘要比對（含 Podcast）
+  adminAPI({action:'searchArticles', q:(kw + ' ' + q0).slice(0,200), limit:6}, function(d){
+    var ft = (d && d.status==='ok' && d.items) ? d.items : [];
+    if (ft.length) {
+      var arts = ft.map(function(it){ return {t:'📝 文章', title: it.title, link: it.link, snippet: it.snippet || ''}; });
+      _unqArtCache[i] = arts;
+      box.innerHTML = '<div style="font-size:10.5px;color:var(--text3);margin-bottom:4px">比對了 ' + (d.indexed||0) + ' 篇文章內文（關鍵詞：' + escH((d.terms||[]).slice(0,6).join('、')) + '）</div>' + _giftPickRow() + arts.map(function(a, j){
+        return '<div style="background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:7px 9px;margin-bottom:5px">'
+          + '<div style="display:flex;align-items:center;gap:7px">'
+          + '<a href="' + escH(a.link) + '" target="_blank" style="flex:1;font-size:12px;font-weight:700;color:var(--text);text-decoration:none;line-height:1.4">' + escH(a.title) + '</a>'
+          + '<button class="btn-g" style="font-size:10.5px;padding:4px 10px;flex-shrink:0" onclick="unqSendArticle(' + i + ',' + j + ')">💌 傳給客人</button></div>'
+          + (a.snippet ? '<div style="font-size:11px;color:var(--text2);margin-top:3px;line-height:1.55;border-left:3px solid var(--g);padding-left:6px">💡 ' + escH(a.snippet) + '</div>' : '')
+          + '</div>';
+      }).join('');
       return;
     }
-    box.innerHTML = _giftPickRow() + arts.slice(0, 6).map(function(a, j){
-      return '<div style="display:flex;align-items:center;gap:7px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:6px 9px;margin-bottom:4px">'
-        + '<span style="font-size:10px;color:var(--text3);flex-shrink:0">' + a.t + '</span>'
-        + '<a href="' + escH(a.link) + '" target="_blank" style="flex:1;font-size:11.5px;color:var(--text);text-decoration:none;line-height:1.4">' + escH(a.title) + '</a>'
-        + '<button class="btn-g" style="font-size:10.5px;padding:4px 10px;flex-shrink:0" onclick="unqSendArticle(' + i + ',' + j + ')">💌 傳給客人</button>'
-        + '</div>';
-    }).join('');
+    if (!kw) { box.innerHTML = '<span style="font-size:11px;color:var(--text3)">全部文章內文都沒有比對到，換個關鍵字試試</span>'; return; }
+    admLoadRSS(function(){
+      var lk = kw.toLowerCase();
+      var hit = function(it){ return (it.title||'').toLowerCase().indexOf(lk) >= 0 || (it.description||'').toLowerCase().indexOf(lk) >= 0; };
+      var arts = _admVocus.filter(hit).map(function(it){ return {t:'📝 文章', title: it.title, link: it.link}; })
+        .concat(_admPod.filter(hit).map(function(it){ return {t:'🎧 Podcast', title: it.title, link: it.link}; }));
+      _unqArtCache[i] = arts;
+      if (arts.length === 0) {
+        box.innerHTML = window._admVocusDown
+          ? '<span style="font-size:11px;color:#B45309">⚠️ 方格子文章來源暫時連不上（剛剛只搜到 Podcast）——不是沒有相關文章。稍後重新整理頁面再試一次</span>'
+          : '<span style="font-size:11px;color:var(--text3)">「' + escH(kw) + '」沒有比對到文章，換個關鍵字試試（例如拆短一點）</span>';
+        return;
+      }
+      box.innerHTML = _giftPickRow() + arts.slice(0, 6).map(function(a, j){
+        return '<div style="display:flex;align-items:center;gap:7px;background:var(--bg);border:0.5px solid var(--border);border-radius:8px;padding:6px 9px;margin-bottom:4px">'
+          + '<span style="font-size:10px;color:var(--text3);flex-shrink:0">' + a.t + '</span>'
+          + '<a href="' + escH(a.link) + '" target="_blank" style="flex:1;font-size:11.5px;color:var(--text);text-decoration:none;line-height:1.4">' + escH(a.title) + '</a>'
+          + '<button class="btn-g" style="font-size:10.5px;padding:4px 10px;flex-shrink:0" onclick="unqSendArticle(' + i + ',' + j + ')">💌 傳給客人</button>'
+          + '</div>';
+      }).join('');
+    });
   });
 }
 function unqSendArticle(i, j){
@@ -8338,7 +8358,7 @@ function unqSendArticle(i, j){
   var uaRow = uaBox ? uaBox.querySelector('.gift-pick') : null;
   var uaGift = uaRow ? (uaRow.getAttribute('data-gift') || '') : '';
   adminAPIPost({action:'sendGift', clientId:q.clientId, giftType: uaGift || 'message',
-    message:'📚 關於你問的「' + q.question + '」，秘書推薦你看：\n《' + a.title + '》\n' + a.link,
+    message:'📚 關於你問的「' + q.question + '」，秘書推薦你看：\n《' + a.title + '》' + (a.snippet ? '\n💡 文章裡這段跟你的問題有關：「' + a.snippet + '」' : '') + '\n👉 點這裡看全文：' + a.link,
     secretary:(CURRENT_USER&&CURRENT_USER.name)||'秘書'}, function(d){
     if(d && d.status==='ok' && d.message !== 'API 正在執行'){
       // 2026-10-03：創始人問「傳給客人的下一步是什麼？」——以前傳完文章這題還留在清單上，要再按一次「標記完成」才會消失。

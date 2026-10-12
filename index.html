@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-10-11b';
+var MX_BUILD = '2026-10-11c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -3511,7 +3511,7 @@ function sendMsg(){
     area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:600">代謝小幫手・AI</span></div><div class="cm-b bot" style="white-space:pre-line">'+escHtml(reply)+'</div></div><div class="cf"></div>';
     area.scrollTop=area.scrollHeight;
     // 轉真人的情況不用再搜相關內容了（已經不是在找資料，是要秘書介入），其他情況照常搜
-    if (!escalated && typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(contentSearchKeyword);
+    if (!escalated && typeof searchYTAfterAnswer === 'function') searchYTAfterAnswer(contentSearchKeyword, msg); // 2026-10-11：多帶客人原話，給全文比對用
   },700);
   area.scrollTop=area.scrollHeight;
 }
@@ -4693,7 +4693,9 @@ function callAPI(params, callback) {
   // 2026-08-12修正：後台剛醒來（冷啟動）時，第一次API呼叫常常要等20~30秒，
   // 畫面只顯示「載入中…」完全沒有其他提示，客人很容易以為當機了就直接關掉APP。
   // 2026-08-12再調整：等待門檻從6秒縮短為2秒，客人更快看到安心提示（創始人要求）。
-  var slowHintTimer = setTimeout(function(){
+  // 2026-10-11：背景補充用的查詢（例如回答後的全文找文章）不跳「資料準備中」提示——客人已經拿到答案了
+  var _quiet = !!params._quiet; if (_quiet) delete params._quiet;
+  var slowHintTimer = _quiet ? null : setTimeout(function(){
     toast('🌱 資料準備中，第一次連線可能要等一下下，不會太久喔');
   }, 2000);
   var _cbCalled = false; // 防止 callback 內丟例外時被 catch 再叫一次
@@ -5793,12 +5795,12 @@ function searchContentByKeyword(keyword) {
   return {vocus: vocusMatched, podcast: podcastMatched};
 }
 
-function appendContentResults(keyword, container) {
+function appendContentResults(keyword, container, skipVocus) {
   var matched = searchContentByKeyword(keyword);
   var html = '';
   
-  // 方格子文章
-  if (matched.vocus.length > 0) {
+  // 方格子文章（2026-10-11：全文比對有找到時，這段標題比對就不再重複列）
+  if (!skipVocus && matched.vocus.length > 0) {
     html += '<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">';
     html += '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px">📝 相關文章</div>';
     matched.vocus.forEach(function(item) {
@@ -5856,16 +5858,38 @@ window.qaSearch = function(val) {
 };
 
 // 整合進代謝小幫手回答後
+// 2026-10-11 創辦人：「我最近在部落格更新了很多文章，確定你每次要回答客人問題時，有很多素材」——
+// 以前這裡只比對文章「標題＋摘要」；現在先問後端 searchArticles 比對「📚 文章全文」（每天自動從方格子抓），
+// 找到就列文章＋「文章裡跟你問題有關的這段」，點了直接開文章；全文比對沒找到才退回原本的標題比對。
+function _faEsc(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function renderFullTextArticles(items, container){
+  var html = '<div style="margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)">'
+    + '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px">📝 代謝篇章裡跟你問題有關的文章</div>';
+  items.forEach(function(it){
+    html += '<a href="' + _faEsc(it.link) + '" target="_blank" style="display:block;margin-bottom:7px;text-decoration:none;background:var(--bg);border-radius:9px;padding:9px 11px;border:0.5px solid var(--border)">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--text);line-height:1.4">' + _faEsc(it.title) + '</div>'
+      + (it.snippet ? '<div style="font-size:11.5px;color:var(--text2);margin-top:4px;line-height:1.6;border-left:3px solid var(--g);padding-left:7px">💡 ' + _faEsc(it.snippet) + '</div>' : '')
+      + '<div style="font-size:11px;color:var(--g3);margin-top:4px;font-weight:600">點這裡看全文 ›</div>'
+      + '</a>';
+  });
+  html += '</div>';
+  var div = document.createElement('div'); div.innerHTML = html; container.appendChild(div);
+}
 var _baseSearchYT = window.searchYTAfterAnswer;
-window.searchYTAfterAnswer = function(query) {
+window.searchYTAfterAnswer = function(query, rawMsg) {
   if (_baseSearchYT) _baseSearchYT(query);
   
   var chatArea = document.getElementById('chat-area');
   if (!chatArea) return;
-  
-  loadAllRSS(function(){
-    appendContentResults(query, chatArea);
-    chatArea.scrollTop = chatArea.scrollHeight;
+  var q = String(query || '');
+  if (rawMsg && String(rawMsg).indexOf(q) < 0) q = q + ' ' + rawMsg;
+  callAPI({ action: 'searchArticles', q: q.slice(0, 200), limit: 3, _quiet: true }, function(d){
+    var items = (d && d.status === 'ok' && d.items) ? d.items : [];
+    if (items.length) renderFullTextArticles(items, chatArea);
+    loadAllRSS(function(){
+      appendContentResults(query, chatArea, items.length > 0);
+      chatArea.scrollTop = chatArea.scrollHeight;
+    });
   });
 };
 
