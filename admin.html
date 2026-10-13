@@ -10,8 +10,8 @@
 :root{--g:#1D9E75;--g2:#E1F5EE;--g3:#085041;--a:#EF9F27;--a2:#FAEEDA;--a3:#633806;--b:#378ADD;--b2:#E6F1FB;--b3:#0C447C;--r:#E24B4A;--r2:#FCEBEB;--r3:#791F1F;--p:#534AB7;--p2:#EEEDFE;--p3:#3C3489;--bg:#F5F7FA;--card:#fff;--border:#E5E7EB;--border2:#D1D5DB;--text:#111827;--text2:#6B7280;--text3:#9CA3AF}
 body{background:var(--bg);min-height:100vh}
 .layout{display:flex;min-height:100vh}
-.sidebar{width:200px;background:#0D3D2B;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto}
-.sb-logo{padding:18px 15px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar{width:200px;background:#F2F4F6;border-right:1px solid #E1E5E9;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:18px 15px;border-bottom:1px solid rgba(255,255,255,.1);background:#0D3D2B;border-radius:0 0 14px 14px;margin-bottom:4px}
 .sb-logo-t{font-size:16px;font-weight:700;color:#fff}
 .sb-logo-s{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
 .sb-nav{padding:8px 0;flex:1}
@@ -53,17 +53,81 @@ body{background:var(--bg);min-height:100vh}
 .c6 .si{color:#6B3F24}
 .c6 .si:hover{background:rgba(255,255,255,.55);color:#6B3F24}
 .c6 .si.on{background:rgba(255,255,255,.8);color:#6B3F24;border-left-color:#6B3F24}
-.si{display:flex;align-items:center;gap:8px;padding:9px 15px;cursor:pointer;font-size:12px;color:rgba(255,255,255,.55);border-left:3px solid transparent;transition:all .12s}
+/* ══ 2026-10-12 後台視覺系統：8 類固定顏色（側欄／頁首說明列／頂欄分類標籤共用）══ */
+.sbc-today{background:linear-gradient(160deg,#fff,#E3F4EC);border-color:#BFE3D2}
+.sbc-today .sb-sec{color:#0F6E56}
+.sbc-today .si{color:#0F6E56}
+.sbc-today .si:hover{background:rgba(255,255,255,.7);color:#0F6E56}
+.sbc-today .si.on{background:#fff;color:#0F6E56;border-left-color:#0F6E56;font-weight:700}
+.sbc-client{background:linear-gradient(160deg,#fff,#E4EFF8);border-color:#BCD5EA}
+.sbc-client .sb-sec{color:#1F5F8B}
+.sbc-client .si{color:#1F5F8B}
+.sbc-client .si:hover{background:rgba(255,255,255,.7);color:#1F5F8B}
+.sbc-client .si.on{background:#fff;color:#1F5F8B;border-left-color:#1F5F8B;font-weight:700}
+.sbc-test{background:linear-gradient(160deg,#fff,#EEE9FA);border-color:#D3C7F1}
+.sbc-test .sb-sec{color:#5B3FA8}
+.sbc-test .si{color:#5B3FA8}
+.sbc-test .si:hover{background:rgba(255,255,255,.7);color:#5B3FA8}
+.sbc-test .si.on{background:#fff;color:#5B3FA8;border-left-color:#5B3FA8;font-weight:700}
+.sbc-team{background:linear-gradient(160deg,#fff,#E0F3F5);border-color:#B5DFE5}
+.sbc-team .sb-sec{color:#0E6E7A}
+.sbc-team .si{color:#0E6E7A}
+.sbc-team .si:hover{background:rgba(255,255,255,.7);color:#0E6E7A}
+.sbc-team .si.on{background:#fff;color:#0E6E7A;border-left-color:#0E6E7A;font-weight:700}
+.sbc-content{background:linear-gradient(160deg,#fff,#FBF0DD);border-color:#EBD3A8}
+.sbc-content .sb-sec{color:#8A5300}
+.sbc-content .si{color:#8A5300}
+.sbc-content .si:hover{background:rgba(255,255,255,.7);color:#8A5300}
+.sbc-content .si.on{background:#fff;color:#8A5300;border-left-color:#8A5300;font-weight:700}
+.sbc-shop{background:linear-gradient(160deg,#fff,#FAE6EF);border-color:#EDC2D6}
+.sbc-shop .sb-sec{color:#9A2F63}
+.sbc-shop .si{color:#9A2F63}
+.sbc-shop .si:hover{background:rgba(255,255,255,.7);color:#9A2F63}
+.sbc-shop .si.on{background:#fff;color:#9A2F63;border-left-color:#9A2F63;font-weight:700}
+.sbc-finance{background:linear-gradient(160deg,#fff,#F8F0DA);border-color:#E6D3A0}
+.sbc-finance .sb-sec{color:#7A5A12}
+.sbc-finance .si{color:#7A5A12}
+.sbc-finance .si:hover{background:rgba(255,255,255,.7);color:#7A5A12}
+.sbc-finance .si.on{background:#fff;color:#7A5A12;border-left-color:#7A5A12;font-weight:700}
+.sbc-system{background:linear-gradient(160deg,#fff,#ECEFF2);border-color:#CDD4DB}
+.sbc-system .sb-sec{color:#46525E}
+.sbc-system .si{color:#46525E}
+.sbc-system .si:hover{background:rgba(255,255,255,.7);color:#46525E}
+.sbc-system .si.on{background:#fff;color:#46525E;border-left-color:#46525E;font-weight:700}
+.sb-cat .sb-sec{font-size:11.5px;letter-spacing:.03em;text-transform:none;padding:8px 12px 4px}
+.si{font-size:13px}
+.card-title{font-size:14px}
+.tb-title{font-size:17px;display:flex;align-items:center;gap:9px}
+.tb-cat{font-size:12px;font-weight:700;border-radius:20px;padding:3px 11px;white-space:nowrap}
+.pg-intro{display:flex;align-items:center;gap:12px;border-radius:13px;padding:12px 16px;margin-bottom:14px;border:1px solid}
+.pg-intro .pi-ic{font-size:26px;flex-shrink:0}
+.pg-intro .pi-path{font-size:11.5px;font-weight:700;opacity:.85;margin-bottom:2px}
+.pg-intro .pi-title{font-size:17px;font-weight:800;margin-bottom:2px}
+.pg-intro .pi-desc{font-size:12.5px;line-height:1.6;opacity:.9}
+/* 儀表板分區 */
+.dsec{margin:6px 0 18px}
+.dsec-hd{display:flex;align-items:center;gap:10px;margin:0 0 9px;padding:9px 14px;border-radius:12px;background:var(--dsec-bg);border:1px solid var(--dsec-bd)}
+.dsec-hd .dh-ic{font-size:20px}
+.dsec-hd .dh-t{font-size:15px;font-weight:800;color:var(--dsec-c)}
+.dsec-hd .dh-d{font-size:12px;color:var(--dsec-c);opacity:.8;flex:1}
+.dsec-hd .dh-n{font-size:12px;font-weight:800;color:#fff;background:var(--dsec-c);border-radius:12px;padding:2px 10px}
+.dsec > .dsec-body > .card{border-left:5px solid var(--dsec-c) !important}
+.dsec > .dsec-body > .card > .card-hd{background:var(--dsec-bg)}
+.dsec[data-tone="reply"]{--dsec-c:#5B3FA8;--dsec-bg:#F3EFFC;--dsec-bd:#DCD2F5}
+.dsec[data-tone="team"]{--dsec-c:#0E6E7A;--dsec-bg:#E8F6F8;--dsec-bd:#C2E4E9}
+.dsec[data-tone="care"]{--dsec-c:#B4462B;--dsec-bg:#FDF0EC;--dsec-bd:#F3D0C5}
+.dsec[data-tone="data"]{--dsec-c:#46525E;--dsec-bg:#F1F3F5;--dsec-bd:#D6DCE1}
+.si{display:flex;align-items:center;gap:8px;padding:9px 15px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.55);border-left:3px solid transparent;transition:all .12s}
 .si:hover{background:rgba(255,255,255,.07);color:#fff}
 .si.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:#4FD5A8}
 /* 角色主題色（管理人2026-08-10：不同角色登入後一眼可辨——管理人=原深綠、秘書=藍綠、行政=紫、會計=琥珀） */
-body[data-role="秘書"] .sidebar{background:#0E3A47}
+body[data-role="秘書"] .sb-logo{background:#0E3A47}
 body[data-role="秘書"] .si.on{border-left-color:#4FC3D5}
-body[data-role="行政"] .sidebar{background:#2E2450}
+body[data-role="行政"] .sb-logo{background:#2E2450}
 body[data-role="行政"] .si.on{border-left-color:#B39DFF}
-body[data-role="會計"] .sidebar{background:#4A3208}
+body[data-role="會計"] .sb-logo{background:#4A3208}
 body[data-role="會計"] .si.on{border-left-color:#F5C560}
-body[data-role="財務主管"] .sidebar{background:#0F4A2C}
+body[data-role="財務主管"] .sb-logo{background:#0F4A2C}
 body[data-role="財務主管"] .si.on{border-left-color:#5FD68F}
 #role-chip{border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;flex-shrink:0}
 .si i{font-size:16px;flex-shrink:0}
@@ -73,7 +137,7 @@ body[data-role="財務主管"] .si.on{border-left-color:#5FD68F}
 .si-badge.g{background:#1D9E75;color:#fff}
 .main{flex:1;margin-left:200px;display:flex;flex-direction:column;min-height:100vh}
 .topbar{display:flex;align-items:center;gap:9px;padding:11px 20px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
-.tb-title{font-size:16px;font-weight:700;color:var(--text);flex:1}
+.tb-title{font-size:17px;font-weight:700;color:var(--text);flex:1;display:flex;align-items:center;gap:9px}
 .tb-duty{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
 .duty-dot{width:8px;height:8px;border-radius:50%;background:var(--g)}
 .tb-btn{background:none;border:1px solid var(--border2);border-radius:9px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px;font-weight:500;transition:all .12s}
@@ -92,7 +156,7 @@ body[data-role="財務主管"] .si.on{border-left-color:#5FD68F}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:14px}
 .card-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
-.card-title{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+.card-title{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
 .card-title i{font-size:16px;color:var(--text2)}
 .card-body{padding:14px 16px}
 
@@ -170,7 +234,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 .fs-slot-invite:hover{background:#FCF3D9}
 .fs-slot-muted{background:var(--bg);border:1px solid var(--border2);color:var(--text3);cursor:default}
 .fs-slot-sel{background:#F5C518 !important;border:1px solid #C9A227 !important;color:#3B2F00 !important}
-@keyframes mxPulse{0%{box-shadow:0 0 0 3px rgba(255,255,255,.6)}50%{box-shadow:0 0 0 7px rgba(255,255,255,.15)}100%{box-shadow:0 0 0 3px rgba(255,255,255,.6)}}
+@keyframes mxPulse{0%{box-shadow:0 0 0 3px rgba(198,40,40,.25)}50%{box-shadow:0 0 0 7px rgba(198,40,40,.08)}100%{box-shadow:0 0 0 3px rgba(198,40,40,.25)}}
 .fs-multi-on .fs-slot-open,.fs-multi-on .fs-slot-invite{cursor:cell}
 #fs-invite-pop .fs-inv-item{padding:7px 9px;font-size:12px;border-radius:6px;cursor:pointer;color:var(--text)}
 #fs-invite-pop .fs-inv-item:hover{background:var(--bg)}
@@ -264,7 +328,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-11e';
+var MX_BUILD = '2026-10-12c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -329,60 +393,63 @@ var MX_BUILD = '2026-10-11e';
     <div id="founder-manual-link" onclick="window.open('manual_founder.html','_blank')" style="display:none;margin-top:5px;font-size:11px;color:#FFE9B8;cursor:pointer;text-decoration:underline">👑 創辦人手冊</div>
   </div>
   <div class="sb-nav">
-    <!-- 2026-09-21重新分類：創始人要求整頓側欄——原本7個分類其實是照「功能性質」分（財務結算/檢測與分型…），
-         這次改成照「這個功能是在處理什麼」的直覺分法（跟客人有關／跟檢測診所有關／跟後台知識庫內容有關／
-         跟內部行政財務有關／跟商店花園有關），並且每一類都給一塊柔和的底色色塊，一眼就能分辨在哪一類，
-         不用整排字看到頭昏。這次純粹是分類跟視覺調整，每一顆按鈕的onclick／action／頁面本身完全沒有改變，
-         功能一個都沒少。 -->
-    <div class="sb-cat c1">
-      <div class="sb-sec">總覽提醒</div>
+    <!-- 2026-10-12 創辦人：「把後台整體整理得更規劃清晰，一眼看清楚架構」→ 側欄改成 8 類（今天／客人／檢測與診所／排班與團隊／知識庫／商店與花園／財務／系統設定），
+         每類一個固定顏色，頁面上方的「頁首說明列」跟頂欄的分類標籤用同一個顏色，點到哪一頁都知道自己在哪一類。按鈕本身（onclick、紅點數字）沒有改。 -->
+    <div class="sb-cat sbc-today">
+      <div class="sb-sec">🏠 今天</div>
       <div class="si nav-item on" onclick="goPg('dashboard',this)"><i class="ti ti-layout-dashboard"></i>儀表板</div>
       <div class="si nav-item" onclick="goPg('alerts',this)"><i class="ti ti-bell"></i>警示看板 <span class="si-badge r" id="sb-badge-alerts" style="display:none">–</span></div>
     </div>
-    <div class="sb-cat c2">
-      <div class="sb-sec">客戶服務</div>
+    <div class="sb-cat sbc-client">
+      <div class="sb-sec">👥 客人</div>
       <div class="si nav-item" onclick="goPg('clients',this)"><i class="ti ti-users"></i>客戶管理</div>
-      <div class="si nav-item" onclick="goPg('report',this)"><i class="ti ti-file-text"></i>月報生成</div>
-      <div class="si nav-item" onclick="goPg('upload',this)"><i class="ti ti-file-upload"></i>上傳外部報告 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('tracking',this)"><i class="ti ti-activity"></i>自訂追蹤模組 <span class="si-badge g">NEW</span></div>
       <div class="si nav-item" onclick="goPg('remind',this)"><i class="ti ti-bell-ringing"></i>複檢提醒 <span class="si-badge r" id="sb-badge-remind" style="display:none">–</span></div>
+      <div class="si nav-item" onclick="goPg('tracking',this)"><i class="ti ti-activity"></i>自訂追蹤模組</div>
+      <div class="si nav-item" onclick="goPg('report',this)"><i class="ti ti-file-text"></i>月報生成</div>
+      <div class="si nav-item" onclick="goPg('upload',this)"><i class="ti ti-file-upload"></i>上傳外部報告</div>
     </div>
-    <div class="sb-cat c3">
-      <div class="sb-sec">檢測與診所</div>
-      <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
+    <div class="sb-cat sbc-test">
+      <div class="sb-sec">🧪 檢測與診所</div>
       <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
+      <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表</div>
       <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
-      <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所管理</div>
+      <div class="si nav-item" onclick="goPg('irct-mgmt',this)"><i class="ti ti-microscope"></i>IRCT 區間</div>
       <div class="si nav-item" onclick="goPg('irt-models',this)"><i class="ti ti-brain"></i>分型系統說明</div>
+      <div class="si nav-item" onclick="goPg('clinic-slots',this)"><i class="ti ti-calendar-clock"></i>診所管理</div>
     </div>
-    <div class="sb-cat c4">
-      <div class="sb-sec">內容與知識庫</div>
-      <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定 <span class="si-badge g">重要</span></div>
-      <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
-      <div class="si nav-item" onclick="goPg('food-mgmt',this)"><i class="ti ti-tools-kitchen-2"></i>外食速查</div>
-      <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒線體友善餐廳 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
-      <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
-      <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
-      <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照 <span class="si-badge g">NEW</span></div>
-    </div>
-    <div class="sb-cat c5">
-      <div class="sb-sec">內部行政與財務</div>
+    <div class="sb-cat sbc-team">
+      <div class="sb-sec">🗓 排班與團隊</div>
       <div class="si nav-item" onclick="goPg('duty',this)"><i class="ti ti-calendar-event"></i>排班交接 <span class="si-badge r" id="sb-badge-shiftgap" style="display:none">–</span></div>
-      <div class="si nav-item" onclick="goPg('roles',this)"><i class="ti ti-users-group"></i>分帳角色名單 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('accounts',this)"><i class="ti ti-shield-lock"></i>帳號管理 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('inventory',this)"><i class="ti ti-package"></i>貨品進銷存 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('rules',this)"><i class="ti ti-settings-2"></i>分帳規則設定 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('settlement',this)"><i class="ti ti-report-money"></i>月結算 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('finance-entry',this)"><i class="ti ti-cash"></i>財務登記 <span class="si-badge g">NEW</span></div>
+    </div>
+    <div class="sb-cat sbc-content">
+      <div class="sb-sec">📚 知識庫</div>
+      <div class="si nav-item" onclick="goPg('qa-list',this)"><i class="ti ti-message-question"></i>QA 症狀編輯</div>
+      <div class="si nav-item" onclick="goPg('faq-mgmt',this)"><i class="ti ti-help-circle"></i>FAQ 問答</div>
+      <div class="si nav-item" onclick="goPg('food-mgmt',this)"><i class="ti ti-tools-kitchen-2"></i>外食速查</div>
+      <div class="si nav-item" onclick="goPg('keto-rest-mgmt',this)"><i class="ti ti-map-pin"></i>粒線體友善餐廳</div>
+      <div class="si nav-item" onclick="goPg('supplement-mgmt',this)"><i class="ti ti-pill"></i>補充品資料庫</div>
+      <div class="si nav-item" onclick="goPg('diet-compare',this)"><i class="ti ti-salad"></i>飲食模式對照</div>
+      <div class="si nav-item" onclick="goPg('sales-script',this)"><i class="ti ti-message-2-star"></i>銷售話術</div>
+    </div>
+    <div class="sb-cat sbc-shop">
+      <div class="sb-sec">🛍 商店與花園</div>
+      <div class="si nav-item" onclick="goPg('shop-mgmt',this)"><i class="ti ti-shopping-bag"></i>好物推薦管理</div>
+      <div class="si nav-item" onclick="goPg('inventory',this)"><i class="ti ti-package"></i>貨品進銷存</div>
+      <div class="si nav-item" onclick="goPg('garden-mgmt',this)"><i class="ti ti-plant"></i>代謝花園管理</div>
+    </div>
+    <div class="sb-cat sbc-finance">
+      <div class="sb-sec">💰 財務</div>
       <div class="si nav-item" onclick="goPg('stored-value',this)"><i class="ti ti-credit-card"></i>儲值消費</div>
       <div class="si nav-item" onclick="goPg('review',this)"><i class="ti ti-checklist"></i>會計核查<span id="review-badge" style="display:none;background:#D6455D;color:#fff;font-size:10px;border-radius:8px;padding:1px 6px;margin-left:5px"></span></div>
+      <div class="si nav-item" onclick="goPg('finance-entry',this)"><i class="ti ti-cash"></i>財務登記</div>
+      <div class="si nav-item" onclick="goPg('settlement',this)"><i class="ti ti-report-money"></i>月結算</div>
+      <div class="si nav-item" onclick="goPg('rules',this)"><i class="ti ti-settings-2"></i>分帳規則設定</div>
+      <div class="si nav-item" onclick="goPg('roles',this)"><i class="ti ti-users-group"></i>分帳角色名單</div>
     </div>
-    <div class="sb-cat c6">
-      <div class="sb-sec">商店與花園</div>
-      <div class="si nav-item" onclick="goPg('shop-mgmt',this)"><i class="ti ti-shopping-bag"></i>好物推薦管理 <span class="si-badge g">NEW</span></div>
-      <div class="si nav-item" onclick="goPg('garden-mgmt',this)"><i class="ti ti-plant"></i>代謝花園管理 <span class="si-badge g">NEW</span></div>
+    <div class="sb-cat sbc-system">
+      <div class="sb-sec">⚙️ 系統設定</div>
+      <div class="si nav-item" onclick="goPg('accounts',this)"><i class="ti ti-shield-lock"></i>帳號管理</div>
+      <div class="si nav-item" onclick="goPg('global',this)"><i class="ti ti-settings"></i>全域設定</div>
     </div>
   </div>
 </div>
@@ -429,18 +496,18 @@ var MX_BUILD = '2026-10-11e';
         </div>
       </div>
       <!-- 🎯 今天要做的事（2026-10-10：依角色排好順序，登入第一眼）-->
-      <div class="card" id="duty-card" style="margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);border:none">
-        <div class="card-hd" style="border:none">
-          <div class="card-title" style="color:#fff;font-size:16px"><i class="ti ti-checklist"></i>今天要做的事・<span id="dash-duty-date" style="font-weight:400;opacity:.85"></span></div>
-          <button class="tb-btn" onclick="loadTodayDuty()" style="background:rgba(255,255,255,.2);color:#fff;border:none"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button>
+      <div class="card" id="duty-card" style="margin-bottom:14px;background:#fff;border:1.5px solid #CFE3DA;border-top:5px solid #1D9E75">
+        <div class="card-hd" style="border-bottom:1px solid #EEF2F0;background:#F7FBF9">
+          <div class="card-title" style="color:#0F6E56;font-size:16px"><i class="ti ti-checklist" style="color:#0F6E56"></i>今天要做的事・<span id="dash-duty-date" style="font-weight:400;color:var(--text2)"></span></div>
+          <button class="tb-btn" onclick="loadTodayDuty()"><i class="ti ti-refresh" style="font-size:13px"></i>更新</button>
         </div>
         <div class="card-body" id="duty-body" style="padding-top:6px">
-          <div style="text-align:center;padding:16px;color:#fff;opacity:.8;font-size:12px">載入中…</div>
+          <div style="text-align:center;padding:16px;color:var(--text3);font-size:12px">載入中…</div>
         </div>
       </div>
 
       <!-- 🔗 數字總覽列（2026-10-10 移到「今天要做的事」下面：上面那張已經有順序與按鈕，這一排只當快速跳轉）-->
-      <div id="mx-dash-nav" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);border-radius:12px;padding:10px 12px"></div>
+      <div id="mx-dash-nav" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:14px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px"></div>
       <!-- 💉 新預約待聯繫（管理人2026-08-10：最緊急，置頂） -->
       <div class="card" id="bkg-card" style="margin-bottom:14px;display:none;border:1px solid #D9C9F2">
         <div class="card-hd">
@@ -609,7 +676,7 @@ var MX_BUILD = '2026-10-11e';
       </div>
     </div>
     <div class="card" id="dash-clients-card">
-      <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>客人最新狀態</div><button class="tb-btn" style="font-size:11px" onclick="goPg('clients',document.querySelectorAll('.si')[1])">全部查看</button></div>
+      <div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>客人最新狀態</div><button class="tb-btn" style="font-size:11px" onclick="goPg('clients')">全部查看</button></div>
       <div class="card-body" id="dash-clients">
         <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">載入中…</div>
       </div>
@@ -2113,11 +2180,11 @@ var MX_BUILD = '2026-10-11e';
   <div class="hint-box">客人儲值後，可在各服務點（陪跑、診所、美業、體適能、瑜珈、藥局…）消費扣款。<b>系統只記帳、不經手金流</b>——實際收款請走正規刷卡／Line Pay。<br>⚠️ 提醒：預收儲值涉及消費者保護法規，上線前請先與會計師／律師確認履約與退費機制。</div>
 
   <!-- 营运总览 -->
-  <div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#0F6E56,#158066);color:#fff">
-    <div class="card-hd" style="border:none"><div class="card-title" style="color:#fff"><i class="ti ti-chart-bar"></i>營運總覽</div>
+  <div class="card" style="margin-bottom:14px;border-top:5px solid #1D9E75">
+    <div class="card-hd" style="background:#F7FBF9"><div class="card-title" style="color:#0F6E56"><i class="ti ti-chart-bar" style="color:#0F6E56"></i>營運總覽</div>
       <input id="sv-ov-month" class="form-input" type="month" style="width:auto;font-size:12px" onchange="svLoadOverview()"></div>
-    <div class="card-body"><div id="sv-overview" style="color:#fff"><div style="opacity:.8;font-size:13px">選月份看營運狀況（留空看全部）</div>
-      <button class="btn-ghost" onclick="svLoadOverview()" style="font-size:12px;color:#fff;border-color:rgba(255,255,255,.3);margin-top:8px">看全部</button></div></div>
+    <div class="card-body"><div id="sv-overview" style="color:var(--text)"><div style="opacity:.8;font-size:13px">選月份看營運狀況（留空看全部）</div>
+      <button class="btn-ghost" onclick="svLoadOverview()" style="font-size:12px;margin-top:8px">看全部</button></div></div>
   </div>
 
   <!-- 负余额客人清单：消费超过储值，需要提醒补款 -->
@@ -2252,9 +2319,9 @@ function _mxDashNavSetStats(dt){
   _mxDashNavRender();
 }
 function _mxNavBtn(act, icon, label, count, warn){
-  return '<button onclick="'+act+'" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.14);border:none;border-radius:20px;padding:6px 12px;color:#fff;font-size:11.5px;cursor:pointer;white-space:nowrap">'
-    + '<i class="'+icon+'" style="font-size:13px"></i>'+label
-    + (count!=null ? '<span style="background:'+(warn?'#E24B4A':'rgba(255,255,255,.25)')+';border-radius:10px;padding:1px 7px;font-weight:700;font-size:10.5px">'+count+'</span>' : '')
+  return '<button onclick="'+act+'" style="display:flex;align-items:center;gap:5px;background:#F4F6F8;border:1px solid #E3E7EB;border-radius:20px;padding:6px 12px;color:#333;font-size:12px;cursor:pointer;white-space:nowrap">'
+    + '<i class="'+icon+'" style="font-size:13px;color:#667"></i>'+label
+    + (count!=null ? '<span style="background:'+(warn?'#E24B4A':'#D9DEE3')+';color:'+(warn?'#fff':'#333')+';border-radius:10px;padding:1px 7px;font-weight:700;font-size:10.5px">'+count+'</span>' : '')
     + '</button>';
 }
 function _mxDashNavRender(){
@@ -2274,7 +2341,7 @@ function _mxDashNavRender(){
   var _pushStat = function(act, icon, label, n, warn){ if(_statOK(label)) btns.push(_mxNavBtn(act, icon, label, n, warn)); };
   if(_mxDashStats){
     var dt = _mxDashStats;
-    if(typeof dt.totalClients==='number') _pushStat("goPg('clients',document.querySelectorAll('.si')[1])", 'ti ti-users', '服務中', dt.totalClients, false);
+    if(typeof dt.totalClients==='number') _pushStat("goPg('clients')", 'ti ti-users', '服務中', dt.totalClients, false);
     if(typeof dt.recorded==='number') _pushStat("scrollToCard('today-records-body')", 'ti ti-activity', '今日已記錄', dt.recorded, false);
     // 飲食求助改常駐顯示（2026-08-30 管理人反映「不見了」——原本沒未回覆就隱藏，改成一直在，0灰色/有未回覆紅色）
     if(typeof dt.mealHelp==='number') _pushStat("scrollToCard('mealhelp-card')", 'ti ti-tools-kitchen-2', '飲食求助', dt.mealHelp, dt.mealHelp>0);
@@ -2295,6 +2362,75 @@ function _mxDashNavRender(){
   wrap.style.display='flex';
   wrap.innerHTML = btns.join('');
 }
+
+
+// ══════ 2026-10-12 後台視覺系統（創辦人：「用聰明的方法，把後台整體整理得更規劃清晰，一眼看清楚架構、格式、有設計過的形式」）══════
+// ①側欄 8 類固定顏色 ②每一頁最上面一條「頁首說明列」：分類 › 頁名＋這頁是做什麼的（同色）③頂欄頁名前面有分類標籤
+// ④儀表板分四區：💬客人在等你回／📋交接與團隊／🔔需要關心的客人／📊數據與總覽，每區一個顏色，卡片左邊色條＋標題底色跟區塊同色，
+//   區塊裡沒有任何卡片時整區自動收起來。全部只動版面，卡片內容、按鈕、資料載入完全沒改。
+var MX_CATS = [{"key": "today", "name": "今天", "icon": "🏠", "c": "#0F6E56", "bg": "#E3F4EC", "bd": "#BFE3D2", "pages": ["dashboard", "alerts"]}, {"key": "client", "name": "客人", "icon": "👥", "c": "#1F5F8B", "bg": "#E4EFF8", "bd": "#BCD5EA", "pages": ["clients", "remind", "tracking", "report", "upload"]}, {"key": "test", "name": "檢測與診所", "icon": "🧪", "c": "#5B3FA8", "bg": "#EEE9FA", "bd": "#D3C7F1", "pages": ["lab-integrate", "all-tests", "extra-test", "irct-mgmt", "irt-models", "clinic-slots"]}, {"key": "team", "name": "排班與團隊", "icon": "🗓", "c": "#0E6E7A", "bg": "#E0F3F5", "bd": "#B5DFE5", "pages": ["duty"]}, {"key": "content", "name": "知識庫", "icon": "📚", "c": "#8A5300", "bg": "#FBF0DD", "bd": "#EBD3A8", "pages": ["qa-list", "faq-mgmt", "food-mgmt", "keto-rest-mgmt", "supplement-mgmt", "diet-compare", "sales-script"]}, {"key": "shop", "name": "商店與花園", "icon": "🛍", "c": "#9A2F63", "bg": "#FAE6EF", "bd": "#EDC2D6", "pages": ["shop-mgmt", "inventory", "garden-mgmt"]}, {"key": "finance", "name": "財務", "icon": "💰", "c": "#7A5A12", "bg": "#F8F0DA", "bd": "#E6D3A0", "pages": ["stored-value", "review", "finance-entry", "settlement", "rules", "roles"]}, {"key": "system", "name": "系統設定", "icon": "⚙️", "c": "#46525E", "bg": "#ECEFF2", "bd": "#CDD4DB", "pages": ["accounts", "global"]}];
+var MX_PAGE_INFO = {"dashboard": {"t": "儀表板", "d": "今天要做的事、客人在等你回的訊息、需要關心的客人，都在這一頁，從上往下做。"}, "alerts": {"t": "警示看板", "d": "數據異常、症狀提醒、報告已出等講解的客人總表，一次看完、逐一處理。"}, "clients": {"t": "客戶管理", "d": "找客人、打開完整檔案（記錄、檢測、方案、甜蜜點）、新增客人。點任何一列就打開檔案。"}, "remind": {"t": "複檢提醒", "d": "誰的複檢日期快到了。系統會在 3 天內自動提醒客人一次；確認客人約好了，按「標記處理」結案。"}, "tracking": {"t": "自訂追蹤模組", "d": "幫客人設定要定期追蹤的項目和提醒日期，到期會出現在「複檢提醒」。"}, "report": {"t": "月報生成", "d": "選客人與月份，產生給客人看的月報。"}, "upload": {"t": "上傳外部報告", "d": "客人在外面做的檢驗報告，拍照或上傳後存進檢測資料。"}, "lab-integrate": {"t": "檢測整合", "d": "輸入或匯入客人（含家人）的檢驗數值，整合成一份檢測記錄。"}, "all-tests": {"t": "全部客人檢測總表", "d": "所有客人最新的 IRCT／InBody 數值，橫向比對用。"}, "extra-test": {"t": "功能醫學加測", "d": "加測建議、送檢與回報追蹤。"}, "irct-mgmt": {"t": "IRCT 區間", "d": "IRCT 各指標的判讀區間（醫師可調整，需附依據）。"}, "irt-models": {"t": "分型系統說明", "d": "代謝分型的定義與判讀說明，講解報告時參考。"}, "clinic-slots": {"t": "診所管理", "d": "合作診所的檢測時段與定價；客人預約時看到的時段從這裡來。"}, "duty": {"t": "排班交接", "d": "排班月曆、上下班打卡、交接留言與歷史。"}, "qa-list": {"t": "QA 症狀編輯", "d": "代謝小幫手回答客人用的症狀問答。新增一題，客人下次問就答得出來。"}, "faq-mgmt": {"t": "FAQ 問答", "d": "客人 APP「常見問題」的內容。"}, "food-mgmt": {"t": "外食速查", "d": "外食食物資料庫；客人查不到的、推薦的食材會在這裡等你補或審核。"}, "keto-rest-mgmt": {"t": "粒線體友善餐廳", "d": "推薦給客人的友善餐廳名單。"}, "supplement-mgmt": {"t": "補充品資料庫", "d": "補充品資料與建議用法。"}, "diet-compare": {"t": "飲食模式對照", "d": "不同飲食模式的對照，跟客人說明時用。"}, "sales-script": {"t": "銷售話術", "d": "介紹服務、回應常見疑問的標準說法。"}, "shop-mgmt": {"t": "好物推薦管理", "d": "客人 APP 商店的商品、價格與數量優惠。"}, "inventory": {"t": "貨品進銷存", "d": "庫存、進貨、代購需求與供應商應付款。"}, "garden-mgmt": {"t": "代謝花園管理", "d": "客人 APP 代謝花園的設定。"}, "stored-value": {"t": "儲值消費", "d": "客人儲值、各服務點消費扣款、餘額與優惠方案。系統只記帳、不經手金流。"}, "review": {"t": "會計核查", "d": "儲值、消費、廠商回報收款，核查通過才生效（才算進餘額與分潤）。"}, "finance-entry": {"t": "財務登記", "d": "診所費、檢驗費等收支登記與請款。"}, "settlement": {"t": "月結算", "d": "每月各合作單位的分帳結算。"}, "rules": {"t": "分帳規則設定", "d": "各服務類型怎麼分帳。"}, "roles": {"t": "分帳角色名單", "d": "合作醫師、診所、檢驗所、廠商、教練的名單與登入設定。"}, "accounts": {"t": "帳號管理", "d": "員工帳號、角色與權限。"}, "global": {"t": "全域設定", "d": "系統開關與參數（自動關懷、門檻、通知對象…），改了立即生效。"}};
+function mxCatOf(pg){ for(var i=0;i<MX_CATS.length;i++){ if(MX_CATS[i].pages.indexOf(pg)>=0) return MX_CATS[i]; } return null; }
+function mxApplyPageChrome(id){
+  var cat = mxCatOf(id), info = MX_PAGE_INFO[id];
+  // 頂欄：分類標籤＋頁名
+  var tt = document.getElementById('page-title');
+  if(tt && cat){
+    var chip = document.getElementById('tb-cat-chip');
+    if(!chip){ chip = document.createElement('span'); chip.id='tb-cat-chip'; chip.className='tb-cat'; tt.insertBefore(chip, tt.firstChild); }
+    chip.textContent = cat.icon + ' ' + cat.name;
+    chip.style.background = cat.bg; chip.style.color = cat.c; chip.style.border = '1px solid ' + cat.bd;
+  }
+  // 頁首說明列（儀表板有自己的「今天要做的事」，不另外加）
+  if(id === 'dashboard' || !info || !cat) return;
+  var pg = document.getElementById('pg-'+id); if(!pg) return;
+  var bn = pg.querySelector(':scope > .pg-intro');
+  if(!bn){
+    bn = document.createElement('div'); bn.className = 'pg-intro';
+    bn.innerHTML = '<span class="pi-ic">'+cat.icon+'</span><div style="flex:1;min-width:0"><div class="pi-path">'+cat.name+' ›</div><div class="pi-title">'+escH(info.t)+'</div><div class="pi-desc">'+escH(info.d)+'</div></div>';
+  }
+  bn.style.background = 'linear-gradient(135deg,'+cat.bg+',#fff)'; bn.style.borderColor = cat.bd; bn.style.color = cat.c;
+  if(pg.firstChild !== bn) pg.insertBefore(bn, pg.firstChild);
+}
+// 從程式裡（不是點側欄）跳頁時，側欄也要亮在正確的那一顆
+function mxNavItemFor(id){ return document.querySelector('.sidebar .si[onclick^="goPg(\''+id+'\'"]'); }
+var DASH_SECTIONS = [
+  { key:'reply', icon:'💬', title:'客人在等你回', desc:'客人主動找你的：心情、訊息、飲食求助、答不出來的問題、新預約', cards:['client-inbox-card','mealhelp-card','unknown-q-card','bkg-card'] },
+  { key:'team', icon:'📋', title:'交接與團隊', desc:'同事留給你的話、系統替你做了什麼、醫師交辦、個案討論', cards:['handover-card','autocare-card','dxtask-card','disc-card'] },
+  { key:'care', icon:'🔔', title:'需要關心的客人', desc:'系統偵測到的：症狀、沒記錄、檢測逾期、代購、心得、生日、值得稱讚', cards:['alert-card','norecord-card','odue-card','proxy-card','testimonial-card','birthday-card','award-card'] },
+  { key:'data', icon:'📊', title:'數據與總覽', desc:'今天的記錄、統計、客人狀態、品質與經營指標', cards:['today-records-card','dash-stat-grid','dash-two-col','carekpi-card','founder-metrics-card'] }
+];
+function mxBuildDashSections(){
+  var pg = document.getElementById('pg-dashboard'); if(!pg || document.getElementById('dsec-reply')) return;
+  var nav = document.getElementById('mx-dash-nav');
+  var anchor = nav ? nav.nextSibling : null;
+  DASH_SECTIONS.forEach(function(sec){
+    var wrap = document.createElement('div'); wrap.className='dsec'; wrap.id='dsec-'+sec.key; wrap.setAttribute('data-tone', sec.key);
+    wrap.innerHTML = '<div class="dsec-hd"><span class="dh-ic">'+sec.icon+'</span><span class="dh-t">'+sec.title+'</span><span class="dh-d">'+sec.desc+'</span><span class="dh-n" id="dsec-n-'+sec.key+'"></span></div><div class="dsec-body"></div>';
+    var body = wrap.querySelector('.dsec-body');
+    sec.cards.forEach(function(cid){ var el = document.getElementById(cid); if(el) body.appendChild(el); });
+    pg.insertBefore(wrap, anchor);
+  });
+  mxRefreshDashSections();
+  try {
+    var _mo = new MutationObserver(function(){ clearTimeout(window._dsecT); window._dsecT = setTimeout(mxRefreshDashSections, 120); });
+    _mo.observe(pg, { attributes:true, attributeFilter:['style'], subtree:true, childList:true });
+  } catch(e){}
+}
+function mxRefreshDashSections(){
+  DASH_SECTIONS.forEach(function(sec){
+    var wrap = document.getElementById('dsec-'+sec.key); if(!wrap) return;
+    var body = wrap.querySelector('.dsec-body');
+    var n = 0;
+    Array.prototype.forEach.call(body.children, function(c){ if(c.style.display !== 'none') n++; });
+    var want = n ? '' : 'none';
+    if(wrap.style.display !== want) wrap.style.display = want;
+    var nb = document.getElementById('dsec-n-'+sec.key);
+    if(nb){ var t = n ? (n + ' 張') : ''; if(nb.textContent !== t) nb.textContent = t; }
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ mxBuildDashSections(); mxApplyPageChrome('dashboard'); });
+if(document.readyState !== 'loading'){ setTimeout(function(){ mxBuildDashSections(); mxApplyPageChrome('dashboard'); }, 0); }
 
 // ══════ 全站回到最上面按鈕（2026-08-26）══════
 function scrollToPageTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
@@ -2317,7 +2453,8 @@ function _mxPageNavRender(id){
     nav = document.createElement('div');
     nav.id = navId;
     nav.style.cssText = 'display:none;flex-wrap:wrap;gap:8px;margin-bottom:14px';
-    pg.insertBefore(nav, pg.firstChild);
+    var _pgIntro = pg.querySelector(':scope > .pg-intro'); // 2026-10-12：放在頁首說明列下面
+    pg.insertBefore(nav, _pgIntro ? _pgIntro.nextSibling : pg.firstChild);
   }
   var items = [];
   Array.prototype.forEach.call(pg.children, function(child){
@@ -2378,9 +2515,11 @@ function goPg(id,el){
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on')});
   document.getElementById('pg-'+id).classList.add('on');
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
+  if(!el && typeof mxNavItemFor === 'function') el = mxNavItemFor(id); // 2026-10-12：從程式跳頁時側欄也亮對的那顆
   if(el)el.classList.add('on');
   var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒線體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所管理','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表'};
   document.getElementById('page-title').textContent=titles[id]||id;
+  if (typeof mxApplyPageChrome === 'function') mxApplyPageChrome(id); // 2026-10-12：頂欄分類標籤＋頁首說明列
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
   if (typeof runPageLoader === 'function') runPageLoader(id);
 
@@ -12962,7 +13101,7 @@ function loadTodayDuty(){
   if(!body) return;
   adminAPI({action:'getTodayDuty'}, function(d){
     body=document.getElementById('duty-body'); if(!body) return;
-    if(!d || d.status!=='ok'){ body.innerHTML='<div style="color:#fff;opacity:.8;text-align:center;padding:12px;font-size:12px">載入失敗，點更新重試</div>'; return; }
+    if(!d || d.status!=='ok'){ body.innerHTML='<div style="color:var(--text3);text-align:center;padding:12px;font-size:12px">載入失敗，點更新重試</div>'; return; }
     var dt=d.duty;
     var de=document.getElementById('dash-duty-date'); if(de) de.textContent = d.date;
     // 2026-10-10：「今日待辦」改成依角色排好順序的「今天要做的事」（renderTodayFlow），這裡只負責把數字存起來。
@@ -13046,7 +13185,7 @@ function _tfSteps(){
     pushIf({ g:3, icon:'📝', n:_tfNav('norecord-card'), text:'<b>{n} 位</b>客人今天還沒記錄。晚上 8 點系統會自動提醒一次；你先關心<b>最近幾天都沒記錄</b>的人', done:'大家今天都記錄了', act:"scrollToCard('norecord-card')", btn:'去看', need:'card:norecord-card' });
     pushIf({ g:3, icon:'🎂', n:_tfNav('birthday-card'), text:'<b>{n} 位</b>客人今天或這幾天生日（系統當天會自動祝福，你可以再親自補一句）', done:'這幾天沒有人生日', act:"scrollToCard('birthday-card')", btn:'去看', need:'card:birthday-card' });
     pushIf({ g:3, icon:'📆', n:dutyN('planExpiring'), text:'<b>{n} 位</b>客人方案 14 天內到期或已到期，找機會聊續約', done:'沒有快到期的方案', act:"goPg('remind')", btn:'去看', need:'pg:remind' });
-    pushIf({ g:3, icon:'🔬', n:_tfNav('odue-card'), text:'<b>{n} 筆</b>檢測逾期沒回報（秘書不用自己催，按「請行政催」）', done:'沒有逾期的檢測', act:"scrollToCard('odue-card')", btn:'去看', need:'card:odue-card' });
+    if(rk === '秘書') pushIf({ g:3, icon:'🔬', n:_tfNav('odue-card'), text:'<b>{n} 筆</b>檢測逾期沒回報（秘書不用自己催，按「請行政催」）', done:'沒有逾期的檢測', act:"scrollToCard('odue-card')", btn:'去看', need:'card:odue-card' });
     pushIf({ g:3, icon:'🛒', n:dutyN('purchasesNewPending'), text:'<b>{n} 筆</b>新代購需求還沒跟客人確認', done:'代購需求都確認了', act:"scrollToCard('proxy-card')", btn:'去看', need:'card:proxy-card' });
     pushIf({ g:3, icon:'💬', n:_tfNav('testimonial-card'), text:'<b>{n} 則</b>客人心得等你審核', done:'心得都審核了', act:"scrollToCard('testimonial-card')", btn:'去審', need:'card:testimonial-card' });
     pushIf({ g:3, icon:'❓', n:_tfNav('unknown-q-card'), text:'<b>{n} 個</b>客人的問題系統答不出來，請你回', done:'沒有答不出來的問題', act:"scrollToCard('unknown-q-card')", btn:'去回', need:'card:unknown-q-card' });
@@ -13112,37 +13251,43 @@ function renderTodayFlow(){
   // 進度條
   var total = todoN + done.length;
   var pct = total ? Math.round(done.length / total * 100) : 0;
-  html += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;color:#fff">'
+  html += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;color:var(--text)">'
     + '<div style="font-size:14px;font-weight:800">' + escH(roleDisplayName(CURRENT_USER.role)) + '・' + escH(CURRENT_USER.name || '') + '</div>'
-    + '<div style="font-size:13px">' + (todoN ? ('還有 <b style="font-size:16px">' + todoN + '</b> 件要做') : (loading.length ? '整理中…' : '<b>今天的事都做完了 ✨</b>')) + (done.length ? '・已完成 ' + done.length + ' 件' : '') + (loading.length ? '<span style="opacity:.7">・' + loading.length + ' 項還在載入</span>' : '') + '</div>'
-    + '<div style="flex:1;min-width:120px;height:8px;background:rgba(255,255,255,.25);border-radius:4px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:#fff;border-radius:4px;transition:width .4s"></div></div>'
+    + '<div style="font-size:13px">' + (todoN ? ('還有 <b style="font-size:16px">' + todoN + '</b> 件要做') : (loading.length ? '整理中…' : '<b>今天的事都做完了 ✨</b>')) + (done.length ? '・已完成 ' + done.length + ' 件' : '') + (loading.length ? '<span style="color:var(--text3)">・' + loading.length + ' 項還在載入</span>' : '') + '</div>'
+    + '<div style="flex:1;min-width:120px;height:9px;background:#E8ECEF;border-radius:5px;overflow:hidden"><div style="width:' + pct + '%;height:100%;background:#1D9E75;border-radius:5px;transition:width .4s"></div></div>'
     + '</div>';
   var groups = {};
   todo.forEach(function(s){ (groups[s.g] = groups[s.g] || []).push(s); });
   [1,2,3,4].forEach(function(g){
     var list = groups[g]; if(!list || !list.length) return;
-    html += '<div style="font-size:12px;font-weight:800;color:#fff;opacity:.9;margin:8px 0 5px;letter-spacing:.5px">' + escH(names[g] || '') + '</div>';
+    var _gc = {1:'#1F5F8B',2:'#B4462B',3:'#8A5300',4:'#5B3FA8'}[g] || '#333';
+    html += '<div style="font-size:13px;font-weight:800;color:' + _gc + ';margin:10px 0 6px;letter-spacing:.3px">' + escH(names[g] || '') + '</div>';
     list.forEach(function(s){
       var txt = String(s.text).replace(/\{n\}/g, s.n);
-      html += '<div onclick="' + s.act + '" style="display:flex;align-items:center;gap:10px;background:' + (s.top ? '#C62828' : s.urgent ? 'rgba(255,80,80,.28)' : s.info ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.14)') + (s.top ? ';box-shadow:0 0 0 3px rgba(255,255,255,.6);animation:mxPulse 1.6s infinite' : '') + ';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:#fff' + (s.urgent ? ';border:1px solid rgba(255,150,150,.5)' : '') + '">'
+      // 2026-10-12：創辦人「底色不要一大片綠底，看得有點吃力」→ 白底卡片，每一列淺灰底＋左邊色條（依段落顏色），急的淺紅底、最急的紅底白字
+      var _rc = {1:'#1F5F8B',2:'#B4462B',3:'#C08A1E',4:'#5B3FA8'}[g] || '#999';
+      var _bg = s.top ? '#C62828' : s.urgent ? '#FDECEC' : s.info ? '#FAFAFA' : '#F6F8FA';
+      var _fg = s.top ? '#fff' : '#222';
+      var _bd = s.top ? '#C62828' : s.urgent ? '#E24B4A' : _rc;
+      html += '<div onclick="' + s.act + '" style="display:flex;align-items:center;gap:10px;background:' + _bg + ';border:1px solid ' + (s.top ? '#C62828' : s.urgent ? '#F3C2C2' : '#E6EAEE') + ';border-left:6px solid ' + _bd + (s.top ? ';box-shadow:0 0 0 3px rgba(198,40,40,.18);animation:mxPulse 1.6s infinite' : '') + ';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:' + _fg + '">'
         + '<span style="font-size:20px">' + s.icon + '</span>'
-        + '<span style="flex:1;font-size:13.5px;line-height:1.5">' + txt + '</span>'
-        + '<button onclick="event.stopPropagation();' + s.act + '" style="background:#fff;color:#0F6E56;border:none;border-radius:8px;padding:7px 13px;font-size:12.5px;font-weight:800;cursor:pointer;white-space:nowrap">' + escH(s.btn || '處理') + ' ›</button>'
+        + '<span style="flex:1;font-size:14px;line-height:1.55">' + txt + '</span>'
+        + '<button onclick="event.stopPropagation();' + s.act + '" style="background:' + (s.top ? '#fff' : s.urgent ? '#C62828' : '#1D9E75') + ';color:' + (s.top ? '#C62828' : '#fff') + ';border:none;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">' + escH(s.btn || '處理') + ' ›</button>'
         + '</div>';
     });
   });
   if(!todoN && !loading.length){
-    html += '<div style="text-align:center;padding:14px;color:#fff;font-size:13px"><span style="font-size:24px">✨</span><br>今天沒有要處理的事，客人們狀態都不錯！<br><span style="opacity:.8;font-size:11px">下面各卡片有需要時會自己跳出來</span></div>';
+    html += '<div style="text-align:center;padding:14px;color:#0F6E56;font-size:14px;font-weight:700"><span style="font-size:24px">✨</span><br>今天沒有要處理的事，客人們狀態都不錯！<br><span style="color:var(--text3);font-size:11.5px;font-weight:400">下面各卡片有需要時會自己跳出來</span></div>';
   }
   if(loading.length){
-    html += '<div style="font-size:11px;color:#fff;opacity:.7;margin-top:4px">載入中：' + loading.map(function(s){ return s.icon; }).join(' ') + '</div>';
+    html += '<div style="font-size:11px;color:var(--text3);margin-top:4px">載入中：' + loading.map(function(s){ return s.icon; }).join(' ') + '</div>';
   }
   if(done.length){
     html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">' + done.map(function(s){
-      return '<span style="font-size:11px;color:#fff;opacity:.75;background:rgba(0,0,0,.18);border-radius:14px;padding:3px 10px">✅ ' + s.icon + ' ' + escH(String(s.done || '')) + '</span>';
+      return '<span style="font-size:11.5px;color:#4A5560;background:#EEF1F4;border-radius:14px;padding:3px 10px">✅ ' + s.icon + ' ' + escH(String(s.done || '')) + '</span>';
     }).join('') + '</div>';
   }
-  html += '<div style="text-align:center;margin-top:8px"><span onclick="showFullDuty()" style="color:#fff;opacity:.75;font-size:11px;cursor:pointer;text-decoration:underline">順序是怎麼定的？</span></div>';
+  html += '<div style="text-align:center;margin-top:8px"><span onclick="showFullDuty()" style="color:var(--text3);font-size:11.5px;cursor:pointer;text-decoration:underline">順序是怎麼定的？</span></div>';
   body.innerHTML = html;
 }
 function showFullDuty(){
@@ -13801,9 +13946,9 @@ function svLoadOverview(){
       var label = month ? month : '全部期間';
       var html = '<div style="font-size:11px;opacity:.8;margin-bottom:8px">'+label+'</div>';
       html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">';
-      html += '<div style="background:rgba(255,255,255,.15);border-radius:9px;padding:10px;text-align:center"><div style="font-size:19px;font-weight:700">$'+(d.totalStored||0).toLocaleString()+'</div><div style="font-size:10px;opacity:.85">儲值進帳</div></div>';
-      html += '<div style="background:rgba(255,255,255,.15);border-radius:9px;padding:10px;text-align:center"><div style="font-size:19px;font-weight:700">$'+(d.totalUsed||0).toLocaleString()+'</div><div style="font-size:10px;opacity:.85">消費金額</div></div>';
-      html += '<div style="background:rgba(255,255,255,.15);border-radius:9px;padding:10px;text-align:center"><div style="font-size:19px;font-weight:700">$'+((d.totalStored-d.totalUsed)||0).toLocaleString()+'</div><div style="font-size:10px;opacity:.85">未消費（負債）</div></div>';
+      html += '<div style="background:#F1F7F4;border:1px solid #DCEBE3;border-radius:9px;padding:10px;text-align:center"><div style="font-size:19px;font-weight:700">$'+(d.totalStored||0).toLocaleString()+'</div><div style="font-size:10px;opacity:.85">儲值進帳</div></div>';
+      html += '<div style="background:#F1F7F4;border:1px solid #DCEBE3;border-radius:9px;padding:10px;text-align:center"><div style="font-size:19px;font-weight:700">$'+(d.totalUsed||0).toLocaleString()+'</div><div style="font-size:10px;opacity:.85">消費金額</div></div>';
+      html += '<div style="background:#F1F7F4;border:1px solid #DCEBE3;border-radius:9px;padding:10px;text-align:center"><div style="font-size:19px;font-weight:700">$'+((d.totalStored-d.totalUsed)||0).toLocaleString()+'</div><div style="font-size:10px;opacity:.85">未消費（負債）</div></div>';
       html += '</div>';
       // 各服务点营收
       if(d.byPoint && Object.keys(d.byPoint).length){
@@ -13813,7 +13958,7 @@ function svLoadOverview(){
         pts.forEach(function(p){
           var pct = maxV>0 ? Math.round(d.byPoint[p]/maxV*100) : 0;
           html += '<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px"><span>'+escH(p)+'</span><span style="font-weight:700">$'+d.byPoint[p].toLocaleString()+'</span></div>'
-            + '<div style="height:5px;background:rgba(255,255,255,.2);border-radius:3px;margin-top:2px"><div style="height:5px;width:'+pct+'%;background:#fff;border-radius:3px"></div></div></div>';
+            + '<div style="height:5px;background:#E8ECEF;border-radius:3px;margin-top:2px"><div style="height:5px;width:'+pct+'%;background:#1D9E75;border-radius:3px"></div></div></div>';
         });
       }
       // 消费前几名
