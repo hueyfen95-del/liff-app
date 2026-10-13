@@ -328,7 +328,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-12c';
+var MX_BUILD = '2026-10-13b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -949,7 +949,8 @@ var MX_BUILD = '2026-10-12c';
            開了多選，點空格只是先打勾（黃色），點好幾格再按一次「排入」整批送出；管理者／行政可先選「幫誰排」。 -->
       <div id="fs-multi-bar" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;background:#FFFBEA;border:1px solid #F1DFA0;border-radius:8px;padding:7px 10px">
         <button class="tb-btn" id="fs-multi-btn" style="font-size:11.5px;padding:5px 11px;font-weight:700" onclick="fsToggleMulti()">☑️ 多選模式：關</button>
-        <span id="fs-multi-who-wrap" style="display:none;font-size:11.5px;color:var(--text2);align-items:center;gap:5px">幫誰排：<select id="fs-multi-who" class="form-select" style="font-size:11.5px;width:auto;padding:4px 8px"></select></span>
+        <span id="fs-multi-who-wrap" style="display:none;font-size:11.5px;color:var(--text2);align-items:center;gap:5px">幫誰排：<select id="fs-multi-who" class="form-select" style="font-size:11.5px;width:auto;padding:4px 8px" onchange="fsSyncRateSel()"></select></span>
+        <span id="fs-multi-rate-wrap" style="display:none;font-size:11.5px;color:#7A5A12;font-weight:700;align-items:center;gap:5px">用哪種時薪：<select id="fs-multi-rate" class="form-select" style="font-size:11.5px;width:auto;padding:4px 8px"></select></span>
         <span id="fs-multi-hint" style="font-size:11px;color:var(--text3)">開啟後在月曆上點空的時段，點好幾格再一次排入，不用一格一格按。</span>
         <span id="fs-multi-count" style="display:none;font-size:11.5px;font-weight:700;color:#8A6A1F">已選 0 班</span>
         <button class="ai-btn g" id="fs-multi-submit" style="display:none;font-size:11.5px;padding:5px 12px;font-weight:700" onclick="fsSubmitMulti(this)">✅ 一次排入</button>
@@ -970,6 +971,23 @@ var MX_BUILD = '2026-10-12c';
   </div>
   <!-- 2026-10-01 新增：打卡記錄總表（只給管理人／行政）。創始人問「打卡成功後在哪裡看得到」——以前只有自己當天那一行，
        全部人的要去開試算表。這張卡選月份，列出每個人每天的上班／下班時間，並跟排班總表對照：有排班但沒打上班卡的標紅。 -->
+  <!-- 2026-10-12 創辦人：「排班也要有每個秘書、每個醫師的排班月報，這樣才能連動到薪資」→ 排班月報（getPayrollMonth）。
+       管理人／財務／會計／行政看全部人＋可下載＋可產生請款單；秘書、醫師看自己的。 -->
+  <div class="card" id="payroll-card" style="margin-bottom:14px;border-top:5px solid #7A5A12">
+    <div class="card-hd" style="background:#FBF6EA">
+      <div class="card-title" style="color:#7A5A12"><i class="ti ti-report-money" style="color:#7A5A12"></i><span id="payroll-title">📊 排班月報（連動薪資）</span></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input id="payroll-month" type="month" class="form-input" style="font-size:12px;padding:6px 9px" onchange="loadPayrollMonth()">
+        <button class="tb-btn" style="font-size:11px;padding:5px 10px" onclick="loadPayrollMonth()"><i class="ti ti-refresh" style="font-size:13px"></i>重新載入</button>
+        <button class="tb-btn" id="payroll-csv-btn" style="font-size:11px;padding:5px 10px;display:none" onclick="payrollDownloadCsv()"><i class="ti ti-download" style="font-size:13px"></i>下載 Excel</button>
+        <button class="tb-btn g" id="payroll-inv-btn" style="font-size:11px;padding:5px 10px;display:none" onclick="payrollGenerateInvoices(this)"><i class="ti ti-file-invoice" style="font-size:13px"></i>產生這個月的請款單</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div style="font-size:11.5px;color:var(--text2);margin-bottom:8px;line-height:1.7">每個人這個月排了幾班、排定時數、實際打卡時數、缺卡，依「帳號管理」裡的時薪算出應付金額：<b>應付＝每一班時數 × 那一班的時薪，全部加起來</b>（同一個人可以有好幾種時薪，例如不同診不同時薪）。點名字展開每一天，可以改那一班用哪一種時薪。</div>
+      <div id="payroll-body" style="font-size:13px;color:var(--text)">載入中…</div>
+    </div>
+  </div>
   <div class="card" id="clock-month-card" style="margin-bottom:14px;display:none">
     <div class="card-hd">
       <div class="card-title"><i class="ti ti-report"></i>🗂️ 打卡記錄總表（全部人）</div>
@@ -1015,6 +1033,7 @@ var MX_BUILD = '2026-10-12c';
           <option value="其他">➕ 其他（自訂班別／時間）</option>
         </select>
         <div id="duty-pay-display" style="font-size:11px;color:var(--text3);display:flex;align-items:center;padding:0 4px">先選秘書才會帶出薪資設定</div>
+        <div id="duty-rateitem-wrap" style="grid-column:1/-1;display:none;background:#FBF6EA;border-left:5px solid #C08A1E;border-radius:8px;padding:8px 10px;font-size:12.5px;color:#7A5A12;font-weight:700">這幾班用哪一種時薪：<select id="duty-rateitem" class="form-select" style="font-size:13px;width:auto;display:inline-block;margin-left:6px"></select></div>
         <input id="duty-shift-custom" class="form-input" style="font-size:12px;grid-column:1/-1;display:none" placeholder="自訂班別名稱（例：代班上午）">
         <select id="duty-start" class="form-select" style="font-size:12px"><option value="">上班時間（整點）</option></select>
         <select id="duty-end" class="form-select" style="font-size:12px"><option value="">下班時間（整點）</option></select>
@@ -1277,16 +1296,18 @@ var MX_BUILD = '2026-10-12c';
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
         <div>
           <div class="gi-lbl" style="margin-bottom:5px">薪資類型（排班記錄會自動帶出，不用每次手動填）</div>
-          <select id="acc-paytype" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
+          <select id="acc-paytype" onchange="rateEdSync('acc-rated', this.value, 'acc-payrate-wrap')" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
             <option value="時薪">時薪</option>
+            <option value="按次">按次（例：醫師每次門診／講解）</option>
             <option value="月薪">月薪</option>
           </select>
         </div>
-        <div>
+        <div id="acc-payrate-wrap" style="display:none">
           <div class="gi-lbl" style="margin-bottom:5px">薪資金額</div>
-          <input id="acc-payrate" type="number" placeholder="例：200" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
+          <input id="acc-payrate" type="number" placeholder="例：3000" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
         </div>
       </div>
+      <div id="acc-rated" style="margin-bottom:12px"></div>
       <button onclick="saveAdminAccount(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">新增帳號</button>
     </div>
   </div>
@@ -4227,6 +4248,7 @@ var PAGE_CATALOG = [
 ];
 var _acctCache = [];
 function loadAdminAccounts(){
+  try{ mxEnsureAccRated(); }catch(e){}
   var listEl = document.getElementById('accounts-list');
   if(!listEl) return;
   listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">載入中…</div>';
@@ -4247,7 +4269,7 @@ function loadAdminAccounts(){
         '<div style="display:flex;align-items:center;gap:10px">'+
         '<span style="font-size:16px">'+(roleIcon[a.role]||'👤')+'</span>'+
         '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(a.name||a.username)+(isMe?' <span style="font-size:10px;color:var(--g)">（就是你）</span>':'')+'</div>'+
-        '<div style="font-size:10px;color:var(--text3)">帳號：'+escH(a.username)+'・'+escH(roleDisplayName(a.role))+'・'+(isActive?'啟用中':'已停用')+(extraCount>0?'・<span style="color:var(--g)">額外開通 '+extraCount+' 項</span>':'')+((a.otherRoles||[]).length>0?'・身兼：'+escH(a.otherRoles.join('、')):'')+(isClientRestrictedRole?('・客人資料：'+(a.canEditClients?'<span style="color:var(--g)">可編輯</span>':'<span style="color:var(--text3)">僅查看</span>')):'')+'</div></div>'+
+        '<div style="font-size:10px;color:var(--text3)">帳號：'+escH(a.username)+'・'+escH(roleDisplayName(a.role))+'・'+(isActive?'啟用中':'已停用')+(extraCount>0?'・<span style="color:var(--g)">額外開通 '+extraCount+' 項</span>':'')+((a.otherRoles||[]).length>0?'・身兼：'+escH(a.otherRoles.join('、')):'')+(isClientRestrictedRole?('・客人資料：'+(a.canEditClients?'<span style="color:var(--g)">可編輯</span>':'<span style="color:var(--text3)">僅查看</span>')):'')+'</div>'+mxPaySummaryHtml(a)+'</div>'+
         '<button onclick="toggleEditAcctPanel('+i+')" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border2);border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>'+
         (isFounder ? '' : '<button onclick="toggleExtraPermPanel('+i+')" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">額外權限</button>')+
         (isClientRestrictedRole ? ('<button onclick="toggleClientEditPerm('+a.row+','+(!a.canEditClients)+')" style="background:'+(a.canEditClients?'var(--r2)':'var(--g2)')+';color:'+(a.canEditClients?'var(--r)':'var(--g3)')+';border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">'+(a.canEditClients?'收回客人編輯權':'開放編輯客人資料')+'</button>') : '')+
@@ -4264,9 +4286,10 @@ function loadAdminAccounts(){
         ['秘書','會計','行政','財務主管','專業秘書'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'🎓')+' '+r+'</label>'; }).join('')+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">'+
-        '<select id="edit-paytype-'+i+'" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
-        '<input id="edit-payrate-'+i+'" type="number" value="'+escH(a.payRate||'')+'" placeholder="薪資金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px">'+
+        '<select id="edit-paytype-'+i+'" onchange="rateEdSync(\'edit-rated-'+i+'\', this.value, \'edit-payrate-'+i+'\')" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="按次" '+(a.payType==='按次'?'selected':'')+'>按次</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
+        '<input id="edit-payrate-'+i+'" type="number" value="'+escH(a.payRate||'')+'" placeholder="薪資金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px'+((a.payType||'時薪')==='時薪'?';display:none':'')+'">'+
         '</div>'+
+        '<div id="edit-rated-'+i+'" style="margin-bottom:9px'+((a.payType||'時薪')==='時薪'?'':';display:none')+'">'+rateEdInner('edit-rated-'+i, mxParseRateItems(a.rateItems, a.payRate))+'</div>'+
         '<button onclick="saveEditAccount('+i+','+a.row+')" style="background:var(--g);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">儲存修改</button>'+
         (isMe ? '' : ' <button onclick="resetAcctPasswordUI('+a.row+',\''+escH(a.name||a.username)+'\')" style="background:var(--a2);color:var(--a);border:none;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">重設密碼</button>')+
         '</div>'+
@@ -4290,10 +4313,83 @@ function loadAdminAccounts(){
     }).join('');
   });
 }
+// ── 2026-10-13 創辦人：「時數＊時薪，加上：時數＊另一種時薪，可以自己加上並自由設定，因為每個診可能時薪不同」──
+// 帳號的「時薪項目」：可以加好幾種（例：一般 200、門診A 500、門診B 600），第一個是預設；排班時選這班用哪一種。
+function mxParseRateItems(str, fallback){
+  var out = [];
+  String(str||'').split(/[；;\n、]+/).forEach(function(seg){
+    seg = seg.trim(); if(!seg) return;
+    var m = seg.match(/^(.+?)\s*[:：=＝]\s*([\d.]+)\s*$/);
+    if(m && m[1].trim()) out.push({name:m[1].trim(), rate:Number(m[2])||0});
+  });
+  if(!out.length && Number(fallback)) out.push({name:'一般', rate:Number(fallback)});
+  return out;
+}
+function rateEdRowHtml(name, rate){
+  var st = 'border:1px solid var(--border2);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text);background:#fff';
+  return '<div class="rate-ed-row" style="display:flex;gap:6px;align-items:center;margin-bottom:6px">'
+    + '<input class="rate-ed-name" value="'+escH(name||'')+'" placeholder="名稱（例：一般、門診A）" style="flex:1.4;min-width:0;'+st+'">'
+    + '<span style="font-size:12px;color:var(--text2)">每小時 NT$</span>'
+    + '<input class="rate-ed-rate" type="number" min="0" value="'+(rate===''||rate==null?'':escH(rate))+'" placeholder="例：200" style="flex:1;min-width:0;'+st+'">'
+    + '<button type="button" onclick="this.parentNode.remove()" title="刪掉這一種" style="background:#FDECEC;color:#A32D2D;border:none;border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer">✕</button></div>';
+}
+function rateEdInner(pid, items){
+  if(!items || !items.length) items = [{name:'一般', rate:''}];
+  return '<div style="background:#FBF6EA;border-left:5px solid #C08A1E;border-radius:8px;padding:10px 12px">'
+    + '<div style="font-size:12.5px;font-weight:700;color:#7A5A12;margin-bottom:4px">⏱️ 時薪項目（可以加好幾種，例如不同診不同時薪）</div>'
+    + '<div style="font-size:11.5px;color:var(--text2);margin-bottom:8px;line-height:1.6">應付＝每一班的時數 × 那一班選的時薪，全部加起來。<b>第一個是預設</b>，排班沒特別選就用它。</div>'
+    + '<div id="'+pid+'-rows">'+items.map(function(x){ return rateEdRowHtml(x.name, x.rate); }).join('')+'</div>'
+    + '<button type="button" onclick="rateEdAdd(\''+pid+'\')" style="background:#fff;color:#7A5A12;border:1px dashed #C08A1E;border-radius:8px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer">＋ 再加一種時薪</button></div>';
+}
+function rateEdInit(pid, items){ var el = document.getElementById(pid); if(el) el.innerHTML = rateEdInner(pid, items); }
+function rateEdAdd(pid){ var r = document.getElementById(pid+'-rows'); if(r) r.insertAdjacentHTML('beforeend', rateEdRowHtml('', '')); }
+function rateEdSync(pid, payType, rateElId){
+  var ed = document.getElementById(pid), ri = document.getElementById(rateElId);
+  var isH = payType === '時薪';
+  if(ed){ ed.style.display = isH ? '' : 'none'; if(isH && !ed.innerHTML.trim()) rateEdInit(pid, []); }
+  if(ri) ri.style.display = isH ? 'none' : '';
+}
+function rateEdCollect(pid){
+  var rows = document.querySelectorAll('#'+pid+'-rows .rate-ed-row'), out = [], seen = {};
+  for(var k=0; k<rows.length; k++){
+    var nm = (rows[k].querySelector('.rate-ed-name').value||'').trim().replace(/[:：;；、=＝]/g,' ');
+    var rt = rows[k].querySelector('.rate-ed-rate').value;
+    if(!nm && rt==='') continue;
+    if(!nm) return {err:'第 '+(k+1)+' 種時薪還沒取名稱'};
+    if(rt==='' || Number(rt) < 0) return {err:'「'+nm+'」的時薪要填 0 以上的數字'};
+    if(seen[nm]) return {err:'「'+nm+'」重複了，名稱要不一樣'};
+    seen[nm] = 1; out.push(nm+':'+Number(rt));
+  }
+  return {str: out.join('；'), first: out.length ? out[0].split(':')[1] : ''};
+}
+function mxPaySummaryHtml(a){
+  if(!a || !('payType' in a)) return '';
+  var t = a.payType || '';
+  var items = (t === '時薪' || t === '') ? mxParseRateItems(a.rateItems, t==='時薪' ? a.payRate : 0) : [];
+  var txt = items.length ? ('⏱️ 時薪：' + items.map(function(x){ return escH(x.name)+' $'+x.rate; }).join('、'))
+          : (t && a.payRate ? ('💰 '+escH(t)+' $'+escH(a.payRate)) : '<span style="color:#A32D2D">⚠️ 還沒設定薪資</span>');
+  return '<div style="font-size:11.5px;color:#7A5A12;margin-top:2px">'+txt+'</div>';
+}
+// 排班用：取得某人的時薪名稱（秘書登入只拿得到名稱，看不到金額）
+function mxRateNamesOf(acc){
+  if(!acc) return [];
+  if(Array.isArray(acc.rateItemNames)) return acc.rateItemNames;
+  if('rateItems' in acc) return mxParseRateItems(acc.rateItems, (acc.payType==='時薪') ? acc.payRate : 0).map(function(x){ return x.name; });
+  return [];
+}
+function mxFillRateSelect(selId, wrapId, names){
+  var sel = document.getElementById(selId), wrap = document.getElementById(wrapId || selId);
+  if(!sel) return;
+  var prev = sel.value;
+  sel.innerHTML = (names||[]).map(function(n, k){ return '<option value="'+escH(n)+'">⏱️ '+escH(n)+(k===0?'（預設）':'')+'</option>'; }).join('');
+  if(prev && (names||[]).indexOf(prev) >= 0) sel.value = prev;
+  if(wrap) wrap.style.display = (names && names.length >= 2) ? '' : 'none';
+}
 function toggleAllExtra(i, checkAll){
   var checks = document.querySelectorAll('.extra-chk-'+i);
   checks.forEach(function(c){ c.checked = checkAll; });
 }
+function mxEnsureAccRated(){ var el = document.getElementById('acc-rated'); var pt = document.getElementById('acc-paytype'); if(el && !el.innerHTML.trim()) rateEdInit('acc-rated', []); if(pt) rateEdSync('acc-rated', pt.value, 'acc-payrate-wrap'); }
 function toggleEditAcctPanel(i){
   var p = document.getElementById('edit-panel-'+i);
   if(p) p.style.display = p.style.display === 'none' ? '' : 'none';
@@ -4306,7 +4402,9 @@ function saveEditAccount(i, row){
   var payRate = document.getElementById('edit-payrate-'+i).value;
   if(!name){ toast('請輸入姓名'); return; }
   if(payRate && Number(payRate) < 0){ toast('⚠️ 薪資金額不能是負數'); return; }
-  adminAPIPost({action:'editAdminAccount', row:row, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
+  var rateItems = '';
+  if(payType === '時薪'){ var rc = rateEdCollect('edit-rated-'+i); if(rc.err){ toast('⚠️ '+rc.err); return; } rateItems = rc.str; payRate = rc.first; }
+  adminAPIPost({action:'editAdminAccount', row:row, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate, rateItems:rateItems}, function(d){
     if(d && d.status === 'ok'){ toast('✅ 已更新'); loadAdminAccounts(); }
     else { toast('⚠️ 更新失敗'); }
   });
@@ -4355,8 +4453,10 @@ function saveAdminAccount(btn){
   if(!username || !password || !name){ toast('帳號、密碼、姓名都要填'); return; }
   if(password.length < 6){ toast('⚠️ 密碼至少要6碼（英文、數字皆可，不分大小寫）'); return; }
   if(payRate && Number(payRate) < 0){ toast('⚠️ 薪資金額不能是負數'); return; }
+  var rateItems = '';
+  if(payType === '時薪'){ var rc = rateEdCollect('acc-rated'); if(rc.err){ toast('⚠️ '+rc.err); return; } rateItems = rc.str; payRate = rc.first; }
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
-  adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate}, function(d){
+  adminAPI({action:'addAdminAccount', username:username, password:password, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate, rateItems:rateItems}, function(d){
     if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d && d.status === 'ok'){
       toast('✅ 已新增帳號：'+name+'（'+username+'），把帳號密碼給對方，之後可以自己改');
@@ -4364,6 +4464,7 @@ function saveAdminAccount(btn){
       document.getElementById('acc-password').value='';
       document.getElementById('acc-name').value='';
       document.getElementById('acc-payrate').value='';
+      rateEdInit('acc-rated', []);
       document.querySelectorAll('.acc-other-role').forEach(function(c){ c.checked=false; });
       loadAdminAccounts();
     } else { toast('⚠️ '+((d&&d.message)||'新增失敗')); }
@@ -5090,7 +5191,11 @@ function loadDutySecretaryOptions(){
     }).join('');
     if(!isAdmin && list.length === 1){ sel.value = list[0].name; loadSecretaryPayInfo(); }
     adminAPI({action:'getAdminAccounts'}, function(d2){
-      if(d2 && d2.accounts) _dutySecretaryAccounts = d2.accounts;
+      if(d2 && d2.accounts){
+        // 創始人拿得到完整薪資；把排班用的時薪名稱補回去（getAdminAccounts 沒有 rateItemNames）
+        _dutySecretaryAccounts = d2.accounts;
+        if(document.getElementById('duty-secretary') && document.getElementById('duty-secretary').value) loadSecretaryPayInfo();
+      }
     });
   });
 }
@@ -5099,11 +5204,14 @@ function loadSecretaryPayInfo(){
   var disp = document.getElementById('duty-pay-display');
   if(!sel || !disp) return;
   var acc = _dutySecretaryAccounts.find(function(a){ return a.name === sel.value; });
+  mxFillRateSelect('duty-rateitem', 'duty-rateitem-wrap', mxRateNamesOf(acc));
   if(!acc){ disp.textContent = '先選秘書才會帶出薪資設定'; return; }
   // 2026-09-09補：'payType' in acc 用來分辨這筆資料是不是真的查得到薪資（來自getAdminAccounts，
   // 創始人限定）——一般秘書/行政帳號查到的是輕量版（getStaffAccounts），根本沒有payType這個欄位，
   // 不代表「還沒設定薪資」，只是「這個帳號沒有權限看薪資」，兩種情況要分開講，不要嚇到人
   if(!('payType' in acc)){ disp.textContent = '💡 薪資設定僅創始人可查看，排班照存不受影響'; return; }
+  var _its = (acc.payType==='時薪' || !acc.payType) ? mxParseRateItems(acc.rateItems, acc.payType==='時薪' ? acc.payRate : 0) : [];
+  if(_its.length){ disp.innerHTML = '⏱️ 時薪：' + _its.map(function(x){ return escH(x.name)+' $'+x.rate; }).join('、'); return; }
   if(!acc.payType || !acc.payRate){ disp.textContent = '⚠️ 這位秘書還沒在「帳號管理」設定薪資（排班仍可照存，小計會先記0）'; return; }
   disp.innerHTML = '💰 '+escH(acc.payType)+'　$'+escH(acc.payRate);
 }
@@ -5394,10 +5502,19 @@ function fsToggleMulti(){
       if(who){ who.innerHTML = names.map(function(n){ return '<option value="'+escH(n)+'"'+(n===me?' selected':'')+'>'+escH(n)+'</option>'; }).join(''); }
     }
   }
+  fsSyncRateSel();
   var hint = document.getElementById('fs-multi-hint');
   if(hint) hint.textContent = window._fsMulti ? '點月曆上空的時段打勾（再點一次取消），選完按「一次排入」。' : '開啟後在月曆上點空的時段，點好幾格再一次排入，不用一格一格按。';
   if(!window._fsMulti){ window._fsMultiSel = {}; loadFullSchedule(); }
   fsUpdateMultiBar();
+}
+function fsSyncRateSel(){
+  var who = document.getElementById('fs-multi-who');
+  var sec = (mxIsDutyAdmin() && who && who.value) ? who.value : ((CURRENT_USER && CURRENT_USER.name) || '');
+  var acc = (_dutySecretaryAccounts || []).find(function(a){ return a.name === sec; });
+  var names = window._fsMulti ? mxRateNamesOf(acc) : [];
+  mxFillRateSelect('fs-multi-rate', 'fs-multi-rate-wrap', names);
+  var w = document.getElementById('fs-multi-rate-wrap'); if(w && w.style.display !== 'none') w.style.display = 'inline-flex';
 }
 function fsUpdateMultiBar(){
   var n = Object.keys(window._fsMultiSel||{}).length;
@@ -5414,7 +5531,9 @@ function fsSubmitMulti(btn){
   var sec = (mxIsDutyAdmin() && who && who.value) ? who.value : ((CURRENT_USER && CURRENT_USER.name) || '');
   if(!confirm('要把這 '+items.length+' 班排給「'+sec+'」嗎？')) return;
   if(btn){ btn.disabled = true; btn.style.opacity = '.5'; }
-  adminAPIPost({action:'addShiftBatch', secretary:sec, items:JSON.stringify(items)}, function(d){
+  var _fr = document.getElementById('fs-multi-rate'), _frw = document.getElementById('fs-multi-rate-wrap');
+  var fsRate = (_fr && _frw && _frw.style.display !== 'none') ? _fr.value : '';
+  adminAPIPost({action:'addShiftBatch', secretary:sec, items:JSON.stringify(items), rateItem:fsRate}, function(d){
     if(btn){ btn.disabled = false; btn.style.opacity = ''; }
     if(d && d.status==='ok'){
       var added = (d.added||[]).length, skipped = d.skipped||[];
@@ -5653,6 +5772,8 @@ function submitShift(btn){
   var dateLabels = dates.map(function(x){ return x.slice(5).replace('-','/'); }).join('、');
   if(!confirm('要把 '+secretary+' 的「'+shiftLabel+' '+startTime+'–'+endTime+'」排進這 '+dates.length+' 天嗎？\n'+dateLabels)) return;
   var noteVal = document.getElementById('duty-note').value;
+  var _riW = document.getElementById('duty-rateitem-wrap'), _riS = document.getElementById('duty-rateitem');
+  var rateItem = (_riW && _riW.style.display !== 'none' && _riS) ? _riS.value : '';
   function _afterDone(msg){
     toast(msg);
     _dutyCalSel = {}; dutyCalRender();
@@ -5663,11 +5784,11 @@ function submitShift(btn){
   }
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   if(shiftSel !== '其他'){
-    adminAPIPost({action:'addShiftBatch', secretary:secretary, items:JSON.stringify(dates.map(function(x){ return {date:x, slotKey:shiftSel}; })), note:noteVal}, function(d){
+    adminAPIPost({action:'addShiftBatch', secretary:secretary, items:JSON.stringify(dates.map(function(x){ return {date:x, slotKey:shiftSel}; })), note:noteVal, rateItem:rateItem}, function(d){
       if(btn){ btn.disabled=false; btn.style.opacity=''; }
       if(d && d.status==='ok'){
         var added=(d.added||[]).length, skipped=d.skipped||[];
-        _afterDone('✅ 已排入 '+added+' 班'+(skipped.length?('；'+skipped.length+' 班沒排：'+skipped.map(function(x){ return x.date.slice(5).replace('-','/')+'（'+x.reason+'）'; }).join('、')):'')+(d.payType?'':'（這位帳號還沒設定薪資，小計暫記0）'));
+        _afterDone('✅ 已排入 '+added+' 班'+(d.rateItem?('（時薪：'+d.rateItem+'）'):'')+(skipped.length?('；'+skipped.length+' 班沒排：'+skipped.map(function(x){ return x.date.slice(5).replace('-','/')+'（'+x.reason+'）'; }).join('、')):'')+(d.payType?'':'（這位帳號還沒設定薪資，小計暫記0）'));
       } else toast('⚠️ 儲存失敗：'+((d&&d.message)||'請重試'));
     });
     return;
@@ -5676,7 +5797,7 @@ function submitShift(btn){
   (function nextOne(){
     if(idx >= dates.length){ if(btn){ btn.disabled=false; btn.style.opacity=''; } _afterDone('✅ 自訂班別已排入 '+okN+' 天'+(failN?('，'+failN+' 天失敗'):'')); return; }
     var dcur = dates[idx++];
-    adminAPIPost({action:'addShift', secretary:secretary, date:dcur, shift:shiftLabel, startTime:startTime, endTime:endTime, note:noteVal}, function(d){
+    adminAPIPost({action:'addShift', secretary:secretary, date:dcur, shift:shiftLabel, startTime:startTime, endTime:endTime, note:noteVal, rateItem:rateItem}, function(d){
       if(d && d.status==='ok') okN++; else failN++;
       nextOne();
     });
@@ -10496,6 +10617,105 @@ function loadClockStatus(){
 // ── 2026-10-01 新增：打卡記錄總表（整月、全部人，只給管理人／行政）──
 // 兩支既有/新增的讀取 API 合起來畫：getClockRecordsMonth（打卡）＋ getShiftScheduleMonth（排班，管理視角會回全部人）。
 // 以「秘書＋日期」為一列：上班時間、下班時間、有沒有排班；排了班卻沒打上班卡 → 整列紅底；有上班沒下班（且不是今天）→ 黃底。
+// ── 2026-10-12 排班月報（連動薪資）──
+var _payrollData = null;
+function loadPayrollMonth(after){
+  var body = document.getElementById('payroll-body'); if(!body) return;
+  var mInp = document.getElementById('payroll-month');
+  if(mInp && !mInp.value){ var n=new Date(); mInp.value = n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0'); }
+  body.textContent = '載入中…';
+  adminAPI({action:'getPayrollMonth', month: mInp ? mInp.value : ''}, function(d){
+    body = document.getElementById('payroll-body'); if(!body) return;
+    if(!d || d.status !== 'ok'){ body.textContent = (d && d.message) || '讀取失敗，請按重新載入'; return; }
+    _payrollData = d;
+    var t = document.getElementById('payroll-title'); if(t) t.textContent = d.all ? '📊 排班月報（連動薪資）' : '📊 我的排班月報';
+    var canInv = d.all && CURRENT_USER && (isFinanceTier() || CURRENT_USER.role==='會計' || ['管理人','老闆','創始人'].indexOf(CURRENT_USER.role)>=0);
+    var cb = document.getElementById('payroll-csv-btn'); if(cb) cb.style.display = d.all ? '' : 'none';
+    var ib = document.getElementById('payroll-inv-btn'); if(ib) ib.style.display = canInv ? '' : 'none';
+    var items = d.items || [];
+    if(!items.length){ body.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text3)">'+escH(d.month)+' 還沒有排班記錄</div>'; return; }
+    var money = function(v){ return 'NT$' + Math.round(Number(v)||0).toLocaleString(); };
+    var roleChip = function(r){ var c = r==='醫師' ? ['#E6F0FA','#154C79'] : r==='秘書' ? ['#DFF3F7','#0E5A6D'] : r==='行政' ? ['#EEEDFE','#3C3489'] : ['#F1F3F5','#4A5560']; return '<span style="font-size:11px;font-weight:700;background:'+c[0]+';color:'+c[1]+';border-radius:10px;padding:1px 8px">'+escH(r||'—')+'</span>'; };
+    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">'
+      + '<tr style="background:#FBF6EA;color:#7A5A12"><th style="text-align:left;padding:8px">姓名</th><th style="text-align:left;padding:8px">薪資設定</th><th style="padding:8px">班數</th><th style="padding:8px">排定時數</th><th style="padding:8px">實際打卡時數</th><th style="padding:8px">缺卡</th><th style="text-align:right;padding:8px">應付金額</th><th style="padding:8px">請款</th></tr>';
+    items.forEach(function(p, i){
+      var setting = (p.rateItems && p.rateItems.length) ? p.rateItems.map(function(x){ return escH(x.name)+' '+money(x.rate)+'／時'; }).join('<br>')
+        : p.payType ? (p.payType + ' ' + money(p.payRate) + (p.payType==='時薪' ? '／小時' : p.payType==='按次' ? '／次' : '／月')) : '<span style="color:#A32D2D;font-weight:700">⚠️ 還沒設定薪資</span>';
+      // 算式：門診A 8h × 500 ＝ 4,000 ＋ 一般 12h × 200 ＝ 2,400
+      var formula = (p.byItem && p.byItem.length) ? p.byItem.map(function(b){ return '<span style="white-space:nowrap">'+escH(b.item)+' '+b.hours+'h × '+Math.round(b.rate).toLocaleString()+' ＝ <b>'+Math.round(b.amount).toLocaleString()+'</b></span>'; }).join(' ＋ ') : '';
+      var miss = (p.missIn ? '<span style="color:#A32D2D;font-weight:700">沒上班卡 '+p.missIn+'</span> ' : '') + (p.missOut ? '<span style="color:#8A6A1F;font-weight:700">沒下班卡 '+p.missOut+'</span>' : '') || '<span style="color:#0F6E56">—</span>';
+      var inv = !p.shifts ? '—' : p.pending ? ('<span style="color:#8A6A1F;font-weight:700">待請款 '+p.pending+' 班</span>' + (p.invoiced ? '<br><span style="color:#0F6E56">已請款 '+p.invoiced+'</span>' : '')) : '<span style="color:#0F6E56;font-weight:700">✅ 已請款</span>';
+      html += '<tr style="border-top:1px solid var(--border);cursor:pointer" onclick="payrollToggle('+i+')">'
+        + '<td style="padding:8px"><b>'+escH(p.name)+'</b> '+roleChip(p.role)+' <span id="payroll-arrow-'+i+'" style="color:var(--text3)">▸</span></td>'
+        + '<td style="padding:8px">'+setting+'</td>'
+        + '<td style="padding:8px;text-align:center">'+p.shifts+'</td>'
+        + '<td style="padding:8px;text-align:center">'+p.schedHours+'</td>'
+        + '<td style="padding:8px;text-align:center">'+p.actualHours+'</td>'
+        + '<td style="padding:8px;text-align:center">'+miss+'</td>'
+        + '<td style="padding:8px;text-align:right;font-weight:800;font-size:13.5px">'+money(p.subtotal)+(formula?'<div style="font-size:11px;font-weight:400;color:#7A5A12;margin-top:3px;line-height:1.6">'+formula+'</div>':'')+'</td>'
+        + '<td style="padding:8px;text-align:center;font-size:11.5px">'+inv+'</td></tr>'
+        + '<tr id="payroll-det-'+i+'" style="display:none"><td colspan="8" style="padding:0 8px 10px 8px">'+payrollDetailHtml(p)+'</td></tr>';
+    });
+    if(d.all) html += '<tr style="border-top:2px solid #E6D3A0;background:#FBF6EA"><td colspan="6" style="padding:8px;font-weight:800;color:#7A5A12">合計（'+items.length+' 人）</td><td style="padding:8px;text-align:right;font-weight:800;font-size:14px;color:#7A5A12">'+money(d.total)+'</td><td></td></tr>';
+    html += '</table></div>';
+    body.innerHTML = html;
+    if(typeof after === 'function') after();
+  });
+}
+function payrollDetailHtml(p){
+  if(!p.days || !p.days.length) return '<div style="font-size:11.5px;color:var(--text3);padding:6px">這個月沒有排班（月薪照算）</div>';
+  return '<table style="width:100%;border-collapse:collapse;font-size:11.5px;background:#FAFAFA;border-radius:8px">'
+    + '<tr style="color:var(--text2)"><th style="text-align:left;padding:5px 8px">日期</th><th style="text-align:left;padding:5px 8px">班別</th><th style="text-align:left;padding:5px 8px">時薪</th><th style="padding:5px 8px">排定</th><th style="padding:5px 8px">打卡</th><th style="padding:5px 8px">實際時數</th><th style="text-align:right;padding:5px 8px">小計</th><th style="padding:5px 8px">狀態</th></tr>'
+    + p.days.map(function(x){
+      var ck = (x.clockIn || '—') + ' → ' + (x.clockOut || '—');
+      var bad = !x.clockIn && x.date <= ((_payrollData && _payrollData.todayStr) || '');
+      var inv = String(x.status).indexOf('已請款')===0;
+      var names = p.rateItemNames || [];
+      var itemCell = (p.payType==='時薪' || names.length) ? (
+        (_payrollData && _payrollData.canEdit && !inv && names.length >= 2 && x.row)
+          ? '<select onchange="payrollSetItem('+x.row+', this)" onclick="event.stopPropagation()" style="font-size:12px;border:1px solid #E6D3A0;border-radius:6px;padding:3px 6px;background:#FFFBEF">'+names.map(function(n){ return '<option value="'+escH(n)+'"'+(n===(x.item||names[0])?' selected':'')+'>'+escH(n)+'</option>'; }).join('')+'</select>'
+          : escH(x.item || names[0] || '時薪')
+        ) + (x.rate ? '<span style="color:var(--text3)"> $'+Math.round(x.rate)+'</span>' : '') : '—';
+      return '<tr style="border-top:1px solid #EEE'+(bad?';background:#FDF0F0':'')+'"><td style="padding:5px 8px">'+escH(x.date.slice(5))+'</td><td style="padding:5px 8px">'+escH(x.slot)+'</td><td style="padding:5px 8px">'+itemCell+'</td><td style="padding:5px 8px;text-align:center">'+escH(x.start)+'–'+escH(x.end)+'（'+x.hours+'h）</td><td style="padding:5px 8px;text-align:center'+(bad?';color:#A32D2D;font-weight:700':'')+'">'+escH(ck)+'</td><td style="padding:5px 8px;text-align:center">'+(x.actualHours||'—')+'</td><td style="padding:5px 8px;text-align:right">'+(p.payType==='月薪'?'（月薪）':'NT$'+Math.round(x.pay).toLocaleString())+'</td><td style="padding:5px 8px;text-align:center;color:'+(String(x.status).indexOf('已請款')===0?'#0F6E56':'#8A6A1F')+'">'+(String(x.status).indexOf('已請款')===0?'已請款':'待請款')+'</td></tr>';
+    }).join('') + '</table>';
+}
+function payrollSetItem(row, sel){
+  var v = sel.value; sel.disabled = true;
+  adminAPIPost({action:'setShiftRateItem', row: row, item: v}, function(r){
+    sel.disabled = false;
+    if(r && r.status === 'ok'){
+      toast('✅ 這一班改用「'+r.item+'」時薪，小計 NT$'+Math.round(r.subtotal).toLocaleString());
+      var open = []; document.querySelectorAll('[id^="payroll-det-"]').forEach(function(el){ if(el.style.display !== 'none') open.push(el.id); });
+      loadPayrollMonth(function(){ open.forEach(function(id){ var el = document.getElementById(id); if(el){ el.style.display=''; var a = document.getElementById(id.replace('det','arrow')); if(a) a.textContent='▾'; } }); });
+    } else toast('⚠️ ' + ((r && r.message) || '改不成功，請重試'));
+  });
+}
+function payrollToggle(i){
+  var r = document.getElementById('payroll-det-'+i), a = document.getElementById('payroll-arrow-'+i);
+  if(!r) return; var open = r.style.display === 'none'; r.style.display = open ? '' : 'none'; if(a) a.textContent = open ? '▾' : '▸';
+}
+function payrollDownloadCsv(){
+  var d = _payrollData; if(!d || !d.items) return;
+  var q = function(v){ v = String(v==null?'':v); return /[",\n]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v; };
+  var lines = [['月份','姓名','角色','薪資類型','薪資金額','班數','排定時數','實際打卡時數','沒打上班卡','沒打下班卡','應付金額','待請款班數','已請款班數'].join(',')];
+  d.items.forEach(function(p){ lines.push([d.month,p.name,p.role,p.payType,p.payRate,p.shifts,p.schedHours,p.actualHours,p.missIn,p.missOut,Math.round(p.subtotal),p.pending,p.invoiced].map(q).join(',')); });
+  lines.push(''); lines.push(['姓名','時薪項目','時數','時薪','金額'].join(','));
+  d.items.forEach(function(p){ (p.byItem||[]).forEach(function(b){ lines.push([p.name,b.item,b.hours,b.rate,Math.round(b.amount)].map(q).join(',')); }); });
+  lines.push(''); lines.push(['姓名','日期','班別','時薪項目','時薪','排定開始','排定結束','排定時數','上班打卡','下班打卡','實際時數','小計','狀態'].join(','));
+  d.items.forEach(function(p){ (p.days||[]).forEach(function(x){ lines.push([p.name,x.date,x.slot,x.item||'',x.rate||'',x.start,x.end,x.hours,x.clockIn,x.clockOut,x.actualHours,p.payType==='月薪'?'':Math.round(x.pay),x.status].map(q).join(',')); }); });
+  var blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = '排班月報_' + d.month + '.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function payrollGenerateInvoices(btn){
+  var d = _payrollData; if(!d) return;
+  if(!confirm('把 ' + d.month + ' 每個人「待請款」的班別彙總，各產生一張請款單草稿？\n（月薪的人算一次月薪；已請款的班不會重複算）')) return;
+  if(btn){ btn.disabled = true; }
+  adminAPI({ action:'generateMonthlyInvoice', month: d.month.replace('-','/') }, function(r){
+    if(btn){ btn.disabled = false; }
+    if(r && r.status === 'ok' && r.generated && r.generated.length){ toast('✅ 已產生 ' + r.generated.length + ' 張請款單草稿，到「財務登記」看'); loadPayrollMonth(); }
+    else toast((r && r.message) || '⚠️ 這個月沒有待請款的班別');
+  });
+}
 function loadClockRecordsMonth(){
   var card = document.getElementById('clock-month-card');
   if(!card) return;
@@ -11438,6 +11658,7 @@ function runPageLoader(id){
     if(typeof loadShiftWishSummary==='function') loadShiftWishSummary();
     if(typeof loadClockStatus==='function') loadClockStatus();
     if(typeof loadClockRecordsMonth==='function') loadClockRecordsMonth(); // 2026-10-01：打卡記錄總表（管理人／行政）
+    if(typeof loadPayrollMonth==='function') loadPayrollMonth(); // 2026-10-12：排班月報（連動薪資）
   }
   if (id === 'all-tests') {
     if(typeof loadAllClientsIRCTTable==='function') loadAllClientsIRCTTable();
@@ -14176,7 +14397,7 @@ var ROLE_PAGES = {
   // 2026-09-04 新增：醫師——跟客人講解IRCT報告前要看到完整狀況（含用藥），只給客戶管理+儀表板，預設僅查看不可編輯
   // 2026-09-05d 依創辦人指示擴大：醫師額外開放IRCT相關頁面（全部客人檢測總表/檢測整合/功能醫學加測建議/IRCT區間管理/分型系統說明），
   // 方便醫師橫向比對數據、勾選加測建議；後端這些action本來就只檢查有無登入，不限定角色，這裡純粹是前端頁面顯示範圍的調整
-  '醫師': ['dashboard','clients','all-tests','lab-integrate','extra-test','irct-mgmt','irt-models'],
+  '醫師': ['dashboard','clients','duty','all-tests','lab-integrate','extra-test','irct-mgmt','irt-models'], // 2026-10-12：醫師也排班、看自己的排班月報
   // 2026-09-23c 新增：教練（諧動空間架接第一步）——只有「客戶管理」一頁，而且後端只會回傳
   // 「負責教練＝自己」的客人；點進客人開的是精簡版學員卡（近期記錄／檢測／運動甜蜜點／教練運動建議），
   // 不是完整的客人詳情。沒有儀表板（儀表板是全站客人的警示與統計，不該給外部教練看）。
