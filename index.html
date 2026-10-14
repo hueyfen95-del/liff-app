@@ -7555,7 +7555,7 @@ function updateComplexity() {
     if ((txt.includes('不足') && txt.includes('小時')) || txt.includes('少於 6 小時')) { score += 0.1; factors.push('睡眠不足 +0.1'); }
     if (txt.includes('失眠')) { score += 0.1; factors.push('失眠 +0.1'); }
     if (txt.includes('高度壓力') || txt.includes('重大生活')) { score += 0.1; factors.push('高壓力 +0.1'); }
-    if (txt.includes('50歲')) { score += 0.1; factors.push('年齡50+ +0.1'); }
+    if (txt.indexOf('50-64歲') === 0) { score += 0.1; factors.push('年齡50+ +0.1'); }
     if (txt.includes('腦袋常不清楚') || txt.includes('記性越來越差')) { score += 0.2; factors.push('腦霧/記憶 +0.2'); }
     if (txt.includes('睡再多還是很累')) { score += 0.1; factors.push('慢性疲勞 +0.1'); }
     if (txt.includes('便秘') || txt.includes('脹氣') || txt.includes('抗生素')) { score += 0.2; factors.push('腸道問題 +0.2'); }
@@ -7875,7 +7875,7 @@ function showKetoGuide() {
         </div>
 
         <div style="display:flex;gap:8px">
-          <button onclick="hfNext(1)" style="flex:1;background:var(--bg);color:var(--text2);border:0.5px solid var(--border);border-radius:12px;padding:12px;font-size:13px;cursor:pointer">← 上一步</button>
+          <button onclick="hfNext(1)" style="flex:1;background:#fff;color:var(--g);border:1.5px solid var(--g);border-radius:12px;padding:13px 6px;font-size:15px;font-weight:700;cursor:pointer">← 上一頁</button>
           <button onclick="hfNext(3)" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">下一步 →</button>
         </div>
       </div>
@@ -7911,7 +7911,7 @@ function showKetoGuide() {
         </div>
 
         <div style="display:flex;gap:8px">
-          <button onclick="hfNext(2)" style="flex:1;background:var(--bg);color:var(--text2);border:0.5px solid var(--border);border-radius:12px;padding:12px;font-size:13px;cursor:pointer">← 上一步</button>
+          <button onclick="hfNext(2)" style="flex:1;background:#fff;color:var(--g);border:1.5px solid var(--g);border-radius:12px;padding:13px 6px;font-size:15px;font-weight:700;cursor:pointer">← 上一頁</button>
           <button onclick="hfNext(4)" style="flex:2;background:var(--g);color:#fff;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">下一步 →</button>
         </div>
       </div>
@@ -7933,6 +7933,10 @@ function showKetoGuide() {
           </div>
         </div>
 
+        <!-- 2026-10-14：結果頁加「你填的內容」回顧，每一區可按「修改」回到那一頁 -->
+        <div id="hf-review" style="margin-bottom:14px"></div>
+
+        <button onclick="hfNext(3)" style="width:100%;background:#fff;color:var(--g);border:1.5px solid var(--g);border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">← 回上一頁修改</button>
         <button onclick="submitAndClose()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">
           ✅ 儲存並預約 IRCT
         </button>
@@ -8064,10 +8068,54 @@ function hfNext(step) {
   if (progress) progress.style.width = ((step / 4) * 100) + '%';
   if (label) label.textContent = '第 ' + step + ' 步 / 共 4 步';
   // 第4步自動計算結果
-  if (step === 4) hfCalcResult();
+  if (step === 4) { hfCalcResult(); hfRenderReview(); }
   // 滾到頂部
   var overlay = document.getElementById('health-form-overlay');
   if (overlay) overlay.querySelector('div').scrollTop = 0;
+}
+
+// 2026-10-14：把客人填過的選項整理成一份清單（依步驟分區、每區可「修改」跳回該頁）
+function hfRenderReview() {
+  var box = document.getElementById('hf-review');
+  if (!box) return;
+  var stripes = ['#3B82F6', '#F59E0B', '#EC4899'];
+  var bgs = ['#EFF6FF', '#FFFBEB', '#FDF2F8'];
+  var html = '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">📝 你填的內容</div>';
+  for (var st = 1; st <= 3; st++) {
+    var stepEl = document.getElementById('hf-step-' + st);
+    if (!stepEl) continue;
+    var title = (stepEl.firstElementChild ? stepEl.firstElementChild.textContent : '').trim();
+    var groups = [];
+    var byParent = [];
+    stepEl.querySelectorAll('button[onclick*="toggleHQ"]').forEach(function(b) {
+      var bg = b.style.background || '';
+      if (!(bg.indexOf('29, 158, 117') >= 0 || bg === 'var(--g)')) return;
+      var par = b.parentElement;
+      var idx = byParent.indexOf(par);
+      if (idx < 0) {
+        byParent.push(par);
+        var lab = par.previousElementSibling ? par.previousElementSibling.textContent.trim() : '';
+        lab = lab.split('（')[0].split('(')[0].trim();
+        groups.push({ label: lab, items: [] });
+        idx = groups.length - 1;
+      }
+      groups[idx].items.push(b.textContent.trim());
+    });
+    html += '<div style="background:' + bgs[st - 1] + ';border-left:5px solid ' + stripes[st - 1] + ';border-radius:10px;padding:10px 12px;margin-bottom:8px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+    html += '<div style="font-size:14px;font-weight:700;color:var(--text)">' + title + '</div>';
+    html += '<button onclick="hfNext(' + st + ')" style="background:#fff;border:1.5px solid ' + stripes[st - 1] + ';color:var(--text);border-radius:16px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer">✏️ 修改</button>';
+    html += '</div>';
+    if (groups.length === 0) {
+      html += '<div style="font-size:13px;color:var(--text3)">（這一頁沒有勾選）</div>';
+    } else {
+      groups.forEach(function(g) {
+        html += '<div style="font-size:13px;line-height:1.7;color:var(--text)">' + (g.label ? '<b>' + g.label + '：</b>' : '') + g.items.join('、') + '</div>';
+      });
+    }
+    html += '</div>';
+  }
+  box.innerHTML = html;
 }
 
 function hfCalcResult() {
@@ -8086,10 +8134,10 @@ function hfCalcResult() {
     if (txt.includes('反覆減重')) { score += 0.2; factors.push('反覆減重史'); warnings.push('你的代謝已受損，需要更長時間修復'); }
     if (txt.includes('飢餓/極低熱量')) { score += 0.2; factors.push('飢餓減重'); warnings.push('飢餓減重讓基礎代謝率下降，身體正在保護自己'); }
     if (txt.includes('減重針/藥')) { score += 0.2; factors.push('減重針/藥'); warnings.push('藥物停用後身體正在重新調整'); }
-    if (txt.includes('不足') && txt.includes('小時')) { score += 0.1; factors.push('睡眠不足'); warnings.push('睡眠不足讓皮質醇升高，直接影響代謝'); }
+    if ((txt.includes('不足') && txt.includes('小時')) || txt.includes('少於 6 小時')) { score += 0.1; factors.push('睡眠不足'); warnings.push('睡眠不足讓皮質醇升高，直接影響代謝'); }
     if (txt.includes('失眠')) { score += 0.1; factors.push('失眠'); warnings.push('失眠讓荷爾蒙失衡，影響代謝修復'); }
     if (txt.includes('高度壓力') || txt.includes('重大生活')) { score += 0.1; factors.push('高壓力'); warnings.push('壓力荷爾蒙讓脂肪更難代謝'); }
-    if (txt.includes('50歲') || txt.includes('50-64歲')) { score += 0.1; factors.push('年齡50-64'); warnings.push('50歲後荷爾蒙變化讓代謝更需要支持'); }
+    if (txt.indexOf('50-64歲') === 0) { score += 0.1; factors.push('年齡50-64'); warnings.push('50歲後荷爾蒙變化讓代謝更需要支持'); }
     if (txt.includes('65歲以上')) { score += 0.15; factors.push('年齡65+'); warnings.push('65歲後肌肉量與代謝彈性下降，需要更全面的營養與運動支持'); }
     if (txt.includes('睡再多還是很累')) { score += 0.1; factors.push('慢性疲勞'); warnings.push('慢性疲勞可能是粒線體功能下降的信號'); }
     if (txt.includes('腦袋常不清楚') || txt.includes('記性越來越差')) { score += 0.15; factors.push('腦霧/記憶問題'); warnings.push('腦霧可能與粒線體能量不足有關'); }
