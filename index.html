@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-10-11c';
+var MX_BUILD = '2026-10-14';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7552,7 +7552,7 @@ function updateComplexity() {
     if (txt.includes('反覆減重')) { score += 0.2; factors.push('反覆減重史 +0.2'); }
     if (txt.includes('飢餓/極低熱量')) { score += 0.2; factors.push('飢餓減重 +0.2'); }
     if (txt.includes('減重針/藥')) { score += 0.2; factors.push('減重針/藥 +0.2'); }
-    if (txt.includes('不足') && txt.includes('小時')) { score += 0.1; factors.push('睡眠不足 +0.1'); }
+    if ((txt.includes('不足') && txt.includes('小時')) || txt.includes('少於 6 小時')) { score += 0.1; factors.push('睡眠不足 +0.1'); }
     if (txt.includes('失眠')) { score += 0.1; factors.push('失眠 +0.1'); }
     if (txt.includes('高度壓力') || txt.includes('重大生活')) { score += 0.1; factors.push('高壓力 +0.1'); }
     if (txt.includes('50歲')) { score += 0.1; factors.push('年齡50+ +0.1'); }
@@ -7844,11 +7844,18 @@ function showKetoGuide() {
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">😴 你的生活型態</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:12px">睡眠和壓力對代謝的影響非常大</div>
 
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠狀況</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠時間（平均一晚睡幾小時）</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
-          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">充足（7-8小時）</button>
-          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">不足（&lt;6小時）⚠️</button>
-          <button onclick="toggleHQ(this,'sleep')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">失眠困擾 ⚠️</button>
+          <button onclick="toggleHQ(this,'sleep_hours')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">7 小時以上</button>
+          <button onclick="toggleHQ(this,'sleep_hours')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">6–7 小時</button>
+          <button onclick="toggleHQ(this,'sleep_hours')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">少於 6 小時 ⚠️</button>
+        </div>
+
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠品質（睡得好不好）</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <button onclick="toggleHQ(this,'sleep_quality')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">睡得沉，醒來有精神</button>
+          <button onclick="toggleHQ(this,'sleep_quality')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">偶爾睡不好</button>
+          <button onclick="toggleHQ(this,'sleep_quality')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">常難入睡或半夜醒（失眠）⚠️</button>
         </div>
 
         <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">生活/工作壓力</div>
@@ -7989,7 +7996,7 @@ function closeHealthFormOverlayOnly() {
 // 各步驟必填的單選題key
 var HF_REQUIRED_KEYS = {
   1: ['diet_history'],
-  2: ['sleep', 'stress', 'age']
+  2: ['sleep_hours', 'sleep_quality', 'stress', 'age']
 };
 
 function hfIsKeySelected(key) {

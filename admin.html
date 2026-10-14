@@ -328,7 +328,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-14';
+var MX_BUILD = '2026-10-14b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1045,10 +1045,11 @@ var MX_BUILD = '2026-10-14';
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
     <div class="card"><div class="card-hd"><div class="card-title"><i class="ti ti-users"></i>今日值班</div></div><div class="card-body">
       <div id="today-duty-list" style="font-size:12px;color:var(--text3);padding:6px 0">載入中…</div>
-      <div style="font-size:11px;font-weight:700;color:var(--text2);margin:12px 0 8px;text-transform:uppercase;letter-spacing:.04em">本週排班</div>
-      <table class="dt"><thead><tr><th>日期</th><th>秘書</th><th>時段</th></tr></thead>
+      <div style="font-size:13px;font-weight:800;color:var(--text2);margin:14px 0 6px">本週排班（空缺會標紅）</div>
+      <div id="week-vacant-note" style="font-size:12.5px;margin-bottom:8px"></div>
+      <table class="dt"><thead><tr><th>日期</th><th>上午</th><th>下午</th><th>晚上</th></tr></thead>
       <tbody id="week-shift-tbody">
-        <tr><td colspan="3" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
+        <tr><td colspan="4" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入中…</td></tr>
       </tbody></table>
     </div></div>
     <!-- 2026-09-05f：移除，改由runPageLoader('duty')統一負責（見下方），避免登入前CURRENT_USER還是null時就呼叫adminAPI，觸發「登入逾時」誤報 -->
@@ -5398,7 +5399,7 @@ function loadShiftSchedule(){
   adminAPI({action:'getShiftSchedule'}, function(d){
     if(!d || d.status!=='ok'){
       todayBox.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text3)">載入失敗，請重新整理</div>';
-      weekBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入失敗，請重新整理</td></tr>';
+      weekBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">載入失敗，請重新整理</td></tr>';
       return;
     }
     var today = d.today||[], week = d.week||[];
@@ -5408,32 +5409,66 @@ function loadShiftSchedule(){
       ? '<div style="font-size:10.5px;color:var(--text3);padding:4px 2px 8px">🔒 這裡只顯示你自己的排班；其他同事的班表不會顯示在這裡'
         + (d.othersTodayCount ? '（今天另外還有 '+d.othersTodayCount+' 位同事排班）' : '') + '</div>'
       : '';
-    if(today.length===0){
-      todayBox.innerHTML = restrictNote + '<div style="text-align:center;padding:10px;color:var(--text3);font-size:12px">今天還沒有排班記錄</div>';
-    } else {
-      todayBox.innerHTML = restrictNote + today.map(function(s){
-        var initial = String(s.secretary||'?').slice(0,1);
-        var timeLabel = (s.startTime&&s.endTime) ? (s.startTime+'–'+s.endTime) : (s.shift||'');
-        var badge = s.onNow ? '<span class="badge g">值班中</span>' : '<span class="badge b">'+escH(s.shift||'今日')+'</span>';
-        return '<div class="duty-card"><div class="cr-av" style="background:'+(s.onNow?'var(--g)':'var(--b)')+';color:#fff;width:36px;height:36px;font-size:13px">'+escH(initial)+'</div>'
-          +'<div style="flex:1"><div style="font-size:13px;font-weight:700">'+escH(s.secretary)+'</div><div style="font-size:11px;color:var(--text2)">'+escH(timeLabel)+(s.onNow?'・上線中':'')+'</div></div>'
-          +badge+'</div>';
+    // 2026-10-14 創辦人：「今日值班怎麼沒有完整的，只有婷婷一個人？空缺的也要看得出來」
+    // → 今日值班固定列出三個時段（早餐／午餐／晚餐），有人就顯示是誰，沒人就紅色「空缺」＋「我來排這班」；
+    //   本週排班改成 7 天 × 3 時段的格子，空缺一眼看出來。
+    var slots = d.slotDefs || DUTY_SLOTS, cov = d.coverage || {}, nowHM = d.nowHM || '';
+    var rk = (CURRENT_USER && CURRENT_USER.role) || '';
+    var canClaim = (rk !== '醫師');
+    var SLOT_NAME = { '上午':'早餐', '下午':'午餐', '晚上':'晚餐' };
+    var covToday = cov[d.todayStr] || {};
+    var vacantToday = 0, html = restrictNote;
+    slots.forEach(function(sd){
+      var c = covToday[sd.key] || {names:[], others:0};
+      var ongoing = nowHM && sd.start <= nowHM && nowHM < sd.end;
+      var passed = nowHM && nowHM >= sd.end;
+      var head = '<div style="font-size:12px;font-weight:700;color:var(--text2)">'+escH(sd.label)+'班・'+(SLOT_NAME[sd.key]||'')+'　'+escH(sd.start)+'–'+escH(sd.end)+'</div>';
+      if(c.names.length){
+        html += '<div class="duty-card" style="border-left:6px solid #1D9E75;background:#F2FAF6"><div class="cr-av" style="background:'+(ongoing?'var(--g)':'var(--b)')+';color:#fff;width:36px;height:36px;font-size:13px">'+escH(String(c.names[0]).slice(0,1))+'</div>'
+          +'<div style="flex:1">'+head+'<div style="font-size:14px;font-weight:800;color:var(--text)">'+escH(c.names.join('、'))+'</div></div>'
+          +(ongoing?'<span class="badge g">值班中</span>':(passed?'<span class="badge" style="background:#F1F3F5;color:#4A5560">已結束</span>':'<span class="badge b">待上班</span>'))+'</div>';
+      } else if(c.others){
+        html += '<div class="duty-card" style="border-left:6px solid #1D9E75;background:#F2FAF6"><div class="cr-av" style="background:var(--b);color:#fff;width:36px;height:36px;font-size:13px">✓</div>'
+          +'<div style="flex:1">'+head+'<div style="font-size:13px;font-weight:700;color:var(--text2)">已有 '+c.others+' 位同事排班</div></div>'
+          +(ongoing?'<span class="badge g">值班中</span>':(passed?'<span class="badge" style="background:#F1F3F5;color:#4A5560">已結束</span>':'<span class="badge b">待上班</span>'))+'</div>';
+      } else if(passed){
+        html += '<div class="duty-card" style="border-left:6px solid #B8BEC6;background:#F6F8FA"><div class="cr-av" style="background:#B8BEC6;color:#fff;width:36px;height:36px;font-size:13px">—</div>'
+          +'<div style="flex:1">'+head+'<div style="font-size:13px;color:var(--text3)">這個時段已過，當時沒有人排班</div></div></div>';
+      } else {
+        vacantToday++;
+        html += '<div class="duty-card" style="border-left:6px solid #C62828;background:#FDECEC;border-color:#F3B8B8"><div class="cr-av" style="background:#C62828;color:#fff;width:36px;height:36px;font-size:15px">!</div>'
+          +'<div style="flex:1">'+head+'<div style="font-size:14px;font-weight:800;color:#A32D2D">'+(ongoing?'⚠️ 現在沒有人值班！':'⚠️ 空缺：還沒有人排')+'</div></div>'
+          +(canClaim?'<button onclick="claimSlot(\''+d.todayStr+'\',\''+sd.key+'\',this)" style="background:#1D9E75;color:#fff;border:none;border-radius:9px;padding:8px 12px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">✋ 我來排</button>':'<span class="badge r">空缺</span>')+'</div>';
+      }
+    });
+    // 今天有排、但時間不落在這三個時段的班（例如自訂的 20:00–23:00）：另外列出，不要漏掉
+    var extra = today.filter(function(s){ return !slots.some(function(sd){ return duty_rangesOverlap(s.startTime, s.endTime, sd.start, sd.end); }); });
+    extra.forEach(function(s){
+      html += '<div class="duty-card" style="border-left:6px solid #5B3FA8;background:#F3F0FB"><div class="cr-av" style="background:#5B3FA8;color:#fff;width:36px;height:36px;font-size:13px">'+escH(String(s.secretary||'?').slice(0,1))+'</div>'
+        +'<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text2)">其他班・'+escH((s.startTime||'')+'–'+(s.endTime||''))+'</div><div style="font-size:14px;font-weight:800">'+escH(s.secretary)+'</div></div>'+(s.onNow?'<span class="badge g">值班中</span>':'')+'</div>';
+    });
+    if(vacantToday){ html = '<div style="background:#FDECEC;color:#A32D2D;font-weight:800;font-size:13px;border-radius:9px;padding:8px 12px;margin-bottom:8px">⚠️ 今天還有 '+vacantToday+' 個時段沒人排班</div>' + html; }
+    else html = '<div style="background:#E6F4EE;color:#0F6E56;font-weight:800;font-size:13px;border-radius:9px;padding:8px 12px;margin-bottom:8px">✅ '+(slots.some(function(sd){ var c=covToday[sd.key]||{names:[],others:0}; return !c.names.length && !c.others; }) ? '今天還沒結束的時段都有人' : '今天三個時段都有人')+'</div>' + html;
+    todayBox.innerHTML = html;
+    // 本週：7 天 × 3 時段
+    var days = Object.keys(cov).sort(), WD = ['日','一','二','三','四','五','六'], vacantWeek = 0;
+    var thead = document.querySelector('#week-shift-tbody') && document.querySelector('#week-shift-tbody').parentNode.querySelector('thead');
+    if(thead) thead.innerHTML = '<tr><th>日期</th>'+slots.map(function(sd){ return '<th style="text-align:center">'+escH(sd.label)+'<div style="font-weight:400;font-size:10.5px;color:var(--text3)">'+escH(sd.start)+'–'+escH(sd.end)+'</div></th>'; }).join('')+'</tr>';
+    weekBody.innerHTML = days.map(function(ds){
+      var isToday = ds === d.todayStr, past = ds < d.todayStr;
+      var wd = WD[new Date(ds+'T00:00:00').getDay()];
+      var cells = slots.map(function(sd){
+        var c = (cov[ds]||{})[sd.key] || {names:[], others:0};
+        if(c.names.length) return '<td style="text-align:center;font-weight:700">'+escH(c.names.join('、'))+'</td>';
+        if(c.others) return '<td style="text-align:center;color:var(--text2)">有人</td>';
+        if(past || (isToday && nowHM >= sd.end)) return '<td style="text-align:center;color:#B8BEC6">—</td>';
+        vacantWeek++;
+        return '<td style="text-align:center;background:#FDECEC;color:#A32D2D;font-weight:800;'+(canClaim?'cursor:pointer':'')+'"'+(canClaim?' onclick="claimSlot(\''+ds+'\',\''+sd.key+'\',this)" title="點一下，這班我來排"':'')+'>空缺</td>';
       }).join('');
-    }
-    if(week.length===0){
-      weekBody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text3);font-size:12px;padding:10px">本週還沒有排班記錄</td></tr>';
-    } else {
-      weekBody.innerHTML = week.map(function(s){
-        var isToday = s.date === d.todayStr;
-        var dLabel = s.date + (isToday?'（今天）':'');
-        var timeLabel = (s.startTime&&s.endTime) ? (s.startTime+'–'+s.endTime) : '';
-        return '<tr'+(isToday?' style="background:var(--g2)"':'')+'>'
-          +'<td style="'+(isToday?'font-weight:700':'')+'">'+escH(dLabel)+'</td>'
-          +'<td>'+escH(s.secretary)+'</td>'
-          +'<td>'+escH((s.shift||'')+(timeLabel?'　'+timeLabel:''))+'</td>'
-          +'</tr>';
-      }).join('');
-    }
+      return '<tr'+(isToday?' style="background:var(--g2)"':'')+'><td style="white-space:nowrap;'+(isToday?'font-weight:800':'')+'">'+escH(ds.slice(5).replace('-','/'))+'（'+wd+'）'+(isToday?'<div style="font-size:10.5px;color:var(--g3)">今天</div>':'')+'</td>'+cells+'</tr>';
+    }).join('');
+    var wkNote = document.getElementById('week-vacant-note');
+    if(wkNote) wkNote.innerHTML = vacantWeek ? '<span style="background:#FDECEC;color:#A32D2D;font-weight:800;border-radius:9px;padding:4px 10px">本週還有 '+vacantWeek+' 個時段空缺</span>' + (canClaim?' <span style="color:var(--text3)">點紅色「空缺」就能自己排</span>':'') : '<span style="background:#E6F4EE;color:#0F6E56;font-weight:800;border-radius:9px;padding:4px 10px">✅ 本週每個時段都有人</span>';
   });
 }
 // 2026-09-15新增：完整月班表查詢——跟loadShiftSchedule()共用同一張「💰 排班記錄」表，只是換成
@@ -5712,10 +5747,12 @@ function claimSlot(dateStr, slotKey, el){
     if(d && d.status === 'ok'){
       toast('✅ 排班成功！'+dateStr+'　'+slotKey+'班　（這個月已排 '+d.used+'／上限 '+d.cap+'）');
       loadFullSchedule();
+      if(typeof loadShiftSchedule==='function') loadShiftSchedule();
       if(typeof refreshSidebarBadges==='function') refreshSidebarBadges();
     } else if(d && d.status === 'taken'){
       toast('😅 慢了一步，這個時段剛被別人登記走了，換一個試試看');
       loadFullSchedule();
+      if(typeof loadShiftSchedule==='function') loadShiftSchedule();
     } else if(d && d.status === 'capped'){
       toast('⚠️ '+(d.message||'這個月已經排到上限了'));
       if(el){ el.style.opacity=''; el.style.pointerEvents=''; }
