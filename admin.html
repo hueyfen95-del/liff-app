@@ -328,7 +328,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-13b';
+var MX_BUILD = '2026-10-14';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2745,10 +2745,11 @@ function sendCloseSeq(){
   setTimeout(function(){toast('✅ 第二段已發送給 '+target+' （間隔 30 秒）');},3500);
   setTimeout(function(){toast('✅ 第三段已發送給 '+target+'・三段全部完成 🎉');btn.style.opacity='1';btn.style.cursor='pointer';},6500);
 }
-function toast(msg){
+function toast(msg, ms){
   var t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:11px 22px;border-radius:30px;font-size:13px;font-weight:600;z-index:9999;white-space:nowrap;max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4)';
-  t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();},2600);
+  var _long = String(msg||'').length > 40; // 2026-10-14：長訊息（例如 IRCT 缺項清單）換行顯示、停留久一點
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:11px 22px;border-radius:'+(_long?'14px':'30px')+';font-size:13px;font-weight:600;z-index:9999;white-space:'+(_long?'normal':'nowrap')+';max-width:90vw;text-align:center;box-shadow:0 4px 20px rgba(29,158,117,.4)';
+  t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove();}, ms || (_long ? 5000 : 2600));
 }
 </script>
 
@@ -3316,7 +3317,11 @@ function saveIRCTFull(clientId){
     stateSurvey:(window._irctStateSurvey||'') };
   adminAPIPost(payload, function(d){
     if(d && d.status === 'ok'){
-      toast('✅ IRCT完整記錄已儲存，前台報告已同步更新');
+      var _cp = d.completeness;
+      if(_cp && !_cp.complete){
+        var _ms = []; (_cp.groups||[]).forEach(function(g){ (g.missing||[]).forEach(function(m){ _ms.push(m.l); }); });
+        toast('✅ 已儲存。⚠️ 這次還缺 '+_ms.length+' 項：'+_ms.slice(0,5).join('、')+(_ms.length>5?'…':'')+'——拿到數值後在下方「五項指標」按「✏️ 補登」', 7000);
+      } else toast('✅ IRCT完整記錄已儲存（五項指標都齊了），前台報告已同步更新');
       // 2026-09-09補：原本空callback，「報告狀態」這個note如果沒寫成功，客人前台報告解鎖會對不上，
       // 但祕書畫面上完全看不出來——失敗時補一個提示，不擋住主流程。
       adminAPI({action:'addNote', clientId:clientId, content:'reportStatus:ready', type:'報告狀態', secretary:(CURRENT_USER&&CURRENT_USER.name)||'系統'}, function(nd){
@@ -3327,7 +3332,160 @@ function saveIRCTFull(clientId){
     } else toast('⚠️ ' + ((d && d.message) || '儲存失敗'));
   });
 }
+
+// ══════ 2026-10-14 五項指標・同一條時間軸＋完整度＋前後改善比較 ══════
+// 創辦人簡報「IRCT 驗證表」：②動態追蹤（每次檢測五項數值是否完整）、⑤前後改善比較（複測與前次數值的差異表）
+var _ftData = null, _ftCid = '';
+var FT_TONE = { glucose:['#B4462B','#FDF1EE'], insulin:['#1F5F8B','#EEF4FA'], lipid:['#C08A1E','#FBF6EA'], body:['#0F6E56','#ECF6F1'], inflam:['#5B3FA8','#F3F0FB'] };
+function ftNum(v){ if(v===null||v===undefined) return '—'; return (Math.round(v*100)/100).toLocaleString(); }
+function ftDiffCell(d, pct, j, unit){
+  if(d===null||d===undefined) return '<span style="color:var(--text3)">—</span>';
+  var arrow = d>0 ? '▲' : d<0 ? '▼' : '＝';
+  var c = j==='better' ? ['#0F6E56','#E6F4EE','改善'] : j==='worse' ? ['#A32D2D','#FDECEC','要注意'] : j==='same' ? ['#4A5560','#F1F3F5','持平'] : ['#4A5560','#F6F8FA',''];
+  return '<span style="display:inline-block;background:'+c[1]+';color:'+c[0]+';font-weight:700;border-radius:8px;padding:2px 8px;white-space:nowrap">'+arrow+' '+ftNum(Math.abs(d))+(pct!==null&&pct!==undefined?'（'+(pct>0?'+':'')+pct+'%）':'')+(c[2]?' '+c[2]:'')+'</span>';
+}
+function loadIRCTFiveTrack(clientId, cur, prev){
+  var box = document.getElementById('irct-five'); if(!box) return;
+  _ftCid = clientId;
+  box.innerHTML = '<div style="font-size:12px;color:var(--text3)">五項指標載入中…</div>';
+  var _gen = (typeof _cdOpenGen !== 'undefined') ? _cdOpenGen : 0;
+  var q = {action:'getIRCTFiveTrack', clientId:clientId}; if(cur!==undefined){ q.cur = cur; q.prev = prev; }
+  adminAPI(q, function(d){
+    if(typeof _cdOpenGen !== 'undefined' && _cdOpenGen !== _gen) return;
+    box = document.getElementById('irct-five'); if(!box) return;
+    if(!d || d.status!=='ok'){ box.innerHTML = '<div style="font-size:12px;color:#A32D2D">五項指標讀取失敗，請重新打開客人檔案</div>'; return; }
+    if(!d.found){ box.innerHTML = ''; return; }
+    _ftData = d; renderFiveTrack();
+  });
+}
+function renderFiveTrack(){
+  var d = _ftData, box = document.getElementById('irct-five'); if(!d || !box) return;
+  var tests = d.tests || [];
+  var h = '<div style="background:#fff;border:1px solid var(--border);border-top:5px solid #1F5F8B;border-radius:12px;padding:12px 14px">';
+  h += '<div style="font-size:15px;font-weight:800;color:#1F5F8B;margin-bottom:2px">🧪 五項指標・同一條時間軸</div>';
+  h += '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">每次檢測都看同樣五組：🩸血糖・💉胰島素・🧈血脂・⚖️體組成・🔥發炎與肝腎。先看<b>數值齊不齊</b>，再看<b>跟上次比</b>。</div>';
+  // ① 完整度
+  h += '<div style="font-size:13px;font-weight:800;color:var(--text);margin:4px 0 6px">① 每次檢測的數值齊不齊</div>';
+  h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="background:#F6F8FA;color:var(--text2)"><th style="text-align:left;padding:6px 8px">第幾次</th>';
+  (d.groups||[]).forEach(function(g){ h += '<th style="padding:6px 8px;border-top:4px solid '+FT_TONE[g.key][0]+'">'+g.icon+' '+escH(g.label)+'</th>'; });
+  h += '<th style="padding:6px 8px">下一步</th></tr>';
+  tests.slice().reverse().forEach(function(t){
+    var cp = t.completeness;
+    h += '<tr style="border-top:1px solid var(--border)"><td style="padding:7px 8px;font-weight:700;white-space:nowrap">第 '+(t.count||'?')+' 次<div style="font-size:11px;color:var(--text3);font-weight:400">'+escH(t.date||'')+'</div></td>';
+    cp.groups.forEach(function(g){
+      h += '<td style="padding:7px 8px;text-align:center">'+(g.missing.length ? '<span title="缺：'+escH(g.missing.map(function(m){return m.l;}).join('、'))+'" style="background:#FFF4E0;color:#8A5A00;font-weight:700;border-radius:8px;padding:2px 8px">缺 '+g.missing.length+'</span>' : '<span style="color:#0F6E56;font-weight:800">✅</span>')+'</td>';
+    });
+    h += '<td style="padding:7px 8px;text-align:center">'+(cp.complete ? '<span style="color:#0F6E56;font-size:12px">齊了</span>' : '<button class="ai-btn g" style="font-size:12px;padding:5px 10px;font-weight:700" onclick="ftOpenPatch('+t.idx+')">✏️ 補登缺的數值</button>')+'</td></tr>';
+    if(!cp.complete) h += '<tr id="ft-patch-'+t.idx+'" style="display:none"><td colspan="7" style="padding:0 8px 10px"></td></tr>';
+  });
+  h += '</table></div>';
+  // ② 前後比較
+  var cmp = d.compare || {rows:[]};
+  if(tests.length >= 2){
+    var opt = function(sel){ return tests.map(function(t){ return '<option value="'+t.idx+'"'+(t.idx===sel?' selected':'')+'>第 '+(t.count||'?')+' 次（'+escH(t.date||'')+'）</option>'; }).join(''); };
+    var cur = tests[d.curIdx] || {}, prev = tests[d.prevIdx] || {}, base = d.baseIdx >= 0 ? tests[d.baseIdx] : null;
+    var same = cmp.rows.filter(function(r){ return r.judgePrev==='same'; }).length;
+    h += '<div style="font-size:13px;font-weight:800;color:var(--text);margin:14px 0 6px">② 前後改善比較</div>';
+    h += '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;margin-bottom:8px">比較 <select id="ft-cur" class="form-select" style="width:auto;font-size:12.5px;padding:4px 8px" onchange="ftReCompare()">'+opt(d.curIdx)+'</select> 跟 <select id="ft-prev" class="form-select" style="width:auto;font-size:12.5px;padding:4px 8px" onchange="ftReCompare()">'+opt(d.prevIdx)+'</select></div>';
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+      + '<span style="background:#E6F4EE;color:#0F6E56;font-weight:800;border-radius:10px;padding:5px 12px;font-size:13px">改善 '+cmp.better+' 項</span>'
+      + '<span style="background:#FDECEC;color:#A32D2D;font-weight:800;border-radius:10px;padding:5px 12px;font-size:13px">要注意 '+cmp.worse+' 項</span>'
+      + '<span style="background:#F1F3F5;color:#4A5560;font-weight:800;border-radius:10px;padding:5px 12px;font-size:13px">持平 '+same+' 項</span></div>';
+    h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="background:#F6F8FA;color:var(--text2)"><th style="text-align:left;padding:6px 8px">項目</th>'
+      + (base ? '<th style="padding:6px 8px">第 '+(base.count||'?')+' 次<br><span style="font-weight:400">（第一次）</span></th>' : '')
+      + '<th style="padding:6px 8px">第 '+(prev.count||'?')+' 次</th><th style="padding:6px 8px">第 '+(cur.count||'?')+' 次</th><th style="padding:6px 8px">跟第 '+(prev.count||'?')+' 次比</th>'+(base ? '<th style="padding:6px 8px">跟第一次比</th>' : '')+'</tr>';
+    var lastG = '';
+    cmp.rows.forEach(function(r){
+      var tone = FT_TONE[r.group] || ['#4A5560','#F6F8FA'];
+      if(r.group !== lastG){ lastG = r.group; h += '<tr><td colspan="6" style="padding:8px 8px 4px;font-weight:800;color:'+tone[0]+';border-left:6px solid '+tone[0]+';background:'+tone[1]+'">'+r.icon+' '+escH(r.groupLabel)+'</td></tr>'; }
+      h += '<tr style="border-top:1px solid #EEE"><td style="padding:6px 8px;border-left:6px solid '+tone[1]+'">'+escH(r.label)+(r.unit?' <span style="color:var(--text3);font-size:11px">'+escH(r.unit)+'</span>':'')+(r.dir===''?' <span title="生酮期間上升不一定是壞事，只看變化不判好壞" style="color:var(--text3);font-size:11px">ⓘ</span>':'')+'</td>'
+        + (base ? '<td style="padding:6px 8px;text-align:center;color:var(--text2)">'+ftNum(r.base)+'</td>' : '')
+        + '<td style="padding:6px 8px;text-align:center">'+ftNum(r.prev)+'</td><td style="padding:6px 8px;text-align:center;font-weight:800">'+ftNum(r.cur)+'</td>'
+        + '<td style="padding:6px 8px;text-align:center">'+ftDiffCell(r.dPrev, r.pctPrev, r.judgePrev)+'</td>'
+        + (base ? '<td style="padding:6px 8px;text-align:center">'+ftDiffCell(r.dBase, r.pctBase, r.judgeBase)+'</td>' : '') + '</tr>';
+    });
+    h += '</table></div>';
+    h += '<div style="font-size:11.5px;color:var(--text3);margin-top:6px">ⓘ 總膽固醇、LDL、肌酸酐只顯示變化、不判好壞（生酮期間 LDL 上升要搭配 TG、HDL、sdLDL 一起看）。變化 2% 以內算持平。</div>';
+    h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">'
+      + '<button class="ai-btn g" style="font-size:13px;padding:7px 14px;font-weight:700" onclick="ftSendSummary()">💌 把改善摘要傳給客人</button>'
+      + '<button class="ai-btn" style="font-size:13px;padding:7px 14px" onclick="ftCopyTable()">📋 複製比較表（貼 LINE／給醫師）</button></div>';
+  } else {
+    h += '<div style="font-size:12.5px;color:var(--text3);margin-top:12px;background:#F6F8FA;border-radius:8px;padding:8px 10px">② 前後改善比較：目前只有一次檢測，等第二次複測存進來就會自動出現「跟上次比」。</div>';
+  }
+  h += '</div>';
+  box.innerHTML = h;
+}
+function ftReCompare(){
+  var c = document.getElementById('ft-cur'), p = document.getElementById('ft-prev');
+  if(!c || !p) return;
+  if(c.value === p.value){ toast('請選兩次不同的檢測來比'); return; }
+  loadIRCTFiveTrack(_ftCid, c.value, p.value);
+}
+function ftOpenPatch(idx){
+  var row = document.getElementById('ft-patch-'+idx); if(!row) return;
+  if(row.style.display !== 'none'){ row.style.display = 'none'; return; }
+  var t = (_ftData.tests||[]).filter(function(x){ return x.idx===idx; })[0]; if(!t) return;
+  var h = '<div style="background:#FFF8E7;border-left:5px solid #C08A1E;border-radius:8px;padding:10px 12px">'
+    + '<div style="font-size:13px;font-weight:800;color:#7A5A12;margin-bottom:6px">✏️ 第 '+(t.count||'?')+' 次還缺的數值（只會填進空白的格子，不會蓋掉已經有的）</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px">';
+  t.completeness.groups.forEach(function(g){ g.missing.forEach(function(m){
+    h += '<label style="font-size:12.5px;color:var(--text2)">'+g.icon+' '+escH(m.l)+(m.u?'（'+escH(m.u)+'）':'')+'<input class="form-input ft-patch-in" data-f="'+escH(m.f)+'" style="font-size:13px;margin-top:3px" placeholder="填數字"></label>';
+  }); });
+  h += '</div><div style="display:flex;gap:8px;margin-top:8px;align-items:center"><button class="btn-g" style="padding:7px 16px;font-size:13px" onclick="ftSavePatch('+idx+', this)">儲存補登</button><span style="font-size:11.5px;color:var(--text3)">這次真的沒驗的項目留空就好。</span></div></div>';
+  row.firstElementChild.innerHTML = h; row.style.display = '';
+}
+function ftSavePatch(idx, btn){
+  var t = (_ftData.tests||[]).filter(function(x){ return x.idx===idx; })[0]; if(!t) return;
+  var vals = {}, n = 0, bad = '';
+  document.querySelectorAll('#ft-patch-'+idx+' .ft-patch-in').forEach(function(inp){ var v = (inp.value||'').trim(); if(v===''){ return; } if(isNaN(v.replace(/[<>＜＞≦≧]/g,''))){ bad = inp.parentNode.textContent; } vals[inp.getAttribute('data-f')] = v; n++; });
+  if(bad){ toast('⚠️ 請填數字：'+bad.slice(0,20)); return; }
+  if(!n){ toast('還沒填任何數值'); return; }
+  if(btn){ btn.disabled = true; btn.style.opacity = '.5'; }
+  adminAPIPost({action:'patchIRCTFullRecord', clientId:_ftCid, count:t.count, values:JSON.stringify(vals)}, function(r){
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; }
+    if(r && r.status==='ok'){
+      toast('✅ 已補登 '+(r.filled||[]).length+' 項'+(r.completeness && r.completeness.complete ? '，這次五項指標都齊了 🎉' : (r.completeness ? '，還缺 '+r.completeness.missing+' 項' : '')));
+      loadIRCTFullHistory(_ftCid);
+      if(typeof loadIRCTAnalysisFull==='function') loadIRCTAnalysisFull(_ftCid);
+    } else toast('⚠️ '+((r && r.message)||'補登失敗，請重試'));
+  });
+}
+// 給客人的摘要：ESI／GPT／動態胰島素總和照規定不給原始數字，只說有沒有改善
+var FT_CLIENT_HIDE = { esi:1, gpt:1, _insSum:1 };
+function ftSendSummary(){
+  var d = _ftData; if(!d) return;
+  var tests = d.tests||[], cur = tests[d.curIdx]||{}, prev = tests[d.prevIdx]||{};
+  var nm = (typeof _cdCurrentName!=='undefined' && _cdCurrentName) || '';
+  var good = [], watch = [];
+  (d.compare.rows||[]).forEach(function(r){
+    if(r.judgePrev!=='better' && r.judgePrev!=='worse') return;
+    var txt = FT_CLIENT_HIDE[r.f] ? r.label.replace(/（.*?）/,'') : (r.label+' '+ftNum(r.prev)+' → '+ftNum(r.cur)+(r.unit?' '+r.unit:''));
+    (r.judgePrev==='better' ? good : watch).push(txt);
+  });
+  var msg = (nm ? nm+' 你好 😊 ' : '你好 😊 ') + '第 '+(cur.count||'?')+' 次的 IRCT 結果出來了，幫你跟第 '+(prev.count||'?')+' 次比了一下：\n';
+  if(good.length) msg += '\n✅ 進步了（'+good.length+' 項）：\n・' + good.slice(0,8).join('\n・') + '\n';
+  if(watch.length) msg += '\n🔍 接下來一起留意（'+watch.length+' 項）：\n・' + watch.slice(0,5).join('\n・') + '\n';
+  if(!good.length && !watch.length) msg += '\n這次跟上次差不多持平，身體在穩定下來 👍\n';
+  msg += '\n💡 胰島素降下來，細胞的脂肪儲存鎖才會打開，身體才能從燃糖切換成燃脂——這些數字的變化，就是你這段時間每天堅持換來的。';
+  msg += '\n👉 完整對照表在 APP 的「IRCT 報告」：https://hueyfen95-del.github.io/liff-app/';
+  msg += '\n有任何看不懂的地方，隨時問我 🙏';
+  openComposeWithText(_ftCid, nm, 'care', msg);
+}
+function ftCopyTable(){
+  var d = _ftData; if(!d) return;
+  var tests = d.tests||[], cur = tests[d.curIdx]||{}, prev = tests[d.prevIdx]||{};
+  var lines = ['IRCT 前後比較：第 '+(prev.count||'?')+' 次 → 第 '+(cur.count||'?')+' 次（改善 '+d.compare.better+'・要注意 '+d.compare.worse+'）'];
+  var lastG = '';
+  (d.compare.rows||[]).forEach(function(r){
+    if(r.group!==lastG){ lastG = r.group; lines.push(''); lines.push(r.icon+' '+r.groupLabel); }
+    var tag = r.judgePrev==='better' ? '✅' : r.judgePrev==='worse' ? '⚠️' : '・';
+    lines.push(tag+' '+r.label+'：'+ftNum(r.prev)+' → '+ftNum(r.cur)+(r.dPrev!==null?'（'+(r.dPrev>0?'+':'')+ftNum(r.dPrev)+'）':''));
+  });
+  var txt = lines.join('\n');
+  try{ navigator.clipboard.writeText(txt).then(function(){ toast('✅ 已複製，可以直接貼到 LINE'); }, function(){ prompt('複製下面文字：', txt); }); }catch(e){ prompt('複製下面文字：', txt); }
+}
 function loadIRCTFullHistory(clientId){
+  try{ loadIRCTFiveTrack(clientId); }catch(e){}
   var box = document.getElementById('irct-f-history');
   if(!box) return;
   box.innerHTML = '載入中…';
@@ -3341,7 +3499,8 @@ function loadIRCTFullHistory(clientId){
     if(items.length === 0){ box.innerHTML = '還沒有完整記錄'; return; }
     box.innerHTML = items.map(function(it){
       return '<div style="padding:6px 0;border-bottom:1px dashed var(--border)">'
-        + '<b style="color:var(--text)">第'+(it.count||'?')+'次・'+escH(it.date)+'</b>　'
+        + '<b style="color:var(--text)">第'+(it.count||'?')+'次・'+escH(it.date)+'</b> '
+        + (it._missing ? '<span style="font-size:10.5px;font-weight:700;background:#FFF4E0;color:#8A5A00;border-radius:8px;padding:1px 7px">缺 '+it._missing+' 項</span>' : (it._need ? '<span style="font-size:10.5px;font-weight:700;background:#E6F4EE;color:#0F6E56;border-radius:8px;padding:1px 7px">✅ 齊</span>' : ''))+'　'
         + 'HbA1c '+(it.hba1c||'—')+'・血糖'+(it.glucoseAC||'—')+'・腰圍'+(it.waist||'—')
         + (it.medsSnapshot ? '<div style="font-size:10.5px;color:var(--a3);margin-top:2px">💊 '+escH(it.medsSnapshot)+'</div>' : '<div style="font-size:10.5px;color:var(--text3);margin-top:2px">（此次無用藥記錄）</div>')
         + '</div>';
@@ -7145,6 +7304,7 @@ function openClientDetail(id, name){
     + '<input id="irct-f-apob" class="form-input" style="font-size:12px" placeholder="載脂蛋白B ApoB">'
     + '</div></div>'
     + '<button class="btn-g" style="width:100%;padding:9px;font-size:12px" onclick="saveIRCTFull(\''+escH(id)+'\')">儲存 IRCT 完整記錄（同步解鎖前台報告）</button>'
+    + '<div id="irct-five" style="margin:12px 0"></div>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">IRCT 檢測歷史</div>'
     + '<div id="irct-f-history" style="font-size:11px;color:var(--text3)">載入中…</div>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">完整分析（依血糖／血脂／胰島素／體組成四大分類，僅醫師/秘書可見）</div>'
@@ -10180,13 +10340,13 @@ function loadAutoCareLog(){
     if(!card || !box) return;
     var items=(d && d.items)||[];
     // 2026-10-10：算出「紅色且還沒按已看過」的件數給「今天要做的事」用
-    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1};
+    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1};
     _tf.acRed = items.filter(function(it){ return _acStaff[it.type] && _acFindHo(it); }).length;
     if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱' };
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱', 'IRCT缺項':'🧪' };
     var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
@@ -10194,7 +10354,7 @@ function loadAutoCareLog(){
       html+='<div style="font-size:13px;font-weight:800;color:var(--text);margin:10px 0 6px">📅 '+escH(ds.slice(5).replace('-','/'))+'　'+byDate[ds].length+' 則</div>';
       // 2026-10-08：創辦人「要通知秘書的、已經做的，底色色塊要更明顯，秘書也有年紀了」——字放大、色塊分三種：
       // 紅＝要秘書親自處理（連續7天／待講解／催收／打卡／待核查／交接未讀）、黃＝給同事看的統計（週報）、綠＝已替客人發出的
-      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1};
+      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1};
       var infoTypes = {'創始人週報':1};
       // 2026-10-09：創辦人看到「沒打上班卡・要你處理」問「我要怎麼處理？」——每種紅色都寫清楚下一步，打卡那種對象是秘書不是客人
       var howTo = {
@@ -10212,6 +10372,7 @@ function loadAutoCareLog(){
         '甜蜜點評估':'看血酮、體重、體感三項，決定進一階或退一階，在「碳水計畫」調份數。',
         '碳水探索血酮下降':'評估退回上一階（碳水計畫減 15g）。',
         '餘額為負':'會計確認後提醒客人補儲值（系統已先傳一則給客人）。',
+        'IRCT缺項':'行政跟檢驗所／診所要到缺的數值 → 打開客人檔案「🧪 IRCT」→「五項指標」那一次按「✏️ 補登缺的數值」填進去；確定這次沒驗就直接按已看過。',
         '料理包詢問':'主廚（盼臨／心苹）按「💌 傳訊息」回覆客人，會自動帶介紹影片＋訂購單連結；談好報價請客人填訂購單；行政準備冷凍宅配／超商取貨；管理人知悉即可。'
       };
       var staffSubject = {'沒打上班卡':1,'沒打下班卡':1,'交接未讀':1};
