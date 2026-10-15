@@ -328,7 +328,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-14b';
+var MX_BUILD = '2026-10-15e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -633,6 +633,13 @@ var MX_BUILD = '2026-10-14b';
           <button class="tb-btn" onclick="loadCareQualityKPI()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
         </div>
         <div class="card-body" id="carekpi-body" style="padding-top:4px"></div>
+      </div>
+      <div class="card" id="stress-card" style="margin-bottom:14px;display:none;border:1px solid #F0D9A8">
+        <div class="card-hd">
+          <div class="card-title" style="color:#8A5A00"><i class="ti ti-leaf"></i>🌿 壓力大的客人（客人自己標的）</div>
+          <button class="tb-btn" onclick="loadStressClients()"><i class="ti ti-refresh" style="font-size:13px"></i>重新整理</button>
+        </div>
+        <div class="card-body" id="stress-body" style="padding-top:4px"></div>
       </div>
       <div class="card" id="autocare-card" style="margin-bottom:14px;display:none;border:1px solid #CFE3D6">
         <div class="card-hd">
@@ -2419,7 +2426,7 @@ function mxNavItemFor(id){ return document.querySelector('.sidebar .si[onclick^=
 var DASH_SECTIONS = [
   { key:'reply', icon:'💬', title:'客人在等你回', desc:'客人主動找你的：心情、訊息、飲食求助、答不出來的問題、新預約', cards:['client-inbox-card','mealhelp-card','unknown-q-card','bkg-card'] },
   { key:'team', icon:'📋', title:'交接與團隊', desc:'同事留給你的話、系統替你做了什麼、醫師交辦、個案討論', cards:['handover-card','autocare-card','dxtask-card','disc-card'] },
-  { key:'care', icon:'🔔', title:'需要關心的客人', desc:'系統偵測到的：症狀、沒記錄、檢測逾期、代購、心得、生日、值得稱讚', cards:['alert-card','norecord-card','odue-card','proxy-card','testimonial-card','birthday-card','award-card'] },
+  { key:'care', icon:'🔔', title:'需要關心的客人', desc:'系統偵測到的：症狀、沒記錄、檢測逾期、代購、心得、生日、值得稱讚', cards:['alert-card','stress-card','norecord-card','odue-card','proxy-card','testimonial-card','birthday-card','award-card'] },
   { key:'data', icon:'📊', title:'數據與總覽', desc:'今天的記錄、統計、客人狀態、品質與經營指標', cards:['today-records-card','dash-stat-grid','dash-two-col','carekpi-card','founder-metrics-card'] }
 ];
 function mxBuildDashSections(){
@@ -7347,6 +7354,11 @@ function openClientDetail(id, name){
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin:10px 0 5px">完整分析（依血糖／血脂／胰島素／體組成四大分類，僅醫師/秘書可見）</div>'
     + '<div id="irct-f-analysis" style="font-size:11.5px;color:var(--text2);line-height:1.8">載入中…</div>'
     + '</div>'
+    // 2026-10-15：壓力管理（客人在前台自己標壓力、量測血糖＋血酮）
+    + '<div id="cd-stress" style="background:#FFF8EC;border:1px solid #F0D9A8;border-left:5px solid #E8A33A;border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:12.5px;font-weight:800;color:#8A5A00;margin-bottom:6px">🌿 壓力管理（客人自己標的壓力＋早晨／午餐後血糖血酮）</div>'
+    + '<div id="cd-stress-body" style="font-size:12px;color:var(--text3)">載入中…</div>'
+    + '</div>'
     // 2026-10-09：三個甜蜜點旅程（創辦人大方向：前期治療性生酮 → 代謝甜蜜點 → 碳水甜蜜點 → 運動甜蜜點，接力進行）
     + '<div id="cd-ssj" style="background:#FFF8E7;border:1px solid #F0D9A8;border-left:5px solid #D4A017;border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:12.5px;font-weight:800;color:#8A5A00;margin-bottom:4px">🍯 三個甜蜜點（接力：代謝 → 碳水 → 運動）<span id="cd-ssj-phase" style="float:right;font-size:11px;font-weight:700;background:#fff;border-radius:10px;padding:2px 9px;color:#8A5A00">…</span></div>'
@@ -7549,6 +7561,7 @@ function openClientDetail(id, name){
   loadChronicMedList();
   loadCarbPlanAdmin(id);
   if(typeof loadSweetSpotJourney==='function') loadSweetSpotJourney(id);
+  if(typeof loadStressDetail==='function') loadStressDetail(id);
   loadCarePointsAdmin(id);
   loadStyleGiftAdmin(id);
   loadMealRecordsAdmin(id);
@@ -8561,12 +8574,31 @@ var MEAL_REPLY_TEMPLATES = [
 // 秘書找不到）。現在「傳訊息給客人」視窗多一個「📝 提醒記錄」分頁，儀表板「今日沒記錄」「今日需要關心」名單每筆也有「傳提醒」直達
 // 2026-10-09改寫成三段式（接住 → 理解 → 一小步），見 MOOD_REPLY_BY_OPTION 上方說明
 var REMIND_TEMPLATES = [
-  '今天還沒看到你的記錄，是不是忙了一整天？沒關係，一天沒記不會怎樣。晚餐拍一張照片就算記錄了，不用打字 🙂',
-  '這幾天記錄少了一些，我猜是生活先來了。不是你不夠努力，是真的忙。不用把漏掉的補回來，從今天這一餐重新開始就好 💪',
-  '最近有量血酮、體重嗎？沒有也沒關係，很多人一忙就忘。今天睡前量一次就好，數字不漂亮也沒關係，我要的是看到趨勢，不是看到完美 📈',
-  '歡迎加入 🌱 剛開始什麼都不熟很正常，不用一次做對。今天只要做一件事：記一餐、量一次體重。其他的我陪你慢慢來。',
-  '好幾天沒看到你了，有點想念，也有點擔心。不管是忙、是累、還是不順，都可以跟我說，不會被念。今天先記一筆就好，不用補 😊',
-  '記錄不是考試，少記幾天真的沒關係，我不會算分。重新開始的那一天就是進步。今天先記一筆，我在這裡等你 💚'
+  // 2026-10-15 改寫得更溫柔、增加到 16 句（創始人：「寫得再溫柔一點，多幾句可選」）——一樣三段式：先接住 → 讓他知道被理解 → 只給一小步。
+  // ① 今天還沒記
+  '今天還沒看到你的記錄，是不是忙了一整天呢？辛苦了。沒有記也沒關係，一天沒記不會怎樣。等你有空，晚餐拍一張照片就算記錄了，不用打字 🙂',
+  '想到你今天一定很忙，所以不催你。記錄隨時都可以補，不補也可以。如果等一下有一點空檔，記一餐就夠了，我在這裡等你 🌿',
+  '今天是不是有點累了？累的時候少做一點是應該的。今天只要記一件事就好：吃了什麼，或是量一次體重，其他的我陪你慢慢來 🍵',
+  // ② 這幾天記錄變少
+  '這幾天記錄少了一些，我猜是生活先來了。這很正常，不是你不夠努力，是你真的很忙。不用把漏掉的補回來，從今天這一餐重新開始就好 💪',
+  '我發現這幾天比較安靜，想先跟你說：沒關係，你已經做得很好了。身體需要的是持續，不是完美。今天記一餐，就是很好的一步 🌱',
+  '最近是不是比較辛苦？有時候事情一多，記錄就顧不到了，我完全理解。不用有壓力，今天先從一個最簡單的開始：拍一張你的餐點就好 📷',
+  // ③ 沒量血酮／體重
+  '最近有量血酮、體重嗎？沒有也沒關係，很多人一忙就忘了，你不是一個人。今天睡前量一次就好，數字不漂亮也沒關係，我要的是看到趨勢，不是看到完美 📈',
+  '量測這件事有時候會讓人緊張，怕數字不好看。我想讓你知道，數字只是讓我們更了解身體的線索，不是成績單。今天想量的時候量一次，我陪你一起看 🤍',
+  // ④ 新客人
+  '歡迎加入 🌱 剛開始什麼都不熟很正常，不用一次做對，也不用怕做錯。今天只要做一件事：記一餐，或量一次體重。其他的我陪你慢慢來。',
+  '很高興你開始了！開始本身就是最難的一步，你已經做到了。接下來不用急，今天先熟悉一下怎麼記錄就好，有任何不懂的都可以直接問我 😊',
+  // ⑤ 好幾天沒看到
+  '好幾天沒看到你了，有點想念，也有點擔心。不管是忙、是累、還是心情不太順，都可以跟我說，我會好好聽。今天先記一筆就好，不用補 😊',
+  '這幾天都沒有你的消息，我心裡一直惦記著。你過得好嗎？如果遇到什麼困難，不用一個人撐，告訴我就好。想回來的時候，記一筆就是最好的開始 💚',
+  '不確定你最近是不是遇到了什麼事，我只想讓你知道：不管多久沒記錄，這裡都歡迎你回來，不會有人責備你。今天一個小小的記錄，我就很開心了 🌼',
+  // ⑦ 壓力大時（創始人 2026-10-15 指定內容：早晨＋午飯後 3.5 小時各量血糖＋血酮）
+  '最近壓力比較大嗎？辛苦了，壓力大的時候，身體其實也在默默用力。這段時間請記得：早晨量一次血糖＋血酮，午飯後 3.5 小時再量一次血糖＋血酮。這樣能讓我們更看懂壓力對你身體的影響，對你的壓力管理會更有幫助喔 🌿',
+  // ⑥ 通用鼓勵
+  '記錄不是考試，少記幾天真的沒關係，我不會算分。重新開始的那一天就是進步。今天先記一筆，我在這裡等你 💚',
+  '你願意回來，就是在照顧自己了，這比任何數字都重要。不用急著做很多，今天一小步就好，我會陪著你 🌷',
+  '身體需要的是被溫柔對待，不是被逼著做到最好。今天做得到的就做，做不到的就休息，這樣也很好。想記錄的時候，我在這裡 🤗'
 ];
 function _mealReplyUI(uid){
   return '<div class="mr-wrap" style="margin-top:7px;background:#FFFDF5;border:1px solid #F5D9A8;border-radius:9px;padding:8px">'
@@ -10305,6 +10337,7 @@ function loadDashboard(){
   if(typeof loadTestimonialsPending==='function') loadTestimonialsPending();
   if(typeof loadNoRecordClients==='function') loadNoRecordClients();
   if(typeof loadAutoCareLog==='function') loadAutoCareLog();
+  if(typeof loadStressClients==='function') loadStressClients();
   if(typeof loadCareQualityKPI==='function') loadCareQualityKPI();
 }
 // 2026-10-09：接住情緒品質指標（管理人／創始人）
@@ -10366,6 +10399,68 @@ function acAckUI(row, btn){
     });
   });
 }
+// ══════ 2026-10-15 🌿 壓力管理（客人在前台標「壓力大」→ 後台名單／客人檔案）══════
+var STRESS_REMIND_TEXT = '最近壓力比較大嗎？辛苦了，壓力大的時候，身體其實也在默默用力。這段時間請記得：早晨量一次血糖＋血酮，午飯後 3.5 小時再量一次血糖＋血酮。這樣能讓我們更看懂壓力對你身體的影響，對你的壓力管理會更有幫助喔 🌿';
+function loadStressClients(){
+  var card = document.getElementById('stress-card'), box = document.getElementById('stress-body');
+  if(!card || !box) return;
+  adminAPI({action:'getStressClients'}, function(d){
+    card = document.getElementById('stress-card'); box = document.getElementById('stress-body');
+    if(!card || !box) return;
+    var list = (d && d.list) || [];
+    if(!list.length){ card.style.display = 'none'; _mxDashNavSet('stress-card', 0, '壓力大的客人', 'ti ti-leaf'); return; }
+    card.style.display = 'block';
+    _mxDashNavSet('stress-card', list.length, '壓力大的客人', 'ti ti-leaf');
+    var html = '<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.7">客人在前台自己標了「壓力大」。系統已請他<b>早晨＋午飯後 3.5 小時各量一次血糖＋血酮</b>，沒量會自動提醒；連續 3 天壓力大會留言請你親自關心。</div>';
+    html += list.map(function(c){
+      var hot = c.streak >= 3, bg = hot ? '#F8D7D7' : '#FFF1D6', bd = hot ? '#D9534F' : '#E8A33A';
+      var tag = c.carried ? '昨天標記' : '今天標記';
+      var meas = function(w, name){ var ok = w && w.g && w.k; return '<span style="display:inline-block;margin-right:8px;padding:2px 9px;border-radius:12px;font-size:12px;font-weight:700;background:'+(ok?'#D9F0E3':'#fff')+';border:1px solid '+(ok?'#2E9E5B':'#D8C79A')+';color:'+(ok?'#17703F':'#7A6A44')+'">'+name+(ok?' ✅':' 還沒量')+'</span>'; };
+      return '<div style="background:'+bg+';border-left:6px solid '+bd+';border-radius:10px;padding:10px 12px;margin-bottom:8px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'
+        +   '<div style="font-size:14px;font-weight:800;color:var(--text)">'+(hot?'🚩 ':'🌿 ')+escH(c.name)+'　<span style="font-size:12.5px;font-weight:700;color:#8A4B00">'+escH(c.label)+'・'+tag+(c.streak>=2?'・連續 '+c.streak+' 天':'')+'</span></div>'
+        +   '<div>'+meas(c.am,'☀️早晨')+meas(c.pm,'🍱午飯後3.5h')+'</div></div>'
+        + ((c.srcs && c.srcs.length) ? '<div style="margin-top:6px;font-size:12.5px;color:#5A4A22;line-height:1.6">問卷壓力來源（'+c.srcs.length+' 項）：'+c.srcs.map(escH).join('、')+(c.mood?'　<b style="color:#A32D2D">・有勾心裡悶／不開心，請先接住心情</b>':'')+'</div>' : '')
+        + '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'
+        +   '<button class="ai-btn b" style="font-size:12px;padding:5px 11px" onclick="openComposeWithText(\''+escH(c.clientId)+'\',\''+escH(c.name)+'\',\'remind\',STRESS_REMIND_TEXT)">💌 傳關心＋量測提醒</button>'
+        +   '<button class="ai-btn gray" style="font-size:12px;padding:5px 11px" onclick="openClientDetail(\''+escH(c.clientId)+'\',\''+escH(c.name)+'\')">📂 打開客人檔案</button>'
+        + '</div>'
+        + (hot ? '<div style="font-size:12px;color:#8A1F1F;margin-top:6px;line-height:1.6">👉 已連續多天壓力大：建議用 LINE 或電話親自關心，先聽、不急著給建議。</div>' : '')
+        + '</div>';
+    }).join('');
+    box.innerHTML = html;
+  });
+}
+// 客人檔案裡的「🌿 壓力」小區塊：近 14 天標記＋兩次量測＋壓力日對照
+function loadStressDetail(id){
+  var box = document.getElementById('cd-stress-body'); if(!box) return;
+  adminAPI({action:'getStressDetail', clientId:id}, function(d){
+    box = document.getElementById('cd-stress-body'); if(!box) return;
+    if(!d || d.status!=='ok'){ box.innerHTML = '<div style="font-size:12px;color:var(--text3)">讀取失敗</div>'; return; }
+    var days = d.days || [];
+    var cell = function(g,k){ return (g!=null?g:'–')+' / '+(k!=null?k:'–'); };
+    var html = '';
+    var pf = d.profile;
+    if(pf && pf.sources && pf.sources.length){
+      html += '<div style="font-size:12.5px;line-height:1.7;color:#5A4A22;background:#fff;border:1px solid #EEE6CF;border-radius:8px;padding:7px 10px;margin-bottom:8px">🧾 壓力來源（問卷＋系統偵測，共 '+pf.sources.length+' 項）：'+pf.sources.map(escH).join('、')+(pf.baseLevel?'；問卷自評：'+escH(pf.baseLevel):'')+(pf.mood?'　<b style="color:#A32D2D">有勾心裡悶／不開心</b>':'')+'</div>';
+    } else if(pf && pf.baseLevel){
+      html += '<div style="font-size:12.5px;color:#5A4A22;margin-bottom:8px">問卷自評壓力：'+escH(pf.baseLevel)+'</div>';
+    }
+    if(d.active) html += '<div style="font-size:13px;font-weight:700;color:#8A4B00;margin-bottom:6px">目前：'+escH(d.label)+(d.carried?'（昨天標記）':'')+(d.streak>=2?'・連續 '+d.streak+' 天':'')+'</div>';
+    if(!days.length){ html += '<div style="font-size:12.5px;color:var(--text3);line-height:1.7">客人還沒在前台標過壓力，也沒有量測記錄。</div>'; box.innerHTML = html; return; }
+    html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="background:#F4EBD3;color:#5A4A22"><th style="padding:5px 6px;text-align:left">日期</th><th style="padding:5px 6px;text-align:left">壓力／情緒</th><th style="padding:5px 6px;text-align:left">🌙 睡眠</th><th style="padding:5px 6px;text-align:left">☀️ 早晨 血糖/血酮</th><th style="padding:5px 6px;text-align:left">🍱 午飯後3.5h 血糖/血酮</th></tr></thead><tbody>'
+      + days.map(function(r){ var hi = r.level>=3;
+          return '<tr style="background:'+(hi?'#FFF1D6':'#fff')+';border-bottom:1px solid #EEE6CF"><td style="padding:5px 6px">'+escH(r.date.slice(5).replace('-','/'))+'</td><td style="padding:5px 6px;font-weight:'+(hi?'800':'500')+'">'+escH(r.label||'–')+((r.emo&&r.emo.length)?'<div style="font-weight:500;font-size:12px;color:#7A4B00">'+r.emo.map(escH).join('、')+'</div>':'')+'</td><td style="padding:5px 6px;font-size:12px">'+escH([r.sleepH,r.sleepQ].filter(Boolean).join('／')||'–')+'</td><td style="padding:5px 6px">'+cell(r.amG,r.amK)+'</td><td style="padding:5px 6px">'+cell(r.pmG,r.pmK)+'</td></tr>'; }).join('')
+      + '</tbody></table></div>';
+    var c = d.compare;
+    if(c && c.stress && c.other){
+      html += '<div style="margin-top:8px;background:#F4F1FA;border-left:5px solid #8E7CC3;border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.7;color:#3C3358">📊 壓力日 '+c.stressDays+' 天 vs 平常日 '+c.otherDays+' 天：午飯後 3.5 小時血糖比早晨高 <b>'+(c.stress.delta!=null?c.stress.delta:'–')+'</b>（平常 '+(c.other.delta!=null?c.other.delta:'–')+'）mg/dL；血酮 <b>'+(c.stress.k!=null?c.stress.k:'–')+'</b>（平常 '+(c.other.k!=null?c.other.k:'–')+'）。可以當作跟客人聊壓力管理的依據。</div>';
+    } else {
+      html += '<div style="margin-top:6px;font-size:12px;color:var(--text3)">累積 2 個壓力日＋2 個平常日（都有量血糖／血酮）後，這裡會出現「壓力日 vs 平常日」對照。</div>';
+    }
+    box.innerHTML = html;
+  });
+}
 function loadAutoCareLog(){
   var card=document.getElementById('autocare-card'), box=document.getElementById('autocare-body');
   if(!card || !box) return;
@@ -10377,13 +10472,13 @@ function loadAutoCareLog(){
     if(!card || !box) return;
     var items=(d && d.items)||[];
     // 2026-10-10：算出「紅色且還沒按已看過」的件數給「今天要做的事」用
-    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1};
+    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1,'壓力關心':1,'壓力連續':1};
     _tf.acRed = items.filter(function(it){ return _acStaff[it.type] && _acFindHo(it); }).length;
     if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱', 'IRCT缺項':'🧪' };
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩' };
     var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
@@ -10391,7 +10486,7 @@ function loadAutoCareLog(){
       html+='<div style="font-size:13px;font-weight:800;color:var(--text);margin:10px 0 6px">📅 '+escH(ds.slice(5).replace('-','/'))+'　'+byDate[ds].length+' 則</div>';
       // 2026-10-08：創辦人「要通知秘書的、已經做的，底色色塊要更明顯，秘書也有年紀了」——字放大、色塊分三種：
       // 紅＝要秘書親自處理（連續7天／待講解／催收／打卡／待核查／交接未讀）、黃＝給同事看的統計（週報）、綠＝已替客人發出的
-      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1};
+      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1,'壓力關心':1,'壓力連續':1};
       var infoTypes = {'創始人週報':1};
       // 2026-10-09：創辦人看到「沒打上班卡・要你處理」問「我要怎麼處理？」——每種紅色都寫清楚下一步，打卡那種對象是秘書不是客人
       var howTo = {
@@ -10409,6 +10504,8 @@ function loadAutoCareLog(){
         '甜蜜點評估':'看血酮、體重、體感三項，決定進一階或退一階，在「碳水計畫」調份數。',
         '碳水探索血酮下降':'評估退回上一階（碳水計畫減 15g）。',
         '餘額為負':'會計確認後提醒客人補儲值（系統已先傳一則給客人）。',
+        '壓力關心':'客人在前台標了「壓力大」。先看他今天早晨／午飯後 3.5 小時有沒有量血糖＋血酮，有空傳一句關心（儀表板「🌿 壓力大的客人」卡有按鈕）；弄好按右邊「已看過」。',
+        '壓力連續':'客人已連續多天壓力大：用 LINE 或電話親自關心，先聽、不急著給建議；再到客人檔案看他的血糖＋血酮；聊完按右邊「已看過」。',
         'IRCT缺項':'行政跟檢驗所／診所要到缺的數值 → 打開客人檔案「🧪 IRCT」→「五項指標」那一次按「✏️ 補登缺的數值」填進去；確定這次沒驗就直接按已看過。',
         '料理包詢問':'主廚（盼臨／心苹）按「💌 傳訊息」回覆客人，會自動帶介紹影片＋訂購單連結；談好報價請客人填訂購單；行政準備冷凍宅配／超商取貨；管理人知悉即可。'
       };
@@ -14610,7 +14707,7 @@ var ROLE_PAGES = {
 // 秘書：客人第一線，幾乎全部；行政：排班、預約、檢測催收、出貨、心得、生日；會計／財務主管：只有交接留言（給財務的）、
 // 待核查、餘額異常、服務中；醫師：個案討論、醫師交辦、症狀警示。
 var DASH_CARDS_BY_ROLE = {
-  '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','birthday-card','award-card','autocare-card','norecord-card','today-records-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
+  '秘書': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','client-inbox-card','mealhelp-card','testimonial-card','unknown-q-card','proxy-card','disc-card','dxtask-card','alert-card','stress-card','birthday-card','award-card','autocare-card','norecord-card','today-records-card','dash-stat-grid','dash-alerts-card','dash-clients-card'],
   '行政': ['dash-clock-card','duty-card','bkg-card','handover-card','odue-card','testimonial-card','proxy-card','birthday-card','autocare-card','dash-clients-card'],
   '會計': ['duty-card','finance-quick-card','handover-card'],
   '財務主管': ['duty-card','finance-quick-card','handover-card'],

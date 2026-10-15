@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-10-14';
+var MX_BUILD = '2026-10-15c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -353,6 +353,7 @@ window.openHealthForm = function() {
     <div style="font-size:12px;opacity:.8;display:flex;align-items:center;gap:6px"><i class="ti ti-flame"></i>連續打卡 <span id="streak-day-1">–</span> 天 🔥</div>
   </div>
   <div class="hb">
+    <div id="stress-card-home"></div>
     <!-- 🎁 我的陪跑權益（2026-09-21移到最上面，創辦人反應原本位置太下面容易被忽略）：固定入口，
          只有陪跑中的客人看得到（預設隱藏，removeLockBanners()/loadClientAccess() 確認開通後才顯示，見下方腳本） -->
     <!-- 2026-09-21三調：創辦人指定參考吉卜力風格的柔和色系——上黃、左綠、中藍、右紫，四色照色環
@@ -658,6 +659,8 @@ window.openHealthForm = function() {
         <button onclick="selectGender('female')" style="flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:9px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer">👩 女生</button>
       </div>
     </div>
+
+    <div id="stress-card-rec"></div>
 
     <div class="sec"><i class="ti ti-droplet" style="font-size:13px"></i>血酮・血糖 &amp; 體重</div>
     <div class="inp-row" style="display:flex;gap:6px;align-items:center">
@@ -2646,6 +2649,7 @@ function goPage(id,title){
     if(typeof loadMyStats==='function') loadMyStats();
     if (typeof updateGardenHint === 'function') updateGardenHint();
   }
+  if((id === 'home' || id === 'record' || id === 'garden') && typeof loadStress === 'function') loadStress();
   if(id === 'journey' && typeof loadGardenHealth === 'function') loadGardenHealth();
   if(id === 'journey' && typeof loadClientStage === 'function') loadClientStage();
   if(id === 'journey' && typeof loadMyRewards === 'function') loadMyRewards();
@@ -4845,6 +4849,7 @@ function submitDailyRecord() {
       if(carbNoteVal) {
         var carbNoteInpEl = document.getElementById('carb-note-inp'); if(carbNoteInpEl) carbNoteInpEl.classList.add('saved');
       }
+      if(typeof loadStress === 'function') setTimeout(loadStress, 600);
       updateGardenProgress();
       updateDayTot(); calcProg();
       // 立刻跳回花園
@@ -7481,6 +7486,119 @@ function onMealTextInput(mealCode, val) {
 }
 </script>
 <script>
+// ══ 🌿 壓力管理（2026-10-15）══
+// 客人自己標「今天的壓力」→ 壓力大（3、4）時顯示兩個量測任務（早晨、午飯後 3.5 小時各一次血糖＋血酮），
+// 由「每日記錄」當天的時間自動打勾；累積 ≥2 個壓力日後顯示「壓力日 vs 平常日」對照。
+var _stressState = null, _stressBusy = false;
+var STRESS_EMO = [{t:'趕時間',ic:'⏱'},{t:'生活排得很滿',ic:'📅'},{t:'趕報告／交期',ic:'📝'},{t:'趕業績、有達成壓力',ic:'📈'},{t:'事情多到忙不完',ic:'🌀'},{t:'心裡悶',ic:'😔'},{t:'不開心',ic:'😞'}];
+var STRESS_SLEEP_H = ['7 小時以上','6–7 小時','少於 6 小時'];
+var STRESS_SLEEP_Q = ['睡得沉，醒來有精神','偶爾睡不好','常難入睡或半夜醒'];
+var _stDraft = null; // 還沒按「記下來」前，客人點的情緒／睡眠
+function loadStress(){
+  if (typeof CLIENT_ID === 'undefined' || !CLIENT_ID) return;
+  callAPI({action:'getStressStatus', clientId: CLIENT_ID, _quiet:true}, function(d){
+    if (d && d.status === 'ok') { _stressState = d; _stDraft = null; renderStressCards(); }
+  });
+}
+function _stGet(){
+  if (!_stDraft) {
+    var d = _stressState || {};
+    var emo = (d.todayEmo || []).slice();
+    _stDraft = { emo: emo, fine: (d.today === 1 && !emo.length), sh: d.todaySleepH || '', sq: d.todaySleepQ || '', dirty: false };
+  }
+  return _stDraft;
+}
+function stToggleEmo(i){
+  var D = _stGet(), t = STRESS_EMO[i].t, k = D.emo.indexOf(t);
+  if (k >= 0) D.emo.splice(k,1); else { D.emo.push(t); D.fine = false; }
+  D.dirty = true; renderStressCards();
+}
+function stFine(){ var D = _stGet(); D.fine = !D.fine; if (D.fine) D.emo = []; D.dirty = true; renderStressCards(); }
+function stPickSleep(kind, i){
+  var D = _stGet(), v = (kind === 'h' ? STRESS_SLEEP_H : STRESS_SLEEP_Q)[i];
+  if (kind === 'h') D.sh = (D.sh === v ? '' : v); else D.sq = (D.sq === v ? '' : v);
+  D.dirty = true; renderStressCards();
+}
+function saveStressDay(){
+  var D = _stGet();
+  if (!D.emo.length && !D.fine && !D.sh && !D.sq) { toast('請先點一下今天的情緒或睡眠 🌿'); return; }
+  if (_stressBusy) return; _stressBusy = true;
+  callAPI({action:'setStress', clientId: CLIENT_ID, emotions: D.emo, fine: D.fine ? 1 : 0, sleepHours: D.sh, sleepQuality: D.sq, _quiet:true}, function(d){
+    _stressBusy = false;
+    if (d && d.status === 'ok') {
+      _stressState = d; _stDraft = null; renderStressCards();
+      toast(d.active ? '🌿 收到了，辛苦你了。下面是今天的小任務' : '🌿 謝謝你告訴我，記下來了');
+    } else toast('⚠️ 剛剛沒有存成功，再按一次看看');
+  });
+}
+function _stressMeasRow(icon, title, w){
+  var g = w && w.g, k = w && w.k, done = g && k;
+  var st = done ? '✅ 已量' : (g ? '血糖已量，還差血酮' : (k ? '血酮已量，還差血糖' : '還沒量'));
+  var bg = done ? '#E3F4E8' : '#fff', bd = done ? '#2E9E5B' : '#E6CFA0', col = done ? '#17703F' : '#7A4B00';
+  return '<div style="display:flex;align-items:center;gap:10px;background:'+bg+';border:1.5px solid '+bd+';border-radius:10px;padding:9px 11px;margin-bottom:7px">'
+    + '<div style="font-size:22px">'+icon+'</div>'
+    + '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#4A3A12">'+title+'</div><div style="font-size:12.5px;color:#7A6A44">血糖＋血酮 各一次</div></div>'
+    + '<div style="font-size:13.5px;font-weight:700;color:'+col+';text-align:right">'+st+'</div></div>';
+}
+function _stressCompareHtml(c){
+  if (!c || !c.stress || !c.other) return '';
+  var S = c.stress, O = c.other, parts = [];
+  if (S.delta != null && O.delta != null) parts.push('午飯後 3.5 小時的血糖，比早晨平均高 <b>'+S.delta+'</b> mg/dL（平常的日子是 '+O.delta+'）');
+  if (S.k != null && O.k != null) parts.push('血酮平均 <b>'+S.k+'</b>（平常的日子是 '+O.k+'）');
+  if (!parts.length) return '';
+  return '<div style="margin-top:10px;background:#F4F1FA;border-left:5px solid #8E7CC3;border-radius:10px;padding:10px 12px">'
+    + '<div style="font-size:14px;font-weight:700;color:#4B3A7A;margin-bottom:4px">📊 你的壓力日 vs 平常日</div>'
+    + '<div style="font-size:13.5px;line-height:1.75;color:#3C3358">壓力大的日子 '+c.stressDays+' 天、平常的日子 '+c.otherDays+' 天。壓力大的日子，'+parts.join('；')+'。</div>'
+    + '<div style="font-size:12.5px;color:#6B5E91;margin-top:4px">這只是讓我們更了解你的身體，不是成績單 🤍</div></div>';
+}
+function stressCardHtml(where){
+  var d = _stressState; if (!d) return '';
+  var cur = d.today || 0, D = _stGet();
+  var title = d.carried && !cur ? '🌿 昨天壓力有點大，今天的情緒呢？' : '🌿 今天的情緒';
+  function chip(on, label, fn, wide){
+    return '<button onclick="'+fn+'" style="flex:1 1 '+(wide?'46%':'30%')+';min-width:'+(wide?'140':'96')+'px;padding:12px 8px;border-radius:12px;font-size:15px;font-weight:700;line-height:1.35;cursor:pointer;border:2px solid '+(on?'#F0A93B':'#E2E2D8')+';background:'+(on?'#FFF1D6':'#fff')+';color:#4A3A12">'+(on?'✔ ':'')+label+'</button>';
+  }
+  var emoChips = STRESS_EMO.map(function(o,i){ return chip(D.emo.indexOf(o.t) >= 0, o.ic+' '+o.t, 'stToggleEmo('+i+')', true); }).join('')
+    + chip(D.fine, '😌 都還好', 'stFine()', true);
+  var shChips = STRESS_SLEEP_H.map(function(t,i){ return chip(D.sh === t, t, 'stPickSleep(\'h\','+i+')', false); }).join('');
+  var sqChips = STRESS_SLEEP_Q.map(function(t,i){ return chip(D.sq === t, t, 'stPickSleep(\'q\','+i+')', false); }).join('');
+  var h = '<div style="background:#fff;border:1px solid #E6E1CF;border-left:5px solid '+(d.active?'#F0A93B':'#9DCDAF')+';border-radius:14px;padding:13px 14px;margin-bottom:12px">'
+    + '<div style="font-size:16px;font-weight:800;color:#3A3220;margin-bottom:2px">'+title+'</div>'
+    + '<div style="font-size:13px;color:#7A6A44;margin-bottom:8px">有的就點（可以點好幾個）。這些都算壓力，不是你的錯 🤍</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'+emoChips+'</div>'
+    + '<div style="font-size:15px;font-weight:800;color:#3A3220;margin:14px 0 6px">🌙 昨晚睡得怎麼樣？</div>'
+    + '<div style="font-size:13px;color:#7A6A44;margin-bottom:4px">睡了幾小時</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+shChips+'</div>'
+    + '<div style="font-size:13px;color:#7A6A44;margin:8px 0 4px">睡得好不好</div><div style="display:flex;gap:8px;flex-wrap:wrap">'+sqChips+'</div>'
+    + '<button onclick="saveStressDay()" style="width:100%;margin-top:12px;background:'+(D.dirty?'#E8912D':'#8FB79F')+';color:#fff;border:none;border-radius:12px;padding:13px;font-size:16px;font-weight:800;cursor:pointer">💾 '+(D.dirty ? '記下來' : (cur ? '已記下今天的狀態（要改就再點）' : '記下來'))+'</button>';
+  if (d.active) {
+    h += '<div style="margin-top:12px;background:#FFF8EC;border-radius:12px;padding:11px 12px">'
+      + '<div style="font-size:14.5px;font-weight:800;color:#7A4B00;margin-bottom:3px">壓力大的時候，身體也在默默用力</div>'
+      + '<div style="font-size:13.5px;color:#5A4A22;margin-bottom:8px;line-height:1.6">請記得：早晨量一次血糖＋血酮，午飯後 3.5 小時再量一次血糖＋血酮。</div>'
+      + _stressMeasRow('☀️', '早晨', d.am) + _stressMeasRow('🍱', '午飯後 3.5 小時', d.pm);
+    if (where === 'stress-card-home') {
+      h += '<button onclick="goPage(\'record\',\'今日記錄\')" style="width:100%;margin-top:3px;background:#E8912D;color:#fff;border:none;border-radius:12px;padding:12px;font-size:15px;font-weight:800;cursor:pointer">👉 去記錄血糖＋血酮</button>';
+    } else {
+      h += '<div style="font-size:13px;color:#7A6A44;margin-top:2px">下面填好血酮、血糖按儲存，這裡會自動打勾 ✅</div>';
+    }
+    h += '<div style="font-size:13px;color:#5A4A22;line-height:1.7;margin-top:9px">對您的壓力管理理解會更有幫助喔 🌿</div>'
+      + '<div style="font-size:12.5px;color:#8A7A52;line-height:1.7;margin-top:5px">💡 壓力大時，身體會分泌壓力荷爾蒙（皮質醇），讓肝臟釋放更多糖，血糖可能比平常高一些，這是身體的保護反應，不是你吃錯了。量起來，我們才看得懂你的身體。</div>'
+      + '</div>';
+  }
+  var pf = d.profile;
+  if (pf && pf.sources && pf.sources.length) {
+    h += '<div style="margin-top:10px;font-size:13px;line-height:1.7;color:#5A4A22;background:#FAF7EE;border-radius:10px;padding:8px 11px">你的壓力來源：' + pf.sources.map(escHtml).join('、') + '。這些我們都會一起放進來看 🌿</div>';
+  }
+  h += _stressCompareHtml(d.compare) + '</div>';
+  return h;
+}
+function renderStressCards(){
+  ['stress-card-home','stress-card-rec'].forEach(function(id){
+    var el = document.getElementById(id); if (el) el.innerHTML = stressCardHtml(id);
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(function(){ if (typeof loadStress === 'function') loadStress(); }, 1600); });
+</script>
+<script>
 // ── 入會健康問卷 ──
 var hqData = {};
 
@@ -7499,6 +7617,16 @@ function toggleHQ(btn, key) {
   updateComplexity();
 }
 
+// 2026-10-15 壓力來源（創辦人：趕時間、生活排很滿、趕報告、趕業績、忙不完、睡眠不好、會喘運動每週超過 3 次、心裡悶、不開心 → 都算）
+var HF_STRESS_KEYS = ['趕時間','排得很滿','趕報告','趕業績','忙不完','會喘的運動','心裡悶','不開心'];
+function hfStressCount(texts){
+  var n = 0, sleepBad = false;
+  texts.forEach(function(t){
+    if (HF_STRESS_KEYS.some(function(k){ return t.indexOf(k) >= 0; })) n++;
+    if (t.indexOf('少於 6 小時') >= 0 || t.indexOf('失眠') >= 0 || (t.indexOf('不足') >= 0 && t.indexOf('小時') >= 0)) sleepBad = true;
+  });
+  return n + (sleepBad ? 1 : 0);
+}
 function toggleHQMulti(btn) {
   var active = btn.style.background === 'var(--g)' || btn.style.background === 'rgb(29, 158, 117)';
   if (active) {
@@ -7544,11 +7672,12 @@ function updateComplexity() {
   }
 
   // 問卷影響因子
+  var _hfSel = [];
   document.querySelectorAll('#p-journey button').forEach(function(b) {
     var bg = b.style.background || b.style.backgroundColor || '';
     var isOn = bg.includes('29, 158, 117') || bg === 'var(--g)';
     if (!isOn) return;
-    var txt = b.textContent.trim();
+    var txt = b.textContent.trim(); _hfSel.push(txt);
     if (txt.includes('反覆減重')) { score += 0.2; factors.push('反覆減重史 +0.2'); }
     if (txt.includes('飢餓/極低熱量')) { score += 0.2; factors.push('飢餓減重 +0.2'); }
     if (txt.includes('減重針/藥')) { score += 0.2; factors.push('減重針/藥 +0.2'); }
@@ -7565,6 +7694,8 @@ function updateComplexity() {
     if (txt.includes('糖尿病') || txt.includes('心血管') || txt.includes('肥胖')) { score += 0.1; factors.push('家族病史 +0.1'); }
   });
 
+  var _stCnt = hfStressCount(_hfSel);
+  if (_stCnt >= 3) { score += 0.1; factors.push('壓力來源多（' + _stCnt + ' 項）+0.1'); }
   factors = factors.filter(function(v, i, a) { return a.indexOf(v) === i; });
   score = Math.round(score * 10) / 10;
 
@@ -7813,14 +7944,14 @@ function showKetoGuide() {
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">🏃 你過去的減重經歷</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:12px">這些資訊幫助我們了解你的代謝背景</div>
 
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">過去是否有減重經歷？</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">過去是否有減重經歷？ <span style="color:#C0392B;font-weight:700">＊必選一個</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
           <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">從未減重</button>
           <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">減重1-2次</button>
           <button onclick="toggleHQ(this,'diet_history')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">反覆減重3次以上 ⚠️</button>
         </div>
 
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">是否曾用以下方式減重？（可複選）</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">是否曾用以下方式減重？（選填，可複選）</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
           <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">飢餓/極低熱量 ⚠️</button>
           <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">代餐</button>
@@ -7844,21 +7975,21 @@ function showKetoGuide() {
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">😴 你的生活型態</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:12px">睡眠和壓力對代謝的影響非常大</div>
 
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠時間（平均一晚睡幾小時）</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠時間（平均一晚睡幾小時） <span style="color:#C0392B;font-weight:700">＊必選一個</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
           <button onclick="toggleHQ(this,'sleep_hours')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">7 小時以上</button>
           <button onclick="toggleHQ(this,'sleep_hours')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">6–7 小時</button>
           <button onclick="toggleHQ(this,'sleep_hours')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">少於 6 小時 ⚠️</button>
         </div>
 
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠品質（睡得好不好）</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">睡眠品質（睡得好不好） <span style="color:#C0392B;font-weight:700">＊必選一個</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
           <button onclick="toggleHQ(this,'sleep_quality')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">睡得沉，醒來有精神</button>
           <button onclick="toggleHQ(this,'sleep_quality')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">偶爾睡不好</button>
           <button onclick="toggleHQ(this,'sleep_quality')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">常難入睡或半夜醒（失眠）⚠️</button>
         </div>
 
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">生活/工作壓力</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">生活/工作壓力 <span style="color:#C0392B;font-weight:700">＊必選一個</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
           <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">低壓力</button>
           <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">中度壓力</button>
@@ -7866,7 +7997,22 @@ function showKetoGuide() {
           <button onclick="toggleHQ(this,'stress')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">重大生活事件 ⚠️</button>
         </div>
 
-        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">年齡</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">壓力來源（選填，可複選，這些都算壓力）</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">⏱ 常常趕時間</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">📅 生活排得很滿</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">📝 常趕報告或交期</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">📈 趕業績、有達成壓力</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">🌀 事情多到忙不完</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">🏃 會喘的運動 每週超過 3 次 ⚠️</button>
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">最近的心情（選填，可複選）</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">😔 心裡悶</button>
+          <button onclick="toggleHQMulti(this)" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">😞 不開心</button>
+        </div>
+
+        <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">年齡 <span style="color:#C0392B;font-weight:700">＊必選一個</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px">
           <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">40歲以下</button>
           <button onclick="toggleHQ(this,'age')" style="padding:7px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);font-size:13px;cursor:pointer;color:var(--text2);transition:all .15s">40-50歲</button>
@@ -7883,7 +8029,8 @@ function showKetoGuide() {
       <!-- 步驟3：身體困擾 -->
       <div id="hf-step-3" style="display:none">
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">🔬 你的身體長期困擾</div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:12px">持續超過3個月的困擾（可複選）</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:6px">持續超過3個月的困擾（可複選）</div>
+        <div style="display:inline-block;background:#E8F5EE;color:#17703F;border:1.5px solid #9DCDAF;border-radius:10px;padding:6px 12px;font-size:13.5px;font-weight:700;margin-bottom:12px">✅ 這一頁「選填」：沒有就直接按「下一步」，不用勾</div>
 
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:6px">⚡ 能量與大腦</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px">
@@ -7936,7 +8083,6 @@ function showKetoGuide() {
         <!-- 2026-10-14：結果頁加「你填的內容」回顧，每一區可按「修改」回到那一頁 -->
         <div id="hf-review" style="margin-bottom:14px"></div>
 
-        <button onclick="hfNext(3)" style="width:100%;background:#fff;color:var(--g);border:1.5px solid var(--g);border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">← 回上一頁修改</button>
         <button onclick="submitAndClose()" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px">
           ✅ 儲存並預約 IRCT
         </button>
@@ -8095,7 +8241,7 @@ function hfRenderReview() {
       if (idx < 0) {
         byParent.push(par);
         var lab = par.previousElementSibling ? par.previousElementSibling.textContent.trim() : '';
-        lab = lab.split('（')[0].split('(')[0].trim();
+        lab = lab.replace('＊必選一個','').split('（')[0].split('(')[0].trim();
         groups.push({ label: lab, items: [] });
         idx = groups.length - 1;
       }
@@ -8104,8 +8250,12 @@ function hfRenderReview() {
     html += '<div style="background:' + bgs[st - 1] + ';border-left:5px solid ' + stripes[st - 1] + ';border-radius:10px;padding:10px 12px;margin-bottom:8px">';
     html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
     html += '<div style="font-size:14px;font-weight:700;color:var(--text)">' + title + '</div>';
-    html += '<button onclick="hfNext(' + st + ')" style="background:#fff;border:1.5px solid ' + stripes[st - 1] + ';color:var(--text);border-radius:16px;padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer">✏️ 修改</button>';
+    html += '<button onclick="hfNext(' + st + ')" style="background:#fff;border:1.5px solid ' + stripes[st - 1] + ';color:var(--text);border-radius:18px;padding:8px 16px;font-size:15px;font-weight:700;cursor:pointer">✏️ 修改</button>';
     html += '</div>';
+    if (st === 2) {
+      var _sb = (hqData.sleep_hours || '').indexOf('少於') >= 0 || (hqData.sleep_quality || '').indexOf('失眠') >= 0;
+      if (_sb) groups.push({ label: '壓力來源（由睡眠帶入）', items: ['睡眠不好'] });
+    }
     if (groups.length === 0) {
       html += '<div style="font-size:13px;color:var(--text3)">（這一頁沒有勾選）</div>';
     } else {
@@ -8126,11 +8276,12 @@ function hfCalcResult() {
   // 收集所有選中的按鈕
   var overlay = document.getElementById('health-form-overlay');
   if (!overlay) return;
+  var _hfSel2 = [];
   overlay.querySelectorAll('button').forEach(function(b) {
     var bg = b.style.background || '';
     var isOn = bg.includes('29, 158, 117') || bg === 'var(--g)';
     if (!isOn) return;
-    var txt = b.textContent.trim();
+    var txt = b.textContent.trim(); _hfSel2.push(txt);
     if (txt.includes('反覆減重')) { score += 0.2; factors.push('反覆減重史'); warnings.push('你的代謝已受損，需要更長時間修復'); }
     if (txt.includes('飢餓/極低熱量')) { score += 0.2; factors.push('飢餓減重'); warnings.push('飢餓減重讓基礎代謝率下降，身體正在保護自己'); }
     if (txt.includes('減重針/藥')) { score += 0.2; factors.push('減重針/藥'); warnings.push('藥物停用後身體正在重新調整'); }
@@ -8147,6 +8298,9 @@ function hfCalcResult() {
     if (txt.includes('容易生病') || txt.includes('皮膚老化')) { score += 0.1; factors.push('氧化壓力'); warnings.push('氧化壓力高會加速粒線體損耗'); }
   });
 
+  var _stCnt2 = hfStressCount(_hfSel2);
+  if (_stCnt2 >= 3) { score += 0.1; factors.push('壓力來源多'); warnings.push('壓力來源不少（' + _stCnt2 + ' 項），身體長期處在備戰狀態，壓力管理會是陪跑的重點之一'); }
+  if (_hfSel2.some(function(t){ return t.indexOf('心裡悶') >= 0 || t.indexOf('不開心') >= 0; })) { warnings.push('心裡悶、不開心也是身體的訊號，秘書會先關心你的心情'); }
   // 去重
   factors = factors.filter(function(v, i, a) { return a.indexOf(v) === i; });
   warnings = warnings.filter(function(v, i, a) { return a.indexOf(v) === i; });
