@@ -111,12 +111,22 @@ body{background:var(--bg);min-height:100vh}
 .dsec-hd .dh-t{font-size:15px;font-weight:800;color:var(--dsec-c)}
 .dsec-hd .dh-d{font-size:12px;color:var(--dsec-c);opacity:.8;flex:1}
 .dsec-hd .dh-n{font-size:12px;font-weight:800;color:#fff;background:var(--dsec-c);border-radius:12px;padding:2px 10px}
-.dsec > .dsec-body > .card{border-left:5px solid var(--dsec-c) !important}
-.dsec > .dsec-body > .card > .card-hd{background:var(--dsec-bg)}
-.dsec[data-tone="reply"]{--dsec-c:#5B3FA8;--dsec-bg:#F3EFFC;--dsec-bd:#DCD2F5}
-.dsec[data-tone="team"]{--dsec-c:#0E6E7A;--dsec-bg:#E8F6F8;--dsec-bd:#C2E4E9}
-.dsec[data-tone="care"]{--dsec-c:#B4462B;--dsec-bg:#FDF0EC;--dsec-bd:#F3D0C5}
-.dsec[data-tone="data"]{--dsec-c:#46525E;--dsec-bg:#F1F3F5;--dsec-bd:#D6DCE1}
+.dsec > .dsec-body > .card{border:1px solid var(--dsec-hd) !important;border-left:5px solid var(--dsec-c) !important}
+.dsec > .dsec-body > .card > .card-hd .card-title, .dsec > .dsec-body > .card > .card-hd .card-title *{color:var(--dsec-c) !important}
+.dsec > .dsec-body > .card{background:var(--dsec-bg) !important}
+.dsec > .dsec-body > .card > .card-hd{background:var(--dsec-hd) !important}
+#duty-card{background:#EAF2FB !important;border-left:5px solid #2F6FB5 !important}
+/* 2026-10-19：所有頁面的區塊（卡片）都有淺色底，顏色跟側欄分類一致；標題列再深一點點 */
+.stat-grid .stat:nth-child(4n+1){background:#E6F1FB}
+.stat-grid .stat:nth-child(4n+2){background:#E3F4EC}
+.stat-grid .stat:nth-child(4n+3){background:#FCEBEB}
+.stat-grid .stat:nth-child(4n+4){background:#FAEEDA}
+.pg[data-tint] .card{background:var(--pg-bg) !important}
+.pg[data-tint] .card > .card-hd{background:var(--pg-hd) !important}
+.dsec[data-tone="reply"]{--dsec-c:#5B3FA8;--dsec-bg:#F3EFFC;--dsec-bd:#DCD2F5;--dsec-hd:#E6DEFA}
+.dsec[data-tone="team"]{--dsec-c:#0E6E7A;--dsec-bg:#E8F6F8;--dsec-bd:#C2E4E9;--dsec-hd:#CDEBEF}
+.dsec[data-tone="care"]{--dsec-c:#B4462B;--dsec-bg:#FDF0EC;--dsec-bd:#F3D0C5;--dsec-hd:#F9DDD4}
+.dsec[data-tone="data"]{--dsec-c:#46525E;--dsec-bg:#F1F3F5;--dsec-bd:#D6DCE1;--dsec-hd:#E3E7EB}
 .si{display:flex;align-items:center;gap:8px;padding:9px 15px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.55);border-left:3px solid transparent;transition:all .12s}
 .si:hover{background:rgba(255,255,255,.07);color:#fff}
 .si.on{background:rgba(255,255,255,.12);color:#fff;border-left-color:#4FD5A8}
@@ -318,6 +328,11 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 .msg-preview-label{font-size:10px;color:rgba(255,255,255,.6);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .send-seq-btn{width:100%;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:11px;font-size:13px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .13s;margin-top:5px}
 .send-seq-btn:hover{background:rgba(255,255,255,.25)}
+
+/* 2026-10-19：按「去看」跳過去的那一塊，要有明顯底色＋上方提示條，才知道要看哪裡（長輩友善） */
+.mx-spot{outline:5px solid var(--spot-c,#F5A623);outline-offset:2px;border-radius:12px}
+.mx-spot-tip{display:flex;align-items:center;gap:10px;background:var(--spot-hd,#FFE08A);color:var(--spot-c,#6B3F00);font-size:17px;font-weight:800;padding:10px 16px;border-radius:12px;margin:0 0 8px;border:3px solid var(--spot-c,#F5A623);cursor:pointer}
+.mx-spot-tip small{font-size:13px;font-weight:500;margin-left:auto;opacity:.8}
 </style>
 </head>
 <body>
@@ -328,7 +343,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-15f';
+var MX_BUILD = '2026-10-19c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2413,6 +2428,7 @@ function mxApplyPageChrome(id){
   // 頁首說明列（儀表板有自己的「今天要做的事」，不另外加）
   if(id === 'dashboard' || !info || !cat) return;
   var pg = document.getElementById('pg-'+id); if(!pg) return;
+  pg.setAttribute('data-tint','1'); pg.style.setProperty('--pg-bg', cat.bg); pg.style.setProperty('--pg-hd', cat.bd);
   var bn = pg.querySelector(':scope > .pg-intro');
   if(!bn){
     bn = document.createElement('div'); bn.className = 'pg-intro';
@@ -2429,6 +2445,25 @@ var DASH_SECTIONS = [
   { key:'care', icon:'🔔', title:'需要關心的客人', desc:'系統偵測到的：症狀、沒記錄、檢測逾期、代購、心得、生日、值得稱讚', cards:['alert-card','stress-card','norecord-card','odue-card','proxy-card','testimonial-card','birthday-card','award-card'] },
   { key:'data', icon:'📊', title:'數據與總覽', desc:'今天的記錄、統計、客人狀態、品質與經營指標', cards:['today-records-card','dash-stat-grid','dash-two-col','carekpi-card','founder-metrics-card'] }
 ];
+// 2026-10-19：「顏色對應」——今天要做的事每一列的顏色，就是它要帶你去的那一塊（或那一頁）的顏色；
+// 叫你看哪個顏色，你就去看那個顏色、處理那個顏色。創辦人原話：「你叫我去看的是藍色，我就看藍色」。
+var DASH_TONES = {
+  reply:{c:'#5B3FA8', bg:'#F3EFFC', hd:'#E6DEFA', name:'紫色'},
+  team:{c:'#0E6E7A', bg:'#E8F6F8', hd:'#CDEBEF', name:'青色'},
+  care:{c:'#B4462B', bg:'#FDF0EC', hd:'#F9DDD4', name:'紅色'},
+  data:{c:'#46525E', bg:'#F1F3F5', hd:'#E3E7EB', name:'灰色'}
+};
+var MX_CAT_COLOR_NAMES = {today:'綠色', client:'藍色', test:'紫色', team:'青色', content:'咖啡色', shop:'粉紅色', finance:'金黃色', system:'灰色'};
+function mxToneForAct(act){
+  var m = /scrollToCard\('([^']+)'\)/.exec(String(act||''));
+  if(m){
+    for(var i=0;i<DASH_SECTIONS.length;i++){ if(DASH_SECTIONS[i].cards.indexOf(m[1])>=0){ var t = DASH_TONES[DASH_SECTIONS[i].key]; return t ? {c:t.c,bg:t.bg,hd:t.hd,name:t.name,kind:'塊'} : null; } }
+    return null;
+  }
+  m = /goPg\('([^']+)'/.exec(String(act||''));
+  if(m){ var cat = mxCatOf(m[1]); if(cat) return {c:cat.c,bg:cat.bg,hd:cat.bd,name:(MX_CAT_COLOR_NAMES[cat.key]||''),kind:'頁'}; }
+  return null;
+}
 function mxBuildDashSections(){
   var pg = document.getElementById('pg-dashboard'); if(!pg || document.getElementById('dsec-reply')) return;
   var nav = document.getElementById('mx-dash-nav');
@@ -13329,12 +13364,7 @@ function loadSymptomAlertsForAlertsPage(){
     if(alerts.length>0){
       var card=document.getElementById('alert-card-ab');
       if(card){
-        setTimeout(function(){
-          card.scrollIntoView({behavior:'smooth', block:'start'});
-          card.style.transition='box-shadow .3s';
-          card.style.boxShadow='0 0 0 3px #F0C0B0';
-          setTimeout(function(){ card.style.boxShadow=''; }, 1800);
-        }, 250);
+        setTimeout(function(){ mxSpot(card, '症狀警示（客人說身體不舒服）'); }, 250);
       }
     }
   });
@@ -13680,9 +13710,33 @@ function loadTodayDuty(){
     renderTodayFlow();
   });
 }
+// 2026-10-19：共用的「跳過去並標出來」——被點到的那一塊變黃底＋橘框，上方多一條大字提示「👉 就是這一塊：○○」，
+// 不會自動消失（點提示條才關，或再按另一個「去看」才換掉）。創辦人反映：按了「去看」跳過去，不知道要看哪裡、頭昏眼花。
+function mxSpot(el, label){
+  if(!el) return;
+  try{
+    document.querySelectorAll('.mx-spot-tip').forEach(function(t){ t.remove(); });
+    document.querySelectorAll('.mx-spot').forEach(function(t){ t.classList.remove('mx-spot'); });
+    if(el.offsetParent === null){ if(typeof toast==='function') toast('這一塊目前沒有要看的資料'); return; }
+    var title = label;
+    if(!title){ var tt = el.querySelector('.card-title'); title = tt ? tt.textContent.replace(/\s+/g,' ').trim() : ''; }
+    var tip = document.createElement('div');
+    tip.className = 'mx-spot-tip';
+    // 顏色跟「今天要做的事」那一列、跟這一塊本身的底色一致（紫就是紫、紅就是紅）
+    var sec = el.closest ? el.closest('.dsec') : null, tone = sec ? DASH_TONES[sec.getAttribute('data-tone')] : null;
+    if(tone){ tip.style.setProperty('--spot-c', tone.c); tip.style.setProperty('--spot-hd', tone.hd); el.style.setProperty('--spot-c', tone.c); }
+    tip.innerHTML = '<span style="font-size:22px">👉</span><span>就是這一塊' + (tone ? '（' + tone.name + '）' : '') + (title ? '：' + escH(title) : '') + '</span><small>點這裡可關掉提示</small>';
+    el.parentNode.insertBefore(tip, el);
+    el.classList.add('mx-spot');
+    var done = function(){ try{ tip.remove(); el.classList.remove('mx-spot'); }catch(e){} };
+    tip.onclick = done; // 不會自動消失；點提示條、或再按另一個「去看」才換掉
+    tip.style.scrollMarginTop = '90px'; // 避開上方固定的標題列，提示條才不會被蓋住
+    tip.scrollIntoView({behavior:'smooth', block:'start'});
+  }catch(e){ try{ el.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e2){} }
+}
 function scrollToCard(id){
   var el=document.getElementById(id);
-  if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.style.transition='box-shadow .3s'; el.style.boxShadow='0 0 0 3px rgba(15,110,86,.4)'; setTimeout(function(){el.style.boxShadow='';},1600); }
+  if(el) mxSpot(el);
 }
 // ══════ 2026-10-10 「今天要做的事」：登入第一眼，依角色排好順序 ══════
 // 創辦人睡前交代：「用我的角度把後台的邏輯想一遍，讓秘書……一登入就知道要做什麼，要很直覺，找出合理邏輯。」
@@ -13835,13 +13889,20 @@ function renderTodayFlow(){
       var txt = String(s.text).replace(/\{n\}/g, s.n);
       // 2026-10-12：創辦人「底色不要一大片綠底，看得有點吃力」→ 白底卡片，每一列淺灰底＋左邊色條（依段落顏色），急的淺紅底、最急的紅底白字
       var _rc = {1:'#1F5F8B',2:'#B4462B',3:'#C08A1E',4:'#5B3FA8'}[g] || '#999';
-      var _bg = s.top ? '#C62828' : s.urgent ? '#FDECEC' : s.info ? '#FAFAFA' : '#F6F8FA';
-      var _fg = s.top ? '#fff' : '#222';
-      var _bd = s.top ? '#C62828' : s.urgent ? '#E24B4A' : _rc;
-      html += '<div onclick="' + s.act + '" style="display:flex;align-items:center;gap:10px;background:' + _bg + ';border:1px solid ' + (s.top ? '#C62828' : s.urgent ? '#F3C2C2' : '#E6EAEE') + ';border-left:6px solid ' + _bd + (s.top ? ';box-shadow:0 0 0 3px rgba(198,40,40,.18);animation:mxPulse 1.6s infinite' : '') + ';border-radius:10px;padding:11px 13px;margin-bottom:7px;cursor:pointer;color:' + _fg + '">'
+      var _tn = mxToneForAct(s.act);
+      var _bg = _tn ? _tn.bg : (s.info ? '#FAFAFA' : '#F6F8FA');
+      var _bd = _tn ? _tn.c : _rc;
+      var _bdr = _tn ? _tn.hd : '#E6EAEE';
+      var _btn = _tn ? _tn.c : '#1D9E75';
+      var _chip = '';
+      if(s.top) _chip += '<span style="background:#C62828;color:#fff;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:800;white-space:nowrap">最急</span>';
+      else if(s.urgent) _chip += '<span style="background:#FDECEC;color:#B71C1C;border:1px solid #F3C2C2;border-radius:10px;padding:2px 9px;font-size:12px;font-weight:800;white-space:nowrap">急</span>';
+      var _where = _tn && _tn.name ? '<span style="background:#fff;color:' + _tn.c + ';border:2px solid ' + _tn.c + ';border-radius:10px;padding:2px 9px;font-size:12px;font-weight:800;white-space:nowrap">→ ' + _tn.name + (_tn.kind==='頁' ? '頁面' : '那一塊') + '</span>' : '';
+      html += '<div onclick="' + s.act + '" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:' + _bg + ';border:2px solid ' + _bdr + ';border-left:8px solid ' + _bd + (s.top ? ';box-shadow:0 0 0 3px rgba(198,40,40,.18);animation:mxPulse 1.6s infinite' : '') + ';border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer;color:#222">'
         + '<span style="font-size:20px">' + s.icon + '</span>'
-        + '<span style="flex:1;font-size:14px;line-height:1.55">' + txt + '</span>'
-        + '<button onclick="event.stopPropagation();' + s.act + '" style="background:' + (s.top ? '#fff' : s.urgent ? '#C62828' : '#1D9E75') + ';color:' + (s.top ? '#C62828' : '#fff') + ';border:none;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">' + escH(s.btn || '處理') + ' ›</button>'
+        + '<span style="flex:1;min-width:180px;font-size:14px;line-height:1.55">' + _chip + (_chip ? ' ' : '') + txt + '</span>'
+        + _where
+        + '<button onclick="event.stopPropagation();' + s.act + '" style="background:' + _btn + ';color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">' + escH(s.btn || '處理') + '</button>'
         + '</div>';
     });
   });
