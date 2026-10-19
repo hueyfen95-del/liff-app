@@ -343,7 +343,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-19h';
+var MX_BUILD = '2026-10-19l';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -10483,6 +10483,28 @@ function loadCareQualityKPI(){
 // 原因是交接留言卡片一次只顯示 15 則，自動執行一口氣寫了 14 則，別的都被擠掉了。所以現在紅色項目「自己帶一顆已看過」：
 // 讀 getHandoverHistory（最多 300 則，含狀態），把「系統自動」且還 pending 的留言跟紅色項目對上（同一天＋同客人＋同一句話），
 // 對得上就顯示按鈕，按了直接 ackHandover 那一列；對不上（表示已經有人按過）就顯示「✅ 已處理」並把色塊淡掉。
+// 2026-10-19 分工判斷：每一種「要處理」的自動留言，本來就已經標給對的同事（秘書／行政／會計）。
+// 創辦人：「大部份要提醒的變成你先處理，非要我處理的你才教我一定要看」→ 這裡定義：誰先處理、過多久沒人處理才換你。
+// [負責人, 幾小時沒人處理才變紅叫你；0＝一開始就只有你能處理；null＝系統另有升級機制，這則永遠不叫你]
+var AC_OWNER = {
+  '連續7天':['秘書',48], '報告待講解':['秘書',72], '續約跟催':['秘書',72], '餘額為負':['會計',48], '儲值待核查':['會計',24],
+  '自動請行政催':['行政',48], 'IRCT缺項':['行政',72], '甜蜜點條件符合':['秘書',72], '甜蜜點評估':['秘書',72],
+  '碳水探索血酮下降':['秘書',24], '壓力連續':['秘書',24], '壓力關心':['秘書',48], '料理包詢問':['主廚／行政',24],
+  '心情未回2h':['秘書',null], '心情30分提醒':['秘書',null], '心情2小時沒回':['管理人',0], '交接留言2小時沒人看':['管理人',0], '心情未回24h':['管理人',0], '提醒後沒打上班卡':['管理人',0], '交接未讀':['管理人',0],
+  '急件逾時':['管理人',0], '排班缺人逼近':['管理人',0], '排班缺人提醒':['秘書',null],
+  '客人留言待處理':['秘書',null], '客人問題待處理':['秘書',null], '新預約待處理':['秘書',null], '醫師交辦待處理':['秘書',null],
+  '客人留言逾時':['管理人',0], '客人問題逾時':['管理人',0], '新預約逾時':['管理人',0], '醫師交辦逾時':['管理人',0]
+};
+function acAgeHours(it){
+  try{ var t = new Date(String(it.date) + 'T' + String(it.time||'').slice(6) + ':00').getTime(); if(isNaN(t)) return 0; return Math.max(0,(Date.now()-t)/3600000); }catch(e){ return 0; }
+}
+// 回傳 'red'（現在就要你處理）或 'blue'（已交給同事，還沒到要你出手的時候）
+function acLevel(it){
+  var o = AC_OWNER[it.type]; if(!o) return 'red';
+  if(o[1] === 0) return 'red';
+  if(o[1] === null) return 'blue';
+  return acAgeHours(it) >= o[1] ? 'red' : 'blue';
+}
 var _acHoPending = null;
 function _acFindHo(it){
   if(!_acHoPending) return null;
@@ -10630,24 +10652,27 @@ function loadAutoCareLog(){
     if(!card || !box) return;
     var items=(d && d.items)||[];
     // 2026-10-10：算出「紅色且還沒按已看過」的件數給「今天要做的事」用
-    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1,'壓力關心':1,'壓力連續':1};
-    _tf.acRed = items.filter(function(it){ return _acStaff[it.type] && _acFindHo(it); }).length;
+    var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'提醒後沒打上班卡':1,'心情30分提醒':1,'心情2小時沒回':1,'交接留言2小時沒人看':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1,'壓力關心':1,'壓力連續':1,'急件逾時':1,'排班缺人逼近':1,'排班缺人提醒':1,'客人留言待處理':1,'客人問題待處理':1,'新預約待處理':1,'醫師交辦待處理':1,'客人留言逾時':1,'客人問題逾時':1,'新預約逾時':1,'醫師交辦逾時':1};
+    _tf.acRed = items.filter(function(it){ return (_acStaff[it.type] && !it.punched && acLevel(it) === 'red' && _acFindHo(it)) || (String(it.type).indexOf('急件：') === 0 && !it.closed && _acFindHo(it)); }).length;
     if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩' };
-    var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '提醒打上班卡':'⏱', '提醒打下班卡':'⏱', '提醒後沒打上班卡':'⏱', '心情30分提醒':'💌', '心情2小時沒回':'💌', '交接留言2小時沒人看':'👀', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩', '急件：預約':'📅', '急件：檢測':'🧪', '急件：報告':'📋', '急件：付費':'💳', '急件逾時':'🔴', '預約已確認':'📅', '預約已取消':'📅', '排班缺人提醒':'🗓', '排班缺人逼近':'🗓', '客人留言待處理':'📩', '客人問題待處理':'📩', '新預約待處理':'📩', '醫師交辦待處理':'🩺', '客人留言逾時':'🔴', '客人問題逾時':'🔴', '新預約逾時':'🔴', '醫師交辦逾時':'🔴', '閉環日報':'📒' };
+    var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#E3EEFB;border-left:4px solid #3B7DD8;vertical-align:middle"></span> <b>藍色＝已交給同事處理</b>，超過時間沒人處理才會變紅叫你　<span style="display:inline-block;width:14px;height:14px;background:#FFE2B8;border-left:4px solid #E8730C;vertical-align:middle"></span> <b>橘色＝急件</b>（報告／預約／付費／檢測，已同時通知行政、你、單位，看誰還沒確認）　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
     Object.keys(byDate).sort().reverse().forEach(function(ds){
       html+='<div style="font-size:13px;font-weight:800;color:var(--text);margin:10px 0 6px">📅 '+escH(ds.slice(5).replace('-','/'))+'　'+byDate[ds].length+' 則</div>';
       // 2026-10-08：創辦人「要通知秘書的、已經做的，底色色塊要更明顯，秘書也有年紀了」——字放大、色塊分三種：
       // 紅＝要秘書親自處理（連續7天／待講解／催收／打卡／待核查／交接未讀）、黃＝給同事看的統計（週報）、綠＝已替客人發出的
-      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'沒打上班卡':1,'沒打下班卡':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1,'壓力關心':1,'壓力連續':1};
-      var infoTypes = {'創始人週報':1};
+      var staffTypes = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'提醒後沒打上班卡':1,'心情30分提醒':1,'心情2小時沒回':1,'交接留言2小時沒人看':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1,'壓力關心':1,'壓力連續':1,'急件逾時':1,'排班缺人逼近':1,'排班缺人提醒':1,'客人留言待處理':1,'客人問題待處理':1,'新預約待處理':1,'醫師交辦待處理':1,'客人留言逾時':1,'客人問題逾時':1,'新預約逾時':1,'醫師交辦逾時':1};
+      var infoTypes = {'創始人週報':1,'閉環日報':1};
       // 2026-10-09：創辦人看到「沒打上班卡・要你處理」問「我要怎麼處理？」——每種紅色都寫清楚下一步，打卡那種對象是秘書不是客人
       var howTo = {
+        '心情2小時沒回':'客人說今天不順，系統已經提醒秘書，2 小時內還是沒人回。請指派一位秘書立刻回（到「客人互動信箱」，系統已準備好接住的第一句），或你自己回；回完按右邊「已看過」。',
+        '交接留言2小時沒人看':'有同事留的交接留言 2 小時沒人按「已看過」。到下面「交接留言」卡片看是哪一則，提醒對的人處理（或你自己處理）；弄好按右邊「已看過」。',
+        '提醒後沒打上班卡':'系統已經自動提醒過她了，她還是沒打卡。打電話或傳 LINE 問她是不是已經在上班，在上班就請她補打；今天其實不用上班就到排班交接刪掉那一班。她打卡後這一行會自動變綠色；也可以按右邊「已看過」。',
         '沒打上班卡':'提醒這位同事補按「上班打卡」（補打會記當下時間，沒關係）；如果那天其實沒上班或是測試排班，到排班交接刪掉那筆排班。弄好按右邊「已看過」。',
         '沒打下班卡':'提醒這位同事補按「下班打卡」；忘了就算了，直接按右邊「已看過」即可，不影響薪資計算。',
         '連續7天':'請用 LINE 或電話親自聯絡這位客人，不要再靠系統訊息；聯絡完按右邊「已看過」。測試帳號或已經沒在陪跑的人，直接按「已看過」就好（要讓系統以後都跳過他，到客人管理把陪跑狀態改成一般客人）。',
@@ -10665,17 +10690,64 @@ function loadAutoCareLog(){
         '壓力關心':'客人在前台標了「壓力大」。先看他今天早晨／午飯後 3.5 小時有沒有量血糖＋血酮，有空傳一句關心（儀表板「🌿 壓力大的客人」卡有按鈕）；弄好按右邊「已看過」。',
         '壓力連續':'客人已連續多天壓力大：用 LINE 或電話親自關心，先聽、不急著給建議；再到客人檔案看他的血糖＋血酮；聊完按右邊「已看過」。',
         'IRCT缺項':'行政跟檢驗所／診所要到缺的數值 → 打開客人檔案「🧪 IRCT」→「五項指標」那一次按「✏️ 補登缺的數值」填進去；確定這次沒驗就直接按已看過。',
+        '急件逾時':'急件（報告／預約／付費／檢測）超過 60 分鐘還沒閉環。卡片上寫了是行政還沒看、還是單位還沒按「我已收到」，直接打電話或傳訊給對方；他們確認後這則會自動變已處理。',
+        '排班缺人逼近':'3 天內有日子沒人排班，早上已提醒過大家。請直接指定人排班或自己排；排好了這則會自動標已處理。',
+        '客人留言逾時':'客人的留言／求助超過時限沒人回。請指派一位秘書回，或你自己回；原資料一處理這則會自動標已處理。',
+        '客人問題逾時':'客人問了系統答不出的問題，超過一天沒人處理。請指派秘書回覆；處理完這則會自動標已處理。',
+        '新預約逾時':'客人預約超過 2 小時沒人聯繫確認。請行政／秘書聯繫客人並在預約頁按「確認」；確認後這則會自動標已處理。',
+        '醫師交辦逾時':'醫師交辦的事超過一天沒完成。請確認是誰負責、有沒有卡住；完成後這則會自動標已處理。',
         '料理包詢問':'主廚（盼臨／心苹）按「💌 傳訊息」回覆客人，會自動帶介紹影片＋訂購單連結；談好報價請客人填訂購單；行政準備冷凍宅配／超商取貨；管理人知悉即可。'
       };
-      var staffSubject = {'沒打上班卡':1,'沒打下班卡':1,'交接未讀':1};
+      var subjOnly = {'交接留言2小時沒人看':1,'排班缺人提醒':1,'排班缺人逼近':1};
+      var staffSubject = {'排班缺人提醒':1,'排班缺人逼近':1,'交接留言2小時沒人看':1,'提醒後沒打上班卡':1,'提醒打上班卡':1,'提醒打下班卡':1,'沒打上班卡':1,'沒打下班卡':1,'交接未讀':1};
       html+=byDate[ds].map(function(it){
         var isStaff = !!staffTypes[it.type], isInfo = !!infoTypes[it.type];
-        var ho = isStaff ? _acFindHo(it) : null;
-        var done = isStaff && !!_acHoPending && !ho; // 紅色項目但交接留言已經不是 pending ＝ 有人按過已看過
+        // 2026-10-19：打卡提醒類（系統已經自動提醒本人）→ 後端附上「後來有沒有打卡、等了多久」，在這裡直接寫出來
+        var isClock = !!it.person && (it.kind === 'in' || it.kind === 'out');
+        var clockPunched = isClock && !!it.punched;
+        var ho = (isStaff && !clockPunched) ? _acFindHo(it) : null;
+        var done = !isClock && isStaff && !!_acHoPending && !ho; // 紅色項目但交接留言已經不是 pending ＝ 有人按過已看過
         var bg = done ? '#EFEFEF' : isStaff ? '#F8D7D7' : isInfo ? '#FFF1BF' : '#D9F0E3';
         var border = done ? '#9E9E9E' : isStaff ? '#D9534F' : isInfo ? '#D4A017' : '#2E9E5B';
         var tagColor = done ? '#555' : isStaff ? '#A32D2D' : isInfo ? '#7A5A00' : '#1A6B3C';
         var lead = done ? '✅ 已處理（交接留言已按過「已看過」）' : isStaff ? '要你處理' : isInfo ? '給你參考' : '已替你發給客人';
+        if(isClock){
+          var _fw = function(m){ m = Math.max(0, Math.round(m)); return m < 60 ? m + ' 分鐘' : Math.floor(m/60) + ' 小時' + (m%60 ? ' ' + (m%60) + ' 分鐘' : ''); };
+          var _kn = it.kind === 'out' ? '下班' : '上班';
+          if(clockPunched){
+            bg = '#D9F0E3'; border = '#2E9E5B'; tagColor = '#1A6B3C';
+            lead = '✅ ' + it.punchTime + ' 已打' + _kn + '卡' + (it.waitMin != null && it.waitMin > 0 ? '（提醒後 ' + _fw(it.waitMin) + '）' : '');
+          } else {
+            var _since = (it.sinceShift != null && it.sinceShift >= 0 && it.shift) ? _kn + '時間 ' + it.shift + ' 已過 ' + _fw(it.sinceShift) + '，' : '';
+            if(isStaff){ lead = '要你處理・' + _since + '提醒後她還是沒打' + _kn + '卡'; }
+            else {
+              bg = '#D9F0E3'; border = '#2E9E5B'; tagColor = '#8A4B00';
+              lead = it.waitMin != null ? '已自動提醒・' + _since + '還沒打' + _kn + '卡（不用你處理，系統稍後會再看）' : '已自動提醒・當天沒有' + _kn + '打卡記錄';
+            }
+          }
+        }
+        // 2026-10-19 🚨 急件（報告／預約／付費／檢測）：同時通知行政、你、單位 → 這裡顯示每一方確認了沒，兩邊都確認＝閉環
+        var isUrg = String(it.type).indexOf('急件：') === 0, urgChips = '';
+        if(isUrg){
+          ho = it.closed ? null : _acFindHo(it);
+          var _chip = function(ok, t){ return '<span style="display:inline-block;margin:3px 6px 0 0;padding:2px 9px;border-radius:12px;font-size:12.5px;font-weight:800;background:'+(ok?'#D9F0E3':'#fff')+';border:1px solid '+(ok?'#2E9E5B':'#E8730C')+';color:'+(ok?'#17703F':'#8A3D00')+'">'+t+'</span>'; };
+          urgChips = _chip(it.adminDone === true, it.adminDone === true ? '✅ 行政留言已看過' : '⏳ 行政留言還沒看');
+          if(it.unitName) urgChips += _chip(it.unitDone === true, it.unitDone === true ? '✅ 單位「'+escH(it.unitName)+'」已確認收到'+(it.unitAt?'（'+escH(it.unitAt)+'）':'') : '⏳ 單位「'+escH(it.unitName)+'」還沒按「我已收到」');
+          if(it.closed){ bg = '#D9F0E3'; border = '#2E9E5B'; tagColor = '#1A6B3C'; lead = '✅ 已閉環（行政看過'+(it.unitName?'、單位已確認':'')+'）'; }
+          else { bg = '#FFE2B8'; border = '#E8730C'; tagColor = '#8A3D00'; lead = '🚨 急件・已同時通知行政、你'+(it.unitName?'、單位':'（找不到對應的單位帳號，請行政直接聯絡）'); }
+        }
+        // 分工：已交給同事、還沒到要你出手的時候 → 藍色，不要你按
+        var delegated = isStaff && !done && !clockPunched && !!ho && acLevel(it) === 'blue';
+        var escal = isStaff && !done && !clockPunched && !!ho && !delegated && AC_OWNER[it.type] && AC_OWNER[it.type][1] > 0;
+        var _own = AC_OWNER[it.type] || [], _ah = acAgeHours(it);
+        var _fa = function(h){ return h < 1 ? '不到 1 小時' : h < 48 ? Math.round(h) + ' 小時' : Math.round(h/24) + ' 天'; };
+        if(delegated){
+          bg = '#E3EEFB'; border = '#3B7DD8'; tagColor = '#1F4E9C';
+          lead = '已交給【' + _own[0] + '】處理中・已等 ' + _fa(_ah) + (_own[1] ? '（超過 ' + _fa(_own[1]) + ' 沒人處理才會叫你）' : '（系統另有升級機制，不用你管）');
+          ho = null;
+        } else if(escal){
+          lead = '要你處理・已交給【' + _own[0] + '】' + _fa(_ah) + ' 沒人處理，現在換你';
+        }
         var ackBtn = ho ? '<button class="ai-btn g" style="font-size:12.5px;font-weight:800;padding:7px 12px;white-space:nowrap;flex-shrink:0" onclick="acAckUI('+ho.row+', this)">✅ 已看過</button>' : '';
         // 2026-10-10：紅色且有客人的項目，直接給「傳訊息／打電話」，不用再去找客人（創辦人：「應該跳到下一個步驟」）
         var contactBtns = (ho && it.clientId) ? '<button class="ai-btn b" style="font-size:12px;font-weight:700;padding:6px 10px;white-space:nowrap;flex-shrink:0" onclick="openCompose(\''+escH(it.clientId)+'\',\''+escH(it.name)+'\',\''+(it.type==='連續7天'?'remind':'care')+'\')">💌 傳訊息</button><button class="ai-btn gray" style="font-size:12px;padding:6px 10px;white-space:nowrap;flex-shrink:0" onclick="callClient(\''+escH(it.clientId)+'\')">📞</button>' : '';
@@ -10683,12 +10755,13 @@ function loadAutoCareLog(){
           +'<span style="font-size:20px">'+(icon[it.type]||'💌')+'</span>'
           +'<div style="flex:1;min-width:0">'
           +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
-          +(it.clientId?'<b style="font-size:14px;color:var(--text);cursor:pointer;text-decoration:underline dotted" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name)+'\')">'+escH(it.name)+'</b>':'<b style="font-size:14px;color:var(--text)">'+escH(staffSubject[it.type] ? ('同事：'+(it.summary||'').replace(/…$/,'')) : (it.name||'全體'))+'</b>')
+          +(it.clientId?'<b style="font-size:14px;color:var(--text);cursor:pointer;text-decoration:underline dotted" onclick="openClientDetail(\''+escH(it.clientId)+'\',\''+escH(it.name)+'\')">'+escH(it.name)+'</b>':'<b style="font-size:14px;color:var(--text)">'+escH(isClock ? ('同事：'+it.person) : subjOnly[it.type] ? (it.summary||'') : staffSubject[it.type] ? ('同事：'+(it.summary||'').replace(/…$/,'').replace(/｜.*$/,'')) : (it.name||'全體'))+'</b>')
           +'<span style="font-size:12px;font-weight:800;color:#fff;background:'+border+';border-radius:6px;padding:2px 8px">'+escH(it.type)+'</span>'
           +'<span style="font-size:11.5px;font-weight:700;color:'+tagColor+'">'+lead+'</span>'
           +'</div>'
-          +(staffSubject[it.type] ? '' : '<div style="font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5">'+escH(it.summary)+'…</div>')
-          +(isStaff && !done && howTo[it.type] ? '<div style="font-size:12px;color:#7A1F1F;margin-top:4px;line-height:1.5">👉 怎麼處理：'+escH(howTo[it.type])+'</div>' : '')
+          +(staffSubject[it.type] ? '' : '<div style="font-size:12.5px;color:var(--text2);margin-top:3px;line-height:1.5">'+escH(it.summary)+(it.type==='閉環日報'?'':'…')+'</div>')
+          +(urgChips ? '<div>'+urgChips+'</div>' : '')
+          +(isStaff && !done && !delegated && howTo[it.type] ? '<div style="font-size:12px;color:#7A1F1F;margin-top:4px;line-height:1.5">👉 怎麼處理：'+escH(howTo[it.type])+'</div>' : '')
           +'</div>'
           +'<span style="font-size:12px;color:var(--text3);white-space:nowrap">'+escH(it.time.slice(6))+'</span>'
           +contactBtns+ackBtn
@@ -11062,10 +11135,15 @@ function loadClockStatus(){
     var _in = items.filter(function(it){ return it.type === '上班'; }), _out = items.filter(function(it){ return it.type !== '上班'; });
     _tf.clock = { inTime: _in.length ? String(_in[0].time || '') : '', outTime: _out.length ? String(_out[_out.length-1].time || '') : '' };
     if(typeof renderTodayFlow==='function') renderTodayFlow();
-    if(items.length === 0){ setAll('今天還沒有打卡記錄'); return; }
+    // 2026-10-19：順便告訴本人「今天／明天有沒有班」（明天有班就在這裡提醒，不另外留言打擾）
+    var _sh = (d && d.shifts) || {}, _fs = function(a){ return (a||[]).map(function(x){ return escH(x.start)+'～'+escH(x.end); }).join('、'); };
+    var _extra = '';
+    if(_sh.today && _sh.today.length) _extra += '<div style="margin-top:4px;font-weight:700;color:#1F4E9C">📅 今天你有班：'+_fs(_sh.today)+'</div>';
+    if(_sh.tomorrow && _sh.tomorrow.length) _extra += '<div style="margin-top:4px;font-weight:800;color:#1F4E9C;background:#E3EEFB;border-left:4px solid #3B7DD8;border-radius:6px;padding:3px 8px;display:inline-block">📅 明天你有班：'+_fs(_sh.tomorrow)+'（別忘了打上班卡）</div>';
+    if(items.length === 0){ setAll('今天還沒有打卡記錄' + _extra); return; }
     setAll('今天：' + items.map(function(it){
       return '<span style="display:inline-block;margin-right:10px">' + (it.type === '上班' ? '🟢 上班 ' : '🔴 下班 ') + escH(it.time) + '</span>';
-    }).join(''));
+    }).join('') + _extra);
   });
 }
 // ── 2026-10-01 新增：打卡記錄總表（整月、全部人，只給管理人／行政）──
