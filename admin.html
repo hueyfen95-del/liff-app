@@ -343,7 +343,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-19e';
+var MX_BUILD = '2026-10-19f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -7987,7 +7987,7 @@ function loadHandover(){
     card = document.getElementById('handover-card');
     body = document.getElementById('handover-body');
     if(!card || !body) return;
-    _handoverCache = ((d && d.items) || []).filter(canSeeHandoverItem);
+    _handoverCache = ((d && d.items) || []).filter(canSeeHandoverItem).filter(function(x){ return !_hoAcked[x.row]; });
     _mxDashNavSet('handover-card', _handoverCache.length, '交接留言', 'ti ti-notes');
     if(_handoverCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
@@ -8048,24 +8048,31 @@ function loadHandover(){
 // 2026-10-01 改寫：創辦人反映「按已看過好像沒反應，數字也不會減少」。原因是多人同時用的時候，後端偶爾回
 // 「API 正在執行」這種假成功（什麼都沒做），前端當成成功去重載，留言當然還在。現在：按下去那一則先立刻變淡
 // （讓人知道有反應），後端回假成功或失敗就自動再試最多 2 次，真的成功才重載並跳提示；都失敗就恢復原狀＋提示。
+var _hoAcked = {}; // 2026-10-19：這次登入期間「已按已看過」的留言列號——就算有慢回來的舊清單，也不會讓它跳回來
 function _ackHandoverOnce(row, cb){
   adminAPIPost({action:'ackHandover', row:row, secretary:(CURRENT_USER && CURRENT_USER.name) || ''}, function(d){
     var fakeOk = d && d.status === 'ok' && d.message === 'API 正在執行';
-    cb(!!(d && d.status === 'ok' && !fakeOk));
+    cb(!!(d && d.status === 'ok' && !fakeOk), d);
   });
 }
 function ackHandoverUI(i){
   var h = _handoverCache[i]; if(!h) return;
-  var el = document.getElementById('ho-item-' + h.row);
-  if(el){ el.style.opacity = '.35'; el.style.pointerEvents = 'none'; }
+  var row = h.row;
+  // 按下去就先收起來、記住「這則已看過」（不是只變淡），後端確認成功之前，慢回來的舊清單也不會讓它跳回來
+  _hoAcked[row] = true;
+  var el = document.getElementById('ho-item-' + row);
+  if(el){ el.style.display = 'none'; }
   var tries = 0;
   (function attempt(){
     tries++;
-    _ackHandoverOnce(h.row, function(ok){
+    _ackHandoverOnce(row, function(ok, d){
       if(ok){ toast('✅ 已標記已看過'); loadHandover(); return; }
       if(tries < 3){ setTimeout(attempt, 1500); return; }
-      if(el){ el.style.opacity = ''; el.style.pointerEvents = ''; }
-      toast('⚠️ 標記失敗（後端忙碌），請再按一次');
+      // 三次都沒成功：不再假裝成功——取消「已看過」記號、重新讀一次真實清單，並告訴你原因
+      delete _hoAcked[row];
+      var why = (d && d.message && d.message !== 'API 正在執行') ? ('（' + d.message + '）') : '（後端忙碌或沒回應）';
+      toast('⚠️ 這則沒有標記成功' + why + '，請再按一次');
+      loadHandover();
     });
   })();
 }
@@ -8078,7 +8085,7 @@ function ackAllHandoverUI(){
   (function next(){
     if(idx >= list.length){ toast(failed ? ('⚠️ 有 ' + failed + ' 則沒成功，請重新整理後再試') : '✅ 已全部標為已看過'); if(btn){ btn.disabled = false; btn.innerHTML = '<i class="ti ti-checks" style="font-size:13px"></i>全部標為已看過'; } loadHandover(); return; }
     var row = list[idx++].row;
-    _ackHandoverOnce(row, function(ok){ if(!ok){ _ackHandoverOnce(row, function(ok2){ if(!ok2) failed++; next(); }); } else next(); });
+    _ackHandoverOnce(row, function(ok){ if(!ok){ _ackHandoverOnce(row, function(ok2){ if(!ok2) failed++; else _hoAcked[row] = true; next(); }); } else { _hoAcked[row] = true; next(); } });
   })();
 }
 // 2026-09-03 新增：秘書在「排班缺人通知」底下點「我可以補這班」。
@@ -10465,13 +10472,15 @@ function _acFindHo(it){
   return null;
 }
 function acAckUI(row, btn){
+  _hoAcked[row] = true;
   if(btn){ btn.disabled=true; btn.textContent='處理中…'; }
   _ackHandoverOnce(row, function(ok){
     if(ok){ toast('✅ 已標記已看過'); loadAutoCareLog(); loadHandover(); return; }
     _ackHandoverOnce(row, function(ok2){
       if(ok2){ toast('✅ 已標記已看過'); loadAutoCareLog(); loadHandover(); return; }
+      delete _hoAcked[row];
       if(btn){ btn.disabled=false; btn.textContent='✅ 已看過'; }
-      toast('⚠️ 沒成功，請重新整理後再按一次');
+      toast('⚠️ 沒成功，請重新整理後再按一次'); loadHandover();
     });
   });
 }
