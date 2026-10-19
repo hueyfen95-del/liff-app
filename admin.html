@@ -343,7 +343,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-19d';
+var MX_BUILD = '2026-10-19e';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2439,8 +2439,21 @@ function mxApplyPageChrome(id){
 }
 // 從程式裡（不是點側欄）跳頁時，側欄也要亮在正確的那一顆
 function mxNavItemFor(id){ return document.querySelector('.sidebar .si[onclick^="goPg(\''+id+'\'"]'); }
+// 2026-10-19：舊的「沒打上班／下班卡」自動留言只有一句話，看不出是誰、要做什麼 → 顯示時補成「誰、哪一班、怎麼處理」
+function mxFixOldNote(h){
+  var note = String((h && h.note) || ''), imp = String((h && h.important) || '');
+  var m = /^(.+?) 今天 (\d{1,2}:\d{2}) 的班還沒打上班卡/.exec(imp);
+  if(m && note.indexOf('排班開始 30 分鐘後仍沒有上班打卡記錄') >= 0){
+    return '系統自動偵測：' + m[1] + ' 今天排了 ' + m[2] + ' 的班，過了 30 分鐘還沒有上班打卡。\n👉 怎麼處理：\n① ' + m[1] + ' 現在有在上班 → 請本人到儀表板最上面按「上班打卡」（忘記打就補打）\n② 今天其實不用上班（請假、換班）→ 到「排班交接」把這一班刪掉或改人\n③ 不確定 → 傳訊息或打電話問她\n處理完按右上角「已看過」。';
+  }
+  m = /^(.+?) 今天 (\d{1,2}:\d{2}) 下班的班還沒打下班卡/.exec(imp);
+  if(m && note.indexOf('排班結束 30 分鐘後仍沒有下班打卡記錄') >= 0){
+    return '系統自動偵測：' + m[1] + ' 今天排的班 ' + m[2] + ' 結束了，過了 30 分鐘還沒有下班打卡。\n👉 怎麼處理：\n① 她已經下班、只是忘記打 → 請她補打下班卡\n② 她還在上班 → 不用處理\n處理完按右上角「已看過」。';
+  }
+  return note;
+}
 // 2026-10-19：交接留言的備註如果有好幾則（系統一次列出多筆），不要擠成一大段字——一則一行、有底色、前面的日期／誰→誰縮小，
-// 內容放大；最多先列 5 則，其餘寫「還有 N 則」。創辦人原話：「這樣一陀字看的頭都昏了」。
+// 內容放大；最多先列 8 行，其餘寫「還有 N 則」。創辦人原話：「這樣一陀字看的頭都昏了」。
 function mxNoteHtml(note, fs){
   var raw = String(note == null ? '' : note);
   var lines = raw.split(/\n+/).map(function(x){ return x.trim(); }).filter(Boolean);
@@ -2448,7 +2461,7 @@ function mxNoteHtml(note, fs){
   if(lines.length <= 1) return raw ? '<div style="font-size:' + fs + 'px;line-height:1.7;color:var(--text)">' + escH(raw) + '</div>' : '';
   lines = lines.filter(function(x){ return x !== '…' && x !== '...'; });
   var more = 0;
-  if(lines.length > 5){ more = lines.length - 5; lines = lines.slice(0, 5); }
+  if(lines.length > 8){ more = lines.length - 8; lines = lines.slice(0, 8); }
   var html = lines.map(function(ln){
     var m = /^(\d{1,2}\/\d{1,2})\s+(.+?)→(.*?)：(.*)$/.exec(ln);
     if(m){
@@ -7934,7 +7947,7 @@ function renderHandoverHistory(){
       + statusChip
       + '</div>'
       + (h.pendingClients ? '<div style="font-size:11px;color:var(--text2);margin-bottom:2px">待處理客人：' + renderHandoverClientLinks(h.pendingClients) + '</div>' : '')
-      + (h.note ? mxNoteHtml(h.note, 13) : '')
+      + (h.note ? mxNoteHtml(mxFixOldNote(h), 13) : '')
       + '</div>';
   }).join('');
 }
@@ -8017,7 +8030,7 @@ function loadHandover(){
         + '<button class="ai-btn gray" style="font-size:10px;padding:3px 9px;margin-left:auto" onclick="ackHandoverUI(' + i + ')">已看過</button>'
         + '</div>'
         + pendingLine
-        + (h.note ? mxNoteHtml(h.note, 13) : '')
+        + (h.note ? mxNoteHtml(mxFixOldNote(h), 13) : '')
         + claimBtn + goDutyBtn
         + '</div>';
     }).join('');
@@ -10966,7 +10979,7 @@ function loadRecentHandovers(){
         + '<div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+escH(h.fromSecretary||'前一班')+'<span style="font-weight:400;color:var(--text3);font-size:10.5px">'+escH(h.date)+'</span>'+handoverTagChip(h.toSecretary)+'</div>'
         + (h.important ? '<div style="font-size:11.5px;color:#A32D2D;font-weight:700;margin-bottom:2px">⚠️ '+escH(h.important)+'</div>' : '')
         + (h.pendingClients ? '<div style="font-size:11px;color:var(--b3);margin-bottom:2px">👤 '+escH(h.pendingClients)+'</div>' : '')
-        + (h.note ? mxNoteHtml(h.note, 13) : '')
+        + (h.note ? mxNoteHtml(mxFixOldNote(h), 13) : '')
         + '</div>';
     }).join('');
   });
