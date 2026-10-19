@@ -328,7 +328,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-15e';
+var MX_BUILD = '2026-10-15f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -6967,7 +6967,7 @@ function setClientStageUI(id){
   var sel = document.getElementById('cd-stage-sel');
   if(!sel) return;
   adminAPIPost({action:'setClientStage', clientId:id, stage:sel.value, secretary:(CURRENT_USER&&CURRENT_USER.name)||''}, function(d){
-    if(d && d.status === 'ok'){ toast('✅ 已更新目前階段'); if(_clientsCache) loadClientsList(function(){}, true); }
+    if(d && d.status === 'ok'){ toast('✅ 已更新目前階段'); if(_clientsCache) loadClientsList(function(){}, true); if(typeof loadStageGuide==='function') loadStageGuide(id); }
     else toast('⚠️ 更新失敗');
   });
 }
@@ -7086,6 +7086,11 @@ function openClientDetail(id, name){
     + '<select id="cd-coach-sel" onchange="setClientCoachUI(\''+escH(id)+'\')" title="負責教練（諧動空間等合作機構的教練，指派後該教練登入後台只看得到自己的學員）" style="font-size:11px;border:0.5px solid var(--border);border-radius:8px;padding:5px 8px;color:var(--text2)"><option value="">🏃 負責教練：載入中…</option></select>'
     + '<span id="cd-metatype-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;background:var(--p2);color:var(--p3);font-weight:700"></span>'
     + '<span id="cd-abc-badge" style="display:none;font-size:11px;padding:5px 9px;border-radius:8px;font-weight:700"></span>'
+    + '</div>'
+    // 2026-10-15：階段提醒——選了「目前階段」，這張卡就跟著變（婷婷回饋）
+    + '<div id="cd-stage-guide" style="background:#F1F7FF;border:1px solid #C9DDF5;border-left:5px solid #3B82F6;border-radius:10px;padding:10px 12px;margin-bottom:12px">'
+    + '<div style="font-size:14px;font-weight:800;color:#1F4E8C;margin-bottom:6px">📋 這個階段要做什麼<span id="cd-stage-guide-name" style="font-weight:700;margin-left:6px"></span></div>'
+    + '<div id="cd-stage-guide-body" style="font-size:12.5px;color:var(--text3)">載入中…</div>'
     + '</div>'
     + '<div style="background:#F9F2E9;border:1px solid #F5D9A8;border-left:5px solid '+cdColor+';border-radius:10px;padding:10px 12px;margin-bottom:12px">'
     + '<div style="font-size:11px;font-weight:700;color:#8A5A0A;margin-bottom:3px">🍽 飲食記錄與照片（近3天）</div>'
@@ -7562,6 +7567,7 @@ function openClientDetail(id, name){
   loadCarbPlanAdmin(id);
   if(typeof loadSweetSpotJourney==='function') loadSweetSpotJourney(id);
   if(typeof loadStressDetail==='function') loadStressDetail(id);
+  if(typeof loadStageGuide==='function') loadStageGuide(id);
   loadCarePointsAdmin(id);
   loadStyleGiftAdmin(id);
   loadMealRecordsAdmin(id);
@@ -10432,6 +10438,53 @@ function loadStressClients(){
   });
 }
 // 客人檔案裡的「🌿 壓力」小區塊：近 14 天標記＋兩次量測＋壓力日對照
+
+// ══ 📋 階段提醒（2026-10-15）：目前階段 → 每個階段都一樣的＋這個階段特別的（內容在試算表「📋 階段提醒設定」，可直接改）══
+var _stageGuideCache = null;
+function loadStageGuide(id){
+  var box = document.getElementById('cd-stage-guide-body'); if(!box) return;
+  var sel = document.getElementById('cd-stage-sel'), stage = sel ? sel.value : '';
+  var nm = document.getElementById('cd-stage-guide-name'); if(nm) nm.textContent = stage ? '・' + stage : '・（還沒設定階段）';
+  box.innerHTML = '載入中…';
+  adminAPI({action:'getStageGuide', stage:stage}, function(d){
+    box = document.getElementById('cd-stage-guide-body'); if(!box) return;
+    if(!d || d.status!=='ok'){ box.innerHTML = '<div style="font-size:12px;color:var(--text3)">讀取失敗（後端還沒更新到最新版時會這樣）</div>'; return; }
+    _stageGuideCache = d;
+    var rowsHtml = function(items){
+      return (items||[]).map(function(it){
+        return '<div style="display:flex;gap:8px;align-items:flex-start;background:#fff;border:1px solid #DCE8F7;border-radius:9px;padding:8px 10px;margin-bottom:6px">'
+          + '<div style="flex:0 0 96px;font-size:13px;font-weight:800;color:#1F4E8C">'+escH(it.cat)+'</div>'
+          + '<div style="flex:1;font-size:13.5px;line-height:1.7;color:var(--text)">'+escH(it.text)+(it.draft?' <span title="內容還是草稿，創辦人確認後在試算表把狀態改成「啟用」" style="font-size:11px;font-weight:700;color:#B26A00;background:#FFF1D6;border-radius:8px;padding:1px 7px;margin-left:4px">草稿</span>':'')+'</div></div>';
+      }).join('');
+    };
+    var h = '';
+    if(!stage){
+      h += '<div style="font-size:13.5px;line-height:1.7;color:#8A4B00;background:#FFF1D6;border-radius:9px;padding:8px 10px;margin-bottom:8px">這位客人還沒設定「目前階段」。先在上面的下拉選單選一個，這裡就會列出該階段要提醒的事。</div>';
+    } else if(d.desc){
+      h += '<div style="font-size:13px;line-height:1.7;color:#1F4E8C;margin-bottom:8px">📍 '+escH(stage)+'：'+escH(d.desc)+'</div>';
+    }
+    if(stage){
+      h += '<div style="font-size:13px;font-weight:800;color:#8A4B00;margin:4px 0 5px">⭐ '+escH(stage)+'，特別要注意</div>';
+      h += (d.own && d.own.length) ? rowsHtml(d.own) : '<div style="font-size:12.5px;color:var(--text3);margin-bottom:6px">這個階段還沒有專屬提醒，請創辦人在試算表「📋 階段提醒設定」補。</div>';
+    }
+    h += '<div style="font-size:13px;font-weight:800;color:#17703F;margin:8px 0 5px">🟢 每個階段都一樣</div>' + rowsHtml(d.common);
+    h += (stage ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
+      + '<button class="ai-btn g" style="font-size:13px;padding:7px 14px;font-weight:700" onclick="sendStageGuide(\''+escH(id)+'\')">💌 把這個階段的提醒傳給客人</button>'
+      + '</div>' : '')
+      + '<div style="font-size:11.5px;color:var(--text3);margin-top:6px">ⓘ 內容放在試算表「📋 階段提醒設定」：階段／類別／提醒內容／狀態（草稿、啟用、停用）。要改字、加一條、停用一條，直接改那張表，這裡馬上跟著變。</div>';
+    box.innerHTML = h;
+  });
+}
+function sendStageGuide(id){
+  var d = _stageGuideCache; if(!d || !d.stage){ toast('請先選目前階段'); return; }
+  var cl = (_clientsCache || []).find(function(c){ return c.id === id; });
+  var nm = (cl && cl.name) || id;
+  var line = function(it){ return '・' + it.cat.replace(/^\S+\s/, '') + '：' + it.text; };
+  var txt = nm + '，你現在在「' + d.stage + '」。這個階段，這幾件事請特別留意：\n'
+    + (d.own||[]).map(line).join('\n') + '\n\n每個階段都一樣的：\n' + (d.common||[]).map(line).join('\n')
+    + '\n\n哪一項做起來有困難，直接跟我說，我們一起調整 🌿';
+  openComposeWithText(id, nm, 'remind', txt);
+}
 function loadStressDetail(id){
   var box = document.getElementById('cd-stress-body'); if(!box) return;
   adminAPI({action:'getStressDetail', clientId:id}, function(d){
