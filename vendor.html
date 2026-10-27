@@ -325,6 +325,8 @@ function loadNotices(){
   api({action:'vendorGetNotices'},function(d){
     _noticeBusy=false;
     box=document.getElementById('notice-card'); if(!box) return;
+    // 密碼被改過／帳號被停用 → 後端回 error：停止背景輪詢（不然舊分頁每幾分鐘就拿舊密碼試一次，會把這個帳號鎖住）
+    if(d&&d.status==='error'){ try{ clearInterval(_noticeTimer); }catch(e){} box.style.display='none'; return; }
     var items=(d&&d.status==='ok'&&d.items)||[];
     if(!items.length){ box.style.display='none'; return; }
     var open=items.filter(function(x){return !x.done;}), done=items.filter(function(x){return x.done;});
@@ -349,7 +351,7 @@ function ackNotice(row,btn){
     else { if(btn){btn.disabled=false;btn.textContent='✅ 我已收到';} toast('⚠️ 沒成功，請再按一次'+((d&&d.message)?'（'+d.message+'）':'')); }
   });
 }
-setInterval(function(){ if(!document.hidden) loadNotices(); },120000);
+var _noticeTimer=setInterval(function(){ if(!document.hidden) loadNotices(); },180000);
 document.addEventListener('visibilitychange',function(){ if(!document.hidden) loadNotices(); });
 function showWorkspace(skipAutoSwitch){
   document.getElementById('login-card').style.display='none';

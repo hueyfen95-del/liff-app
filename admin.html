@@ -343,7 +343,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-19l';
+var MX_BUILD = '2026-10-23a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -758,6 +758,7 @@ var MX_BUILD = '2026-10-19l';
               <button onclick="selectGift('leaf')" id="gift-btn-leaf" style="background:#ECFDF5;border:1.5px solid #A7F3D0;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#065F46">🍃 新葉</button>
               <button onclick="selectGift('star')" id="gift-btn-star" style="background:#F5F3FF;border:1.5px solid #C4B5FD;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#5B21B6">🌟 星光</button>
               <button onclick="selectGift('flower')" id="gift-btn-flower" style="background:#FFF0F6;border:1.5px solid #FBCFE8;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#9D174D">🌸 花朵</button>
+              <button onclick="selectGift('cell')" id="gift-btn-cell" style="background:#FFF7ED;border:1.5px solid #FED7AA;border-radius:10px;padding:9px 6px;cursor:pointer;font-size:12px;font-weight:600;color:#9A3412">🫧 小細胞</button>
             </div>
             <textarea id="gift-msg-input" style="width:100%;border:0.5px solid var(--border);border-radius:10px;padding:9px 11px;font-size:12px;color:var(--text);resize:none;height:72px;background:var(--bg);margin-bottom:8px" placeholder="寫一段鼓勵的話給客人..."></textarea>
             <button onclick="sendGiftToClient()" style="width:100%;background:linear-gradient(135deg,#085041,var(--g));color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">💌 送出禮物</button>
@@ -1314,6 +1315,7 @@ var MX_BUILD = '2026-10-19l';
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="行政">📋 行政</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="財務主管">💰 財務主管</label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="專業秘書">🎓 專業秘書</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" class="acc-other-role" value="主廚">👨‍🍳 主廚（料理包／雞湯，秘書兼任）</label>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
@@ -3268,6 +3270,18 @@ function loadIRCTAnalysisFull(clientId){
         + '<b style="color:var(--text2)">📋 特殊情境：'+escH(a.specialCase)+'</b><br>'
         + '<span style="font-size:10.5px;color:var(--text3)">前台會顯示個別化建議文案；下面的代謝分型仍會照算，解讀時請一併考量這個背景，避免忽略了特殊情境之外真正該留意的地方</span></div>';
     }
+    // 2026-10-23 曲線型態白話解讀（客人在 APP 看到的同一段）＋給秘書的提醒＋補算／核對
+    if(a.pattern){
+      var ptCalc = a.pattern.calc || {};
+      var ptCalcStr = ['esi','homaIR','nonHdl','bmi','waistHipRatio'].filter(function(k){ return ptCalc[k]!==undefined; }).map(function(k){ return ({esi:'ESI',homaIR:'HOMA-IR',nonHdl:'非 HDL',bmi:'BMI',waistHipRatio:'腰臀比'})[k]+' '+ptCalc[k]; }).join('・');
+      typeHtml += '<div style="margin-bottom:8px;padding:10px 12px;background:#FEF3C7;border-left:5px solid #F59E0B;border-radius:9px">'
+        + '<b style="color:#92400E">🗣 這張報告在說什麼（客人在 APP 看到的白話版）</b>'
+        + ((a.pattern.tags||[]).length ? '<div style="margin:5px 0">'+a.pattern.tags.map(function(t){ return '<span style="background:#fff;border:1px solid #FCD34D;border-radius:12px;padding:2px 8px;font-size:10.5px;font-weight:700;color:#92400E;margin-right:4px">'+escH(t)+'</span>'; }).join('')+'</div>' : '')
+        + '<div style="font-size:11.5px;line-height:1.8;color:#78350F">'+escH(a.pattern.clientText||'')+'</div>'
+        + (ptCalcStr ? '<div style="font-size:10.5px;color:#92400E;margin-top:5px">補算：'+escH(ptCalcStr)+'</div>' : '')
+        + ((a.pattern.staffNotes||[]).length ? '<div style="margin-top:6px;padding:7px 9px;background:#fff;border-radius:7px;font-size:10.5px;color:#9A3412;line-height:1.7">👩‍💼 給秘書：'+a.pattern.staffNotes.map(escH).join('<br>')+'</div>' : '')
+        + '</div>';
+    }
     if(a.metabolicType){
       typeHtml += '<div style="margin-bottom:8px;padding:9px 11px;background:var(--p2);border:1px solid #AFA9EC;border-radius:9px">'
         + '<b style="color:var(--p3)">🔬 代謝分型：'+escH(a.metabolicType.type)+'</b><br>'
@@ -3904,7 +3918,7 @@ var selectedGift = 'sunshine';
 
 function selectGift(type) {
   selectedGift = type;
-  var types = ['sunshine', 'rain', 'sprout', 'leaf', 'star', 'flower'];
+  var types = ['sunshine', 'rain', 'sprout', 'leaf', 'star', 'flower', 'cell'];
   types.forEach(function(t) {
     var btn = document.getElementById('gift-btn-' + t);
     if (btn) btn.style.opacity = t === type ? '1' : '0.4';
@@ -4535,7 +4549,7 @@ function loadAdminAccounts(){
         '<div style="display:flex;align-items:center;gap:10px">'+
         '<span style="font-size:16px">'+(roleIcon[a.role]||'👤')+'</span>'+
         '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--text)">'+escH(a.name||a.username)+(isMe?' <span style="font-size:10px;color:var(--g)">（就是你）</span>':'')+'</div>'+
-        '<div style="font-size:10px;color:var(--text3)">帳號：'+escH(a.username)+'・'+escH(roleDisplayName(a.role))+'・'+(isActive?'啟用中':'已停用')+(extraCount>0?'・<span style="color:var(--g)">額外開通 '+extraCount+' 項</span>':'')+((a.otherRoles||[]).length>0?'・身兼：'+escH(a.otherRoles.join('、')):'')+(isClientRestrictedRole?('・客人資料：'+(a.canEditClients?'<span style="color:var(--g)">可編輯</span>':'<span style="color:var(--text3)">僅查看</span>')):'')+'</div>'+mxPaySummaryHtml(a)+'</div>'+
+        '<div style="font-size:10px;color:var(--text3)">帳號：'+escH(a.username)+'・'+escH(roleDisplayName(a.role))+'・'+(isActive?'啟用中':'已停用')+(!isActive&&a.stopLog?'（'+escH(a.stopLog)+'）':'')+(isActive&&a.resumeLog?'・復職：'+escH(a.resumeLog):'')+(extraCount>0?'・<span style="color:var(--g)">額外開通 '+extraCount+' 項</span>':'')+((a.otherRoles||[]).length>0?'・身兼：'+escH(a.otherRoles.join('、')):'')+(isClientRestrictedRole?('・客人資料：'+(a.canEditClients?'<span style="color:var(--g)">可編輯</span>':'<span style="color:var(--text3)">僅查看</span>')):'')+'</div>'+mxPaySummaryHtml(a)+'</div>'+
         '<button onclick="toggleEditAcctPanel('+i+')" style="background:var(--bg2);color:var(--text2);border:1px solid var(--border2);border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">編輯</button>'+
         (isFounder ? '' : '<button onclick="toggleExtraPermPanel('+i+')" style="background:var(--b2);color:var(--b3);border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">額外權限</button>')+
         (isClientRestrictedRole ? ('<button onclick="toggleClientEditPerm('+a.row+','+(!a.canEditClients)+')" style="background:'+(a.canEditClients?'var(--r2)':'var(--g2)')+';color:'+(a.canEditClients?'var(--r)':'var(--g3)')+';border:none;border-radius:7px;padding:5px 10px;font-size:11px;cursor:pointer">'+(a.canEditClients?'收回客人編輯權':'開放編輯客人資料')+'</button>') : '')+
@@ -4549,7 +4563,7 @@ function loadAdminAccounts(){
         '</select></div>'+
         '<div style="font-size:10.5px;color:var(--text3);margin-bottom:5px">身兼職務（可複選；勾選「財務主管」會額外取得財務主管的操作權限；勾選「行政」會額外取得好物/補充品定價維護權限；勾選「專業秘書」會額外取得「甜蜜點分析」的查看/發布權限；其餘純顯示參考用）</div>'+
         '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:9px">'+
-        ['秘書','會計','行政','財務主管','專業秘書'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'🎓')+' '+r+'</label>'; }).join('')+
+        ['秘書','會計','行政','財務主管','專業秘書','主廚'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'🎓')+' '+r+'</label>'; }).join('')+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">'+
         '<select id="edit-paytype-'+i+'" onchange="rateEdSync(\'edit-rated-'+i+'\', this.value, \'edit-payrate-'+i+'\')" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="按次" '+(a.payType==='按次'?'selected':'')+'>按次</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
@@ -4737,8 +4751,11 @@ function saveAdminAccount(btn){
   });
 }
 function toggleAdminAcctStatus(row, username){
-  if(!confirm('確定要切換「'+username+'」的啟用狀態嗎？停用後這組帳號密碼就不能登入了。')) return;
-  adminAPI({action:'toggleAdminAccount', row:row}, function(d){
+  var acc = (_acctCache||[]).filter(function(x){ return x.row===row; })[0];
+  var nowOn = !acc || acc.status !== '停用';
+  if(!confirm(nowOn ? ('確定要停用「'+username+'」嗎？\n停用後：這個人如果正在使用後台，下一個動作就會被登出；要恢復時再按一次「啟用」。') : ('確定要讓「'+username+'」復職（重新啟用）嗎？\n啟用後他可以用原本的帳號密碼登入。'))) return;
+  var reason = nowOn ? (prompt('停用原因（選填，會記在帳號旁邊給創始人看）', '') || '') : '';
+  adminAPI({action:'toggleAdminAccount', row:row, reason:reason}, function(d){
     if(d && d.status === 'ok'){ toast('✅ 已更新'); loadAdminAccounts(); }
     else { toast('⚠️ 操作失敗'); }
   });
@@ -5694,7 +5711,7 @@ function loadFullSchedule(){
     if(legendEl){
       legendEl.textContent = isFullView
         ? ('🟢綠色色塊顯示的是該秘書姓名的第一個字，點下去可以看她這個月完整的個人班表　⚪還空著（依登記先後順序，先登記的人算數）　🔴三個時段都還空著　——　每人每月排班上限 '+capInfo.cap+' 班（依目前 '+capInfo.secretaryCount+' 位在職秘書自動計算，人數變動會自動調整）；如果某位秘書這個月已經到上限、但你還是想特別排她進來，點空時段的「👑邀請」直接指定，不受上限限制')
-        : ('🟢你已經排定　⚪還空著，點一下立刻排進去（依登記先後順序，登記成功立刻算數不用等人確認）　🔴這天完全沒人　——　你這個月已排 '+(capInfo.used||0)+'／上限 '+capInfo.cap+' 班　——　其他秘書排的班不會顯示在這裡，只會看到「已有人排定」');
+        : ('🟢你已經排定　⚪還空著，點一下立刻排進去（依登記先後順序，登記成功立刻算數不用等人確認）　🔴這天完全沒人　——　你這個月已排 '+(capInfo.used||0)+' 班'+(capInfo.unlimited||capInfo.cap>=9999?'（沒有上限，能排就排）':'／上限 '+capInfo.cap+' 班')+'　——　其他秘書排的班不會顯示在這裡，只會看到「已有人排定」');
     }
 
     // 2026-09-15第三次重新設計：月曆格狀視圖——先算出這個月1號是星期幾，前面補對應數量的空白格，
@@ -5848,7 +5865,7 @@ function claimSlot(dateStr, slotKey, el){
   if(el){ el.style.opacity = '.4'; el.style.pointerEvents = 'none'; }
   adminAPIPost({action:'claimShift', date:dateStr, slotKey:slotKey}, function(d){
     if(d && d.status === 'ok'){
-      toast('✅ 排班成功！'+dateStr+'　'+slotKey+'班　（這個月已排 '+d.used+'／上限 '+d.cap+'）');
+      toast('✅ 排班成功！'+dateStr+'　'+slotKey+'班　（這個月已排 '+d.used+(d.cap>=9999?' 班':'／上限 '+d.cap)+'）');
       loadFullSchedule();
       if(typeof loadShiftSchedule==='function') loadShiftSchedule();
       if(typeof refreshSidebarBadges==='function') refreshSidebarBadges();
@@ -7833,10 +7850,14 @@ function canSeeHandoverItem(h){
   // 秘書看一般＋秘書；行政看一般＋行政。自己發的留言永遠看得到。
   var to = String(h.toSecretary || '');
   if(h.fromSecretary === CURRENT_USER.name) return true;
-  if(r === '會計' || r === '財務主管') return to === '財務主管' || to === '會計';
+  // 2026-10-20：身兼職務（例如秘書兼主廚、秘書兼會計）也要看得到該職務的留言
+  var mine = (CURRENT_USER.otherRoles || []).slice();
+  if(mine.indexOf(to) >= 0 && to) return true;
+  if(r === '會計' || r === '財務主管') return to === '財務主管' || to === '會計' || to === '財務行政';
   if(r === '醫師') return to === '醫師';
-  if(r === '行政') return to === '' || to === '行政';
+  if(r === '行政') return to === '' || to === '行政' || to === '主廚' || to === '財務行政'; // 行政負責料理包出貨，主廚的留言也看；方案／合作詢問跟財務一起看
   if(r === '秘書') return to === '' || to === '秘書';
+  if(r === '主廚') return to === '' || to === '主廚';
   return to === '';
 }
 // 2026-09-03 新增：交接留言「跟誰有關」標籤——純標示用，不限制誰看得到（她的決定：資訊越透明，
@@ -7848,7 +7869,10 @@ var HANDOVER_TAGS = [
   {key:'財務主管', label:'財務', icon:'💰', bg:'#E3F3E8', fg:'#1A6B3C'},
   {key:'會計', label:'會計', icon:'🧾', bg:'#FAEEDA', fg:'#633806'},
   {key:'行政', label:'行政', icon:'📋', bg:'#EEEDFE', fg:'#3C3489'},
-  {key:'管理人', label:'管理人', icon:'👑', bg:'#E1F5EE', fg:'#085041'}
+  {key:'管理人', label:'管理人', icon:'👑', bg:'#E1F5EE', fg:'#085041'},
+  {key:'主廚', label:'主廚', icon:'👨‍🍳', bg:'#FDE8E8', fg:'#8B2C2C'},
+  {key:'財務行政', label:'財務＋行政', icon:'🤝', bg:'#FEF3C7', fg:'#92400E'},
+  {key:'醫師', label:'醫師', icon:'🩺', bg:'#E6F0FA', fg:'#154C79'}
 ];
 function handoverTagChip(key){
   if(!key) return '';
@@ -8454,7 +8478,7 @@ function moodSuggestReply(content){
 }
 // 2026-08-30（管理人）：每個回覆都可以附一個可愛小圖案——客人收到回覆的同時，
 // 花園會跳出對應動畫（陽光/雨水/新芽/新葉/星星/花朵），回應不只有文字還有溫度
-var GIFT_PICK_OPTIONS = [['','🚫 不加'],['sunshine','☀️ 陽光'],['rain','🌧 雨水'],['sprout','🌱 新芽'],['leaf','🍃 新葉'],['star','⭐ 星星'],['flower','🌸 花朵']];
+var GIFT_PICK_OPTIONS = [['','🚫 不加'],['sunshine','☀️ 陽光'],['rain','🌧 雨水'],['sprout','🌱 新芽'],['leaf','🍃 新葉'],['star','⭐ 星星'],['flower','🌸 花朵'],['cell','🫧 小細胞動畫']];
 function _giftPickRow(){
   return '<div class="gift-pick" data-gift="" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;align-items:center">'
     + '<span style="font-size:10.5px;color:var(--text3)">附上小圖案：</span>'
@@ -10489,7 +10513,7 @@ function loadCareQualityKPI(){
 var AC_OWNER = {
   '連續7天':['秘書',48], '報告待講解':['秘書',72], '續約跟催':['秘書',72], '餘額為負':['會計',48], '儲值待核查':['會計',24],
   '自動請行政催':['行政',48], 'IRCT缺項':['行政',72], '甜蜜點條件符合':['秘書',72], '甜蜜點評估':['秘書',72],
-  '碳水探索血酮下降':['秘書',24], '壓力連續':['秘書',24], '壓力關心':['秘書',48], '料理包詢問':['主廚／行政',24],
+  '碳水探索血酮下降':['秘書',24], '壓力連續':['秘書',24], '壓力關心':['秘書',48], '料理包詢問':['主廚／行政',24], '自家產品詢問':['主廚／行政',24], '服務方案詢問':['財務／行政',24], '每日打氣':['系統',0],
   '心情未回2h':['秘書',null], '心情30分提醒':['秘書',null], '心情2小時沒回':['管理人',0], '交接留言2小時沒人看':['管理人',0], '心情未回24h':['管理人',0], '提醒後沒打上班卡':['管理人',0], '交接未讀':['管理人',0],
   '急件逾時':['管理人',0], '排班缺人逼近':['管理人',0], '排班缺人提醒':['秘書',null],
   '客人留言待處理':['秘書',null], '客人問題待處理':['秘書',null], '新預約待處理':['秘書',null], '醫師交辦待處理':['秘書',null],
@@ -10653,12 +10677,12 @@ function loadAutoCareLog(){
     var items=(d && d.items)||[];
     // 2026-10-10：算出「紅色且還沒按已看過」的件數給「今天要做的事」用
     var _acStaff = {'連續7天':1,'報告待講解':1,'自動請行政催':1,'提醒後沒打上班卡':1,'心情30分提醒':1,'心情2小時沒回':1,'交接留言2小時沒人看':1,'儲值待核查':1,'交接未讀':1,'續約跟催':1,'心情未回2h':1,'心情未回24h':1,'甜蜜點條件符合':1,'甜蜜點評估':1,'碳水探索血酮下降':1,'餘額為負':1,'料理包詢問':1,'IRCT缺項':1,'壓力關心':1,'壓力連續':1,'急件逾時':1,'排班缺人逼近':1,'排班缺人提醒':1,'客人留言待處理':1,'客人問題待處理':1,'新預約待處理':1,'醫師交辦待處理':1,'客人留言逾時':1,'客人問題逾時':1,'新預約逾時':1,'醫師交辦逾時':1};
-    _tf.acRed = items.filter(function(it){ return (_acStaff[it.type] && !it.punched && acLevel(it) === 'red' && _acFindHo(it)) || (String(it.type).indexOf('急件：') === 0 && !it.closed && _acFindHo(it)); }).length;
+    _tf.acRed = items.filter(function(it){ return _acStaff[it.type] && !it.punched && acLevel(it) === 'red' && _acFindHo(it); }).length; // 橘色急件不算「要你處理」——行政／單位 60 分鐘沒閉環才會升級成紅色的「急件逾時」，那時才算
     if(typeof renderTodayFlow==='function') renderTodayFlow();
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '提醒打上班卡':'⏱', '提醒打下班卡':'⏱', '提醒後沒打上班卡':'⏱', '心情30分提醒':'💌', '心情2小時沒回':'💌', '交接留言2小時沒人看':'👀', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩', '急件：預約':'📅', '急件：檢測':'🧪', '急件：報告':'📋', '急件：付費':'💳', '急件逾時':'🔴', '預約已確認':'📅', '預約已取消':'📅', '排班缺人提醒':'🗓', '排班缺人逼近':'🗓', '客人留言待處理':'📩', '客人問題待處理':'📩', '新預約待處理':'📩', '醫師交辦待處理':'🩺', '客人留言逾時':'🔴', '客人問題逾時':'🔴', '新預約逾時':'🔴', '醫師交辦逾時':'🔴', '閉環日報':'📒' };
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '提醒打上班卡':'⏱', '提醒打下班卡':'⏱', '提醒後沒打上班卡':'⏱', '心情30分提醒':'💌', '心情2小時沒回':'💌', '交接留言2小時沒人看':'👀', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '每日打氣':'🫧', '自家產品詢問':'🍱', '服務方案詢問':'🤝', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩', '急件：預約':'📅', '急件：檢測':'🧪', '急件：報告':'📋', '急件：付費':'💳', '急件逾時':'🔴', '預約已確認':'📅', '預約已取消':'📅', '排班缺人提醒':'🗓', '排班缺人逼近':'🗓', '客人留言待處理':'📩', '客人問題待處理':'📩', '新預約待處理':'📩', '醫師交辦待處理':'🩺', '客人留言逾時':'🔴', '客人問題逾時':'🔴', '新預約逾時':'🔴', '醫師交辦逾時':'🔴', '閉環日報':'📒' };
     var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#E3EEFB;border-left:4px solid #3B7DD8;vertical-align:middle"></span> <b>藍色＝已交給同事處理</b>，超過時間沒人處理才會變紅叫你　<span style="display:inline-block;width:14px;height:14px;background:#FFE2B8;border-left:4px solid #E8730C;vertical-align:middle"></span> <b>橘色＝急件</b>（報告／預約／付費／檢測，已同時通知行政、你、單位，看誰還沒確認）　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
@@ -10696,7 +10720,9 @@ function loadAutoCareLog(){
         '客人問題逾時':'客人問了系統答不出的問題，超過一天沒人處理。請指派秘書回覆；處理完這則會自動標已處理。',
         '新預約逾時':'客人預約超過 2 小時沒人聯繫確認。請行政／秘書聯繫客人並在預約頁按「確認」；確認後這則會自動標已處理。',
         '醫師交辦逾時':'醫師交辦的事超過一天沒完成。請確認是誰負責、有沒有卡住；完成後這則會自動標已處理。',
-        '料理包詢問':'主廚（盼臨／心苹）按「💌 傳訊息」回覆客人，會自動帶介紹影片＋訂購單連結；談好報價請客人填訂購單；行政準備冷凍宅配／超商取貨；管理人知悉即可。'
+        '料理包詢問':'主廚（盼臨／心苹）按「💌 傳訊息」回覆客人，會自動帶介紹影片＋訂購單連結；談好報價請客人填訂購單；行政準備冷凍宅配／超商取貨；管理人知悉即可。',
+        '服務方案詢問':'客人想了解陪跑方案、企業合作等「服務」（不是產品）。財務主管報價、行政聯繫、管理人決定；秘書不用處理（秘書只專注照顧客人）。',
+        '自家產品詢問':'客人問或下單的是我們自己賣的產品（料理包／雞湯／電解質…）。帳號管理勾了「主廚」的人按「💌 傳訊息」回覆客人、備貨；行政準備宅配／超商取貨；管理人知悉即可。'
       };
       var subjOnly = {'交接留言2小時沒人看':1,'排班缺人提醒':1,'排班缺人逼近':1};
       var staffSubject = {'排班缺人提醒':1,'排班缺人逼近':1,'交接留言2小時沒人看':1,'提醒後沒打上班卡':1,'提醒打上班卡':1,'提醒打下班卡':1,'沒打上班卡':1,'沒打下班卡':1,'交接未讀':1};
@@ -10731,7 +10757,7 @@ function loadAutoCareLog(){
         if(isUrg){
           ho = it.closed ? null : _acFindHo(it);
           var _chip = function(ok, t){ return '<span style="display:inline-block;margin:3px 6px 0 0;padding:2px 9px;border-radius:12px;font-size:12.5px;font-weight:800;background:'+(ok?'#D9F0E3':'#fff')+';border:1px solid '+(ok?'#2E9E5B':'#E8730C')+';color:'+(ok?'#17703F':'#8A3D00')+'">'+t+'</span>'; };
-          urgChips = _chip(it.adminDone === true, it.adminDone === true ? '✅ 行政留言已看過' : '⏳ 行政留言還沒看');
+          urgChips = _chip(it.adminDone === true, it.adminDone === true ? '✅ 負責同事（行政／會計）已看過' : '⏳ 負責同事（行政／會計）還沒看');
           if(it.unitName) urgChips += _chip(it.unitDone === true, it.unitDone === true ? '✅ 單位「'+escH(it.unitName)+'」已確認收到'+(it.unitAt?'（'+escH(it.unitAt)+'）':'') : '⏳ 單位「'+escH(it.unitName)+'」還沒按「我已收到」');
           if(it.closed){ bg = '#D9F0E3'; border = '#2E9E5B'; tagColor = '#1A6B3C'; lead = '✅ 已閉環（行政看過'+(it.unitName?'、單位已確認':'')+'）'; }
           else { bg = '#FFE2B8'; border = '#E8730C'; tagColor = '#8A3D00'; lead = '🚨 急件・已同時通知行政、你'+(it.unitName?'、單位':'（找不到對應的單位帳號，請行政直接聯絡）'); }
@@ -11175,6 +11201,12 @@ function loadPayrollMonth(after){
         : p.payType ? (p.payType + ' ' + money(p.payRate) + (p.payType==='時薪' ? '／小時' : p.payType==='按次' ? '／次' : '／月')) : '<span style="color:#A32D2D;font-weight:700">⚠️ 還沒設定薪資</span>';
       // 算式：門診A 8h × 500 ＝ 4,000 ＋ 一般 12h × 200 ＝ 2,400
       var formula = (p.byItem && p.byItem.length) ? p.byItem.map(function(b){ return '<span style="white-space:nowrap">'+escH(b.item)+' '+b.hours+'h × '+Math.round(b.rate).toLocaleString()+' ＝ <b>'+Math.round(b.amount).toLocaleString()+'</b></span>'; }).join(' ＋ ') : '';
+      // 2026-10-20 照顧費分攤：客人買的方案費用 ÷ 12 個月 × 秘書比例，加在這個月的薪資裡
+      if (p.careFee) {
+        var cfItems = (p.careFeeItems||[]).map(function(c){ return '<span style="white-space:nowrap">'+escH(c.clientName)+'「'+escH(c.plan)+'」'+Math.round(c.fee).toLocaleString()+'÷12'+(c.ratio<100?'×'+c.ratio+'%':'')+'（第 '+c.nth+'／12 月）＝ <b>'+Math.round(c.monthly).toLocaleString()+'</b></span>'; }).join('、');
+        formula += (formula ? ' ＋ ' : '') + '<span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:1px 6px;white-space:nowrap">🧡 照顧費分攤 <b>'+Math.round(p.careFee).toLocaleString()+'</b></span>'
+          + '<div style="font-size:10.5px;color:#92400E;margin-top:2px;line-height:1.6">'+cfItems+'</div>';
+      }
       var miss = (p.missIn ? '<span style="color:#A32D2D;font-weight:700">沒上班卡 '+p.missIn+'</span> ' : '') + (p.missOut ? '<span style="color:#8A6A1F;font-weight:700">沒下班卡 '+p.missOut+'</span>' : '') || '<span style="color:#0F6E56">—</span>';
       var inv = !p.shifts ? '—' : p.pending ? ('<span style="color:#8A6A1F;font-weight:700">待請款 '+p.pending+' 班</span>' + (p.invoiced ? '<br><span style="color:#0F6E56">已請款 '+p.invoiced+'</span>' : '')) : '<span style="color:#0F6E56;font-weight:700">✅ 已請款</span>';
       html += '<tr style="border-top:1px solid var(--border);cursor:pointer" onclick="payrollToggle('+i+')">'
@@ -12332,7 +12364,8 @@ function showGiftMenu(idx, btn){
     {t:'sprout', label:'🌱 新芽', msg:'秘書送你新芽：一小步也是進步，繼續長大 🌱'},
     {t:'leaf', label:'🍃 新葉', msg:'秘書送你新葉：秘書陪著你，不用一個人撐 🍃'},
     {t:'star', label:'⭐ 星星', msg:'秘書送你星星：這週你真的很棒，這是你應得的 ⭐'},
-    {t:'flower', label:'🌸 花朵', msg:'秘書送你花朵：謝謝你這麼用心地照顧自己 🌸'}
+    {t:'flower', label:'🌸 花朵', msg:'秘書送你花朵：謝謝你這麼用心地照顧自己 🌸'},
+    {t:'cell', label:'🫧 小細胞', msg:'小細胞來打氣：今天做一件對身體好的小事就好 🫧'}
   ];
   var menu=document.createElement('div');
   menu.id=mid;
@@ -14470,7 +14503,7 @@ function loadBalanceDeficitList(){
     if(items.length === 0){ box.innerHTML = '<div style="color:var(--g3)">✅ 目前沒有客人是負餘額</div>'; return; }
     box.innerHTML = items.map(function(it){
       return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);cursor:pointer" onclick="svJumpToClient(\''+escH(it.clientId)+'\')">'
-        + '<span style="font-size:12px;font-weight:600">'+escH(it.clientName)+'（'+escH(it.clientId)+'）</span>'
+        + '<span style="font-size:12px;font-weight:600">'+escH(it.clientName)+'（'+escH(it.clientId)+'）'+(it.hint?'<div style="font-size:11px;font-weight:400;color:var(--text3)">'+escH(it.hint)+'</div>':'')+'</span>'
         + '<span style="display:flex;gap:6px;align-items:center"><span style="font-size:13px;font-weight:700;color:#C25">-$'+Math.abs(it.balance).toLocaleString()+'</span>'
         + '<button class="ai-btn g" style="font-size:11px;padding:4px 9px;font-weight:700" onclick="event.stopPropagation();openComposeWithText(\''+escH(it.clientId)+'\',\''+escH(it.clientName)+'\',\'care\',\''+escH(it.clientName)+' 你好，跟你說一聲：儲值餘額目前是負的（-'+Math.abs(it.balance).toLocaleString()+' 元），很多人忙起來沒注意到，不是什麼大事。有空時補一下儲值，之後的檢測和服務才不會卡住；有任何疑問跟我說 🙏\')">💌 提醒補儲值</button></span>'
         + '</div>';
@@ -14492,7 +14525,9 @@ function svLoadCard(){
   adminAPI({action:'getCardBalance', clientId:cid}, function(d){
     if(!d || d.status!=='ok'){ box.innerHTML='載入失敗'; return; }
     box.innerHTML = '<div style="font-size:26px;font-weight:700;color:var(--g3)">餘額 $'+ (d.balance||0).toLocaleString() +'</div>'
-      + '<div style="font-size:12px;color:var(--text3);margin-top:4px">累計儲值 $'+(d.stored||0).toLocaleString()+'　已消費 $'+(d.used||0).toLocaleString()+'</div>';
+      + '<div style="font-size:12px;color:var(--text3);margin-top:4px">已核查儲值 $'+(d.stored||0).toLocaleString()+'　已消費 $'+(d.used||0).toLocaleString()+(d.pendingUsed>0?'（含確認中 $'+d.pendingUsed.toLocaleString()+'）':'')+'</div>'
+      + (d.pendingStored>0?'<div style="font-size:12px;color:#B45309;margin-top:2px">另有 $'+d.pendingStored.toLocaleString()+' 儲值待核查，核查後餘額會變成 $'+((d.balance||0)+d.pendingStored).toLocaleString()+'</div>':'')
+      + '<div style="font-size:11px;color:var(--text3);margin-top:2px">餘額算法全系統一致：已核查儲值 − 未退回的消費（含店家剛扣、會計還沒核查的）</div>';
     // 消费明细
     if(d.records && d.records.length){
       var html = '<div style="font-weight:700;font-size:12px;margin-bottom:6px">消費明細</div><table style="width:100%;font-size:12px;border-collapse:collapse">';
@@ -15118,7 +15153,7 @@ function applyPermissions(){
   document.body.setAttribute('data-role', roleDisplayName(CURRENT_USER.role));
   var tbT = document.getElementById('page-title');
   if(tbT && !document.getElementById('role-chip')){
-    var chipColors = {'管理人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C'],'醫師':['#E6F0FA','#154C79'],'教練':['#FFF1E6','#8A4B12']};
+    var chipColors = {'管理人':['#E1F5EE','#085041'],'秘書':['#DFF3F7','#0E5A6D'],'行政':['#EEEDFE','#3C3489'],'會計':['#FAEEDA','#633806'],'財務主管':['#E3F3E8','#1A6B3C'],'醫師':['#E6F0FA','#154C79'],'教練':['#FFF1E6','#8A4B12'],'主廚':['#FDE8E8','#8B2C2C']};
     var cc = chipColors[roleDisplayName(CURRENT_USER.role)] || chipColors['管理人'];
     var rc = document.createElement('span');
     rc.id = 'role-chip';
@@ -15148,6 +15183,7 @@ function applyPermissions(){
     if (_otherRolesFE.indexOf('專業秘書') >= 0) roleDescArr.push('甜蜜點分析（額外）');
     if (_otherRolesFE.indexOf('財務主管') >= 0) roleDescArr.push('財務主管權限（額外）');
     if (_otherRolesFE.indexOf('行政') >= 0) roleDescArr.push('好物/補充品定價（額外）');
+    if (_otherRolesFE.indexOf('主廚') >= 0) roleDescArr.push('主廚：料理包／雞湯詢問（額外）');
     if (roleDescArr && roleDescArr.length) {
       var rd = document.createElement('div');
       rd.id = 'role-desc-note';

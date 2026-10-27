@@ -840,8 +840,8 @@ window.openHealthForm = function() {
     
 <div class="sec" id="elec-section"><i class="ti ti-salt" style="font-size:13px"></i>電解質補充</div>
     <div class="chips">
-      <div class="chip on" onclick="this.classList.toggle('on')">鹽</div>
-      <div class="chip on" onclick="this.classList.toggle('on')">鎂</div>
+      <div class="chip" onclick="this.classList.toggle('on')">鹽</div>
+      <div class="chip" onclick="this.classList.toggle('on')">鎂</div>
       <div class="chip" onclick="this.classList.toggle('on')">鉀</div>
       <div class="chip" onclick="this.classList.toggle('on')">鈣</div>
       <div class="chip" onclick="this.classList.toggle('on')">電解質粉</div>
@@ -1659,7 +1659,7 @@ window.openHealthForm = function() {
       <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px;margin-bottom:14px">
         <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">🎂 出生年月日</div>
         <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.6">抽血檢測需要，跟現場紙本表格一樣要填寫</div>
-        <input type="date" id="bk-birthdate" min="1900-01-01" max="" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:10px 12px;font-size:15px;color:var(--text);background:var(--card);outline:none;box-sizing:border-box" oninput="_bkBirthDate=this.value; var w=document.getElementById('bk-birthdate-warn'); if(w) w.style.display='none';">
+        <input type="date" id="bk-birthdate" min="1900-01-01" max="" style="width:100%;border:1px solid var(--border2);border-radius:9px;padding:10px 12px;font-size:15px;color:var(--text);background:var(--card);outline:none;box-sizing:border-box" oninput="_bkBirthDate=this.value; this.setAttribute('data-touched','1'); var w=document.getElementById('bk-birthdate-warn'); if(w) w.style.display='none';">
         <div id="bk-birthdate-warn" style="display:none;font-size:10.5px;color:#A32D2D;margin-top:6px">⚠️ 請填寫出生年月日，檢測診所需要核對</div>
       </div>
 
@@ -1810,10 +1810,7 @@ window.openHealthForm = function() {
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">選擇檢測時間</div>
       <div style="font-size:11px;color:var(--text2);margin-bottom:12px" id="bk-step4-summary">瑞絲得診所・新竹・IRCT-t2・空腹8-10小時</div>
       <div id="bk-time-list" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px">
-        <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/18（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
-        <div onclick="bkSelTime(this)" style="border:1.5px solid var(--g);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;background:var(--g2)"><div style="font-size:12px;font-weight:700;color:var(--g3);margin-bottom:2px">06/21（六）</div><div style="font-size:11px;color:var(--g3)">08:30–10:30</div></div>
-        <div onclick="bkSelTime(this)" style="border:1px solid var(--border2);border-radius:10px;padding:10px 11px;text-align:center;cursor:pointer;transition:all .13s;background:var(--card)"><div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">06/25（三）</div><div style="font-size:11px;color:var(--text2)">09:00–11:00</div></div>
-        <div style="border:1px solid var(--border);border-radius:10px;padding:10px 11px;text-align:center;background:var(--bg);opacity:.5"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px">06/28（六）</div><div style="font-size:11px;color:var(--r3)">已滿</div></div>
+        <div style="grid-column:1/-1;border:1px dashed var(--border2);border-radius:10px;padding:12px;text-align:center;background:var(--bg);font-size:12px;color:var(--text2);line-height:1.7">目前沒有可以直接點選的時段<br>直接按「確認預約」，秘書會用 LINE 跟你約日期和時間 😊</div>
       </div>
       <div style="background:var(--a2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--a3);line-height:1.6;margin-bottom:11px"><strong>注意：</strong>檢測前請空腹 8-10 小時（建議不超過12小時），空腹期間可喝水但總量勿超過200cc，詳見上一步「檢測前注意事項」。</div>
       <div style="display:flex;gap:8px">
@@ -2743,9 +2740,18 @@ function bkGoStep2(){
 function bkGoStep3(){
   var bdInput = document.getElementById('bk-birthdate');
   var bdVal = bdInput ? bdInput.value : '';
+  // 預設帶出的 1990-01-01 只是讓日期選擇器少滑一點，客人如果沒動過就按下一步，會把「假生日」存進去
+  // （後端還會回填客人名單的生日，之後每年 1/1 生日祝福就送錯人）——沒動過就攔一次請他確認
+  if (bdVal === '1990-01-01' && bdInput && !bdInput.getAttribute('data-touched')) {
+    bdInput.setAttribute('data-touched', '1'); // 提醒過一次，之後再按下一步就放行（真的 1990/1/1 出生的人也能繼續）
+    var bdWarn0 = document.getElementById('bk-birthdate-warn');
+    if (bdWarn0) { bdWarn0.textContent = '⚠️ 請確認出生年月日是否正確（目前顯示的是預設值），確認無誤再按一次「下一步」'; bdWarn0.style.display = 'block'; }
+    bdInput.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   if (!bdVal) {
     var bdWarn = document.getElementById('bk-birthdate-warn');
-    if (bdWarn) bdWarn.style.display = 'block';
+    if (bdWarn) { bdWarn.textContent = '⚠️ 請填寫出生年月日，檢測診所需要核對'; bdWarn.style.display = 'block'; }
     if (bdInput) { bdInput.focus(); bdInput.scrollIntoView({behavior:'smooth', block:'center'}); }
     return;
   }
@@ -2817,11 +2823,21 @@ function bkGoStep5(){
   var planNames = {t1:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t1.toLocaleString(), t2:'IRCT 動態胰島素檢測・NT$'+_irctPricingClient.t2.toLocaleString()};
   var planSummary = planNames[_bkType] || planNames['t2'];
 
-  var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][style*="var(--g2)"]');
+  var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][data-sel="1"]');
   var timeText = timeEl ? timeEl.textContent.trim() : '';
+  // 有列出可選時段、客人卻沒點任何一個就按「確認預約」→ 退回去請他選（以前會默默送出一筆沒有時間的預約）
+  if (!timeEl && document.querySelector('#bk-step4 [onclick="bkSelTime(this)"]')) {
+    document.getElementById('bk-step5').style.display='none';
+    document.getElementById('bk-step4').style.display='block';
+    bkSetStep(4);
+    toast('請先點選一個想要的時段喔 🕐');
+    return;
+  }
 
-  var dietNames = {1:'🍞 混合飲食（碳水 50%）',2:'🥑 粒線體飲食（碳水 5%，脂肪 70%）',3:'🥩 低碳飲食',4:'🌾 一般均衡飲食',5:'🥗 其他飲食模式'};
-  var dietSummary = dietNames[bkDiet] || dietNames[2];
+  // 編號必須跟畫面上五張卡片一致：1 混合、2 低碳、3 粒線體（預設）、4 高纖低脂、5 高碳水。
+  // （原本這張表是另一套編號，客人選「粒線體」會被存成「低碳飲食」，選「低碳」會被存成「粒線體」）
+  var dietNames = {1:'🍞 混合飲食（碳水 50%）',2:'🥗 低碳飲食（碳水 30%）',3:'🥑 粒線體飲食（碳水 5%，脂肪 70%）',4:'🥦 高纖低脂飲食',5:'🍰 高碳水飲食'};
+  var dietSummary = dietNames[bkDiet] || dietNames[3];
 
   // 更新確認畫面文字
   var greetEl = document.getElementById('bk-confirm-greet');
@@ -2829,7 +2845,8 @@ function bkGoStep5(){
   var summaryEl = document.getElementById('bk-confirm-summary');
   var locationEl = document.getElementById('bk-confirm-location');
   var dietEl = document.getElementById('bk-confirm-diet');
-  if (greetEl) greetEl.textContent = (CLIENT_NAME ? CLIENT_NAME + '，您已經成功預約囉！' : '預約成功！');
+  _bkLineSent = false; (function(){ var e1=document.getElementById('bk-confirm-error'), o1=document.getElementById('bk-confirm-ok-hint'); if(e1) e1.style.display='none'; if(o1) o1.style.display='none'; })();
+  if (greetEl) greetEl.textContent = '預約送出中…'; // 等後端真的回覆「ok」才改成成功（bkSubmitBooking），不要還沒存好就先說成功
   if (bannerEl) bannerEl.textContent = timeText + (timeText ? '・' : '') + locText;
   if (summaryEl) summaryEl.textContent = planSummary;
   if (locationEl) locationEl.textContent = locText + (timeText ? '・' + timeText : '');
@@ -2852,7 +2869,7 @@ function bkGoStep5(){
   // 2026-09-09補：把送出用的參數存起來，失敗時「再送一次」不用叫客人重填一次表單
   _bkLastSubmitParams = {
     action: 'addBooking', clientId: CLIENT_ID,
-    clinic: locText, time: timeText, diet: dietSummary, medications: medications, planType: _bkType, exerciseFreq: _bkExercise,
+    clinic: locText, time: timeText, diet: dietSummary + (((document.getElementById('bk-diet-note') || {}).value || '').trim() ? '｜補充：' + document.getElementById('bk-diet-note').value.trim() : ''), medications: medications, planType: _bkType, exerciseFreq: _bkExercise,
     fatigueLevel: _bkState.fatigue, stressLevel: _bkState.stress, longTermDiet: _bkState.ltdiet, smokingHabit: _bkState.smoke,
     dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || '',
     birthDate: _bkBirthDate || ''
@@ -2861,6 +2878,7 @@ function bkGoStep5(){
 }
 var _bkLastSubmitParams = null;
 var _bkSubmitSaving = false; // 2026-09-09補：防止「再送一次」被連點兩下，產生重複的預約記錄
+var _bkLineSent = false;
 function bkSubmitBooking(){
   if (!_bkLastSubmitParams) return;
   if (_bkSubmitSaving) return;
@@ -2871,6 +2889,9 @@ function bkSubmitBooking(){
       var errEl = document.getElementById('bk-confirm-error'), okEl = document.getElementById('bk-confirm-ok-hint');
       if (errEl) errEl.style.display = 'none';
       if (okEl) okEl.style.display = '';
+      var greetOk = document.getElementById('bk-confirm-greet');
+      if (greetOk) greetOk.textContent = (CLIENT_NAME ? CLIENT_NAME + '，您已經成功預約囉！' : '預約成功！');
+      if (!_bkLineSent) { _bkLineSent = true; try { sendBookingLineMsg(_bkLastSubmitParams.clinic, _bkLastSubmitParams.time); } catch (eLm) {} } // 新流程原本漏了這一步：提示寫「已幫你傳訊息給秘書」但其實沒傳
       callAPI({
         action: 'addNote', clientId: CLIENT_ID,
         content: 'reportStatus:booked',
@@ -2884,6 +2905,7 @@ function bkSubmitBooking(){
       var errEl2 = document.getElementById('bk-confirm-error'), okEl2 = document.getElementById('bk-confirm-ok-hint');
       if (errEl2) errEl2.style.display = '';
       if (okEl2) okEl2.style.display = 'none';
+      var greetErr = document.getElementById('bk-confirm-greet'); if (greetErr) greetErr.textContent = '預約還沒送出成功';
     }
   });
 }
@@ -3034,9 +3056,10 @@ function bkSelLoc(n){
 function bkSelTime(el){
   document.querySelectorAll('#bk-step4 [onclick="bkSelTime(this)"]').forEach(function(t){
     t.style.border='1px solid var(--border2)';t.style.background='var(--card)';
+    t.removeAttribute('data-sel');
     t.querySelector('div').style.color='var(--text)';
   });
-  el.style.border='1.5px solid var(--g)';el.style.background='var(--g2)';
+  el.style.border='1.5px solid var(--g)';el.style.background='var(--g2)';el.setAttribute('data-sel','1');
 }
 function toggleTask(el){
   var box=el.querySelector('.t-box'),txt=el.querySelector('.t-txt'),on=box.classList.contains('on');
@@ -3369,10 +3392,12 @@ function applyGenderDefaults(gender) {
   var wSlider = document.getElementById('w-slider');
   var waistInp = document.getElementById('waist-inp');
   var waistSlider = document.getElementById('waist-slider');
-  if (wInp) wInp.value = d.weight;
-  if (wSlider) wSlider.value = d.weight;
-  if (waistInp) waistInp.value = d.waist;
-  if (waistSlider) waistSlider.value = d.waist;
+  // 只移動滑桿的起點、輸入框顯示參考值（placeholder）——不能直接把數字填進輸入框，
+  // 否則客人沒量體重就按儲存，會把「70 公斤」當成真的記錄存進去，污染體重曲線和統計。
+  if (wInp && !wInp.value) wInp.placeholder = '體重 kg（參考 ' + d.weight + '）';
+  if (wSlider && !(wInp && wInp.value)) wSlider.value = d.weight;
+  if (waistInp && !waistInp.value) waistInp.placeholder = '腰圍 cm（選填，參考 ' + d.waist + '）';
+  if (waistSlider && !(waistInp && waistInp.value)) waistSlider.value = d.waist;
 }
 
 function selectGender(gender) {
@@ -3874,12 +3899,14 @@ function loadIRCTOverview(){
         + '</div>';
       return;
     }
-    var st = IRCT_CLASS_STYLE[d.overall.classification] || {color:'#374151', bg:'#F5F7FA', border:'#E5E7EB', emoji:'📊'};
+    // 2026-10-23 創辦人：客人端不顯示阻抗程度／體質／代謝分型等判讀（收回後台，由醫師或秘書講解），這裡只放檢測次數與日期
+    var ov = d.overall || {};
+    var st = IRCT_CLASS_STYLE[ov.classification] || {color:'#374151', bg:'#F5F7FA', border:'#E5E7EB', emoji:'📊'};
     var html = '<div style="background:'+st.bg+';border:1px solid '+st.border+';border-radius:13px;padding:14px;margin-bottom:14px">'
       + '<div style="font-size:13px;font-weight:700;color:'+st.color+';margin-bottom:7px;display:flex;align-items:center;gap:7px">'
       + '<span style="font-size:20px">'+st.emoji+'</span>第 '+escHtml(d.count)+' 次檢測・'+escHtml(d.testDate)+'</div>'
-      + (d.overall.classification ? '<div style="font-size:14px;font-weight:700;color:'+st.color+';margin-bottom:8px">'+escHtml(d.overall.classification)+'</div>' : '')
-      + '<div style="font-size:12px;line-height:1.9;color:'+st.color+'">'+escHtml(d.overall.note||'數值不足，無法計算')+'</div>'
+      + (ov.classification ? '<div style="font-size:14px;font-weight:700;color:'+st.color+';margin-bottom:8px">'+escHtml(ov.classification)+'</div>' : '')
+      + '<div style="font-size:12px;line-height:1.9;color:'+st.color+'">'+escHtml(ov.note||'完整數值在下方「我的 IRCT 數值」；這次檢測代表什麼，健康秘書或醫師會在講解時跟你說明 😊')+'</div>'
       + '</div>';
     if(d.specialCase){
       html += '<div style="background:#F5F7FA;border:1px solid #E5E7EB;border-radius:13px;padding:14px;margin-bottom:14px;text-align:center">'
@@ -3912,6 +3939,7 @@ function loadIRCTOverview(){
             + '</div>' : '')
         + '</div>';
     }
+    // 2026-10-23 創辦人：型態白話解讀只給後台醫師／秘書，不顯示給客人（醫療法考量）；後端也不回傳 pattern
     if(d.metabolicType){
       html += '<div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:13px;padding:14px;margin-bottom:14px">'
         + '<div style="font-size:12px;font-weight:700;color:#4338CA;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">代謝分型</div>'
@@ -4397,6 +4425,8 @@ function mxSwitchAccount(){
       // 「請重新輸入客人編號與姓名完成登入（系統已升級安全驗證機制）」的紅字，讓測試的人以為出錯了。
       // 憑證一起清掉，換身分就是乾淨的從頭登入。正式 LINE 客人不會帶 switchtest=1，完全不受影響。
       localStorage.removeItem('mx_client_token');
+      // 上一位客人的訊息收件匣／禮物已讀位置也要清，不然換帳號後會看到別人的訊息、或收不到新禮物提醒
+      ['mx_msg_inbox','mx_gift_lastrow','mx_sat_snooze'].forEach(function(k){ localStorage.removeItem(k); });
       _mxForceManualLogin = true;
       var _cleanUrl = location.pathname + location.search.replace(/[?&]switchtest=1/, '').replace(/^&/, '?') + location.hash;
       history.replaceState(null, '', _cleanUrl);
@@ -4463,6 +4493,8 @@ function mxHideLogin(){
 }
 function mxSetIdentity(cid, cname, ctoken){
   try {
+    var _prevCid = localStorage.getItem('mx_client_id');
+    if (_prevCid && _prevCid !== cid) ['mx_msg_inbox','mx_gift_lastrow','mx_sat_snooze'].forEach(function(k){ localStorage.removeItem(k); }); // 換了人：不留上一位的本機資料
     localStorage.setItem('mx_client_id', cid);
     localStorage.setItem('mx_client_name', cname || '');
     if (ctoken) localStorage.setItem('mx_client_token', ctoken);
@@ -4770,8 +4802,10 @@ function submitDailyRecord() {
   // 2026-09-14新增：血糖，開放所有客人填（不限碳水回補期）——很多糖尿病客人天天都要測血糖、血酮
   var glucoseVal = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
   if(glucoseVal && (Number(glucoseVal) <= 0 || Number(glucoseVal) > 600)){ toast('血糖數值看起來不太合理，麻煩再確認一下'); return; }
-  var f = []; document.querySelectorAll('.chip.on').forEach(function(c) { f.push(c.textContent); });
-  var e = []; document.querySelectorAll('.t-box.on').forEach(function(c) { e.push(c.textContent); });
+  // 只收「今日體感」「電解質補充」這兩區自己的選項。原本是整頁所有 .chip.on / .t-box.on 都收，
+  // 會把「傍晚晚餐前」這種時間選項當成體感、把花園任務的勾勾當成電解質，寫進秘書看到的記錄裡。
+  var f = []; document.querySelectorAll('#feeling-section + .chips .chip.on').forEach(function(c) { f.push(c.textContent); });
+  var e = []; document.querySelectorAll('#elec-section + .chips .chip.on').forEach(function(c) { e.push(c.textContent); });
   toast('⏳ 儲存中...');
   var waist_val = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
   // 2026-08-12修正：運動狀態原本只有碳水計畫客人才會收集，但要能分析「運動甜蜜點」需要所有客人的運動記錄，
@@ -4936,7 +4970,7 @@ function submitBooking(clinic, time, diet) {
     action: 'addBooking', clientId: CLIENT_ID,
     clinic: clinic, time: time, diet: diet
   }, function(d) {
-    if (d.status === 'ok') {
+    if (d && d.status === 'ok') {
       toast('✅ 預約完成！已自動設定 8 週後複檢提醒 📅');
       sendBookingLineMsg(clinic, time);
       // 本地端立即記住狀態（不等API查詢結果）
@@ -4960,7 +4994,7 @@ function sendBookingLineMsg(clinic, time) {
   var msg = '我是 ' + (CLIENT_NAME || '') + '（編號 ' + (CLIENT_ID || '') + '），剛剛預約了 ' + (clinic || '') + ' 的 IRCT 檢測，希望時段：' + (time || '') + '。請秘書與我確認實際檢測日期，謝謝！';
   function fallback() {
     // LIFF不在聊天室環境開啟時無法代傳：把訊息複製起來，請客人自己貼到官方帳號聊天室
-    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg); } catch(e) {}
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { var _cp = navigator.clipboard.writeText(msg); if (_cp && _cp.catch) _cp.catch(function(){}); } } catch(e) {}
     toast('💬 請回到「元代謝」官方帳號聊天室，貼上剛複製的訊息（或隨意傳一句話），秘書才找得到你唷');
   }
   try {
@@ -5193,7 +5227,7 @@ function askGoodsBuy(i){
   if (!p) return;
   var qty = prompt('要代購「' + p.name + '」幾份？', '1');
   if (qty === null) return;
-  qty = String(parseInt(qty, 10) || 1);
+  qty = String(Math.min(99, Math.max(1, parseInt(qty, 10) || 1))); // 不能是負數或 0（以前輸入 -3 會變成代購 -3 份）
   submitPurchase(p.name, qty, p.category || '', p.price || '', '');
 }
 
@@ -5265,7 +5299,7 @@ function askProxyBuy(i){
   if (!s) return;
   var qty = prompt('要代購「' + s.name + '」幾份？', '1');
   if (qty === null) return;
-  qty = String(parseInt(qty, 10) || 1);
+  qty = String(Math.min(99, Math.max(1, parseInt(qty, 10) || 1))); // 不能是負數或 0（以前輸入 -3 會變成代購 -3 份）
   submitPurchase(s.name, qty, s.shop1Name || s.brand1 || '', s.price || '', '');
 }
 
@@ -5410,7 +5444,8 @@ function renderMatrix(){
   // 2026-08-19創始人更正：直向「阻抗程度」是根據這位客人最新一次真實IRCT數值定位；
   // 橫向「受體體質」目前沒有真實判定依據可用，先不對客人宣稱這是「自動定位」——
   // 格子改成只能點開看說明，不能再點擊改變「目前位置」的判定
-  var html='<div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5">阻抗程度已依你最新一次IRCT數值定位・點格子可查看各分型說明</div>';
+  var haveReal = (typeof _matrixLoaded !== 'undefined') && _matrixLoaded; // 還沒拿到真實數值時，不能亮「你在這裡」的綠點（預設數值是假的）
+  var html='<div style="font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5">'+(haveReal?'阻抗程度已依你最新一次IRCT數值定位・點格子可查看各分型說明':'還沒有你的 IRCT 數值，完成檢測後這裡會標出你的位置・可以先點格子看各分型說明')+'</div>';
   html+='<div style="display:grid;grid-template-columns:70px repeat(3,1fr) 98px;gap:3px;font-size:12px">';
   html+='<div></div>';
   for(var c=0;c<3;c++){
@@ -5423,7 +5458,7 @@ function renderMatrix(){
     html+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5px 3px;border-radius:8px;background:'+rl.bg+';gap:2px"><div style="font-weight:500;color:'+rl.color+'">'+rl.name+'</div><div style="font-size:11px;opacity:.75;color:'+rl.color+'">'+rl.range+'</div></div>';
     for(var c=0;c<3;c++){
       var d=MATRIX_DATA[r][c];
-      var isActive=(r===row&&c===col);
+      var isActive=(haveReal&&r===row&&c===col);
       html+='<div style="padding:6px 5px;border-radius:8px;cursor:pointer;transition:all .15s;border:'+(isActive?'2px':'0.5px')+' solid '+MATRIX_ROW_CELL_BORDER[r]+';background:'+MATRIX_ROW_CELL_BG[r]+';position:relative;min-height:68px;display:flex;flex-direction:column;gap:2px" onclick="showMatrixDetail('+r+','+c+')">';
       html+='<div style="font-size:12px;font-weight:500;color:'+rl.color+';line-height:1.3">'+d.name+'</div>';
       if(isActive)html+='<div style="position:absolute;top:4px;right:4px;width:9px;height:9px;border-radius:50%;background:#1D9E75"></div>';
@@ -5433,7 +5468,7 @@ function renderMatrix(){
   }
   html+='</div>';
   html+='<div style="display:flex;gap:8px;margin-top:6px;align-items:center"><div style="width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0"></div><div style="font-size:12px;color:var(--text3)">綠點 = 你目前的位置（阻抗程度）</div></div>';
-  html+=renderMatrixDetail(row,col);
+  if(haveReal) html+=renderMatrixDetail(row,col);
   container.innerHTML=html;
 }
 
@@ -5480,7 +5515,7 @@ function loadBodCompositionTab(){
     renderCell('itc-bod-bmi-v', first.bmi, latest.bmi, '', true);
   });
 }
-var _matrixLoaded = false;
+var _matrixLoaded = false; // 有拿到這位客人的真實 IRCT 數值才算 true
 function showMatrixTab(){
   if(_matrixLoaded){ renderMatrix(); return; } // 這次進報告頁只需要抓一次真實數值
   renderMatrix(); // 先用預設值畫一次避免空白，等真實資料回來再重畫
@@ -6213,7 +6248,12 @@ function quickSave(type) {
   // 不用逼客人一定要按血糖自己的「儲存」鈕才存得到
   var glucose = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
   var e = [];
-  document.querySelectorAll('.chip.on').forEach(function(c) { e.push(c.textContent); });
+  document.querySelectorAll('#elec-section + .chips .chip.on').forEach(function(c) { e.push(c.textContent); }); // 只收電解質區的選項（原本整頁的 .chip.on 都收）
+  // 數值合理範圍檢查（跟「儲存今日記錄」同一套）：手滑多打一個 0（例如血酮 55）不要直接存進去
+  if ((type === 'ketone' && k && (Number(k) < 0 || Number(k) > 10)) || (type === 'weight' && w && (Number(w) <= 0 || Number(w) > 300)) ||
+      (type === 'waist' && waist && (Number(waist) <= 0 || Number(waist) > 200)) || (type === 'glucose' && glucose && (Number(glucose) <= 0 || Number(glucose) > 600))) {
+    toast('這個數值看起來不太合理，麻煩再確認一下'); return;
+  }
 
   if (type === 'meal') {
     if (!_mealSel.meal) { toast('先選一下這是哪一餐喔 🕐'); return; }
@@ -6375,7 +6415,7 @@ function quickSave(type) {
 
   } else if (type === 'feeling') {
     var feelingChips = [];
-    document.querySelectorAll('#feeling-section ~ .chips .chip.on').forEach(function(c) { feelingChips.push(c.textContent); });
+    document.querySelectorAll('#feeling-section + .chips .chip.on').forEach(function(c) { feelingChips.push(c.textContent); });
     if (feelingChips.length === 0) { toast('請先選擇今日體感'); return; }
     // 立刻更新UI
     gsTasks[4] = true;
@@ -7113,6 +7153,12 @@ var giftConfigs = {
   // 其實都有寫，只有showGift用的這份漏掉，所以才會是「有的禮物看得到、有的看不到」而不是全部都壞掉。
   // 顏色沿用gsGift裡已經在用的新芽/新葉配色，效果比照星星/花朵用飄浮小圖示，不依賴花園頁才有的DOM元素，
   // 不管客人現在在哪一頁，訊息匣點「重看」都能正常顯示。
+  // 2026-10-20 創辦人：「每天主動發各種星星或小動畫給客人」——粉專吉祥物「小細胞」進 APP：右下角跳出來、嘴巴一開一合說話，幾秒後自己走掉
+  cell: {
+    icon: '🫧', title: '小細胞來打氣',
+    bg: '#FFF7ED', border: '#FED7AA', color: '#9A3412',
+    fx: function() { try { mxCellPop(); } catch(e){} }
+  },
   sprout: {
     icon: '🌱', title: '新芽',
     bg: '#F0FDF4', border: '#BBF7D0', color: '#166534',
@@ -7201,12 +7247,14 @@ function showGift(type, msg) {
   if (giftArea) giftArea.style.display = 'block';
   if (noGiftArea) noGiftArea.style.display = 'none';
   if (giftCard) { giftCard.style.background = cfg.bg; giftCard.style.border = '1px solid ' + cfg.border; }
-  if (giftIcon) giftIcon.textContent = cfg.icon;
+  var faceSvg = (typeof mxFaceSvg === 'function') ? mxFaceSvg(type, 34) : '';
+  if (giftIcon) { if (faceSvg) giftIcon.innerHTML = faceSvg; else giftIcon.textContent = cfg.icon; }
   if (giftTitle) { giftTitle.textContent = cfg.title; giftTitle.style.color = cfg.color; }
   if (giftMsg) { giftMsg.textContent = msg || '秘書送你' + cfg.title + '！'; }
   
-  // 觸發視覺效果
-  cfg.fx();
+  // 觸發視覺效果（2026-10-20：星星／花朵／新芽／新葉／陽光／雨滴改成會眨眼的小臉飄上去）
+  if (faceSvg && typeof mxFaceBurst === 'function') { mxFaceBurst(type, type === 'star' || type === 'flower' ? 12 : 9); if (type === 'sun' || type === 'rain') { try { cfg.fx(); } catch(e){} } }
+  else cfg.fx();
 }
 
 // ══════ 🌱 主動跟秘書要小禮物（2026-09-11新增，管理人指示：原本「今天還沒有收到秘書的禮物」
@@ -7278,7 +7326,7 @@ function _msgUnread(){
 // 禮物類型 → 訊息匣標籤（2026-08-30 她的回饋「為什麼沒有看到秘書給我的雨水或陽光」：
 // 動畫只在收到當下的花園頁出現，人在別頁就錯過了，訊息匣又只存文字——現在禮物跟著訊息一起存，
 // 每則訊息都看得到附了什麼禮物，點標籤隨時重看動畫）
-var GIFT_LABELS = { sunshine:'☀️ 陽光', rain:'🌧 雨水', sprout:'🌱 新芽', leaf:'🍃 新葉', star:'⭐ 星星', flower:'🌸 花朵' };
+var GIFT_LABELS = { sunshine:'☀️ 陽光', rain:'🌧 雨水', sprout:'🌱 新芽', leaf:'🍃 新葉', star:'⭐ 星星', flower:'🌸 花朵', cell:'🫧 小細胞' };
 // who='c' 表示這是客人自己傳出去的訊息（不是秘書傳進來的），不用計入未讀數，畫面上也用不同樣式顯示
 function addToMsgInbox(text, gtype, who){
   if (!text) return;
@@ -7377,7 +7425,7 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(updateBellD
 function replayGift(i){
   var it = _msgInbox()[i];
   if (!it || !it.g) return;
-  var keyMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower' };
+  var keyMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower', cell:'cell' };
   var key = keyMap[it.g];
   if (!key) return;
   markOneMsgRead(i);
@@ -7388,11 +7436,12 @@ function replayGift(i){
   }, 350);
 }
 function checkGifts() {
+  if (!CLIENT_ID || !CLIENT_TOKEN) return; // 還沒登入就先不查（以前會用空憑證打後端，登入頁先跳一句紅字「系統已升級安全驗證機制」）
   // 2026-08-30：改用 peek 模式——只查看、不標記已讀（點開秘書互動才標記），
   // 這樣手機和電腦都會亮紅點，不會被先開的那台搶走。用列號去重，同一則不會重複跳
   callAPI({action:'getGift', clientId:CLIENT_ID, peek:1}, function(d) {
     if (d.status === 'ok' && d.gifts && d.gifts.length > 0) {
-      var giftMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower' };
+      var giftMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower', cell:'cell' };
       var shown = false;
       var lastRow = 0;
       try { lastRow = parseInt(localStorage.getItem('mx_gift_lastrow') || '0', 10) || 0; } catch(e){}
@@ -7408,6 +7457,7 @@ function checkGifts() {
         // 的實作，所以兩個都要跑：gsGift負責畫面特效，showGift負責把留言真的顯示出來。
         if (key && typeof gsGift === 'function') { try { gsGift(key); } catch(e){} } // flower只有禮物卡動畫、沒有花園特效，不能讓它中斷後面的顯示
         if (key && typeof showGift === 'function') { showGift(key, g.message); shown = true; }
+        if (key === 'cell') { try { mxCellPop(String(g.message || '').replace(/^[^：]{0,12}：/, '').slice(0, 90)); } catch(e){} }
         if (g.giftType === 'message' && g.message) {
           toast('💌 ' + g.message);
           shown = true;
@@ -8911,6 +8961,7 @@ function mealPick(el){
 
 // ══════ 花園活力（真實記錄反映，溫和版）══════
 function loadGardenHealth(){
+  if (!CLIENT_ID || !CLIENT_TOKEN) return; // 還沒登入就先不查（以前會用空憑證打後端，登入頁先跳一句紅字「系統已升級安全驗證機制」）
   callAPI({action:'getGardenHealth', clientId: CLIENT_ID}, function(d){
     var s1=document.getElementById('streak-day-1'), s2=document.getElementById('streak-day-2');
     // 2026-09-13補：這裡原本失敗（連線失敗、登入驗證沒過等）就直接return，畫面上初始寫死的
@@ -9515,6 +9566,7 @@ function renderCombinedTrendChart(last7Days){
 // 並在下面補齊所有任務完成時都呼叫syncGardenTask()，兩邊修好整個機制才會一致
 var GS_TASK_NAMES = ['血酮記錄','體重腰圍','飲食記錄','補電解質','今日體感','早睡11點前','今日心情']; // 對應 gsTasks[0..6]
 function loadTodayGarden(){
+  if (!CLIENT_ID || !CLIENT_TOKEN) return; // 還沒登入就先不查（以前會用空憑證打後端，登入頁先跳一句紅字「系統已升級安全驗證機制」）
   callAPI({action:'getTodayGardenTasks', clientId: CLIENT_ID}, function(d){
     if(!d || d.status!=='ok') return;
     var done = d.doneTasks || [];
@@ -9718,12 +9770,14 @@ function bkGenerateDates(pattern, count){
 }
 function bkRenderTimes(){
   var box = document.getElementById('bk-time-list');
-  if(!box || !_bkSlots || _bkSlots.length===0) return;
+  if(!box) return;
+  var _bkNoSlotHtml = '<div style="grid-column:1/-1;border:1px dashed var(--border2);border-radius:10px;padding:12px;text-align:center;background:var(--bg);font-size:12px;color:var(--text2);line-height:1.7">目前沒有可以直接點選的時段<br>直接按「確認預約」，秘書會用 LINE 跟你約日期和時間 😊</div>';
+  if(!_bkSlots || _bkSlots.length===0){ box.innerHTML = _bkNoSlotHtml; return; }
   // 找選中的診所
   var sel = document.getElementById('bk-loc'+(bkLocSelected||1));
   var clinicName = sel ? sel.getAttribute('data-clinic') : null;
   var times = _bkSlots.filter(function(s){ return !clinicName || s.clinic===clinicName; });
-  if(times.length===0) return;
+  if(times.length===0){ box.innerHTML = _bkNoSlotHtml; return; } // 換成沒有時段的診所時，不要還留著上一家的時段
   var weekdayNames=['日','一','二','三','四','五','六'];
   var cards = [];
   times.forEach(function(s){
@@ -9750,9 +9804,79 @@ function bkRenderTimes(){
 }
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 
+// ══ 🫧 小細胞吉祥物（2026-10-20）：跟粉專影片右下角那顆一樣，嘴巴會一開一合 ══
+// ══ 2026-10-20 創辦人：「星星、小花什麼的，可以有眼睛會眨眼嗎」——星星／花朵／新芽／新葉／陽光／雨滴都畫成有眼睛會眨、會微笑的小臉 ══
+function mxFaceSvg(type, size){
+  size = size || 36;
+  var body = {
+    star:   '<path d="M50 6 L61 38 L95 38 L68 58 L78 92 L50 72 L22 92 L32 58 L5 38 L39 38 Z" fill="#FDE047" stroke="#F59E0B" stroke-width="3" stroke-linejoin="round"/>',
+    flower: '<g fill="#F9A8D4" stroke="#EC4899" stroke-width="2.5"><circle cx="50" cy="18" r="15"/><circle cx="80" cy="40" r="15"/><circle cx="70" cy="76" r="15"/><circle cx="30" cy="76" r="15"/><circle cx="20" cy="40" r="15"/></g><circle cx="50" cy="52" r="24" fill="#FDE68A" stroke="#F59E0B" stroke-width="2.5"/>',
+    sprout: '<path d="M50 95 L50 55" stroke="#16A34A" stroke-width="5" stroke-linecap="round"/><path d="M50 60 C30 60 18 45 20 25 C40 25 52 40 50 60 Z" fill="#4ADE80" stroke="#16A34A" stroke-width="2.5"/><path d="M50 50 C70 50 82 35 80 15 C60 15 48 30 50 50 Z" fill="#86EFAC" stroke="#16A34A" stroke-width="2.5"/><circle cx="50" cy="50" r="22" fill="#BBF7D0" stroke="#16A34A" stroke-width="2.5"/>',
+    leaf:   '<path d="M15 85 C15 40 45 12 90 12 C90 58 60 88 15 85 Z" fill="#6EE7B7" stroke="#059669" stroke-width="3"/><path d="M20 82 C40 60 60 42 85 18" stroke="#059669" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    sun:    '<g stroke="#F59E0B" stroke-width="5" stroke-linecap="round"><line x1="50" y1="4" x2="50" y2="16"/><line x1="50" y1="84" x2="50" y2="96"/><line x1="4" y1="50" x2="16" y2="50"/><line x1="84" y1="50" x2="96" y2="50"/><line x1="18" y1="18" x2="26" y2="26"/><line x1="74" y1="74" x2="82" y2="82"/><line x1="18" y1="82" x2="26" y2="74"/><line x1="74" y1="26" x2="82" y2="18"/></g><circle cx="50" cy="50" r="28" fill="#FDE047" stroke="#F59E0B" stroke-width="3"/>',
+    rain:   '<path d="M50 6 C62 30 82 44 82 64 A32 32 0 0 1 18 64 C18 44 38 30 50 6 Z" fill="#93C5FD" stroke="#2563EB" stroke-width="3"/>'
+  }[type];
+  if (!body) return '';
+  var ey = (type === 'sprout' || type === 'flower') ? 50 : (type === 'rain' ? 62 : (type === 'leaf' ? 52 : 48));
+  var ex = type === 'leaf' ? 46 : 50, dx = type === 'rain' ? 9 : 11;
+  var mouthY = ey + 11;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 100" style="vertical-align:middle;overflow:visible">'
+    + body
+    + '<g class="mx-face-eyes" style="transform-origin:'+ex+'px '+ey+'px"><ellipse cx="'+(ex-dx)+'" cy="'+ey+'" rx="4.5" ry="5.5" fill="#1F2937"/><ellipse cx="'+(ex+dx)+'" cy="'+ey+'" rx="4.5" ry="5.5" fill="#1F2937"/><circle cx="'+(ex-dx+1.5)+'" cy="'+(ey-2)+'" r="1.6" fill="#fff"/><circle cx="'+(ex+dx+1.5)+'" cy="'+(ey-2)+'" r="1.6" fill="#fff"/></g>'
+    + '<circle cx="'+(ex-dx-6)+'" cy="'+(ey+6)+'" r="3.5" fill="#FB7185" opacity=".5"/><circle cx="'+(ex+dx+6)+'" cy="'+(ey+6)+'" r="3.5" fill="#FB7185" opacity=".5"/>'
+    + '<path d="M'+(ex-7)+' '+mouthY+' Q'+ex+' '+(mouthY+8)+' '+(ex+7)+' '+mouthY+'" stroke="#7C2D12" stroke-width="2.5" fill="none" stroke-linecap="round"/>'
+    + '</svg>';
+}
+(function(){ if (document.getElementById('mx-face-style')) return; var st=document.createElement('style'); st.id='mx-face-style';
+  st.textContent='.mx-face-eyes{animation:mxFaceBlink 3.2s infinite}@keyframes mxFaceBlink{0%,90%,100%{transform:scaleY(1)}94%{transform:scaleY(.08)}}@keyframes mxFaceFloat{0%{transform:translateY(0) rotate(-8deg);opacity:0}15%{opacity:1}100%{transform:translateY(-90px) rotate(8deg);opacity:0}}';
+  document.head.appendChild(st); })();
+function mxFaceBurst(type, n){
+  n = n || 9;
+  for (var i = 0; i < n; i++) {
+    (function(i){
+      setTimeout(function(){
+        var d = document.createElement('div');
+        d.innerHTML = mxFaceSvg(type, 26 + Math.round(Math.random()*18));
+        d.style.cssText = 'position:fixed;left:'+(8+Math.random()*80)+'%;top:'+(15+Math.random()*55)+'%;z-index:9999;pointer-events:none;animation:mxFaceFloat 1.9s ease-out forwards';
+        var eyes = d.querySelector('.mx-face-eyes'); if (eyes) eyes.style.animationDelay = (Math.random()*2).toFixed(1)+'s';
+        document.body.appendChild(d);
+        setTimeout(function(){ d.remove(); }, 2000);
+      }, i * 140);
+    })(i);
+  }
+}
+var _mxCellTimer = null;
+function mxCellPop(msg){
+  var old = document.getElementById('mx-cell'); if (old) old.remove();
+  if (_mxCellTimer) { clearTimeout(_mxCellTimer); _mxCellTimer = null; }
+  var el = document.createElement('div');
+  el.id = 'mx-cell';
+  el.style.cssText = 'position:fixed;right:14px;bottom:86px;z-index:9998;display:flex;align-items:flex-end;gap:8px;pointer-events:auto;transform:translateY(140px);transition:transform .5s cubic-bezier(.34,1.56,.64,1)';
+  el.innerHTML = (msg ? '<div style="max-width:200px;background:#fff;border:2px solid #FDBA74;border-radius:14px 14px 4px 14px;padding:8px 10px;font-size:13px;line-height:1.5;color:#7C2D12;box-shadow:0 6px 18px rgba(0,0,0,.12);margin-bottom:18px">'+escH(msg)+'</div>' : '')
+    + '<svg width="84" height="84" viewBox="0 0 100 100" style="filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))">'
+    + '<g id="mx-cell-body" style="transform-origin:50px 60px;animation:mxCellBounce 1.2s ease-in-out infinite">'
+    + '<path d="M50 8 C72 8 90 24 90 46 C90 62 84 74 72 82 C62 90 38 90 28 82 C16 74 10 62 10 46 C10 24 28 8 50 8 Z" fill="#FDBA74" stroke="#F97316" stroke-width="3"/>'
+    + '<circle cx="30" cy="30" r="6" fill="#FED7AA"/><circle cx="72" cy="68" r="5" fill="#FED7AA"/><circle cx="24" cy="62" r="4" fill="#FED7AA"/>'
+    + '<g style="animation:mxCellBlink 3.4s infinite;transform-origin:50px 42px"><ellipse cx="38" cy="42" rx="5" ry="6" fill="#1F2937"/><ellipse cx="62" cy="42" rx="5" ry="6" fill="#1F2937"/><circle cx="40" cy="40" r="2" fill="#fff"/><circle cx="64" cy="40" r="2" fill="#fff"/></g>'
+    + '<circle cx="28" cy="54" r="5" fill="#FB7185" opacity=".55"/><circle cx="72" cy="54" r="5" fill="#FB7185" opacity=".55"/>'
+    + '<ellipse id="mx-cell-mouth" cx="50" cy="62" rx="9" ry="3" fill="#7C2D12" style="transform-origin:50px 62px;animation:mxCellTalk .32s ease-in-out infinite alternate"/>'
+    + '</g></svg>';
+  if (!document.getElementById('mx-cell-style')) {
+    var st = document.createElement('style'); st.id = 'mx-cell-style';
+    st.textContent = '@keyframes mxCellBounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}@keyframes mxCellTalk{from{transform:scaleY(.35)}to{transform:scaleY(1.9)}}@keyframes mxCellBlink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}';
+    document.head.appendChild(st);
+  }
+  el.onclick = function(){ el.style.transform = 'translateY(140px)'; setTimeout(function(){ el.remove(); }, 500); };
+  document.body.appendChild(el);
+  requestAnimationFrame(function(){ el.style.transform = 'translateY(0)'; });
+  var talkMs = Math.min(9000, 2500 + (msg ? msg.length * 90 : 0));
+  setTimeout(function(){ var m = document.getElementById('mx-cell-mouth'); if (m) m.style.animation = 'none'; }, talkMs);
+  _mxCellTimer = setTimeout(function(){ el.style.transform = 'translateY(140px)'; setTimeout(function(){ el.remove(); }, 500); }, talkMs + 2500);
+}
+
 </script>
 
-<input type="file" id="meal-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleMealFile(this)">
+<input type="file" id="meal-file-input" accept="image/*" style="display:none" onchange="handleMealFile(this)">
 <div id="judge-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:flex-end;justify-content:center">
   <div style="background:#fff;border-radius:18px 18px 0 0;padding:22px 20px 28px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto">
     <div style="font-size:16px;font-weight:800;color:#1E2B27;margin-bottom:4px">🍽 換你來判斷：這一餐的比例？</div>
@@ -9789,7 +9913,7 @@ function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
     <div style="font-size:22px;text-align:center;margin-bottom:6px">🌱</div>
     <div style="font-size:17px;font-weight:800;color:#1E2B27;text-align:center;margin-bottom:4px">歡迎回來</div>
     <div style="font-size:12px;color:#8A9992;text-align:center;line-height:1.6;margin-bottom:18px">第一次使用請輸入您的客人編號與姓名<br>（編號請向您的健康秘書索取）</div>
-    <input id="mx-bind-id" placeholder="客人編號（例：C001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px" autocapitalize="characters">
+    <input id="mx-bind-id" placeholder="客人編號（例：C00001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px" autocapitalize="characters">
     <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:14px" onkeydown="if(event.key==='Enter')mxDoBind()">
     <button onclick="mxDoBind()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">開始使用</button>
     <div id="mx-login-err" style="font-size:12px;color:#C0392B;text-align:center;margin-top:10px;min-height:16px;line-height:1.5"></div>
