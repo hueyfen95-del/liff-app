@@ -343,7 +343,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-11-01b';
+var MX_BUILD = '2026-11-01f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1324,6 +1324,7 @@ var MX_BUILD = '2026-11-01b';
         <div>
           <div class="gi-lbl" style="margin-bottom:5px">薪資類型（排班記錄會自動帶出，不用每次手動填）</div>
           <select id="acc-paytype" onchange="rateEdSync('acc-rated', this.value, 'acc-payrate-wrap')" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
+            <option value="點數制">點數制（秘書預設：不算時薪，只分點數池＋續約獎）</option>
             <option value="時薪">時薪</option>
             <option value="按次">按次（例：醫師每次門診／講解）</option>
             <option value="月薪">月薪</option>
@@ -4583,10 +4584,10 @@ function loadAdminAccounts(){
         ['秘書','會計','行政','財務主管','專業秘書','主廚'].map(function(r){ return '<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2);cursor:pointer"><input type="checkbox" class="edit-other-'+i+'" value="'+r+'" '+((a.otherRoles||[]).indexOf(r)>=0?'checked':'')+'>'+(roleIcon[r]||'🎓')+' '+r+'</label>'; }).join('')+
         '</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px">'+
-        '<select id="edit-paytype-'+i+'" onchange="rateEdSync(\'edit-rated-'+i+'\', this.value, \'edit-payrate-'+i+'\')" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="按次" '+(a.payType==='按次'?'selected':'')+'>按次</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
-        '<input id="edit-payrate-'+i+'" type="number" value="'+escH(a.payRate||'')+'" placeholder="薪資金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px'+((a.payType||'時薪')==='時薪'?';display:none':'')+'">'+
+        '<select id="edit-paytype-'+i+'" onchange="rateEdSync(\'edit-rated-'+i+'\', this.value, \'edit-payrate-'+i+'\')" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px"><option value="點數制" '+((a.payType==='點數制'||(!a.payType&&a.role==='秘書'))?'selected':'')+'>點數制（不算時薪）</option><option value="時薪" '+(a.payType==='時薪'?'selected':'')+'>時薪</option><option value="按次" '+(a.payType==='按次'?'selected':'')+'>按次</option><option value="月薪" '+(a.payType==='月薪'?'selected':'')+'>月薪</option></select>'+
+        '<input id="edit-payrate-'+i+'" type="number" value="'+escH(a.payRate||'')+'" placeholder="薪資金額" style="font-size:12px;border:0.5px solid var(--border);border-radius:8px;padding:7px 10px'+((a.payType==='時薪'||a.payType==='點數制'||(!a.payType&&a.role==='秘書'))?';display:none':'')+'">'+
         '</div>'+
-        '<div id="edit-rated-'+i+'" style="margin-bottom:9px'+((a.payType||'時薪')==='時薪'?'':';display:none')+'">'+rateEdInner('edit-rated-'+i, mxParseRateItems(a.rateItems, a.payRate))+'</div>'+
+        '<div id="edit-rated-'+i+'" style="margin-bottom:9px'+(a.payType==='時薪'?'':';display:none')+'">'+rateEdInner('edit-rated-'+i, mxParseRateItems(a.rateItems, a.payRate))+'</div>'+
         '<button onclick="saveEditAccount('+i+','+a.row+')" style="background:var(--g);color:#fff;border:none;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">儲存修改</button>'+
         (isMe ? '' : ' <button onclick="resetAcctPasswordUI('+a.row+',\''+escH(a.name||a.username)+'\')" style="background:var(--a2);color:var(--a);border:none;border-radius:7px;padding:6px 14px;font-size:11px;cursor:pointer">重設密碼</button>')+
         '</div>'+
@@ -4642,9 +4643,9 @@ function rateEdInit(pid, items){ var el = document.getElementById(pid); if(el) e
 function rateEdAdd(pid){ var r = document.getElementById(pid+'-rows'); if(r) r.insertAdjacentHTML('beforeend', rateEdRowHtml('', '')); }
 function rateEdSync(pid, payType, rateElId){
   var ed = document.getElementById(pid), ri = document.getElementById(rateElId);
-  var isH = payType === '時薪';
+  var isH = payType === '時薪', isP = payType === '點數制';
   if(ed){ ed.style.display = isH ? '' : 'none'; if(isH && !ed.innerHTML.trim()) rateEdInit(pid, []); }
-  if(ri) ri.style.display = isH ? 'none' : '';
+  if(ri) ri.style.display = (isH || isP) ? 'none' : '';
 }
 function rateEdCollect(pid){
   var rows = document.querySelectorAll('#'+pid+'-rows .rate-ed-row'), out = [], seen = {};
@@ -4700,7 +4701,14 @@ function saveEditAccount(i, row){
   if(!name){ toast('請輸入姓名'); return; }
   if(payRate && Number(payRate) < 0){ toast('⚠️ 薪資金額不能是負數'); return; }
   var rateItems = '';
-  if(payType === '時薪'){ var rc = rateEdCollect('edit-rated-'+i); if(rc.err){ toast('⚠️ '+rc.err); return; } rateItems = rc.str; payRate = rc.first; }
+  // 2026-11-01f 創辦人勾主廚存檔時被「時薪要填數字」擋住——秘書本來就不算時薪：選了時薪但時薪項目空白 → 自動改成「點數制」存，不要擋
+  if(payType === '時薪'){
+    var rc = rateEdCollect('edit-rated-'+i);
+    var rcEmpty = !!rc.err && (role === '秘書' || otherRoles.indexOf('秘書') >= 0) && Array.prototype.every.call(document.querySelectorAll('#edit-rated-'+i+' .rate-ed-rate'), function(el){ return String(el.value||'').trim()===''; });
+    if(rcEmpty){ payType = '點數制'; payRate = ''; rateItems = ''; toast('ℹ️ 時薪沒填，已改成「點數制」（秘書不算時薪，只分點數池）'); }
+    else if(rc.err){ toast('⚠️ '+rc.err); return; }
+    else { rateItems = rc.str; payRate = rc.first; }
+  }
   adminAPIPost({action:'editAdminAccount', row:row, name:name, role:role, otherRoles:otherRoles.join(','), payType:payType, payRate:payRate, rateItems:rateItems}, function(d){
     if(d && d.status === 'ok'){ toast('✅ 已更新'); loadAdminAccounts(); }
     else { toast('⚠️ 更新失敗'); }
@@ -7627,6 +7635,8 @@ function openClientDetail(id, name){
     + '<div id="cd-dx-custom-targets" style="margin-bottom:2px"></div>'
     + '<div class="cd-dx-el" style="font-size:10.5px;color:var(--g3);cursor:pointer;margin-bottom:8px;text-decoration:underline" onclick="addCustomDxTarget()">＋ 新增其他指標</div>'
     + '<textarea id="cd-dx-note" class="form-input cd-dx-el" style="font-size:12px;margin-bottom:8px;width:100%" rows="2" placeholder="醫囑／備註（選填）"></textarea>'
+    + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:5px">🩺 這次醫師做了什麼（記醫師工作點：每位客人一年含 15 點，超過每點 100 元）</div>'
+    + '<select id="cd-dx-work" class="form-input cd-dx-el" style="font-size:12px;margin-bottom:8px;width:100%"><option value="">（不記工作點）</option><option value="報告講解">報告講解 8 點</option><option value="用藥調整">用藥調整 8 點</option><option value="主動判讀">主動判讀 5 點</option><option value="回答問題">回答問題 5 點</option><option value="加測建議">加測建議 3 點</option></select>'
     + '<div style="font-size:10.5px;font-weight:700;color:var(--text3);margin-bottom:5px">交辦秘書（選填）</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">'
     + '<select id="cd-dx-assignee" class="form-select cd-dx-el" style="font-size:12px"><option value="">不指定（任何秘書都可以處理）</option></select>'
@@ -7882,6 +7892,7 @@ function canSeeHandoverItem(h){
   // 2026-10-20：身兼職務（例如秘書兼主廚、秘書兼會計）也要看得到該職務的留言
   var mine = (CURRENT_USER.otherRoles || []).slice();
   if(mine.indexOf(to) >= 0 && to) return true;
+  if(to === '專業秘書' && (mine.indexOf('藥局') >= 0 || r === '醫師')) return true; // 2026-11-01d 藥局、醫師也算專業
   if(r === '會計' || r === '財務主管') return to === '財務主管' || to === '會計' || to === '財務行政';
   if(r === '醫師') return to === '醫師';
   if(r === '行政') return to === '' || to === '行政' || to === '主廚' || to === '財務行政'; // 行政負責料理包出貨，主廚的留言也看；方案／合作詢問跟財務一起看
@@ -7900,6 +7911,7 @@ var HANDOVER_TAGS = [
   {key:'行政', label:'行政', icon:'📋', bg:'#EEEDFE', fg:'#3C3489'},
   {key:'管理人', label:'管理人', icon:'👑', bg:'#E1F5EE', fg:'#085041'},
   {key:'主廚', label:'主廚', icon:'👨‍🍳', bg:'#FDE8E8', fg:'#8B2C2C'},
+  {key:'專業秘書', label:'專業秘書（用藥／保健品）', icon:'💊', bg:'#FCE7F3', fg:'#9D174D'},
   {key:'財務行政', label:'財務＋行政', icon:'🤝', bg:'#FEF3C7', fg:'#92400E'},
   {key:'醫師', label:'醫師', icon:'🩺', bg:'#E6F0FA', fg:'#154C79'}
 ];
@@ -8856,6 +8868,7 @@ function loadUnknownQuestions(){
     body = document.getElementById('unknown-q-body');
     if(!card || !body) return;
     _unknownQCache = (d && d.items) || [];
+    window._unqCanPro = !!(d && d.canPro);
     _mxDashNavSet('unknown-q-card', _unknownQCache.length, '未回答問題', 'ti ti-message-question');
     if(_unknownQCache.length === 0){ card.style.display = 'none'; return; }
     card.style.display = '';
@@ -8868,17 +8881,30 @@ function loadUnknownQuestions(){
         + (isCopied ? '<span style="color:#C0392B;font-weight:700;font-size:11px">🔴 已複製・尚未確認送出</span>' : '')
         + '<b style="color:var(--text)">' + escH(clientName(q.clientId)) + '</b>'
         + '<span style="color:var(--text3);font-size:10.5px">' + escH(q.date) + '</span>'
+        + (q.askTo === '醫師' ? '<span style="background:#FEE2E2;color:#991B1B;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:800">🩺 問醫師' + (q.cost ? '（已扣 ' + q.cost + ' 點）' : '') + '</span>' : '')
+        + (q.pro && q.askTo !== '醫師' ? '<span style="background:#FCE7F3;color:#9D174D;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:800">💊 ' + (q.askTo === '藥師' ? '問藥師' : '用藥／保健品，專業問題') + '</span>' : '')
+        + (q.notified ? '<span style="color:#0F6E56;font-size:11px;font-weight:700">✅ 已通知醫師 ' + escH(q.notified) + '</span>' : '')
         + '</div>'
         + '<div style="font-size:12px;color:var(--text2);margin-bottom:7px">「' + escH(q.question) + '」</div>';
+      // 2026-11-01d 問醫師：先「已通知醫師」（2 點），醫師回覆後再「輸入答案」當代記（2 點＋醫師工作 5 點）；專業問題：一般秘書只能「轉專業秘書」（1 點）
+      if(!isCopied && q.askTo === '醫師'){
+        box += '<div style="font-size:11px;color:#991B1B;margin-bottom:6px">醫師不用登入系統：請你通知醫師 → 醫師回覆後按「輸入答案」把回覆記進去，客人就會收到。</div>'
+          + (q.notified ? '' : '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:#DC2626;color:#fff;margin-bottom:6px" onclick="notifyDoctorDoneUI(' + i + ')">📣 我已通知醫師（+2 點）</button>');
+      } else if(!isCopied && q.pro && !window._unqCanPro){
+        box += '<div style="font-size:11px;color:#9D174D;margin-bottom:6px">這題涉及用藥／保健品，請不要自行回答。先安撫客人，再轉給專業秘書。</div>'
+          + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:#DB2777;color:#fff;margin-bottom:6px" onclick="transferToProUI(' + i + ')">💊 已安撫，轉專業秘書（+1 點）</button>';
+      }
       if(isCopied){
         box += '<div style="font-size:11.5px;color:var(--g3);background:var(--g2);border-radius:7px;padding:7px 9px;margin-bottom:7px">' + escH(q.answer) + '</div>'
           + '<div style="display:flex;gap:6px">'
           + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="recopyUnknownAnswer(' + i + ')">📋 再複製一次</button>'
           + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:#C0392B;color:#fff" onclick="confirmUnknownSent(' + i + ')">✅ 確認已傳送給客人</button>'
           + '</div>';
+      } else if(q.pro && q.askTo !== '醫師' && !window._unqCanPro){
+        box += '<div style="display:flex;gap:6px"><button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已另外處理，標記完成</button></div>';
       } else {
         box += '<div style="display:flex;gap:6px">'
-          + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="approveUnknownQuestion(' + i + ')">✍️ 輸入答案並加入QA</button>'
+          + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 9px" onclick="approveUnknownQuestion(' + i + ')">' + (q.askTo === '醫師' ? '✍️ 輸入醫師的回覆（代記）' : '✍️ 輸入答案並加入QA') + '</button>'
           + '<button class="ai-btn" style="font-size:10.5px;padding:4px 9px;background:var(--bg);color:var(--text2)" onclick="dismissUnknownQuestion(' + i + ')">已另外回覆，標記完成</button>'
           + '</div>';
       }
@@ -9028,10 +9054,25 @@ function recopyUnknownAnswer(i) {
   var clientMsg = clientName(item.clientId) + '，你之前問的「' + item.question + '」，我幫你問過了：\n\n' + item.answer;
   copyText(clientMsg, '客人回覆');
 }
+function notifyDoctorDoneUI(i){
+  var item = _unknownQCache[i]; if(!item) return;
+  adminAPIPost({ action: 'notifyDoctorDone', row: item.row }, function(d){
+    if(d && d.status === 'ok'){ toast(d.already ? 'ℹ️ 已經有人通知過了' : '✅ 已記錄你通知了醫師' + (d.pts ? '（+' + d.pts + ' 點）' : '')); loadUnknownQuestions(); }
+    else toast('⚠️ ' + ((d && d.message) || '操作失敗'));
+  });
+}
+function transferToProUI(i){
+  var item = _unknownQCache[i]; if(!item) return;
+  var note = prompt('給專業秘書的一句話（選填，例如：客人很緊張，已先安撫）') || '';
+  adminAPIPost({ action: 'transferToPro', row: item.row, note: note }, function(d){
+    if(d && d.status === 'ok'){ toast('✅ 已轉給專業秘書' + (d.pts ? '（+' + d.pts + ' 點）' : '')); loadUnknownQuestions(); if(typeof loadHandover==='function') loadHandover(); }
+    else toast('⚠️ ' + ((d && d.message) || '操作失敗'));
+  });
+}
 function confirmUnknownSent(i) {
   var item = _unknownQCache[i]; if(!item) return;
   adminAPIPost({ action: 'confirmUnknownSent', row: item.row }, function(d) {
-    if (d && d.status === 'ok') { toast('✅ 已確認送出，這題結案了'); loadUnknownQuestions(); }
+    if (d && d.status === 'ok') { toast(d.already ? 'ℹ️ ' + (d.message || '這題已經處理過了') : '✅ 已確認送出，這題結案了'); loadUnknownQuestions(); }
     else toast('⚠️ 操作失敗');
   });
 }
@@ -9092,7 +9133,7 @@ function submitUnknownAnswer(i){
 function dismissUnknownQuestion(i) {
   var item = _unknownQCache[i]; if(!item) return;
   adminAPIPost({ action: 'dismissUnknown', row: item.row }, function(d) {
-    if (d && d.status === 'ok') { toast('✅ 已標記完成'); loadUnknownQuestions(); }
+    if (d && d.status === 'ok') { toast(d.refunded ? '✅ 已標記完成，並把客人「問醫師」的 ' + d.refunded + ' 點退還' : '✅ 已標記完成'); loadUnknownQuestions(); }
     else toast('⚠️ 操作失敗');
   });
 }
@@ -9766,7 +9807,7 @@ function saveDoctorNoteUI(id, name){
   if(!confirmedType && targets.length===0 && !note && !taskContent){ toast('⚠️ 請至少填一項（分型／目標指標／備註／交辦內容）'); return; }
   adminAPIPost({action:'saveDoctorNote', clientId:id, clientName:name, confirmedType:confirmedType, suggestedType:suggestedType,
     doctorName:doctorName, targets:targets,
-    note:note, taskContent:taskContent, taskAssignee:taskAssignee,
+    note:note, taskContent:taskContent, taskAssignee:taskAssignee, workItem:(document.getElementById('cd-dx-work')||{}).value||'',
     staffUsername:(CURRENT_USER&&CURRENT_USER.username)||'', staffRole:(CURRENT_USER&&CURRENT_USER.role)||''
   }, function(d){
     if(d && d.status==='ok'){
@@ -10471,9 +10512,18 @@ function loadMyPoints(){
       + '<div style="font-size:12px">全體 '+d.totalPts+' 點・可分池 '+Math.round(d.distributable).toLocaleString()+' 元'+(perPt?'（1 點約 '+perPt+' 元）':'')
       + (d.rank>0 ? '・你第 '+d.rank+' 名'+(d.gap>0?'，離上一名差 '+d.gap+' 點':'（領先）') : '')+'</div></div>';
     if((d.myDetail||[]).length) h += '<div style="font-size:11.5px;margin-top:3px">'+d.myDetail.slice(0,6).map(function(c){ return escH(c.name)+' '+c.pts; }).join('、')+'</div>';
+    if(d.myOtherPts) h += '<div style="font-size:11px;margin-top:3px;color:#B45309">另有 '+d.myOtherPts+' 點是在「還沒建有費用方案」的客人上，那些客人沒攤進池子，暫時不分錢（方案補建後下個月起會算）</div>';
     if((d.expiring||[]).length) h += '<div style="font-size:12px;margin-top:5px;color:#9A3412">⏳ 續約倒數：'+d.expiring.slice(0,6).map(function(e){ return escH(e.name)+' '+e.daysLeft+' 天'; }).join('、')+'</div>';
     if(isMgr && (d.leaderboard||[]).length) h += '<div style="font-size:11.5px;margin-top:5px;color:#78350F">全體：'+d.leaderboard.map(function(x){ return escH(x.name)+' '+x.pts+'點→'+Math.round(x.amt).toLocaleString(); }).join('、')+(d.untouchedCount?'　🔴 沒人碰的客人 '+d.untouchedCount+' 位':'')+'</div>';
-    h += '<div style="font-size:10.5px;color:#92400E;margin-top:4px">回客人留言 30 分內 2 點、2 小時內 1 點；「今天不順」第一個回再加 1；送鼓勵／飲食判斷各 1；專業問題 5。每位客人每天最多 2 點。</div>';
+    h += '<div style="font-size:10.5px;color:#92400E;margin-top:4px">回客人留言 30 分內 2 點、2 小時內 1 點；「今天不順」第一個回再加 1；送鼓勵／飲食判斷各 1；專業問題 5。每位客人每天最多 2 點。秘書薪資＝點數池＋續約獎，不算時薪。</div>';
+    // 2026-11-01c 點數明細：每一筆什麼時候、哪位客人、做了什麼、幾點
+    var ents = d.entries || [];
+    h += '<div style="margin-top:8px"><button onclick="var x=document.getElementById(\'pts-entries\');x.style.display=x.style.display===\'none\'?\'\':\'none\'" style="background:#F59E0B;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer">🏅 點數明細（本月 '+ents.length+' 筆）</button></div>';
+    h += '<div id="pts-entries" style="display:none;margin-top:8px;max-height:320px;overflow:auto;background:#fff;border-radius:8px;border:1px solid #FDE68A">';
+    if(!ents.length) h += '<div style="padding:10px;font-size:12.5px;color:#92400E">本月還沒有任何點數。秘書回客人留言後，要在「互動信箱」按「已處理」，系統才會記點；送鼓勵、飲食判斷回覆、代記醫師回覆也會自動記。</div>';
+    else h += '<table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#FEF3C7;color:#92400E"><th style="padding:5px 8px;text-align:left">時間</th>'+(isMgr?'<th style="padding:5px 8px;text-align:left">秘書</th>':'')+'<th style="padding:5px 8px;text-align:left">客人</th><th style="padding:5px 8px;text-align:left">行為</th><th style="padding:5px 8px;text-align:right">點數</th><th style="padding:5px 8px;text-align:left">備註</th></tr>'
+      + ents.map(function(e){ return '<tr style="border-top:1px solid #FEF3C7"><td style="padding:4px 8px;white-space:nowrap">'+escH(e.time)+'</td>'+(isMgr?'<td style="padding:4px 8px">'+escH(e.who)+'</td>':'')+'<td style="padding:4px 8px">'+escH(e.client)+'</td><td style="padding:4px 8px">'+escH(e.kind)+'</td><td style="padding:4px 8px;text-align:right;font-weight:800;color:#B45309">'+e.pts+'</td><td style="padding:4px 8px;color:#6B7280">'+escH(e.note)+'</td></tr>'; }).join('')+'</table>';
+    h += '</div>';
     body.innerHTML = h; card.style.display = '';
   });
 }
@@ -10576,7 +10626,7 @@ function loadCareQualityKPI(){
 var AC_OWNER = {
   '連續7天':['秘書',48], '報告待講解':['秘書',72], '續約跟催':['秘書',72], '餘額為負':['會計',48], '儲值待核查':['會計',24],
   '自動請行政催':['行政',48], 'IRCT缺項':['行政',72], '甜蜜點條件符合':['秘書',72], '甜蜜點評估':['秘書',72],
-  '碳水探索血酮下降':['秘書',24], '壓力連續':['秘書',24], '壓力關心':['秘書',48], '料理包詢問':['主廚／行政',24], '自家產品詢問':['主廚／行政',24], '服務方案詢問':['財務／行政',24], '每日打氣':['系統',0], '續約獎待判定':['管理人',48], '疏漏提醒':['管理人',24],
+  '碳水探索血酮下降':['秘書',24], '壓力連續':['秘書',24], '壓力關心':['秘書',48], '料理包詢問':['主廚／行政',24], '自家產品詢問':['主廚／行政',24], '服務方案詢問':['財務／行政',24], '每日打氣':['系統',0], '續約獎待判定':['管理人',48], '疏漏提醒':['管理人',24], '問醫師':['秘書',2], '專業問題':['專業秘書',24],
   '心情未回2h':['秘書',null], '心情30分提醒':['秘書',null], '心情2小時沒回':['管理人',0], '交接留言2小時沒人看':['管理人',0], '心情未回24h':['管理人',0], '提醒後沒打上班卡':['管理人',0], '交接未讀':['管理人',0],
   '急件逾時':['管理人',0], '排班缺人逼近':['管理人',0], '排班缺人提醒':['秘書',null],
   '客人留言待處理':['秘書',null], '客人問題待處理':['秘書',null], '新預約待處理':['秘書',null], '醫師交辦待處理':['秘書',null],
@@ -10745,7 +10795,7 @@ function loadAutoCareLog(){
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '提醒打上班卡':'⏱', '提醒打下班卡':'⏱', '提醒後沒打上班卡':'⏱', '心情30分提醒':'💌', '心情2小時沒回':'💌', '交接留言2小時沒人看':'👀', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '每日打氣':'🫧', '續約獎待判定':'🎁', '疏漏提醒':'🔍', '自家產品詢問':'🍱', '服務方案詢問':'🤝', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩', '急件：預約':'📅', '急件：檢測':'🧪', '急件：報告':'📋', '急件：付費':'💳', '急件逾時':'🔴', '預約已確認':'📅', '預約已取消':'📅', '排班缺人提醒':'🗓', '排班缺人逼近':'🗓', '客人留言待處理':'📩', '客人問題待處理':'📩', '新預約待處理':'📩', '醫師交辦待處理':'🩺', '客人留言逾時':'🔴', '客人問題逾時':'🔴', '新預約逾時':'🔴', '醫師交辦逾時':'🔴', '閉環日報':'📒' };
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '提醒打上班卡':'⏱', '提醒打下班卡':'⏱', '提醒後沒打上班卡':'⏱', '心情30分提醒':'💌', '心情2小時沒回':'💌', '交接留言2小時沒人看':'👀', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '每日打氣':'🫧', '續約獎待判定':'🎁', '疏漏提醒':'🔍', '問醫師':'🩺', '專業問題':'💊', '自家產品詢問':'🍱', '服務方案詢問':'🤝', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩', '急件：預約':'📅', '急件：檢測':'🧪', '急件：報告':'📋', '急件：付費':'💳', '急件逾時':'🔴', '預約已確認':'📅', '預約已取消':'📅', '排班缺人提醒':'🗓', '排班缺人逼近':'🗓', '客人留言待處理':'📩', '客人問題待處理':'📩', '新預約待處理':'📩', '醫師交辦待處理':'🩺', '客人留言逾時':'🔴', '客人問題逾時':'🔴', '新預約逾時':'🔴', '醫師交辦逾時':'🔴', '閉環日報':'📒' };
     var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#E3EEFB;border-left:4px solid #3B7DD8;vertical-align:middle"></span> <b>藍色＝已交給同事處理</b>，超過時間沒人處理才會變紅叫你　<span style="display:inline-block;width:14px;height:14px;background:#FFE2B8;border-left:4px solid #E8730C;vertical-align:middle"></span> <b>橘色＝急件</b>（報告／預約／付費／檢測，已同時通知行政、你、單位，看誰還沒確認）　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
@@ -11302,6 +11352,7 @@ function loadPayrollMonth(after){
       + '<tr style="background:#FBF6EA;color:#7A5A12"><th style="text-align:left;padding:8px">姓名</th><th style="text-align:left;padding:8px">薪資設定</th><th style="padding:8px">班數</th><th style="padding:8px">排定時數</th><th style="padding:8px">實際打卡時數</th><th style="padding:8px">缺卡</th><th style="text-align:right;padding:8px">應付金額</th><th style="padding:8px">請款</th></tr>';
     items.forEach(function(p, i){
       var setting = (p.rateItems && p.rateItems.length) ? p.rateItems.map(function(x){ return escH(x.name)+' '+money(x.rate)+'／時'; }).join('<br>')
+        : p.payType==='點數制' ? '<span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:1px 6px;font-weight:700">🏅 點數制</span><div style="font-size:10.5px;color:#92400E">不算時薪，只分點數池＋續約獎</div>'
         : p.payType ? (p.payType + ' ' + money(p.payRate) + (p.payType==='時薪' ? '／小時' : p.payType==='按次' ? '／次' : '／月')) : '<span style="color:#A32D2D;font-weight:700">⚠️ 還沒設定薪資</span>';
       // 算式：門診A 8h × 500 ＝ 4,000 ＋ 一般 12h × 200 ＝ 2,400
       var formula = (p.byItem && p.byItem.length) ? p.byItem.map(function(b){ return '<span style="white-space:nowrap">'+escH(b.item)+' '+b.hours+'h × '+Math.round(b.rate).toLocaleString()+' ＝ <b>'+Math.round(b.amount).toLocaleString()+'</b></span>'; }).join(' ＋ ') : '';
@@ -11310,6 +11361,10 @@ function loadPayrollMonth(after){
         var pdItems = (p.poolDetail||[]).slice(0,6).map(function(c){ return escH(c.name)+' '+c.pts+'點'; }).join('、') + ((p.poolDetail||[]).length>6 ? '…' : '');
         formula += (formula ? ' ＋ ' : '') + '<span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:1px 6px;white-space:nowrap">🏅 點數池 '+p.poolPts+' 點 ＝ <b>'+Math.round(p.poolAmt).toLocaleString()+'</b></span>'
           + (pdItems ? '<div style="font-size:10.5px;color:#92400E;margin-top:2px;line-height:1.6">'+pdItems+'</div>' : '');
+      }
+      if (p.docWorkPts) {
+        formula += (formula ? ' ＋ ' : '') + '<span style="background:#FCE7F3;color:#9D174D;border-radius:6px;padding:1px 6px;white-space:nowrap">🩺 醫師工作 '+p.docWorkPts+' 點（額度內 '+p.docIncluded+'、超額 '+p.docExcess+' × 100 ＝ <b>'+Math.round(p.docExcessAmt||0).toLocaleString()+'</b>）</span>'
+          + '<div style="font-size:10.5px;color:#9D174D;margin-top:2px;line-height:1.6">'+(p.docDetail||[]).slice(0,8).map(function(x){ return escH(x.client)+' '+escH(x.item)+' '+x.pts+(x.excess?'（超額 '+x.excess+'）':''); }).join('、')+'</div>';
       }
       if (p.renewBonus) {
         formula += (formula ? ' ＋ ' : '') + '<span style="background:#FDE8E8;color:#8B2C2C;border-radius:6px;padding:1px 6px;white-space:nowrap">🎁 續約獎 <b>'+Math.round(p.renewBonus).toLocaleString()+'</b></span>'

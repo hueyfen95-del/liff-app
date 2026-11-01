@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-10-15c';
+var MX_BUILD = '2026-11-01d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2587,6 +2587,14 @@ window.openHealthForm = function() {
         <div class="cm-b bot">嗨！有什麼讓你困惑或不舒服的嗎？😊 說出來就好，我會先幫你找找看大家問過的類似問題。找不到的話，秘書會親自來陪你一起想辦法！</div>
       </div>
     </div>
+    <!-- 2026-11-01d 問誰：問秘書／問藥師不扣點；問醫師（非緊急）扣 8 點陪跑點數，緊急請直接找秘書 -->
+    <div id="ask-to-row" style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;color:var(--text3)">問誰：</span>
+      <button type="button" class="ask-chip on" data-to="秘書" onclick="setAskTo('秘書')" style="border:1px solid var(--border);background:var(--p2);color:var(--p3);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer">💁 問秘書</button>
+      <button type="button" class="ask-chip" data-to="藥師" onclick="setAskTo('藥師')" style="border:1px solid var(--border);background:var(--card);color:var(--text2);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer">💊 問藥師</button>
+      <button type="button" class="ask-chip" data-to="醫師" onclick="setAskTo('醫師')" style="border:1px solid var(--border);background:var(--card);color:var(--text2);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:700;cursor:pointer">🩺 問醫師（扣 8 點）</button>
+    </div>
+    <div id="ask-to-hint" style="display:none;font-size:11px;color:#991B1B;background:#FEF2F2;border:1px solid #FECACA;border-radius:9px;padding:6px 9px;margin-bottom:6px;line-height:1.6"></div>
     <!-- 打字時即時顯示符合的問題，點了立刻看答案；沒點的話按送出走完整聊天流程 -->
     <div id="qa-results" style="display:none;background:var(--card);border:0.5px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;max-height:240px;overflow-y:auto"></div>
     <div class="chat-row"><input class="chat-inp" id="chat-inp" placeholder="輸入你的問題…" oninput="qaSearch(this.value)" onkeydown="if(event.key==='Enter'){document.getElementById('qa-results').style.display='none';sendMsg();}" onblur="setTimeout(function(){document.getElementById('qa-results').style.display='none'},200)"><button class="send-btn" onclick="document.getElementById('qa-results').style.display='none';sendMsg()"><i class="ti ti-send"></i></button></div>
@@ -3492,8 +3500,42 @@ var botReplies={
   'IRCT':'IRCT 聽起來很專業，不知道是什麼很正常。確實這個名詞不容易理解，很多人第一次聽到都這樣。我們一起來看看：它是量空腹和飯後的血糖與胰島素，讓我們更了解你的代謝狀況，點底部「報告」可以看結果 😊'
 };
 var _answeredSymptoms = {}; // 這次對話session裡，已經回答過的症狀/問題，同一個再被問一次就轉真人，不重複貼一樣的答案
+var _askTo = '秘書';
+function setAskTo(to){
+  _askTo = to;
+  document.querySelectorAll('.ask-chip').forEach(function(b){ var on = b.getAttribute('data-to') === to; b.style.background = on ? 'var(--p2)' : 'var(--card)'; b.style.color = on ? 'var(--p3)' : 'var(--text2)'; });
+  var h = document.getElementById('ask-to-hint'); if(!h) return;
+  if(to === '醫師'){ h.style.display = 'block'; h.innerHTML = '🩺 <b>問醫師會扣 8 點陪跑點數</b>（你目前 ' + (_cpsData ? _cpsData.balance : '—') + ' 點）。秘書會把問題轉給醫師，回覆後再告訴你。<br>⚠️ 身體不舒服、緊急狀況請改「問秘書」，秘書和藥師會立刻通知醫師，不扣點。'; }
+  else if(to === '藥師'){ h.style.display = 'block'; h.style.color = '#9D174D'; h.style.background = '#FDF2F8'; h.style.borderColor = '#FBCFE8'; h.innerHTML = '💊 用藥、保健品、劑量這類問題由藥師／專業秘書回覆，不扣點。'; }
+  else { h.style.display = 'none'; }
+  if(to !== '藥師'){ h.style.color = '#991B1B'; h.style.background = '#FEF2F2'; h.style.borderColor = '#FECACA'; }
+}
+// 2026-11-01d 問藥師／問醫師：不走 QA 自動回覆，直接送給後台；問醫師先確認扣 8 點
+function sendAskDirect(msg){
+  var area=document.getElementById('chat-area'), inp=document.getElementById('chat-inp');
+  if(_askTo === '醫師'){
+    var bal = _cpsData ? Number(_cpsData.balance) : null;
+    if(bal !== null && bal < 8){ toast('⚠️ 問醫師需要 8 點，你目前 ' + bal + ' 點。可以改「問秘書」，不扣點'); return; }
+    if(!confirm('問醫師會扣 8 點陪跑點數' + (bal !== null ? '（目前 ' + bal + ' 點）' : '') + '。\n非緊急問題才用這個；緊急請改問秘書（不扣點）。\n\n確定要送給醫師嗎？')) return;
+  }
+  area.innerHTML+='<div style="margin-bottom:8px"><div class="cm-b user">'+escHtml(msg)+'</div></div><div class="cf"></div>';
+  inp.value='';
+  callAPI({ action: 'addUnknown', clientId: CLIENT_ID, question: msg, askTo: _askTo }, function(d){
+    var reply;
+    if(d && d.status === 'ok'){
+      if(d.askTo === '醫師'){ reply = '🩺 已經送給秘書轉交醫師了（扣 8 點，剩 ' + d.balance + ' 點）。醫師回覆後秘書會第一時間告訴你，請稍等 😊'; if(_cpsData){ _cpsData.balance = d.balance; var be=document.getElementById('cps-bal'); if(be) be.textContent = d.balance; } }
+      else reply = '💊 收到！這題會由藥師／專業秘書回覆你，不扣點。回覆會出現在「秘書互動」，有新回覆會通知你 😊';
+    } else {
+      reply = '⚠️ ' + ((d && d.message) || '沒有送出成功，麻煩再試一次');
+    }
+    area.innerHTML+='<div style="margin-bottom:8px"><div style="font-size:12px;color:var(--text3);margin-bottom:3px"><span style="background:var(--p2);color:var(--p3);border-radius:20px;padding:1px 7px;font-size:12px;font-weight:700">小細胞</span></div><div class="cm-b bot">'+escHtml(reply)+'</div></div><div class="cf"></div>';
+    area.scrollTop = area.scrollHeight;
+  });
+  setAskTo('秘書');
+}
 function sendMsg(){
   var inp=document.getElementById('chat-inp'),msg=inp.value.trim();if(!msg)return;
+  if(_askTo !== '秘書'){ sendAskDirect(msg); return; }
   var area=document.getElementById('chat-area');
   // 2026-09-09補：客人自己打的訊息之前是直接塞進innerHTML沒有跳脫，補上escHtml跟其他地方一致
   area.innerHTML+='<div style="margin-bottom:8px"><div class="cm-b user">'+escHtml(msg)+'</div></div><div class="cf"></div>';
@@ -7504,7 +7546,7 @@ function cpsToggleRecent(){
     var rows = (_cpsData.list || []).slice(0, 8).map(function(r){
       return '<div style="display:flex;gap:8px"><span style="opacity:.7">'+r.time+'</span><span style="flex:1">'+r.type+'</span><span style="font-weight:700">'+(r.points>0?'+':'')+r.points+'</span></div>';
     }).join('');
-    box.innerHTML = rows || '還沒有記錄';
+    box.innerHTML = '<div style="color:#4A3475;font-weight:700;margin-bottom:4px">點數怎麼用：好物商城折抵（1 點＝100 元）、預約諮詢、問醫師（非緊急，每次 8 點）。問秘書、問藥師不扣點。</div>' + (rows || '還沒有記錄');
     box.style.display = 'block';
   } else { box.style.display = 'none'; }
 }
