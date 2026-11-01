@@ -343,7 +343,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-10-23a';
+var MX_BUILD = '2026-11-01b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -489,6 +489,8 @@ var MX_BUILD = '2026-10-23a';
            她接著在儀表板問「打卡在哪裡？」——她要的是登入第一眼就看到，不是在某一頁的最上面。
            這裡是一條精簡版（狀態＋兩顆按鈕），跟排班交接頁那張卡共用同一套 doClockIn/doClockOut/loadClockStatus，
            兩邊的狀態文字都掛 clock-status-el 這個 class，打完卡兩邊一起更新。 -->
+      <div class="card" id="dash-oversight-card" style="display:none;margin-bottom:14px;border:1.5px solid #DC2626;background:#FEF2F2"><div class="card-body" id="dash-oversight-body" style="font-size:13px;line-height:1.75;color:#7F1D1D"></div></div>
+      <div class="card" id="dash-points-card" style="display:none;margin-bottom:14px;border:1.5px solid #F59E0B;background:#FFFBEB"><div class="card-body" id="dash-points-body" style="font-size:13px;line-height:1.8;color:#78350F"></div></div>
       <div class="card" id="dash-clock-card" style="margin-bottom:14px;border:1.5px solid #0F6E56;background:#F2FAF7">
         <div class="card-body" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px">
           <div style="font-size:13px;font-weight:700;color:#0F6E56;white-space:nowrap"><i class="ti ti-clock-hour-4"></i> ⏰ 上下班打卡</div>
@@ -1990,6 +1992,7 @@ var MX_BUILD = '2026-10-23a';
           <input id="plan-discount" placeholder="無" style="width:100%;border:0.5px solid var(--border);border-radius:8px;padding:8px 8px;font-size:13px;color:var(--text);text-align:center">
         </div>
       </div>
+      <div id="plan-fee-warn" style="display:none;background:#FEE2E2;border:1.5px solid #DC2626;color:#991B1B;border-radius:9px;padding:9px 12px;font-size:13px;font-weight:700;line-height:1.6;margin-bottom:8px"></div>
       <button onclick="savePlanForm(this)" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">建立方案（自動算出到期日）</button>
     </div>
   </div>
@@ -3036,6 +3039,20 @@ function savePlan(clientId, planName, months, fee, discount, onDone) {
     }
     if (onDone) onDone();
   });
+}
+
+// 方案名稱裡的金額 vs 費用欄：回傳提醒文字，沒問題回傳 ''
+function planFeeMismatch_(planName, fee, months) {
+  var n = String(planName || '').replace(/[,，\s]/g, '');
+  var named = null, m;
+  if ((m = n.match(/(\d{4,6})/))) named = Number(m[1]);
+  else if (/2\.5萬|兩萬五|二萬五/.test(n)) named = 25000;
+  else if (/2萬|兩萬|二萬/.test(n)) named = 20000;
+  else if (/1\.5萬|一萬五|萬五/.test(n)) named = 15000;
+  if (named && named >= 1000 && named !== fee) return '方案名稱寫的是 ' + named.toLocaleString() + '，費用卻填 ' + fee.toLocaleString();
+  var mo = parseInt(months, 10);
+  if (mo >= 12 && fee > 0 && [15000, 20000, 25000].indexOf(fee) < 0) return '年約陪跑費通常是 15,000／20,000／25,000，這筆填的是 ' + fee.toLocaleString();
+  return '';
 }
 
 // ── 陪跑到期提醒檢查 ──
@@ -6523,6 +6540,18 @@ function savePlanForm(btn) {
   if (Number(fee) < 0) { toast('⚠️ 費用不能是負數'); return; }
   // 2026-09-09補：方案月數之前沒有驗證，打負數會讓到期日設在過去（方案一建立就已過期），打非數字會讓到期日變成Invalid Date寫進表格
   if (months !== '' && (isNaN(parseInt(months,10)) || parseInt(months,10) <= 0)) { toast('⚠️ 方案月數必須是大於0的數字'); return; }
+
+  // 2026-11-01b 創辦人：費用目前都先設 15,000，之後賣 20,000／25,000 要提醒改——方案名稱裡寫的金額跟費用對不上，或陪跑年約費用不是 15000／20000／25000，先跳紅字，再按一次才真的存
+  var feeWarn = planFeeMismatch_(planName, Number(fee), months);
+  var warnBox = document.getElementById('plan-fee-warn');
+  if (feeWarn && (!btn || btn.dataset.feeConfirmed !== planName + '|' + fee)) {
+    if (warnBox) { warnBox.style.display = 'block'; warnBox.textContent = '⚠️ ' + feeWarn + '。確定要用「費用 ' + Number(fee).toLocaleString() + '」嗎？確定的話再按一次「建立方案」。'; }
+    else toast('⚠️ ' + feeWarn + '，確定的話再按一次');
+    if (btn) btn.dataset.feeConfirmed = planName + '|' + fee;
+    return;
+  }
+  if (warnBox) warnBox.style.display = 'none';
+  if (btn) delete btn.dataset.feeConfirmed;
 
   if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
   savePlan(clientId, planName, months, fee, discount, function(){
@@ -10416,7 +10445,41 @@ function submitVoice(btn){
   });
 }
 // ── 儀表板 ──
+// 2026-11-01 秘書點數池：每個人登入第一眼看到「本月累積多少、離上一名差多少、哪些客人快到期」
+// 2026-11-01b 疏漏提醒卡（管理人／行政／財務主管）：後端 oversightChecks_ 每天也會留一則給管理人
+function loadOversight(){
+  var card=document.getElementById('dash-oversight-card'), body=document.getElementById('dash-oversight-body'); if(!card||!body) return;
+  adminAPI({action:'getOversightChecks'}, function(d){
+    if(!d||d.status!=='ok'||d.hidden||!d.items){ card.style.display='none'; return; }
+    var red=d.items.filter(function(o){return o.level==='red'}), yel=d.items.filter(function(o){return o.level!=='red'});
+    if(!d.items.length){ card.style.display='block'; card.style.borderColor='#10B981'; card.style.background='#ECFDF5'; body.style.color='#065F46'; body.innerHTML='<b>🔍 疏漏提醒</b>　目前沒有發現疏漏 ✅'; return; }
+    card.style.borderColor = red.length?'#DC2626':'#F59E0B'; card.style.background = red.length?'#FEF2F2':'#FFFBEB'; body.style.color = red.length?'#7F1D1D':'#78350F';
+    var h='<div style="font-size:15px;font-weight:800;margin-bottom:6px">🔍 疏漏提醒　<span style="font-size:12px;font-weight:600">'+(red.length?'<span style="color:#DC2626">'+red.length+' 項紅字</span>':'')+(red.length&&yel.length?'・':'')+(yel.length?'<span style="color:#B45309">'+yel.length+' 項要確認</span>':'')+'</span></div>';
+    h+=red.concat(yel).map(function(o){ return '<div style="padding:5px 0;border-top:1px dashed rgba(0,0,0,.08)"><span style="font-size:14px">'+(o.level==='red'?'🔴':'🟡')+'</span> '+escH(o.text)+(o.where?' <span style="display:inline-block;background:rgba(0,0,0,.06);border-radius:6px;padding:0 7px;font-size:11px;font-weight:700;margin-left:4px">👉 '+escH(o.where)+'</span>':'')+'</div>'; }).join('');
+    body.innerHTML=h; card.style.display='block';
+  });
+}
+function loadMyPoints(){
+  var card = document.getElementById('dash-points-card'), body = document.getElementById('dash-points-body'); if(!card||!body) return;
+  adminAPI({action:'getMyPoints'}, function(d){
+    if(!d || d.status!=='ok'){ card.style.display='none'; return; }
+    var isMgr = CURRENT_USER && ['管理人','老闆','創始人','財務主管','會計'].indexOf(CURRENT_USER.role)>=0;
+    var perPt = d.totalPts ? Math.round(d.distributable/d.totalPts) : 0;
+    var h = '<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:baseline">'
+      + '<div><span style="font-size:12px;font-weight:700;color:#92400E">🏅 本月點數</span> <span style="font-size:26px;font-weight:900">'+d.myPts+'</span> 點'
+      + (d.myPts ? '　≈ <b style="font-size:18px">'+Math.round(d.myAmt).toLocaleString()+'</b> 元' : '')+'</div>'
+      + '<div style="font-size:12px">全體 '+d.totalPts+' 點・可分池 '+Math.round(d.distributable).toLocaleString()+' 元'+(perPt?'（1 點約 '+perPt+' 元）':'')
+      + (d.rank>0 ? '・你第 '+d.rank+' 名'+(d.gap>0?'，離上一名差 '+d.gap+' 點':'（領先）') : '')+'</div></div>';
+    if((d.myDetail||[]).length) h += '<div style="font-size:11.5px;margin-top:3px">'+d.myDetail.slice(0,6).map(function(c){ return escH(c.name)+' '+c.pts; }).join('、')+'</div>';
+    if((d.expiring||[]).length) h += '<div style="font-size:12px;margin-top:5px;color:#9A3412">⏳ 續約倒數：'+d.expiring.slice(0,6).map(function(e){ return escH(e.name)+' '+e.daysLeft+' 天'; }).join('、')+'</div>';
+    if(isMgr && (d.leaderboard||[]).length) h += '<div style="font-size:11.5px;margin-top:5px;color:#78350F">全體：'+d.leaderboard.map(function(x){ return escH(x.name)+' '+x.pts+'點→'+Math.round(x.amt).toLocaleString(); }).join('、')+(d.untouchedCount?'　🔴 沒人碰的客人 '+d.untouchedCount+' 位':'')+'</div>';
+    h += '<div style="font-size:10.5px;color:#92400E;margin-top:4px">回客人留言 30 分內 2 點、2 小時內 1 點；「今天不順」第一個回再加 1；送鼓勵／飲食判斷各 1；專業問題 5。每位客人每天最多 2 點。</div>';
+    body.innerHTML = h; card.style.display = '';
+  });
+}
 function loadDashboard(){
+  if(typeof loadOversight==='function') loadOversight();
+  if(typeof loadMyPoints==='function') loadMyPoints();
   if(typeof loadClockStatus==='function') loadClockStatus(); // 2026-10-01：儀表板最上面的打卡狀態
   if(typeof loadFounderMetrics==='function') loadFounderMetrics();
   if(typeof loadHandover==='function') loadHandover();
@@ -10513,7 +10576,7 @@ function loadCareQualityKPI(){
 var AC_OWNER = {
   '連續7天':['秘書',48], '報告待講解':['秘書',72], '續約跟催':['秘書',72], '餘額為負':['會計',48], '儲值待核查':['會計',24],
   '自動請行政催':['行政',48], 'IRCT缺項':['行政',72], '甜蜜點條件符合':['秘書',72], '甜蜜點評估':['秘書',72],
-  '碳水探索血酮下降':['秘書',24], '壓力連續':['秘書',24], '壓力關心':['秘書',48], '料理包詢問':['主廚／行政',24], '自家產品詢問':['主廚／行政',24], '服務方案詢問':['財務／行政',24], '每日打氣':['系統',0],
+  '碳水探索血酮下降':['秘書',24], '壓力連續':['秘書',24], '壓力關心':['秘書',48], '料理包詢問':['主廚／行政',24], '自家產品詢問':['主廚／行政',24], '服務方案詢問':['財務／行政',24], '每日打氣':['系統',0], '續約獎待判定':['管理人',48], '疏漏提醒':['管理人',24],
   '心情未回2h':['秘書',null], '心情30分提醒':['秘書',null], '心情2小時沒回':['管理人',0], '交接留言2小時沒人看':['管理人',0], '心情未回24h':['管理人',0], '提醒後沒打上班卡':['管理人',0], '交接未讀':['管理人',0],
   '急件逾時':['管理人',0], '排班缺人逼近':['管理人',0], '排班缺人提醒':['秘書',null],
   '客人留言待處理':['秘書',null], '客人問題待處理':['秘書',null], '新預約待處理':['秘書',null], '醫師交辦待處理':['秘書',null],
@@ -10682,7 +10745,7 @@ function loadAutoCareLog(){
     if(!items.length && !(d && d.lastRun)){ card.style.display='none'; _mxDashNavSet('autocare-card', 0, '系統自動發送', 'ti ti-robot'); return; }
     card.style.display='block';
     _mxDashNavSet('autocare-card', items.length, '系統自動發送', 'ti ti-robot');
-    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '提醒打上班卡':'⏱', '提醒打下班卡':'⏱', '提醒後沒打上班卡':'⏱', '心情30分提醒':'💌', '心情2小時沒回':'💌', '交接留言2小時沒人看':'👀', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '每日打氣':'🫧', '自家產品詢問':'🍱', '服務方案詢問':'🤝', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩', '急件：預約':'📅', '急件：檢測':'🧪', '急件：報告':'📋', '急件：付費':'💳', '急件逾時':'🔴', '預約已確認':'📅', '預約已取消':'📅', '排班缺人提醒':'🗓', '排班缺人逼近':'🗓', '客人留言待處理':'📩', '客人問題待處理':'📩', '新預約待處理':'📩', '醫師交辦待處理':'🩺', '客人留言逾時':'🔴', '客人問題逾時':'🔴', '新預約逾時':'🔴', '醫師交辦逾時':'🔴', '閉環日報':'📒' };
+    var icon={ '今日沒記錄':'📝', '連續3天':'🤝', '連續7天':'🚩', '生日':'🎂', '方案到期':'📅', '年約到期':'🌟', '續約跟催':'🔁', '明天檢測':'🧪', '新客人引導':'🌱', '報告已出':'📋', '報告待講解':'📋', '餘額為負':'💳', '餘額偏低':'💳', '客人週報':'📊', '創始人週報':'📈', '每月稱讚':'🏆', '連續記錄星星':'⭐', '自動請行政催':'📣', '交接未讀':'⏰', '儲值待核查':'🧾', '沒打上班卡':'⏱', '沒打下班卡':'⏱', '提醒打上班卡':'⏱', '提醒打下班卡':'⏱', '提醒後沒打上班卡':'⏱', '心情30分提醒':'💌', '心情2小時沒回':'💌', '交接留言2小時沒人看':'👀', '複檢提醒':'🗓', '預約已收到':'🧪', '代購已下單':'🛒', '代購到貨':'📦', '儲值已入帳':'💳', '心得已審核':'💬', '今日鼓勵':'💚', '每日打氣':'🫧', '續約獎待判定':'🎁', '疏漏提醒':'🔍', '自家產品詢問':'🍱', '服務方案詢問':'🤝', '料理包詢問':'🍱', 'IRCT缺項':'🧪', '壓力量測':'🌿', '壓力關心':'🌿', '壓力連續':'🚩', '急件：預約':'📅', '急件：檢測':'🧪', '急件：報告':'📋', '急件：付費':'💳', '急件逾時':'🔴', '預約已確認':'📅', '預約已取消':'📅', '排班缺人提醒':'🗓', '排班缺人逼近':'🗓', '客人留言待處理':'📩', '客人問題待處理':'📩', '新預約待處理':'📩', '醫師交辦待處理':'🩺', '客人留言逾時':'🔴', '客人問題逾時':'🔴', '新預約逾時':'🔴', '醫師交辦逾時':'🔴', '閉環日報':'📒' };
     var html='<div style="font-size:12.5px;color:var(--text2);margin-bottom:10px;line-height:1.6">'+(d.enabled?'每天晚上 8 點自動執行（打卡檢查每小時）':'<b style="color:#A32D2D">⚠️ 自動發送目前是關閉的</b>')+(d.lastRun?'・最近一次：'+escH(d.lastRun):'')+'<br><span style="display:inline-block;width:14px;height:14px;background:#F8D7D7;border-left:4px solid #D9534F;vertical-align:middle"></span> <b>紅色＝要你處理</b>，處理完按右邊「已看過」就會變成已處理　<span style="display:inline-block;width:14px;height:14px;background:#D9F0E3;border-left:4px solid #2E9E5B;vertical-align:middle"></span> <b>綠色＝已替你發給客人</b>，不用再傳　<span style="display:inline-block;width:14px;height:14px;background:#E3EEFB;border-left:4px solid #3B7DD8;vertical-align:middle"></span> <b>藍色＝已交給同事處理</b>，超過時間沒人處理才會變紅叫你　<span style="display:inline-block;width:14px;height:14px;background:#FFE2B8;border-left:4px solid #E8730C;vertical-align:middle"></span> <b>橘色＝急件</b>（報告／預約／付費／檢測，已同時通知行政、你、單位，看誰還沒確認）　<span style="display:inline-block;width:14px;height:14px;background:#FFF1BF;border-left:4px solid #D4A017;vertical-align:middle"></span> 黃色＝給你參考</div>';
     if(!items.length){ html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">近 3 天沒有自動發送的訊息</div>'; box.innerHTML=html; return; }
     var byDate={}; items.forEach(function(it){ (byDate[it.date]=byDate[it.date]||[]).push(it); });
@@ -11177,6 +11240,36 @@ function loadClockStatus(){
 // 以「秘書＋日期」為一列：上班時間、下班時間、有沒有排班；排了班卻沒打上班卡 → 整列紅底；有上班沒下班（且不是今天）→ 黃底。
 // ── 2026-10-12 排班月報（連動薪資）──
 var _payrollData = null;
+// 2026-11-01 續約獎判定（管理人／財務主管）
+function loadRenewalJudge(){
+  var box = document.getElementById('renew-judge-box'); if(!box) return;
+  adminAPI({action:'getRenewalBonuses'}, function(d){
+    box = document.getElementById('renew-judge-box'); if(!box) return;
+    var items = (d && d.items) || [];
+    var pend = items.filter(function(x){ return x.verdict==='待判定'; }), done = items.filter(function(x){ return x.verdict!=='待判定'; }).slice(0,5);
+    if(!pend.length && !done.length){ box.innerHTML=''; return; }
+    var canJudge = CURRENT_USER && (['管理人','老闆','創始人','財務主管'].indexOf(CURRENT_USER.role)>=0 || (CURRENT_USER.otherRoles||[]).indexOf('財務主管')>=0);
+    var h = '<div style="background:#FDE8E8;border-left:5px solid #DC2626;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#7F1D1D">'
+      + '<b>🎁 續約獎判定</b><div style="font-size:11.5px;color:#991B1B;margin:2px 0 6px">客人續約時，開發費那一格（費用 10%）：開發者促成 → 全給開發者；不是 → 開發者一半，另一半給這一年互動最多與滿意度最高的秘書。</div>';
+    pend.forEach(function(x){
+      h += '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:7px 0;border-top:1px dashed #FCA5A5">'
+        + '<b>'+escH(x.clientName)+'</b> 續約「'+escH(x.plan)+'」'+x.fee.toLocaleString()+' 元 → 獎金 <b>'+x.bonus.toLocaleString()+'</b>'
+        + '<span style="font-size:11.5px">開發者：'+escH(x.developer||'（未登記）')+'　互動最多：'+escH(x.topInteraction||'—')+'　滿意度最高：'+escH(x.topSatisfaction||'—')+'</span>'
+        + (canJudge ? '<span style="margin-left:auto;display:flex;gap:6px"><button class="ai-btn g" style="font-size:11px;padding:5px 10px" onclick="judgeRenewal('+x.row+',true,this)">是開發者促成</button><button class="ai-btn" style="font-size:11px;padding:5px 10px;background:#FEE2E2;color:#991B1B" onclick="judgeRenewal('+x.row+',false,this)">不是</button></span>' : '')
+        + '</div>';
+    });
+    if(done.length){ h += '<div style="font-size:11px;color:#991B1B;margin-top:6px">已判定：'+done.map(function(x){ return escH(x.clientName)+'（'+escH(x.verdict)+'：'+Object.keys(x.alloc||{}).map(function(n){ return escH(n)+' '+x.alloc[n]; }).join('、')+'）'; }).join('；')+'</div>'; }
+    box.innerHTML = h + '</div>';
+  });
+}
+function judgeRenewal(row, byDev, btn){
+  if(!confirm(byDev ? '確定這次續約是開發者促成的？獎金全部給開發者。' : '確定不是開發者促成？開發者拿一半，另一半給互動最多與滿意度最高的秘書。')) return;
+  if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
+  adminAPIPost({action:'judgeRenewalBonus', row:row, byDeveloper:byDev}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已判定：'+Object.keys(d.alloc||{}).map(function(n){ return n+' '+d.alloc[n]; }).join('、')); loadPayrollMonth(); }
+    else { toast('⚠️ '+((d&&d.message)||'失敗')); if(btn){ btn.disabled=false; btn.style.opacity=''; } }
+  });
+}
 function loadPayrollMonth(after){
   var body = document.getElementById('payroll-body'); if(!body) return;
   var mInp = document.getElementById('payroll-month');
@@ -11194,18 +11287,33 @@ function loadPayrollMonth(after){
     if(!items.length){ body.innerHTML = '<div style="padding:12px;text-align:center;color:var(--text3)">'+escH(d.month)+' 還沒有排班記錄</div>'; return; }
     var money = function(v){ return 'NT$' + Math.round(Number(v)||0).toLocaleString(); };
     var roleChip = function(r){ var c = r==='醫師' ? ['#E6F0FA','#154C79'] : r==='秘書' ? ['#DFF3F7','#0E5A6D'] : r==='行政' ? ['#EEEDFE','#3C3489'] : ['#F1F3F5','#4A5560']; return '<span style="font-size:11px;font-weight:700;background:'+c[0]+';color:'+c[1]+';border-radius:10px;padding:1px 8px">'+escH(r||'—')+'</span>'; };
-    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">'
+    var html = '';
+    if (d.pool) {
+      var pu = d.pool;
+      html += '<div style="background:#FEF3C7;border-left:5px solid #F59E0B;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;line-height:1.8;color:#78350F">'
+        + '<b>🏅 '+escH(d.month)+' 秘書點數池</b>：'+pu.clients+' 位客人攤進 <b>'+Math.round(pu.poolTotal).toLocaleString()+'</b> 元，有人照顧的客人可分 <b>'+Math.round(pu.distributable).toLocaleString()+'</b> 元，全體 '+pu.totalPts+' 點'
+        + (pu.totalPts ? '（1 點約 '+Math.round(pu.distributable/pu.totalPts).toLocaleString()+' 元）' : '')
+        + ((pu.untouched||[]).length ? '<div style="color:#A32D2D;margin-top:3px">🔴 整月沒人碰：'+pu.untouched.map(function(u){ return escH(u.name)+'（'+Math.round(u.amt).toLocaleString()+' 元留公司）'; }).join('、')+'</div>' : '')
+        + (pu.docPool ? '<div style="font-size:11.5px;color:#92400E;margin-top:2px">醫師工作池本月 '+Math.round(pu.docPool).toLocaleString()+' 元（醫師工作點數第二批接上後按點數付超額）</div>' : '')
+        + '</div>';
+      if (d.all) html += '<div id="renew-judge-box"></div>';
+    }
+    html += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">'
       + '<tr style="background:#FBF6EA;color:#7A5A12"><th style="text-align:left;padding:8px">姓名</th><th style="text-align:left;padding:8px">薪資設定</th><th style="padding:8px">班數</th><th style="padding:8px">排定時數</th><th style="padding:8px">實際打卡時數</th><th style="padding:8px">缺卡</th><th style="text-align:right;padding:8px">應付金額</th><th style="padding:8px">請款</th></tr>';
     items.forEach(function(p, i){
       var setting = (p.rateItems && p.rateItems.length) ? p.rateItems.map(function(x){ return escH(x.name)+' '+money(x.rate)+'／時'; }).join('<br>')
         : p.payType ? (p.payType + ' ' + money(p.payRate) + (p.payType==='時薪' ? '／小時' : p.payType==='按次' ? '／次' : '／月')) : '<span style="color:#A32D2D;font-weight:700">⚠️ 還沒設定薪資</span>';
       // 算式：門診A 8h × 500 ＝ 4,000 ＋ 一般 12h × 200 ＝ 2,400
       var formula = (p.byItem && p.byItem.length) ? p.byItem.map(function(b){ return '<span style="white-space:nowrap">'+escH(b.item)+' '+b.hours+'h × '+Math.round(b.rate).toLocaleString()+' ＝ <b>'+Math.round(b.amount).toLocaleString()+'</b></span>'; }).join(' ＋ ') : '';
-      // 2026-10-20 照顧費分攤：客人買的方案費用 ÷ 12 個月 × 秘書比例，加在這個月的薪資裡
-      if (p.careFee) {
-        var cfItems = (p.careFeeItems||[]).map(function(c){ return '<span style="white-space:nowrap">'+escH(c.clientName)+'「'+escH(c.plan)+'」'+Math.round(c.fee).toLocaleString()+'÷12'+(c.ratio<100?'×'+c.ratio+'%':'')+'（第 '+c.nth+'／12 月）＝ <b>'+Math.round(c.monthly).toLocaleString()+'</b></span>'; }).join('、');
-        formula += (formula ? ' ＋ ' : '') + '<span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:1px 6px;white-space:nowrap">🧡 照顧費分攤 <b>'+Math.round(p.careFee).toLocaleString()+'</b></span>'
-          + '<div style="font-size:10.5px;color:#92400E;margin-top:2px;line-height:1.6">'+cfItems+'</div>';
+      // 2026-11-01 秘書點數池：這個月按點數分到的；續約獎
+      if (p.poolAmt || p.poolPts) {
+        var pdItems = (p.poolDetail||[]).slice(0,6).map(function(c){ return escH(c.name)+' '+c.pts+'點'; }).join('、') + ((p.poolDetail||[]).length>6 ? '…' : '');
+        formula += (formula ? ' ＋ ' : '') + '<span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:1px 6px;white-space:nowrap">🏅 點數池 '+p.poolPts+' 點 ＝ <b>'+Math.round(p.poolAmt).toLocaleString()+'</b></span>'
+          + (pdItems ? '<div style="font-size:10.5px;color:#92400E;margin-top:2px;line-height:1.6">'+pdItems+'</div>' : '');
+      }
+      if (p.renewBonus) {
+        formula += (formula ? ' ＋ ' : '') + '<span style="background:#FDE8E8;color:#8B2C2C;border-radius:6px;padding:1px 6px;white-space:nowrap">🎁 續約獎 <b>'+Math.round(p.renewBonus).toLocaleString()+'</b></span>'
+          + '<div style="font-size:10.5px;color:#8B2C2C;margin-top:2px">'+(p.renewItems||[]).map(function(r){ return escH(r.clientName)+' '+Math.round(r.amt).toLocaleString(); }).join('、')+'</div>';
       }
       var miss = (p.missIn ? '<span style="color:#A32D2D;font-weight:700">沒上班卡 '+p.missIn+'</span> ' : '') + (p.missOut ? '<span style="color:#8A6A1F;font-weight:700">沒下班卡 '+p.missOut+'</span>' : '') || '<span style="color:#0F6E56">—</span>';
       var inv = !p.shifts ? '—' : p.pending ? ('<span style="color:#8A6A1F;font-weight:700">待請款 '+p.pending+' 班</span>' + (p.invoiced ? '<br><span style="color:#0F6E56">已請款 '+p.invoiced+'</span>' : '')) : '<span style="color:#0F6E56;font-weight:700">✅ 已請款</span>';
@@ -11223,6 +11331,7 @@ function loadPayrollMonth(after){
     if(d.all) html += '<tr style="border-top:2px solid #E6D3A0;background:#FBF6EA"><td colspan="6" style="padding:8px;font-weight:800;color:#7A5A12">合計（'+items.length+' 人）</td><td style="padding:8px;text-align:right;font-weight:800;font-size:14px;color:#7A5A12">'+money(d.total)+'</td><td></td></tr>';
     html += '</table></div>';
     body.innerHTML = html;
+    if (d.all) loadRenewalJudge();
     if(typeof after === 'function') after();
   });
 }
