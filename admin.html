@@ -146,6 +146,20 @@ body[data-role="財務主管"] .si.on{border-left-color:#5FD68F}
 .si-badge.a{background:#EF9F27;color:#412402}
 .si-badge.g{background:#1D9E75;color:#fff}
 .main{flex:1;margin-left:200px;display:flex;flex-direction:column;min-height:100vh}
+/* 2026-11-01g 手機版：側欄變抽屜、字體可放大（創辦人：手機上後台字好小、眼睛很累） */
+.mx-menu-btn{display:none;border:1px solid var(--border);background:var(--card);border-radius:9px;padding:7px 10px;font-size:18px;cursor:pointer;line-height:1}
+.mx-font-btn{display:none;border:1px solid var(--border);background:var(--card);border-radius:9px;padding:7px 10px;font-size:14px;font-weight:800;cursor:pointer;line-height:1;color:var(--g3)}
+.mx-sb-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:49}
+@media (max-width:760px){
+  .sidebar{transform:translateX(-100%);transition:transform .2s;z-index:50;width:230px}
+  body.mx-sb-open .sidebar{transform:translateX(0)}
+  body.mx-sb-open .mx-sb-mask{display:block}
+  .main{margin-left:0}
+  .mx-menu-btn,.mx-font-btn{display:inline-block}
+  .topbar{padding:9px 10px;flex-wrap:wrap;gap:6px}
+  .tb-duty{display:none}
+  .content,.page-content{padding:10px}
+}
 .topbar{display:flex;align-items:center;gap:9px;padding:11px 20px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
 .tb-title{font-size:17px;font-weight:700;color:var(--text);flex:1;display:flex;align-items:center;gap:9px}
 .tb-duty{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
@@ -343,7 +357,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-11-01f';
+var MX_BUILD = '2026-11-03a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -471,8 +485,11 @@ var MX_BUILD = '2026-11-01f';
 
 <!-- 主要內容 -->
 <div class="main">
+<div class="mx-sb-mask" onclick="mxToggleSidebar(false)"></div>
 <div class="topbar">
+  <button class="mx-menu-btn" onclick="mxToggleSidebar()" title="選單">☰</button>
   <div class="tb-title" id="page-title">儀表板</div>
+  <button class="mx-font-btn" onclick="mxFontCycle()" id="mx-font-btn" title="放大字體">A+</button>
   <div class="tb-duty"><div class="duty-dot"></div><span id="duty-label">值班：（點右側切換值班設定）</span></div>
   <button class="tb-btn" id="tb-duty-btn" onclick="switchDuty()"><i class="ti ti-arrows-exchange" style="font-size:14px"></i>切換值班</button>
   <button class="tb-btn" id="tb-weekly-btn" onclick="genWeeklyBroadcast()"><i class="ti ti-send" style="font-size:14px"></i>發週報</button>
@@ -1049,6 +1066,13 @@ var MX_BUILD = '2026-11-01f';
           <div class="duty-cal-wd"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
           <div id="duty-cal-grid" class="duty-cal-grid"></div>
           <div id="duty-cal-list" style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.6"></div>
+        </div>
+        <div id="duty-meal-row" style="grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:9px;padding:8px 10px">
+          <span style="font-size:12px;font-weight:700;color:#065F46">一次排三餐（可複選）：</span>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" class="duty-meal" value="上午" onchange="dutyMealChange()">🌅 早餐 07–11</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" class="duty-meal" value="下午" onchange="dutyMealChange()">☀️ 午餐 11–15</label>
+          <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox" class="duty-meal" value="晚上" onchange="dutyMealChange()">🌙 晚餐 17–21</label>
+          <span style="font-size:11px;color:#047857">勾了就不用再選下面的班別；每天會排成幾個獨立的班</span>
         </div>
         <select id="duty-shift" class="form-select" style="font-size:12px" onchange="dutyShiftPresetChange()">
           <option value="">選擇班別…</option>
@@ -2616,7 +2640,14 @@ function _mxPageNavRender(id){
   }).join('');
 }
 
+function mxToggleSidebar(force){ var on = (force === undefined) ? !document.body.classList.contains('mx-sb-open') : !!force; document.body.classList.toggle('mx-sb-open', on); }
+// 字體放大：100% → 120% → 140% → 100%（記在這支手機，下次打開一樣）
+var MX_FONT_STEPS = [1, 1.2, 1.4];
+function mxApplyFont(z){ try { document.body.style.zoom = z; } catch(e){} var b = document.getElementById('mx-font-btn'); if(b) b.textContent = z === 1 ? 'A+' : 'A ' + Math.round(z*100) + '%'; }
+function mxFontCycle(){ var cur = Number((function(){ try { return localStorage.getItem('mx_admin_zoom'); } catch(e){ return null; } })()) || 1; var i = MX_FONT_STEPS.indexOf(cur); var next = MX_FONT_STEPS[(i + 1) % MX_FONT_STEPS.length]; try { localStorage.setItem('mx_admin_zoom', String(next)); } catch(e){} mxApplyFont(next); }
+(function(){ var z = 1; try { z = Number(localStorage.getItem('mx_admin_zoom')) || 1; } catch(e){} if (z !== 1) { if (document.body) mxApplyFont(z); else document.addEventListener('DOMContentLoaded', function(){ mxApplyFont(z); }); } })();
 function goPg(id,el){
+  if (window.innerWidth <= 760) mxToggleSidebar(false); // 手機：選完頁面自動收起側欄
   // 權限攔截：不管是從選單點的、還是程式裡其他地方直接呼叫goPg，都要先過這一關
   if (CURRENT_USER) {
     var _allowedPages = ROLE_PAGES[CURRENT_USER.role];
@@ -3417,10 +3448,23 @@ function loadIRCTAnalysisFull(clientId){
     box.innerHTML = html;
   });
 }
+function irctTodayStr(){ var d = new Date(); return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2); }
 function saveIRCTFull(clientId){
   var g = function(id){ var el = document.getElementById(id); return el ? el.value.trim() : ''; };
   var hasAny = ['hba1c','glucoseAC','tg','hdl','insulinAC','waist','bodyFatPct'].some(function(k){ return g('irct-f-'+k) !== ''; });
   if(!hasAny){ toast('至少填幾個關鍵數值才能儲存'); return; }
+  // 2026-11-03 檢測日＋補登旗標：補登的舊檢測只存檢測記錄、不產生分潤收款；沒勾補登就是新檢測、照常產生分潤收款
+  var testDate = g('irct-f-testDate'), todayS = irctTodayStr();
+  var bfEl = document.getElementById('irct-f-backfill'), backfill = !!(bfEl && bfEl.checked);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(testDate)){ toast('⚠️ 請先填「檢測日」'); return; }
+  if(testDate > todayS){ toast('⚠️ 檢測日不能比今天晚，請確認日期'); return; }
+  if(backfill && g('irct-f-count') === ''){ toast('⚠️ 補登舊檢測請填「第幾次檢測」（第一次填 1、第二次填 2…）'); return; }
+  if(backfill && testDate === todayS){
+    if(!confirm('你勾了「補登的舊檢測」，但檢測日是今天。\n\n・今天新做的檢測 → 按「取消」，把「補登」取消勾選（才會產生分潤收款）\n・其實是舊檢測 → 按「取消」，把檢測日改成真正的日期\n・確定今天做的也不要產生分潤收款 → 按「確定」')) return;
+  }
+  if(!backfill && testDate < todayS){
+    if(!confirm('檢測日是 '+testDate+'（不是今天），但沒有勾「補登的舊檢測」。\n\n這樣儲存會同時產生一筆分潤收款（營收）。\n\n・這是舊檢測、只是補資料 → 按「取消」，回去勾「補登的舊檢測」\n・這次檢測真的是新收費、只是晚幾天才輸入 → 按「確定」')) return;
+  }
   var tg = g('irct-f-tg'), hdl = g('irct-f-hdl'), esi = g('irct-f-esi');
   if(!esi && tg && hdl && Number(hdl) > 0) esi = String(Math.round(Number(tg)/Number(hdl)*100)/100);
   var waistVal = g('irct-f-waist'), hipVal = g('irct-f-hip');
@@ -3438,7 +3482,7 @@ function saveIRCTFull(clientId){
   if(othersVal) medsParts.push('其他用藥:'+othersVal);
   var medsSnapshot = medsParts.join('；');
   var payload = { action:'saveIRCTFullRecord', clientId:clientId,
-    count:g('irct-f-count'), planType:g('irct-f-plan')||'t2', gender:g('irct-f-gender')||'女',
+    count:g('irct-f-count'), testDate:testDate, backfill:backfill, planType:g('irct-f-plan')||'t2', gender:g('irct-f-gender')||'女',
     clinic:g('irct-f-clinic'), dietHabit:g('irct-f-diet'), exerciseFreq:g('irct-f-exercise'), exerciseLowFreq:g('irct-f-exerciseLow'),
     medsSnapshot:medsSnapshot,
     hba1c:g('irct-f-hba1c'), glucoseAC:g('irct-f-glucoseAC'), glucose1h:g('irct-f-glucose1h'),
@@ -3457,10 +3501,12 @@ function saveIRCTFull(clientId){
   adminAPIPost(payload, function(d){
     if(d && d.status === 'ok'){
       var _cp = d.completeness;
+      var _bfTag = backfill ? '（補登，檢測日 '+testDate+'，沒有產生分潤收款）' : '';
+      if(bfEl) bfEl.checked = false; // 補登勾選只管這一筆，存完取消，避免下一筆新檢測忘了取消而漏掉分潤收款
       if(_cp && !_cp.complete){
         var _ms = []; (_cp.groups||[]).forEach(function(g){ (g.missing||[]).forEach(function(m){ _ms.push(m.l); }); });
-        toast('✅ 已儲存。⚠️ 這次還缺 '+_ms.length+' 項：'+_ms.slice(0,5).join('、')+(_ms.length>5?'…':'')+'——拿到數值後在下方「五項指標」按「✏️ 補登」', 7000);
-      } else toast('✅ IRCT完整記錄已儲存（五項指標都齊了），前台報告已同步更新');
+        toast('✅ 已儲存'+_bfTag+'。⚠️ 這次還缺 '+_ms.length+' 項：'+_ms.slice(0,5).join('、')+(_ms.length>5?'…':'')+'——拿到數值後在下方「五項指標」按「✏️ 補登」', 7000);
+      } else toast('✅ IRCT完整記錄已儲存'+_bfTag+'（五項指標都齊了），前台報告已同步更新');
       // 2026-09-09補：原本空callback，「報告狀態」這個note如果沒寫成功，客人前台報告解鎖會對不上，
       // 但祕書畫面上完全看不出來——失敗時補一個提示，不擋住主流程。
       adminAPI({action:'addNote', clientId:clientId, content:'reportStatus:ready', type:'報告狀態', secretary:(CURRENT_USER&&CURRENT_USER.name)||'系統'}, function(nd){
@@ -3497,12 +3543,176 @@ function loadIRCTFiveTrack(clientId, cur, prev){
     _ftData = d; renderFiveTrack();
   });
 }
+// ══════ 2026-11-03 客人版「複測對照」報告（創辦人格式：一次檢測一欄＋最右邊「進步」欄）══════
+// 規則（都是創辦人定的）：①進步欄只寫有進步的項目，文字＝檢查項目原名＋數字 ②只列五個部分：血糖（空腹血糖、糖化血色素）／血脂（TG、ESI）／
+// 荷爾蒙（空腹胰島素）／體組成（體脂率、內臟脂肪、腰圍，加體重、體脂肪kg）／負面分子（sdLDL、同半胱胺酸）③總膽固醇、LDL 不判進步退步
+// ④HOMA-IR 不比、動態胰島素（飯後1/2/3小時）不判、飯後血糖不判——留給醫師講解 ⑤紅字＝血液檢驗值超出現行正常區間，體組成不標紅
+var RT_ROWS = [
+  ['1','糖化血色素','hba1c','<5.8','4.0-6.0'],['2','三酸甘油脂 TG','tg','<80','<150'],['3','膽固醇','cholesterol','180-280','<200'],
+  ['4','高密度膽固醇 HDL','hdl','>男50>女60','>男40>女50'],['5','低密度膽固醇 LDL','ldl','','<130'],['6','ESI：TG/HDL','esi','<1.3',''],
+  ['7','肌肝酸 Creatinine','creatinine','M:男:0.7-1.2 女:0.5-0.9'],['8','尿酸','ua','M:男:3.4-7.0 女:2.4-5.7'],
+  ['9','麩草酸轉氨胰 GOT','got','M:男:<40 女:<32'],['10','麩丙酮酸轉氨胰 GPT','gpt','<25','男:<41女:<33'],
+  ['11','腎絲球過濾速率 eGFR','egfr','M:ml/min/1.73m*2， >60'],['12','HOMA-IR','homaIR','M:H<2.0'],
+  ['13','空腹血糖','glucoseAC','<87','70-100'],['16','飯後1小時血糖','glucose1h','','90-140'],['17','飯後2小時血糖','glucose2h','','90-120'],
+  ['18','飯後3小時血糖','glucose3h','','90-120'],['19','空腹胰島素 Insulin','insulinAC','<6',''],['22','飯後1小時胰島素 Insulin','insulin1h','',''],
+  ['23','飯後2小時胰島素 Insulin','insulin2h','','12.6-51.7'],['24','飯後3小時胰島素 Insulin','insulin3h','',''],
+  ['25','血酮 Ketone body','ketone','0.5-3 生酮',''],['26','身高','height','',''],['27','體重','weight','',''],
+  ['28','體脂肪率%','bodyFatPct','男:<22%女:<25%','男:<25%女:<30%'],['29','體脂肪 (kg)','bodyFat','',''],['30','內臟脂肪','visceralFat','6-8','8-10'],
+  ['31','腰圍','waist','男:<84 女:<74','腰圍：男:<90 女:<80'],['32','臀圍','hip','',''],['33','腰臀比','waistHipRatio','',''],
+  ['34','身體品質指數 BMI','bmi','',''],['35','小而緻密脂蛋白膽固醇sdLDL','sdldl','<20','<30'],['36','同半胱胺酸 homocysteine','homocysteine','<15','<15']
+];
+// 進步欄項目：f＝欄位，n＝顯示名稱，u＝數字後面的單位，dec＝小數位數（全部都是「數字變小＝進步」）
+var RT_PROG = {
+  hba1c:{n:'糖化血色素',u:''}, glucoseAC:{n:'空腹血糖',u:''}, tg:{n:'TG',u:''}, esi:{n:'ESI',u:''}, insulinAC:{n:'空腹胰島素',u:''},
+  weight:{n:'體重',u:' kg'}, bodyFatPct:{n:'體脂肪率',u:'%'}, bodyFat:{n:'體脂肪',u:' kg'}, visceralFat:{n:'內臟脂肪',u:''}, waist:{n:'腰圍',u:' cm'},
+  sdldl:{n:'sdLDL',u:''}, homocysteine:{n:'同半胱胺酸',u:''}
+};
+function rtNum(v){ if(v===null||v===undefined||v==='') return NaN; var s=String(v).replace(/[<>＜＞≦≧R,\s]/g,''); var n=parseFloat(s); return isNaN(n)?NaN:n; }
+function rtR2(n){ return Math.round(n*100)/100; }
+function rtShow(v){ var n=rtNum(v); if(isNaN(n)) return (v===null||v===undefined)?'':String(v); if(/[<>＜＞]/.test(String(v))) return String(v); return String(rtR2(n)); }
+function rtVal(rec,f){
+  var v = rec[f];
+  if((v===''||v===undefined||v===null) && f==='esi'){ var t=rtNum(rec.tg), h=rtNum(rec.hdl); if(!isNaN(t)&&h>0) v = rtR2(t/h); }
+  if((v===''||v===undefined||v===null) && f==='waistHipRatio'){ var w=rtNum(rec.waist), p=rtNum(rec.hip); if(!isNaN(w)&&p>0) v = rtR2(w/p); }
+  if((v===''||v===undefined||v===null) && f==='bmi'){ var kg=rtNum(rec.weight), cm=rtNum(rec.height); if(!isNaN(kg)&&cm>0) v = rtR2(kg/Math.pow(cm/100,2)); }
+  return v;
+}
+// 紅字：只有血液檢驗值超出「現行正常區間」才標紅（體組成不標紅、偏低不標紅；HDL 例外：低於男40／女50才標紅）
+function rtIsRed(f, v, gender){
+  var n = rtNum(v); if(isNaN(n)) return false; var male = (gender==='男');
+  switch(f){
+    case 'hba1c': return n>=5.8; case 'tg': return n>150; case 'cholesterol': return n>200; case 'ldl': return n>130;
+    case 'hdl': return n < (male?40:50); case 'esi': return n>=1.3; case 'ua': return n > (male?7.0:5.7);
+    case 'got': return n > (male?40:32); case 'gpt': return n > (male?41:33); case 'homaIR': return n>=2;
+    case 'glucoseAC': return n>100; case 'glucose1h': return n>140; case 'glucose2h': return n>120; case 'glucose3h': return n>120;
+    case 'sdldl': return n>30; case 'homocysteine': return n>15;
+  }
+  return false;
+}
+// 進步欄：mode 'all'＝最新 vs 之前最早有這項的那次；'last'＝最新 vs 上一次
+function rtProgress(tests, mode){
+  var out = {}, cur = tests[tests.length-1], earlier = tests.slice(0, tests.length-1);
+  Object.keys(RT_PROG).forEach(function(f){
+    var cv = rtNum(rtVal(cur.rec,f)); if(isNaN(cv)) return;
+    var base = null;
+    if(mode==='last'){ var p = tests[tests.length-2]; var pv = rtNum(rtVal(p.rec,f)); if(!isNaN(pv)) base = {t:p, v:pv}; }
+    else { for(var i=0;i<earlier.length;i++){ var bv = rtNum(rtVal(earlier[i].rec,f)); if(!isNaN(bv)){ base = {t:earlier[i], v:bv}; break; } } }
+    if(!base){ if(f==='sdldl'||f==='homocysteine') out[f] = {first:true}; return; }
+    // 體重／體脂肪 kg：體重本來就不高的人（前一次 BMI 低於 24）減重不算進步，不列
+    if(f==='weight'){ var bb = rtNum(rtVal(base.t.rec,'bmi')); if(isNaN(bb)||bb<24) return; }
+    var d = rtR2(rtR2(base.v) - rtR2(cv));
+    if(d > 0) out[f] = {text: RT_PROG[f].n+' −'+(f==='bodyFatPct' ? d.toFixed(1) : d)+RT_PROG[f].u};
+  });
+  return out;
+}
+function rtDateStr(s){ var m=/^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(String(s||'')); return m ? (m[1]+'/'+(+m[2])+'/'+(+m[3])) : String(s||''); }
+function rtBuild(tests, mode, name, dob){
+  var n = tests.length, prog = rtProgress(tests, mode), gender = (tests[n-1].rec.gender)||'女';
+  var shown = (mode==='all') ? tests : tests.slice(n-2);
+  var prgTitle = (mode==='all') ? '進步（與第一次比）' : '進步（與上次比）';
+  var h = '<table class="rt-tb"><tr><th></th><th>日期</th>';
+  shown.forEach(function(t){ h += '<th>'+escH(rtDateStr(t.date))+'</th>'; });
+  h += '<th class="rt-pgh">'+prgTitle+'</th><th class="rt-rg" colspan="2"></th></tr>';
+  h += '<tr><th>0</th><th>姓名</th>'+shown.map(function(){ return '<th>'+escH(name||'')+'</th>'; }).join('')+'<th class="rt-pgh"></th><th class="rt-rg">治療性生酮後理想區間</th><th class="rt-rg" style="font-weight:400">現行正常區間</th></tr>';
+  h += '<tr><th>0</th><th>出生年月日</th>'+shown.map(function(){ return '<th>'+escH(dob||'')+'</th>'; }).join('')+'<th class="rt-pgh"></th><th class="rt-rg"></th><th class="rt-rg"></th></tr>';
+  h += '<tr><th></th><th>檢測地點</th>'+shown.map(function(t){ return '<th style="font-weight:400">'+escH(t.rec.clinic||'')+'</th>'; }).join('')+'<th class="rt-pgh"></th><th class="rt-rg"></th><th class="rt-rg"></th></tr>';
+  RT_ROWS.forEach(function(r){
+    var f = r[2], any = shown.some(function(t){ return !isNaN(rtNum(rtVal(t.rec,f))) || (rtVal(t.rec,f)!=='' && rtVal(t.rec,f)!==undefined && rtVal(t.rec,f)!==null); });
+    var extra = (f==='sdldl'||f==='homocysteine');
+    if(!any && !extra && ['ketone','insulin1h','insulin2h','insulin3h','glucose1h','glucose2h','glucose3h','hip','waistHipRatio','bmi','bodyFat','height'].indexOf(f)>=0) return; // 整排都沒資料的選驗項目不印
+    if(!any && extra) return;
+    var cls = f==='esi' ? ' class="rt-esi"' : (extra ? ' class="rt-blue"' : '');
+    h += '<tr'+cls+'><td class="rt-no">'+r[0]+'</td><td class="rt-it">'+escH(r[1])+'</td>';
+    shown.forEach(function(t){
+      var v = rtVal(t.rec,f), red = rtIsRed(f, v, t.rec.gender||gender);
+      h += '<td class="rt-v'+(red?' rt-red':'')+'">'+escH(rtShow(v))+'</td>';
+    });
+    var p = prog[f], cell = '';
+    if(p && p.first) cell = '<span class="rt-first">首次基準值</span>'; else if(p) cell = '<span class="rt-pg">'+escH(p.text)+'</span>';
+    h += '<td class="rt-pgc">'+cell+'</td>';
+    if(String(r[3]||'').indexOf('M:')===0) h += '<td class="rt-rg rt-merged" colspan="2">'+escH(r[3].slice(2))+'</td>';
+    else h += '<td class="rt-rg rt-ideal">'+escH(r[3]||'')+'</td><td class="rt-rg">'+escH(r[4]||'')+'</td>';
+    h += '</tr>';
+  });
+  return h + '</table>';
+}
+var _rtState = null;
+function rtOpen(){
+  var cid = _ftCid || _cdCurrentId; if(!cid){ toast('找不到客人'); return; }
+  toast('讀取檢測紀錄中…');
+  adminAPI({action:'getIRCTFullHistory', clientId:cid}, function(d){
+    var items = ((d && d.items) || []).filter(function(it){ return it && /^\d{4}-\d{2}-\d{2}/.test(String(it.date||'')); });
+    if(items.length < 2){ toast('⚠️ 複測對照至少要有兩次檢測紀錄（目前 '+items.length+' 次）'); return; }
+    var tests = items.map(function(it){ return {date:it.date, count:it.count, rec:it}; })
+      .sort(function(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : (parseInt(a.count,10)||0) - (parseInt(b.count,10)||0); });
+    var name = ''; try{ name = (typeof _cdCurrentName!=='undefined' && _cdCurrentName) ? _cdCurrentName : ''; }catch(e){}
+    var old = document.getElementById('rt-overlay'); if(old) old.remove();
+    if(!document.getElementById('rt-style')){
+      var st = document.createElement('style'); st.id='rt-style';
+      st.textContent = '#rt-overlay{position:fixed;inset:0;background:#fff;z-index:2000;overflow:auto}'
+        +'#rt-bar{position:sticky;top:0;z-index:2;background:#F3F8F5;border-bottom:1px solid #BFDDCF;padding:8px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}'
+        +'#rt-bar button{font-size:13px;font-weight:700;padding:7px 12px;border-radius:8px;border:1px solid #1B7A2F;background:#fff;color:#1B7A2F;cursor:pointer}'
+        +'#rt-bar button.on{background:#1B7A2F;color:#fff}'
+        +'#rt-sheet{padding:12px;display:inline-block;background:#fff;font-family:"Noto Sans CJK TC","Microsoft JhengHei",sans-serif}'
+        +'.rt-tb{border-collapse:collapse;font-size:16px;color:#000}.rt-tb td,.rt-tb th{border:1px solid #333;padding:3px 6px;text-align:center;height:24px;background:#fff}'
+        +'.rt-tb th{font-weight:600}.rt-no{width:44px;font-weight:700}.rt-it{min-width:250px;font-weight:600}.rt-v{min-width:92px;font-weight:700}.rt-red{color:#f00}'
+        +'.rt-tb .rt-pgc,.rt-tb .rt-pgh{min-width:200px;background:#eef7ee}.rt-tb .rt-pgh{background:#d9f0dc;color:#1b7a2f}.rt-pg{color:#1b7a2f;font-weight:700}.rt-first{color:#666;font-size:13px}'
+        +'.rt-tb .rt-rg{min-width:150px;background:#f2f2f2}.rt-ideal{font-weight:700}.rt-merged{font-size:15px}'
+        +'.rt-tb tr.rt-esi .rt-it{background:#fdf0cf;font-weight:700}.rt-tb tr.rt-blue td.rt-it,.rt-tb tr.rt-blue td.rt-rg{background:#d9eef0}'
+        +'@media print{@page{size:landscape;margin:8mm}body>*:not(#rt-overlay){display:none!important}#rt-overlay{position:static;overflow:visible}#rt-bar{display:none!important}#rt-sheet{zoom:.62;padding:0}.rt-tb{-webkit-print-color-adjust:exact;print-color-adjust:exact}}';
+      document.head.appendChild(st);
+    }
+    var ov = document.createElement('div'); ov.id='rt-overlay';
+    ov.innerHTML = '<div id="rt-bar"><b>🧾 客人版複測對照</b><span id="rt-modes"></span>'
+      +'<label>出生年月日 <input id="rt-dob" type="text" placeholder="客人名單沒有生日時請自己填，例：53.4.10" style="font-size:13px;padding:5px 8px;width:110px;border:1px solid #999;border-radius:6px"></label>'
+      +'<button id="rt-print">🖨 列印／存成PDF</button><button id="rt-png">🖼 存成圖片</button><button id="rt-close">✕ 關閉</button>'
+      +'<span style="font-size:11.5px;color:#555">進步欄只寫有進步的；HOMA-IR、飯後血糖／胰島素、總膽固醇／LDL 不比，留給醫師講解</span></div><div id="rt-sheet"></div>';
+    document.body.appendChild(ov);
+    _rtState = {tests:tests, name:name, mode: tests.length>=3 ? 'all' : 'last'};
+    function draw(){
+      var dob = document.getElementById('rt-dob').value.trim();
+      document.getElementById('rt-sheet').innerHTML = rtBuild(_rtState.tests, _rtState.mode, _rtState.name, dob);
+      var mb = document.getElementById('rt-modes');
+      mb.innerHTML = _rtState.tests.length>=3 ? '<button data-m="all" class="'+(_rtState.mode==='all'?'on':'')+'">全程對照（'+_rtState.tests.length+'次）</button><button data-m="last" class="'+(_rtState.mode==='last'?'on':'')+'">這次對照（上次→這次）</button>' : '';
+      Array.prototype.forEach.call(mb.querySelectorAll('button'), function(b){ b.onclick = function(){ _rtState.mode = b.getAttribute('data-m'); draw(); }; });
+    }
+    if(d && d.dob) document.getElementById('rt-dob').value = d.dob; // 出生年月日從客人名單的「生日」欄自動帶入（沒有才需要自己填），仍可修改
+    document.getElementById('rt-dob').oninput = draw;
+    document.getElementById('rt-close').onclick = function(){ ov.remove(); };
+    document.getElementById('rt-print').onclick = function(){ window.print(); };
+    document.getElementById('rt-png').onclick = rtSavePng;
+    draw();
+  });
+}
+// 存成圖片：把表格連同樣式包進 SVG 再畫到 canvas，不靠外部套件；失敗就提示改用列印／存成PDF
+function rtSavePng(){
+  try{
+    var sheet = document.getElementById('rt-sheet'), tb = sheet.querySelector('table');
+    var w = Math.ceil(tb.offsetWidth)+24, hh = Math.ceil(tb.offsetHeight)+24;
+    var css = document.getElementById('rt-style').textContent.replace(/@media print\{.*$/,'');
+    var xhtml = '<div xmlns="http://www.w3.org/1999/xhtml" style="padding:12px;background:#fff;font-family:\'Noto Sans CJK TC\',\'Microsoft JhengHei\',sans-serif"><style>'+css+'</style>'+tb.outerHTML+'</div>';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="'+w+'" height="'+hh+'"><foreignObject width="100%" height="100%">'+xhtml+'</foreignObject></svg>';
+    var img = new Image();
+    img.onload = function(){
+      var c = document.createElement('canvas'); c.width = w*2; c.height = hh*2; var cx = c.getContext('2d');
+      cx.fillStyle = '#fff'; cx.fillRect(0,0,c.width,c.height); cx.scale(2,2); cx.drawImage(img,0,0);
+      c.toBlob(function(b){
+        if(!b){ toast('⚠️ 存圖失敗，請改用「列印／存成PDF」'); return; }
+        var a = document.createElement('a'); a.href = URL.createObjectURL(b);
+        a.download = (_rtState.name||'客人')+'_複測對照.png'; document.body.appendChild(a); a.click(); a.remove();
+      }, 'image/png');
+    };
+    img.onerror = function(){ toast('⚠️ 存圖失敗，請改用「列印／存成PDF」'); };
+    img.src = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  }catch(e){ toast('⚠️ 存圖失敗，請改用「列印／存成PDF」'); }
+}
 function renderFiveTrack(){
   var d = _ftData, box = document.getElementById('irct-five'); if(!d || !box) return;
   var tests = d.tests || [];
   var h = '<div style="background:#fff;border:1px solid var(--border);border-top:5px solid #1F5F8B;border-radius:12px;padding:12px 14px">';
   h += '<div style="font-size:15px;font-weight:800;color:#1F5F8B;margin-bottom:2px">🧪 五項指標・同一條時間軸</div>';
   h += '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">每次檢測都看同樣五組：🩸血糖・💉胰島素・🧈血脂・⚖️體組成・🔥發炎與肝腎。先看<b>數值齊不齊</b>，再看<b>跟上次比</b>。</div>';
+  if(tests.length >= 2) h += '<button class="ai-btn g" style="font-size:13px;padding:8px 14px;font-weight:800;margin-bottom:10px" onclick="rtOpen()">🧾 產生客人版複測對照（兩次以上對照＋進步欄）</button>';
   // ① 完整度
   h += '<div style="font-size:13px;font-weight:800;color:var(--text);margin:4px 0 6px">① 每次檢測的數值齊不齊</div>';
   h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="background:#F6F8FA;color:var(--text2)"><th style="text-align:left;padding:6px 8px">第幾次</th>';
@@ -6086,14 +6296,36 @@ function dutyCalUpdateCount(){
   var c = document.getElementById('duty-cal-count'); if(c) c.textContent = '已選 '+ds.length+' 天';
   var l = document.getElementById('duty-cal-list'); if(l) l.textContent = ds.length ? ('→ '+ds.map(function(x){ return x.slice(5).replace('-','/'); }).join('、')) : '還沒選日期——點上面的格子，排一天就點一天、排很多天就點很多天（跨月用 ‹ › 翻頁，選的會一起留著）';
 }
+function dutyMealKeys(){ return Array.prototype.map.call(document.querySelectorAll('.duty-meal:checked'), function(c){ return c.value; }); }
+function dutyMealChange(){ var any = dutyMealKeys().length > 0; var sel = document.getElementById('duty-shift'); if(sel){ sel.disabled = any; if(any) sel.value=''; } }
 function submitShift(btn){
   var secretary = document.getElementById('duty-secretary').value.trim();
   if(!secretary){ toast('請選擇秘書'); return; }
   var dates = dutyCalSelected();
   if(dates.length===0){ toast('請在月曆上點選要排的日期'); return; }
   var date = dates[0];
+  // 2026-11-01g 創辦人：一次可以排早餐、午餐、晚餐——勾了三餐就每天排成幾個獨立的班，一次送出
+  var meals = dutyMealKeys();
+  if(meals.length){
+    var mealNames = meals.map(function(k){ return {上午:'早餐',下午:'午餐',晚上:'晚餐'}[k]||k; }).join('、');
+    if(!confirm('要把 '+secretary+' 的「'+mealNames+'」排進這 '+dates.length+' 天嗎？（共 '+(dates.length*meals.length)+' 班）')) return;
+    var mNote = document.getElementById('duty-note').value, mItems = [];
+    dates.forEach(function(x){ meals.forEach(function(k){ mItems.push({date:x, slotKey:k}); }); });
+    var _riW2 = document.getElementById('duty-rateitem-wrap'), _riS2 = document.getElementById('duty-rateitem');
+    if(btn){ btn.disabled=true; btn.style.opacity='.5'; }
+    adminAPIPost({action:'addShiftBatch', secretary:secretary, items:JSON.stringify(mItems), note:mNote, rateItem:(_riW2 && _riW2.style.display !== 'none' && _riS2) ? _riS2.value : ''}, function(d){
+      if(btn){ btn.disabled=false; btn.style.opacity=''; }
+      if(d && d.status==='ok'){
+        var added=(d.added||[]).length, skipped=d.skipped||[];
+        toast('✅ 已排入 '+added+' 班'+(skipped.length?('；'+skipped.length+' 班沒排：'+skipped.slice(0,4).map(function(x){ return x.date.slice(5).replace('-','/')+'（'+x.reason+'）'; }).join('、')):''));
+        _dutyCalSel = {}; dutyCalRender(); document.querySelectorAll('.duty-meal').forEach(function(c){ c.checked=false; }); dutyMealChange();
+        if(typeof loadShiftSchedule==='function') loadShiftSchedule(); if(typeof loadFullSchedule==='function') loadFullSchedule();
+      } else toast('⚠️ 儲存失敗：'+((d&&d.message)||'請重試'));
+    });
+    return;
+  }
   var shiftSel = document.getElementById('duty-shift').value;
-  if(!shiftSel){ toast('請選擇班別'); return; }
+  if(!shiftSel){ toast('請選擇班別，或勾上面的三餐'); return; }
   var shiftLabel;
   if(shiftSel === '其他'){
     shiftLabel = document.getElementById('duty-shift-custom').value.trim();
@@ -7411,6 +7643,13 @@ function openClientDetail(id, name){
     + '<input id="irct-f-count" type="number" class="form-input" style="font-size:12px" placeholder="第幾次檢測">'
     + '<select id="irct-f-plan" class="form-input" style="font-size:12px"><option value="t2">IRCT-t2</option><option value="t1">IRCT-t1</option></select>'
     + '<select id="irct-f-gender" class="form-input" style="font-size:12px"><option value="女">女</option><option value="男">男</option></select>'
+    + '</div>'
+    // 2026-11-03 創辦人：補登舊檢測（例如王寶娟9/25、10/28）——表單原本沒有檢測日，存下去時間會變成按下當天，而且每存一次還會多寫一筆分潤收款，營收會被灌水
+    + '<div style="background:#F3F8F5;border:1px solid #BFDDCF;border-radius:8px;padding:8px 10px;margin-bottom:8px">'
+    + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px"><label for="irct-f-testDate" style="font-weight:700">📅 檢測日</label>'
+    + '<input id="irct-f-testDate" type="date" class="form-input" style="font-size:12px;width:auto" value="'+irctTodayStr()+'"></div>'
+    + '<label style="display:flex;gap:6px;align-items:flex-start;font-size:11.5px;margin-top:6px;line-height:1.6;cursor:pointer"><input type="checkbox" id="irct-f-backfill" style="margin-top:3px">'
+    + '<span><b>📥 這是補登的舊檢測</b>（早就做完、現在才補進系統）：勾了只存檢測記錄，<b>不會產生分潤收款</b>；沒勾＝新做的檢測，會照常產生分潤收款。</span></label>'
     + '</div>'
     + '<div style="margin-bottom:6px"><input id="irct-f-clinic" class="form-input" style="font-size:12px;width:100%" placeholder="診所名稱（會依這位客人最近的IRCT預約自動帶入，可修改）"></div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">'
@@ -9669,7 +9908,6 @@ function loadSweetSpotAnalysis(id){
           + '這段期間：每週碳水約 '+iv.weeklyCarbFreq+' 次（平均'+(iv.avgCarbAmount||'—')+'g）・不喘運動每週'+iv.weeklyLightEx+'次・喘的運動每週'+iv.weeklyHardEx+'次<br>'
           + '分類：'+escH(iv.classificationFrom||'—')+' → '+escH(iv.classificationTo||'—')
           + (iv.severityDelta!==null ? '（嚴重度分數 '+iv.severityFrom+' → '+iv.severityTo+'，'+(improved?'✅往好的方向':'⚠️需留意')+'）' : '')+'<br>'
-          + (iv.homaIRFrom!==null&&iv.homaIRTo!==null ? 'HOMA-IR '+iv.homaIRFrom+' → '+iv.homaIRTo+'　' : '')
           + (iv.esiFrom!==null&&iv.esiTo!==null ? 'ESI '+iv.esiFrom+' → '+iv.esiTo+'　' : '')
           + (iv.tgFrom!==null&&iv.tgTo!==null ? 'TG '+iv.tgFrom+' → '+iv.tgTo+'　' : '')
           + (iv.hdlFrom!==null&&iv.hdlTo!==null ? 'HDL '+iv.hdlFrom+' → '+iv.hdlTo : '')
@@ -10338,7 +10576,6 @@ function loadFounderMetrics(){
       + stat('本週活躍客人', (w.active||0)+' / '+(w.total||0), '上週 '+(w.lastActive||0)+' 位（'+(diff>0?'↑+'+diff:diff<0?'↓'+diff:'持平')+'）')
       + stat('成果累計', '減 '+(res.lossKg||0)+' kg', (res.lossKgN||0)+' 位有減重・腰圍共 −'+(res.lossWaist||0)+' cm（'+(res.lossWaistN||0)+' 位）')
       + stat('本週求助/互動', (hp.count7||0)+' 筆', hp.avgReplyHours!=null?'平均 '+hp.avgReplyHours+' 小時回覆':'（還沒有回覆時效資料）')
-      + stat('HOMA-IR 平均改善', (d.homa&&d.homa.avgPct!=null)?(d.homa.avgPct>0?'↓ ':'')+d.homa.avgPct+'%':'—', (d.homa&&d.homa.n)?d.homa.n+' 位驗過兩次以上（第一次vs最新）':'還沒有客人驗過兩次')
       + stat('儲值餘額總水位', '$'+((d.storedTotal||0).toLocaleString()), '已核查的儲值−消費加總')
       + stat('點數諮詢（近90天）', ((d.consult&&d.consult.redeem90)||0)+' 次兌換', '另有 '+((d.consult&&d.consult.requests90)||0)+' 筆預約需求——諮詢旺＝服務被重視')
       + stat('進階服務詢問（近90天）', ((d.svcInquiries&&d.svcInquiries.count90)||0)+' 筆', (d.svcInquiries&&d.svcInquiries.top&&d.svcInquiries.top.length)?'最熱門：'+escH(d.svcInquiries.top[0].name)+'（'+d.svcInquiries.top[0].count+'）':'商店服務卡的「我想了解」按了就會算')

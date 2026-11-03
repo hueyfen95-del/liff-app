@@ -9441,7 +9441,6 @@ function loadMyStats(){
     if(homaEl) homaEl.textContent = (labs.homaIR!==null&&labs.homaIR!==undefined) ? labs.homaIR : '待檢測';
     if(homaD){
       if(labs.homaIR===null||labs.homaIR===undefined) homaD.textContent = '完成檢驗後顯示';
-      else if(labs.homaIRFirst!==null&&labs.homaIRFirst!==undefined&&labs.homaIRFirst!==labs.homaIR) homaD.textContent = '從 '+labs.homaIRFirst+' 大幅改善';
       else homaD.textContent = '最新檢驗值';
     }
     var tgEl=document.getElementById('jn-tg'), tgD=document.getElementById('jn-tg-detail');
