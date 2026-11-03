@@ -357,7 +357,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-11-03c';
+var MX_BUILD = '2026-11-03d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -745,6 +745,7 @@ var MX_BUILD = '2026-11-03c';
           <div class="card-title"><i class="ti ti-search"></i>查詢客人記錄</div>
         </div>
         <div class="card-body">
+          <input id="client-search" oninput="clientSearchFilter()" onkeydown="if(event.key==='Enter'){var _s=document.getElementById('client-select');if(_s&&_s.value)loadClientRecords();}" placeholder="🔍 打姓名或編號就能找到客人（例：王寶娟 或 C00194），按 Enter 直接查詢" style="width:100%;border:0.5px solid var(--border);border-radius:10px;padding:9px 11px;font-size:13px;margin-bottom:8px;background:var(--bg);color:var(--text)">
           <div style="display:flex;gap:9px;margin-bottom:11px">
             <select id="client-select" class="form-select" style="flex:1">
               <option value="C001">陳小美</option>
@@ -7237,6 +7238,19 @@ function fillClientSelects(){
     sel.innerHTML = html;
     if(cur) sel.value = cur;
   });
+}
+// 2026-11-03d 查詢客人記錄：加姓名／編號搜尋框（客人兩百多位，下拉選到眼花）——打字即過濾，剩一位自動選取
+function clientSearchFilter(){
+  var inp=document.getElementById('client-search'), sel=document.getElementById('client-select');
+  if(!inp||!sel||!_clientsCache) return;
+  var kw=inp.value.trim().toLowerCase();
+  var list=!kw?_clientsCache:_clientsCache.filter(function(c){ return String(c.name||'').toLowerCase().indexOf(kw)>=0 || String(c.id||'').toLowerCase().indexOf(kw)>=0; });
+  if(!list.length){ sel.innerHTML='<option value="">找不到「'+escH(inp.value.trim())+'」，請檢查姓名有沒有打錯（或這位客人還沒建檔）</option>'; return; }
+  var cur=sel.value, html='';
+  list.forEach(function(c){ html+='<option value="'+escH(c.id)+'">'+escH(c.name||c.id)+'（'+escH(c.id)+'）</option>'; });
+  sel.innerHTML=html;
+  if(list.length===1) sel.value=list[0].id;
+  else if(cur && list.some(function(c){return c.id===cur;})) sel.value=cur;
 }
 function clientName(id){
   if(!_clientsCache) return id;
