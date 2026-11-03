@@ -357,7 +357,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-11-03b';
+var MX_BUILD = '2026-11-03c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -10733,9 +10733,43 @@ function loadOversight(){
     if(!d.items.length){ card.style.display='block'; card.style.borderColor='#10B981'; card.style.background='#ECFDF5'; body.style.color='#065F46'; body.innerHTML='<b>🔍 疏漏提醒</b>　目前沒有發現疏漏 ✅'; return; }
     card.style.borderColor = red.length?'#DC2626':'#F59E0B'; card.style.background = red.length?'#FEF2F2':'#FFFBEB'; body.style.color = red.length?'#7F1D1D':'#78350F';
     var h='<div style="font-size:15px;font-weight:800;margin-bottom:6px">🔍 疏漏提醒　<span style="font-size:12px;font-weight:600">'+(red.length?'<span style="color:#DC2626">'+red.length+' 項紅字</span>':'')+(red.length&&yel.length?'・':'')+(yel.length?'<span style="color:#B45309">'+yel.length+' 項要確認</span>':'')+'</span></div>';
-    h+=red.concat(yel).map(function(o){ return '<div style="padding:5px 0;border-top:1px dashed rgba(0,0,0,.08)"><span style="font-size:14px">'+(o.level==='red'?'🔴':'🟡')+'</span> '+escH(o.text)+(o.where?' <span style="display:inline-block;background:rgba(0,0,0,.06);border-radius:6px;padding:0 7px;font-size:11px;font-weight:700;margin-left:4px">👉 '+escH(o.where)+'</span>':'')+'</div>'; }).join('');
+    h+=red.concat(yel).map(function(o){ return '<div style="padding:5px 0;border-top:1px dashed rgba(0,0,0,.08)"><span style="font-size:14px">'+(o.level==='red'?'🔴':'🟡')+'</span> '+escH(o.text)+(o.where?' <span onclick="ovGo(this.getAttribute(\'data-w\'))" data-w="'+escH(o.where)+'" title="點一下直接跳到該頁" style="display:inline-block;background:rgba(0,0,0,.06);border-radius:6px;padding:0 7px;font-size:11px;font-weight:700;margin-left:4px;cursor:pointer;text-decoration:underline dotted">👉 '+escH(o.where)+' ↗</span>':'')+'</div>'; }).join('');
     body.innerHTML=h; card.style.display='block';
   });
+}
+// 2026-11-03c 疏漏提醒的「👉 去處理」膠囊可以直接點：跳到對應頁面，並盡量捲到該區塊、閃一下金框提示
+var OV_PG=[['客戶管理','clients'],['客人名單','clients'],['客人檔案','clients'],['財務登記','finance-entry'],['帳號管理','accounts'],['排班交接','duty'],['排班','duty'],['全域設定','global'],['系統設定','global'],['月結算','settlement'],['分帳規則','rules'],['分帳角色','roles'],['儲值','stored-value'],['會計核查','review'],['警示看板','alerts'],['複檢提醒','remind'],['診所管理','clinic-slots']];
+function ovGo(w){
+  w=String(w||'');
+  var parts=w.split('→').map(function(x){return x.trim();}).filter(Boolean);
+  if(!parts.length) return;
+  var pg=null;
+  for(var i=0;i<OV_PG.length;i++){ if(parts[0].indexOf(OV_PG[i][0])>=0){ pg=OV_PG[i][1]; break; } }
+  if(!pg){ toast('這一項不在後台頁面裡，要到：'+w); return; } // 例如 Apps Script
+  goPg(pg);
+  var target=parts[1]; if(!target) return;
+  setTimeout(function(){
+    var pgEl=document.getElementById('pg-'+pg); if(!pgEl) return;
+    var kw=target.replace(/[「」👉\s]/g,''); if(!kw) return;
+    var cands=pgEl.querySelectorAll('.card-title,button,label,summary,th,b,h3,h4');
+    var best=null;
+    for(var j=0;j<cands.length;j++){
+      var el=cands[j]; if(el.offsetParent===null) continue;
+      var t=(el.textContent||'').replace(/\s/g,'');
+      if(t.indexOf(kw)>=0||(t.length>=3&&kw.indexOf(t)>=0)){ best=el; break; }
+    }
+    if(!best){
+      var kw2=kw.slice(0,4);
+      for(var j2=0;j2<cands.length;j2++){ var el2=cands[j2]; if(el2.offsetParent===null) continue; if((el2.textContent||'').replace(/\s/g,'').indexOf(kw2)>=0){ best=el2; break; } }
+    }
+    if(best){
+      var card=best.closest('.card')||best;
+      card.scrollIntoView({behavior:'smooth',block:'start'});
+      var oldShadow=card.style.boxShadow;
+      card.style.transition='box-shadow .3s'; card.style.boxShadow='0 0 0 3px #F59E0B';
+      setTimeout(function(){ card.style.boxShadow=oldShadow; },2600);
+    }
+  },500);
 }
 function loadMyPoints(){
   var card = document.getElementById('dash-points-card'), body = document.getElementById('dash-points-body'); if(!card||!body) return;
