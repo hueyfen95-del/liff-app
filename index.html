@@ -4551,6 +4551,39 @@ function mxSetIdentity(cid, cname, ctoken){
   }
   else { CLIENT_ID = cid; CLIENT_NAME = cname || ''; if(ctoken) CLIENT_TOKEN = ctoken; mxHideLogin(); }
 }
+
+// ── 新朋友自助註冊（2026-11-06）──
+var _mxRegResult = null;
+function mxShowReg(){
+  var b=document.getElementById('mx-reg-box'), l=document.getElementById('mx-reg-link'), er=document.getElementById('mx-login-err');
+  if (!(LIFF_ID && typeof liff !== 'undefined' && _LINE_UID)) { if(er) er.textContent = '請從 LINE 開啟本頁再註冊（用 LINE 掃 QR code 進來），或請現場工作人員幫您建立編號'; return; }
+  if(b) b.style.display='block'; if(l) l.style.display='none'; if(er) er.textContent='';
+}
+function mxDoReg(){
+  var er=document.getElementById('mx-login-err'), btn=document.getElementById('mx-reg-btn');
+  var nm=(document.getElementById('mx-reg-name').value||'').trim(), ph=(document.getElementById('mx-reg-phone').value||'').replace(/[^0-9]/g,'');
+  if (nm.length<2) { if(er) er.textContent='請輸入您的姓名'; return; }
+  if (!/^0\d{8,9}$/.test(ph)) { if(er) er.textContent='請輸入正確的手機號碼（例：0912345678）'; return; }
+  if (!document.getElementById('mx-reg-ok').checked) { if(er) er.textContent='請勾選同意聯絡'; return; }
+  var tok=''; try { tok = liff.getAccessToken() || ''; } catch(e){}
+  if (!tok) { if(er) er.textContent='LINE 驗證失敗，請關掉本頁，從 LINE 重新開啟'; return; }
+  if (btn) { btn.disabled=true; btn.style.opacity='.6'; }
+  if (er) er.textContent='註冊中…';
+  callAPI({ action:'clientRegister', name:nm, phone:ph, hp:(document.getElementById('mx-reg-hp').value||''), lineAccessToken:tok, ref:_mxRefCode || '' }, function(d){
+    if (d && d.status==='ok' && d.clientId && d.clientToken) {
+      _mxRegResult = d; if(er) er.textContent='';
+      document.getElementById('mx-reg-box').style.display='none';
+      if (d.existing) { mxSetIdentity(d.clientId, d.name, d.clientToken); return; }
+      document.getElementById('mx-reg-newid').textContent = d.clientId;
+      document.getElementById('mx-reg-done').style.display='block';
+    } else {
+      if (btn) { btn.disabled=false; btn.style.opacity=''; }
+      if (er) er.textContent = (d && d.message) || '註冊失敗，請再試一次，或請現場工作人員協助';
+    }
+  });
+}
+function mxRegEnter(){ if (_mxRegResult) mxSetIdentity(_mxRegResult.clientId, _mxRegResult.name, _mxRegResult.clientToken); }
+
 function mxDoBind(){
   var cid = (document.getElementById('mx-bind-id').value || '').trim();
   var cname = (document.getElementById('mx-bind-name').value || '').trim();
@@ -9977,6 +10010,23 @@ function mxCellPop(msg){
     <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:14px" onkeydown="if(event.key==='Enter')mxDoBind()">
     <button onclick="mxDoBind()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">開始使用</button>
     <div id="mx-login-err" style="font-size:12px;color:#C0392B;text-align:center;margin-top:10px;min-height:16px;line-height:1.5"></div>
+    <!-- 2026-11-06 新朋友自助註冊（需要 LINE 帳號驗證；後端會通知行政核實） -->
+    <div id="mx-reg-link" style="text-align:center;margin-top:8px"><a href="#" onclick="mxShowReg();return false" style="font-size:13px;color:#0F6E56;font-weight:700;text-decoration:underline">我是新朋友，還沒有編號 ➜ 自己註冊</a></div>
+    <div id="mx-reg-box" style="display:none;margin-top:12px;border-top:1.5px dashed #CFE3D9;padding-top:12px">
+      <div style="font-size:13px;font-weight:800;color:#1E2B27;margin-bottom:4px">新朋友註冊</div>
+      <div style="font-size:11.5px;color:#8A9992;line-height:1.6;margin-bottom:8px">填姓名和手機，系統會自動給您一個客人編號。請填真實資料，工作人員會再跟您確認。</div>
+      <input id="mx-reg-name" placeholder="姓名（真實姓名）" maxlength="20" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:8px">
+      <input id="mx-reg-phone" placeholder="手機（例：0912345678）" inputmode="numeric" maxlength="12" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:8px">
+      <input id="mx-reg-hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+      <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#555;line-height:1.5;margin-bottom:10px"><input type="checkbox" id="mx-reg-ok" style="width:18px;height:18px;margin-top:1px;flex-shrink:0">我同意元代謝依「健康管理服務」使用我的姓名與手機聯絡我</label>
+      <button id="mx-reg-btn" onclick="mxDoReg()" style="width:100%;padding:13px;background:#E08A00;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">註冊並取得編號</button>
+    </div>
+    <div id="mx-reg-done" style="display:none;margin-top:12px;text-align:center">
+      <div style="font-size:13px;color:#555">註冊完成！您的客人編號是</div>
+      <div id="mx-reg-newid" style="font-size:30px;font-weight:800;color:#0F6E56;letter-spacing:1px;margin:6px 0"></div>
+      <div style="font-size:12px;color:#8A9992;line-height:1.6;margin-bottom:10px">請截圖或記下這個編號，之後換手機登入會用到。</div>
+      <button onclick="mxRegEnter()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">進入 APP</button>
+    </div>
   </div>
 </div>
 
