@@ -219,7 +219,7 @@ function skipShow(){
 }
 function finish(){ stopMusic(); stopNarr();
   playing=false; clearTimeout(timer);
-  idx=SCENES.length-1; renderScene(idx);
+  idx=SCENES.length-1; renderScene(idx); stopNarr();
   document.getElementById('progfill').style.width='100%';
   document.getElementById('pbtn').textContent='↺';
   document.getElementById('pbtn').onclick=function(){ document.getElementById('pbtn').onclick=togglePlay; idx=0; playing=true; togglePlay(); togglePlay(); startShow(); };
