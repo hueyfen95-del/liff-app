@@ -4486,6 +4486,15 @@ var _mxRefCode = (function(){
     return localStorage.getItem('mx_ref_code') || '';
   } catch(e){ return ''; }
 })();
+// 2026-11-08 專屬連結：https://liff.line.me/…?id=C00123 → 登入畫面自動填好客人編號（姓名仍要自己輸入，才能確認是本人）
+var _mxPreId = (function(){
+  try {
+    var q = location.search; try { q = decodeURIComponent(q); } catch(e){}
+    var m = q.match(/[?&]id=(C\d{5})(?!\d)/i);
+    if (m && m[1]) { var v = m[1].toUpperCase(); localStorage.setItem('mx_pre_id', v); return v; }
+    return localStorage.getItem('mx_pre_id') || '';
+  } catch(e){ return ''; }
+})();
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
 // 2026-08-17 新增：clientAuth登入成功時後端會核發一組clientToken，之後每次呼叫查/改個人資料的
@@ -4528,6 +4537,15 @@ function mxShowLogin(msg){
   if (ov) ov.style.display = 'flex';
   var er = document.getElementById('mx-login-err');
   if (er) er.textContent = msg || '';
+  try {
+    var idInp = document.getElementById('mx-bind-id');
+    if (_mxPreId && idInp && !idInp.value) {
+      idInp.value = _mxPreId;
+      if (er) er.textContent = '客人編號已經幫您填好了，請輸入您的姓名，再按「開始使用」 😊';
+      var nmInp2 = document.getElementById('mx-bind-name');
+      if (nmInp2) setTimeout(function(){ try { nmInp2.focus(); } catch(e){} }, 300);
+    }
+  } catch(e){}
 }
 function mxHideLogin(){
   var ov = document.getElementById('mx-login-overlay');
@@ -4593,7 +4611,7 @@ function mxDoBind(){
   callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname, ref:_mxRefCode || '' }, function(d){
     // 2026-09-25 補：多人同時登入時後端偶爾回「API 正在執行」（status ok 但沒有 clientId／clientToken），不能當成登入成功
     if (d && d.status === 'ok' && (!d.clientId || !d.clientToken)) { if(er) er.textContent = '系統忙碌中（同一時間登入的人比較多），請等 5 秒再按一次登入'; return; }
-    if (d && d.status === 'ok') { try { localStorage.removeItem('mx_ref_code'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
+    if (d && d.status === 'ok') { try { localStorage.removeItem('mx_ref_code'); localStorage.removeItem('mx_pre_id'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
 }
