@@ -4541,7 +4541,7 @@ function mxShowLogin(msg){
     var idInp = document.getElementById('mx-bind-id');
     if (_mxPreId && idInp && !idInp.value) {
       idInp.value = _mxPreId;
-      if (er) er.textContent = '客人編號已經幫您填好了，請輸入您的姓名，再按「開始使用」 😊';
+      if (er) er.textContent = '專屬連結已帶入您的客人編號，請輸入姓名和手機號碼，再按「開始使用」 😊';
       var nmInp2 = document.getElementById('mx-bind-name');
       if (nmInp2) setTimeout(function(){ try { nmInp2.focus(); } catch(e){} }, 300);
     }
@@ -4606,9 +4606,11 @@ function mxDoBind(){
   var cid = (document.getElementById('mx-bind-id').value || '').trim();
   var cname = (document.getElementById('mx-bind-name').value || '').trim();
   var er = document.getElementById('mx-login-err');
-  if (!cid || !cname) { if(er) er.textContent = '請輸入客人編號和姓名'; return; }
+  var cphone = ((document.getElementById('mx-bind-phone') || {}).value || '').replace(/\D/g, '');
+  if (!cname || (!cid && !cphone)) { if(er) er.textContent = '請輸入姓名和手機號碼'; return; }
+  if (!cid && !/^(0\d{8,9}|886\d{9})$/.test(cphone)) { if(er) er.textContent = '請輸入正確的手機號碼（例：0912345678）'; return; }
   if (er) er.textContent = '驗證中…';
-  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname, ref:_mxRefCode || '' }, function(d){
+  callAPI({ action:'clientAuth', lineId:_LINE_UID, clientId:cid, name:cname, phone:cphone, ref:_mxRefCode || '' }, function(d){
     // 2026-09-25 補：多人同時登入時後端偶爾回「API 正在執行」（status ok 但沒有 clientId／clientToken），不能當成登入成功
     if (d && d.status === 'ok' && (!d.clientId || !d.clientToken)) { if(er) er.textContent = '系統忙碌中（同一時間登入的人比較多），請等 5 秒再按一次登入'; return; }
     if (d && d.status === 'ok') { try { localStorage.removeItem('mx_ref_code'); localStorage.removeItem('mx_pre_id'); } catch(e){} mxSetIdentity(d.clientId, d.name, d.clientToken); }
@@ -4630,7 +4632,7 @@ function mxStartAuth(){
           else {
             var nmInp = document.getElementById('mx-bind-name');
             if (nmInp && !nmInp.value) nmInp.value = nm;
-            mxShowLogin('第一次使用，請輸入秘書給您的客人編號完成綁定 😊');
+            mxShowLogin('第一次使用，請輸入姓名和手機號碼，完成綁定 😊');
           }
         });
       });
@@ -10023,9 +10025,12 @@ function mxCellPop(msg){
   <div style="background:#fff;border-radius:18px;padding:28px 24px;width:100%;max-width:360px;box-shadow:0 8px 30px rgba(0,0,0,.08)">
     <div style="font-size:22px;text-align:center;margin-bottom:6px">🌱</div>
     <div style="font-size:17px;font-weight:800;color:#1E2B27;text-align:center;margin-bottom:4px">歡迎回來</div>
-    <div style="font-size:12px;color:#8A9992;text-align:center;line-height:1.6;margin-bottom:18px">第一次使用請輸入您的客人編號與姓名<br>（編號請向您的健康秘書索取）</div>
-    <input id="mx-bind-id" placeholder="客人編號（例：C00001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px" autocapitalize="characters">
-    <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:14px" onkeydown="if(event.key==='Enter')mxDoBind()">
+    <div style="font-size:12px;color:#8A9992;text-align:center;line-height:1.6;margin-bottom:18px">第一次使用請輸入您的姓名與手機號碼<br>（只要輸入一次，之後系統會記住您）</div>
+    <input id="mx-bind-name" placeholder="姓名（與登記資料相同）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:10px">
+    <input id="mx-bind-phone" placeholder="手機號碼（例：0912345678）" inputmode="numeric" maxlength="12" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:8px" onkeydown="if(event.key==='Enter')mxDoBind()">
+    <div style="text-align:center;margin:0 0 12px"><a href="#" onclick="document.getElementById('mx-bind-id-wrap').style.display='block';this.style.display='none';return false" style="font-size:12.5px;color:#0F6E56">我有客人編號？按這裡</a></div>
+    <div id="mx-bind-id-wrap" style="display:none"><input id="mx-bind-id" placeholder="客人編號（有的話才填，例：C00001）" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:12px" autocapitalize="characters"></div>
+    
     <button onclick="mxDoBind()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">開始使用</button>
     <div id="mx-login-err" style="font-size:12px;color:#C0392B;text-align:center;margin-top:10px;min-height:16px;line-height:1.5"></div>
     <!-- 2026-11-06 新朋友自助註冊（需要 LINE 帳號驗證；後端會通知行政核實） -->
@@ -10042,7 +10047,7 @@ function mxCellPop(msg){
     <div id="mx-reg-done" style="display:none;margin-top:12px;text-align:center">
       <div style="font-size:13px;color:#555">註冊完成！您的客人編號是</div>
       <div id="mx-reg-newid" style="font-size:30px;font-weight:800;color:#0F6E56;letter-spacing:1px;margin:6px 0"></div>
-      <div style="font-size:12px;color:#8A9992;line-height:1.6;margin-bottom:10px">請截圖或記下這個編號，之後換手機登入會用到。</div>
+      <div style="font-size:12px;color:#8A9992;line-height:1.6;margin-bottom:10px">這是您的客人編號。不用特別背，之後用姓名和手機號碼就能登入。</div>
       <button onclick="mxRegEnter()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">進入 APP</button>
     </div>
   </div>
