@@ -102,6 +102,18 @@ html,body{margin:0;height:100%;background:#2b2b2b;font-family:"PingFang TC","Mic
 .rem .gbtn div{border:3px solid #fff;border-radius:12px;padding:12px 6px;color:#fff;font-size:clamp(21px,6vw,28px);font-weight:900}
 .rem .gbtn small{display:block;font-size:13px;font-weight:600;margin-top:3px}
 .rem .bye{font-size:clamp(22px,6vw,28px);font-weight:900;color:var(--g);margin-top:4px;opacity:0;transition:.5s}.rem .bye.on{opacity:1}
+.devwrap{display:flex;flex-direction:column;gap:14px;width:100%;justify-content:center}
+.devwrap .pick{display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .15s}
+.devwrap .pick .ico{font-size:44px;line-height:1.1;margin-bottom:4px}
+.devwrap .pick.on{transform:scale(.95);box-shadow:0 0 0 5px rgba(0,0,0,.18)}
+.swwrap{position:absolute;overflow:hidden;z-index:3}
+.swpin{position:absolute;left:0;top:0;bottom:0;width:25%;background:#F5A623;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:4.2cqw;gap:.6cqw}
+.swpin span{font-size:8cqw;line-height:1}
+.swrow{position:absolute;inset:0;background-size:115.5% 680.3%;background-position:56.7% 39.3%;background-repeat:no-repeat;transition:transform .3s ease-out;will-change:transform}
+.swrow.drag{transition:none}
+.finger.sw{animation:fsw 1.5s ease-in-out infinite}
+@keyframes fsw{0%{transform:translateX(0);opacity:1}70%{transform:translateX(20cqw);opacity:1}100%{transform:translateX(20cqw);opacity:0}}
+.pinned{position:absolute;z-index:6;right:9cqw;top:36.5%;font-size:7cqw}
 .tip{position:absolute;left:50%;top:56%;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;border-radius:18px;padding:8px 16px;font-size:16px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .25s;z-index:30;white-space:nowrap}
 .tip.show{opacity:1}
 </style></head><body>
@@ -117,7 +129,10 @@ var IMG={"qr": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUEBAQEA
 var COL={o:'#E18A00',g:'#17883A',b:'#B6791E',t:'#0F8B73'};
 var LINE='<svg viewBox="0 0 64 64"><path fill="#fff" d="M32 8C17 8 6 17.500 6 29c0 10 8 18 20 20l-1 8 11-7.500C50 47 58 39 58 29 58 17.500 47 8 32 8z"/></svg>';
 var HAND='<svg viewBox="0 0 64 64"><path d="M26 6c-3 0-5 2-5 5v26l-5-5c-2-2-6-1-7 2-.7 2 0 3.500 1.500 5l14 17c2 2.500 4.500 4 8 4h12c5 0 9-4 9-9V32c0-3-2-5-5-5-1 0-2 .3-3 1-.7-2-2.500-3-4.500-3-1.300 0-2.500.5-3.300 1.300C37.500 25 36 24 34 24c-1 0-1.800.3-2.500.7V11c0-3-2-5-5.500-5z" fill="#fff" stroke="#222" stroke-width="3" stroke-linejoin="round"/></svg>';
-var S={name:'',phone:'',check:false};
+var DEFDEV=/iPhone|iPad|iPod/.test(navigator.userAgent)?'i':'a';
+var S={name:'',phone:'',check:false,dev:DEFDEV};
+function newS(){return {name:'',phone:'',check:false,dev:(S&&S.dev)||DEFDEV}}
+function L(){return DECKS[deck].filter(function(x){return !x.dev||x.dev===S.dev})}
 // ---- 步驟定義 ----
 var NEW=[
  {tag:'新朋友',c:'o',main:'掃 QR code，<br>加 LINE 好友',hint:'請點一下 QR code 示範',type:'qr'},
@@ -131,8 +146,11 @@ var NEW=[
  {tag:'每天',c:'g',main:'打開手機的<br><b>LINE</b>',hint:'以後每天都從這裡進來，不用再掃 QR code',type:'home'},
  {tag:'每天',c:'g',main:'找到並點「<b>元代謝健康</b>」',hint:'',type:'img',img:'chatlist',tg:[8,33.5,83.9,14.7]},
  {tag:'每天',c:'g',main:'按下面的<br><b>綠色大按鈕</b>',hint:'寫著「打開 元代謝健康 APP」',type:'img',img:'green',tg:[8,70.6,83.7,21.5],open:1},
- {tag:'小提醒',c:'b',main:'<b>長按</b>「元代謝健康」',hint:'手指按住不放，約 1 秒',type:'img',img:'chatlist',tg:[8,33.5,83.9,14.7],hold:1},
- {tag:'小提醒',c:'b',main:'選「<b>釘選</b>」',hint:'它就會排在最上面，好找',type:'img',img:'pin',tg:[35.5,33.9,49.6,8.8]},
+ {tag:'小提醒',c:'b',main:'您的手機是哪一種？',hint:'選一個，接下來的做法不一樣',type:'device'},
+ {tag:'小提醒',c:'b',dev:'a',main:'<b>長按</b>「元代謝健康」',hint:'手指按住不放，約 1 秒',type:'img',img:'chatlist',tg:[8,33.5,83.9,14.7],hold:1},
+ {tag:'小提醒',c:'b',dev:'a',main:'選「<b>釘選</b>」',hint:'它就會排在最上面，好找',type:'img',img:'pin',tg:[35.5,33.9,49.6,8.8]},
+ {tag:'小提醒',c:'b',dev:'i',main:'在「元代謝健康」上<br><b>往右滑</b>',hint:'手指按在名字上，向右邊滑一下',type:'swipe',tg:[8,33.5,83.9,14.7]},
+ {tag:'小提醒',c:'b',dev:'i',main:'點左邊的「<b>釘選</b>」',hint:'它就會排在最上面，好找',type:'swipepin',tg:[7,33.5,22,14.7]},
  {tag:'小提醒',c:'b',main:'<b>不要刪除、封鎖</b><br>這個好友',hint:'不然綠色按鈕會不見',type:'nodel'},
  {tag:'小提醒',c:'b',main:'有問題，點一下<br>這裡<b>留言</b>',hint:'或問您的健康秘書',type:'msg'},
  {tag:'請記住',c:'g',main:'請記住',hint:'',type:'remember'}
@@ -143,7 +161,7 @@ var OLD=[
  {tag:'老朋友',c:'t',main:'點一下，輸入您的「<b>手機號碼</b>」',hint:'',type:'form',f:'phone',form:'old'},
  {tag:'老朋友',c:'t',main:'按「<b>開始使用</b>」',hint:'只要第一次輸入，之後系統會記住您',type:'form',f:'btn',form:'old'},
  {tag:'每天',c:'g',main:'打開手機的<br><b>LINE</b>',hint:'以後每天都從這裡進來，不用再點專屬連結',type:'home'},
- NEW[9],NEW[10],NEW[11],NEW[12],NEW[13],NEW[14],NEW[15]
+ NEW[9],NEW[10],NEW[11],NEW[12],NEW[13],NEW[14],NEW[15],NEW[16],NEW[17],NEW[18]
 ];
 document.addEventListener('contextmenu',function(e){e.preventDefault()});document.addEventListener('dragstart',function(e){e.preventDefault()});
 var DECKS={n:NEW,o:OLD},deck=null,idx=-1,busy=false,timers=[];
@@ -181,7 +199,21 @@ function visual(st){
   return '<div class="phone"><div class="screen"><div class="home"><div style="color:#fff;font-weight:900;font-size:9cqw;text-align:left">10:21</div><div class="apps"><div class="ap"></div><div class="ap"></div><div class="ap line" id="lineico">'+LINE+'</div><div class="ap"></div>'+a+'</div></div>'+
    '<div class="tg" data-tg style="left:49.500%;top:17.500%;width:21%;height:13.500%;border-radius:5cqw"></div>'+finger(62,26)+'</div></div>';
  }
+ if(t==='device'){
+  return '<div class="devwrap"><button class="pick n devbtn" data-d="a"><span class="ico">🤖</span>Android 手機<small>三星、OPPO、小米、華為等</small></button><button class="pick o devbtn" data-d="i"><span class="ico">🍎</span>iPhone（蘋果手機）<small>iPhone</small></button></div>';
+ }
+ if(t==='swipe'||t==='swipepin'){
+  var sw=(t==='swipepin');
+  var r=st.tg;
+  return '<div class="phone imgphone"><div class="screen" id="scr"><img src="'+IMG.chatlist+'" alt="">'+
+   '<div class="swwrap" style="left:7.6%;top:33.5%;width:86.6%;height:14.7%"><div class="swpin"><span>📌</span>釘選</div><div class="swrow'+'" id="swrow" style="background-image:url('+IMG.chatlist+');'+(sw?'transform:translateX(25%);transition:none':'')+'"></div></div>'+
+   '<div class="tg" data-tg style="left:'+r[0]+'%;top:'+r[1]+'%;width:'+r[2]+'%;height:'+r[3]+'%"></div>'+
+   (sw?finger(12,40.8):'<div class="finger sw" style="left:22%;top:39%">'+HAND+'</div>')+'</div></div>';
+ }
  if(t==='nodel'){
+  if(S.dev==='i') return '<div class="phone"><div class="screen"><div class="chatbg"><div class="chathead">‹ 元代謝健康</div><div class="bub">歡迎加入<br>元代謝健康</div>'+
+   '<div class="menu" style="left:30%;top:30%;width:40%"><div class="del" style="position:relative;text-align:center">刪除<span style="position:absolute;right:3cqw;top:1.4cqw;font-size:7cqw;color:#E53935">✕</span></div></div>'+
+   '<div class="bub" style="position:absolute;left:0;bottom:6cqw;background:#fff3cd;max-width:90%;font-size:3.8cqw">⚠ 刪除或封鎖後，綠色按鈕就會不見</div></div></div></div>';
   return '<div class="phone"><div class="screen"><div class="chatbg"><div class="chathead">‹ 元代謝健康</div><div class="bub">歡迎加入<br>元代謝健康</div>'+
    '<div class="menu" style="left:14%;top:30%;width:72%"><div>📌 釘選</div><div>關閉通知</div><div class="del" style="position:relative">刪除　<span style="position:absolute;right:4cqw;top:1.4cqw;font-size:7cqw;color:#E53935">✕</span></div></div>'+
    '<div class="bub" style="position:absolute;left:0;bottom:6cqw;background:#fff3cd;max-width:90%;font-size:3.8cqw">⚠ 刪除或封鎖後，綠色按鈕就會不見</div></div></div></div>';
@@ -196,7 +228,7 @@ function visual(st){
  }
  return '';
 }
-function dots(){var d='',n=DECKS[deck].length;for(var i=0;i<n;i++)d+='<i class="'+(i===idx?'on':(i<idx?'done':''))+'"></i>';$('dots').innerHTML=d}
+function dots(){var d='',n=L().length;for(var i=0;i<n;i++)d+='<i class="'+(i===idx?'on':(i<idx?'done':''))+'"></i>';$('dots').innerHTML=d}
 function setCur(c){document.getElementById('app').style.setProperty('--cur',COL[c])}
 function render(){
  clearT();busy=false;$('tip').classList.remove('show');$('tip').textContent='請按有紅框的地方';
@@ -212,7 +244,7 @@ function render(){
   return;
  }
  $('prev').style.visibility='visible';
- var list=DECKS[deck],s=list[idx];
+ var list=L(),s=list[idx];
  setCur(s.c);
  $('band').innerHTML='<span class="badge">'+s.tag+'</span><span>'+(s.type==='remember'?'':'第 '+(idx+1)+' 步')+'</span><span class="cnt">'+(idx+1)+' / '+list.length+'</span>';
  $('prog').style.width=((idx+1)/list.length*100)+'%';
@@ -231,6 +263,11 @@ function place(elId){
 }
 function bind(s){
  var vis=$('vis');
+ if(s.type==='device'){
+  var bs=vis.querySelectorAll('.devbtn');
+  for(var bi=0;bi<bs.length;bi++)(function(b){b.onclick=function(){if(busy)return;busy=true;S.dev=b.getAttribute('data-d');b.classList.add('on');T(next,450)}})(bs[bi]);
+  return;
+ }
  if(s.type==='form')place('fld_'+s.f);
  if(s.type==='home')place('lineico');
  if(s.type==='msg')place('ib');
@@ -252,6 +289,17 @@ function bind(s){
  function onDown(e){
   if(busy)return;
   if(!inTarget(e)){wrong();return}
+  if(s.type==='swipe'){
+   var row=$('swrow'),sc0=vis.querySelector('.screen'),W=sc0.getBoundingClientRect().width,x0=e.clientX,fgr=vis.querySelector('.finger');
+   if(fgr)fgr.style.opacity=0;row.classList.add('drag');
+   var mv=function(ev){var dx=Math.max(0,Math.min(W*0.25,ev.clientX-x0));row.style.transform='translateX('+dx+'px)'};
+   var up=function(ev){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);document.removeEventListener('pointercancel',up);
+    row.classList.remove('drag');var dx=ev.clientX-x0;
+    if(dx>W*0.1){row.style.transform='translateX(25%)';busy=true;T(next,700)}
+    else{row.style.transform='translateX(0)';if(fgr)fgr.style.opacity=1;var t=$('tip');t.textContent='再往右滑一點，像翻頁一樣';t.classList.add('show');T(function(){t.classList.remove('show');t.textContent='請按有紅框的地方'},1600)}};
+   document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);document.addEventListener('pointercancel',up);
+   return;
+  }
   rippleAt(e);
   if(s.hold){ // 長按
    var sc=vis.querySelector('.screen'),r=sc.getBoundingClientRect(),h=document.createElement('div');h.className='hold on';h.style.left=(e.clientX-r.left)+'px';h.style.top=(e.clientY-r.top)+'px';sc.appendChild(h);
@@ -273,6 +321,7 @@ function bind(s){
    busy=true;var sc2=vis.querySelector('.screen');sc2.insertAdjacentHTML('beforeend','<div style="position:absolute;inset:0;background:#fff;z-index:8;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3cqw;font-weight:900;font-size:7cqw;animation:slidein .4s"><div style="font-size:16cqw">🌱</div><div>元代謝健康 APP</div><div style="color:#17883A;font-size:5cqw">已經打開了 ✓</div></div>');
    T(next,1500);return;
   }
+  if(s.type==='swipepin'){var sc3=vis.querySelector('.screen');var row3=$('swrow');row3.style.transition='transform .3s';row3.style.transform='translateX(0)';sc3.insertAdjacentHTML('beforeend','<div class="pinned">📌</div>')}
   success();
  }
  vis.addEventListener('pointerdown',onDown);
@@ -297,22 +346,22 @@ function bind(s){
 }
 function next(){go(idx+1)}
 function go(n){
- var len=DECKS[deck].length;
- if(n<0||n>=len){ if(n>=len){confetti&&0} deck=null;idx=-1;S={name:'',phone:'',check:false};history.replaceState(null,'','#');render();return }
+ var len=L().length;
+ if(n<0||n>=len){ if(n>=len){confetti&&0} deck=null;idx=-1;S=newS();history.replaceState(null,'','#');render();return }
  idx=n;render();
 }
 var confetti=0;
-function pick(d){deck=d;idx=0;S={name:'',phone:'',check:false};render()}
+function pick(d){deck=d;idx=0;S=newS();render()}
 $('go').onclick=function(){next()};
 $('prev').onclick=function(){ if(!deck)return; if(idx===0){deck=null;idx=-1;render();return} idx--;
- if(DECKS[deck][idx].type==='form'){ /* 回上一步時，把後面的欄位清掉 */ var f=DECKS[deck][idx].f; if(f==='name'){S.name='';S.phone='';S.check=false} if(f==='phone'){S.phone='';S.check=false} if(f==='check'){S.check=false} }
+ if(L()[idx].type==='form'){ /* 回上一步時，把後面的欄位清掉 */ var f=L()[idx].f; if(f==='name'){S.name='';S.phone='';S.check=false} if(f==='phone'){S.phone='';S.check=false} if(f==='check'){S.check=false} }
  render() };
 $('again').onclick=function(){ if(deck)render() };
 (function(){
- var m=location.hash.match(/^#([no])(\d+)$/);
- if(m){deck=m[1];idx=Math.max(0,Math.min(DECKS[deck].length-1,parseInt(m[2],10)-1));
+ var m=location.hash.match(/^#([no])(\d+)([ia]?)$/);if(m&&m[3])S.dev=m[3];m=m;
+ if(m){deck=m[1];idx=Math.max(0,Math.min(L().length-1,parseInt(m[2],10)-1));
   // 直接跳到某一步時，預先填好前面的欄位
-  var s=DECKS[deck][idx]; if(s.type==='form'){ if(s.f==='phone'||s.f==='check'||s.f==='btn'){S.name='王小明'} if(s.f==='check'||s.f==='btn'){S.phone='0912345678'} if(s.f==='btn'&&deck==='n'){S.check=true} } }
+  var s=L()[idx]; if(s.type==='form'){ if(s.f==='phone'||s.f==='check'||s.f==='btn'){S.name='王小明'} if(s.f==='check'||s.f==='btn'){S.phone='0912345678'} if(s.f==='btn'&&deck==='n'){S.check=true} } }
  render();
 })();
 </script></body></html>
