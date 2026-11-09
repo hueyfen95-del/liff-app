@@ -10086,5 +10086,48 @@ function mxCellPop(msg){
     <div style="font-size:11px;color:#888;text-align:center;margin-top:6px">送出後秘書會主動跟您聯繫，安排時間與調查表</div>
   </div>
 </div>
+<script>
+/* 2026-11-09 分享自測：分享失敗時，改開「用 LINE 傳給朋友／複製文字」備用視窗 */
+(function(){
+  function closeSheet(){var o=document.getElementById('shareSheet');if(o)o.remove()}
+  function copyText(t,btn){
+    function ok(){if(btn){btn.textContent='已複製 ✓'}}
+    function fb(){var ta=document.getElementById('shareTa');if(ta){ta.focus();ta.select();try{ta.setSelectionRange(0,99999)}catch(e){}try{document.execCommand('copy');ok()}catch(e){if(btn)btn.textContent='請長按文字，選「拷貝」'}}}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,fb)}else{fb()}
+  }
+  function showShareSheet(text,err){
+    closeSheet();
+    var o=document.createElement('div');o.id='shareSheet';
+    o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:flex-end;justify-content:center';
+    var lineUrl='https://line.me/R/msg/text/?'+encodeURIComponent(text);
+    o.innerHTML='<div style="background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 18px 26px;font-family:inherit">'+
+      '<div style="font-size:18px;font-weight:900;color:#0F6E56;margin-bottom:6px">分享給親友</div>'+
+      '<div style="font-size:13px;color:#666;margin-bottom:10px">按下面的按鈕，選要傳給誰；或複製這段話，自己貼到 LINE。</div>'+
+      '<textarea id="shareTa" readonly style="width:100%;box-sizing:border-box;height:110px;border:1px solid #cfe3da;border-radius:10px;padding:10px;font-size:14px;font-family:inherit;background:#f6fbf8"></textarea>'+
+      '<a href="'+lineUrl+'" style="display:block;text-align:center;background:#06C755;color:#fff;border-radius:12px;padding:13px;font-size:16px;font-weight:800;text-decoration:none;margin-top:12px">用 LINE 傳給朋友</a>'+
+      '<button id="shareCopy" style="display:block;width:100%;background:#fff;color:#0F6E56;border:2px solid #0F6E56;border-radius:12px;padding:12px;font-size:16px;font-weight:800;margin-top:10px;font-family:inherit">複製文字</button>'+
+      '<button id="shareClose" style="display:block;width:100%;background:none;border:none;color:#888;padding:12px;font-size:14px;margin-top:4px;font-family:inherit">關閉</button>'+
+      (err?'<div style="font-size:10px;color:#bbb;text-align:center">代碼：'+String(err).replace(/[<>&]/g,'').slice(0,60)+'</div>':'')+
+    '</div>';
+    document.body.appendChild(o);
+    document.getElementById('shareTa').value=text;
+    document.getElementById('shareCopy').onclick=function(){copyText(text,this)};
+    document.getElementById('shareClose').onclick=closeSheet;
+    o.onclick=function(e){if(e.target===o)closeSheet()};
+  }
+  window.shareQuiz=function(){
+    var text="我最近在關心代謝健康，發現這個「60 秒代謝健康小提醒」滿有意思的，分享給你也測測看 🌱\n"+QUIZ_URL;
+    try{
+      if(typeof liff!=='undefined'&&liff.isApiAvailable&&liff.isApiAvailable('shareTargetPicker')){
+        liff.shareTargetPicker([{type:'text',text:text}]).then(function(r){
+          if(r&&r.status==='success'){try{toast('✅ 已分享給朋友')}catch(e){}}
+        }).catch(function(e){showShareSheet(text,(e&&(e.code||e.message))||'picker-error')});
+        return;
+      }
+    }catch(e){}
+    showShareSheet(text,'no-picker');
+  };
+})();
+</script>
 </body>
 </html>
