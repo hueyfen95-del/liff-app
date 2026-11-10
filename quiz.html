@@ -16,7 +16,8 @@ body{font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;ba
 .app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--paper);position:relative}
 
 /* 封面 */
-.cover{padding:0;min-height:100vh;display:flex;flex-direction:column}
+.cover{padding:0;min-height:100vh;display:none;flex-direction:column}
+.cover.active{display:flex}
 .cover-hero{background:linear-gradient(150deg,#0A4A3A,#158066);color:#fff;padding:48px 26px 40px;border-radius:0 0 30px 30px;text-align:center;flex:0 0 auto}
 .cover-hero .leaf{font-size:44px;margin-bottom:10px}
 .cover-hero h1{font-size:25px;font-weight:800;letter-spacing:.01em;margin-bottom:10px}
@@ -290,7 +291,7 @@ function shade(hex){
   const m={'#1D9E75':'#0F6E56','#C88A2E':'#A06A1E','#D8843A':'#B0632A','#C0392B':'#96271B'};
   return m[hex]||hex;
 }
-const LINE_URL="https://line.me/R/ti/p/@your-line-id";
+const LINE_URL = "https://line.me/R/ti/p/@702iovsx";
 function contactLine(){
   if(LINE_URL.indexOf('your-line-id')>=0){
     alert('（示範）這裡會開啟你們的 LINE 官方帳號加好友頁面。部署時把程式裡的 LINE_URL 換成你們的 LINE 連結即可。');
