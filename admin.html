@@ -8739,6 +8739,7 @@ var GIFT_REQUEST_REPLY_TEMPLATES = [
 // 秘書/行政/管理者要去元代謝官網後台把課程加進客人的學習中心，這裡是加好之後回覆客人用的）
 // 2026-10-10：創辦人「其他給的資料也是類似的邏輯」——提到官網、課程就直接附連結，不讓客人自己找
 var COURSE_REPLY_TEMPLATES = [
+  '已經幫你開通線上課程囉（方案一、方案二都已加入）😊 請登入官網 https://www.isometabolix.com/ → 選單 More → 學習中心，就會看到課程，從第 1 課開始聽。看不到的話跟我說一聲。',
   '收到！已經幫你把線上課程加到學習中心囉，點這裡登入官網會員就可以開始上課 😊 https://www.isometabolix.com/challenges',
   '已經幫你設定好了，稍後就能在學習中心看到課程：https://www.isometabolix.com/challenges 有問題隨時問我。',
   '看到你完成官網註冊了！正在幫你加課程，加好會再通知你。',
@@ -8926,6 +8927,7 @@ function loadClientInbox(){
         + '</div>'
         + '<div style="font-size:12px;color:var(--text2);line-height:1.6">'+escH(it.content)+'</div>'
         + (it.src==='mood' ? '<div style="font-size:11px;color:#1E40AF;background:#EFF6FF;border-radius:7px;padding:5px 8px;margin-top:6px">💛 系統依他勾的心情先準備好「接住」的第一句（已填進下面），改一改就送；結構：先接情緒 → 讓他知道被理解 → 才給一個小動作</div>' : '')
+        + _courseOpenUI(it)
         + _quickReplyUI('ci'+i, setName)
         + '<div style="display:flex;gap:6px;margin-top:6px">'
         + '<button class="btn-g" style="flex:2;padding:8px;font-size:12px" onclick="ciSendReply('+i+',this)">💌 送出回覆給客人（自動標記完成）</button>'
@@ -8951,6 +8953,19 @@ function loadClientInbox(){
       }
     });
   });
+}
+var COURSE_ADMIN_URL = 'https://manage.wix.com/dashboard/7c416ec4-ee8d-47cb-b538-b6978bb7e579/challenges/list/published';
+function _courseEmailOf(it){ var m = String(it.content||'').match(/官網註冊 Email：([^\s，。,]+)/); return m ? m[1] : ''; }
+// 2026-11-11：線上課程開通——秘書／行政／管理者在這張卡就能一鍵複製客人 Email、直接開官網後台「線上計劃」，照步驟加進方案一、方案二
+function _courseOpenUI(it){
+  if(it.noteType !== '線上課程註冊') return '';
+  var em = _courseEmailOf(it);
+  var h = '<div style="background:#FFFBEB;border:1px solid #F6D77A;border-radius:9px;padding:9px 11px;margin-top:6px;font-size:12px;line-height:1.8">';
+  h += '<div style="font-weight:800;color:#92400E;margin-bottom:4px">📚 開通步驟（約 1 分鐘）</div>';
+  if(em){ h += '<div>客人註冊的 Email：<b style="user-select:all">'+escH(em)+'</b> <button type="button" data-em="'+escH(em)+'" onclick="copyText(this.getAttribute(\'data-em\'))" style="border:1px solid #D9A521;background:#fff;color:#92400E;border-radius:6px;padding:2px 9px;font-size:11.5px;font-weight:700;cursor:pointer">複製 Email</button></div>'; }
+  else { h += '<div style="color:#C62828;font-weight:700">⚠️ 這則是舊版通知，沒有帶 Email，請先在 LINE 問客人官網註冊用的 Email。</div>'; }
+  h += '<div style="margin-top:3px">① <a href="'+COURSE_ADMIN_URL+'" target="_blank" rel="noopener" style="font-weight:800;color:#1D4ED8">打開官網後台「線上計劃」</a>（要先登入 Wix）<br>② 點「方案一」→「參與者」→ 新增參與者 → 貼上 Email<br>③ 再到「方案二」同樣加一次（30 課要兩個都加）<br>④ 加好後，下面按「已開通」那句罐頭回覆客人</div></div>';
+  return h;
 }
 function ciSendReply(i, btnEl){
   var it = _ciCache[i]; if(!it) return;
