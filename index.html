@@ -1453,11 +1453,14 @@ window.openHealthForm = function() {
     <div style="background:linear-gradient(135deg,#B8860B,#D9A521);color:#fff;border-radius:14px;padding:16px;margin-bottom:10px">
       <div style="font-size:13.5px;font-weight:800;margin-bottom:8px">🎁 限時加贈：線上課程</div>
       <div style="font-size:11.5px;line-height:1.8;opacity:.95;margin-bottom:12px">為了讓你在這趟代謝調整的旅程走得更清楚、更有方向，元代謝特別為你準備了限時加贈的線上課程——把飲食調整背後的原理、常見的迷思，整理成完整的課程內容一次講給你聽，讓你不只是「跟著秘書的安排做」，更能真正看懂自己身體正在發生的變化，走得更安心、更有信心。</div>
-      <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:11px 13px">
-        <div style="font-size:12px;font-weight:700;margin-bottom:5px">📚 線上課程註冊</div>
-        <div style="font-size:11px;line-height:1.7;opacity:.95;margin-bottom:10px">請你有空的時候，先到元代謝官網註冊會員。註冊完成後，我們就會直接把線上課程放進你的學習中心，之後隨時都可以回來上課。</div>
-        <a href="https://www.isometabolix.com/" target="_blank" style="display:block;text-align:center;background:#fff;color:#8A6410;border-radius:9px;padding:10px;font-size:12.5px;font-weight:800;text-decoration:none;margin-bottom:8px">前往元代謝官網註冊 →</a>
-        <div id="course-registered-btn" onclick="notifyCourseRegistered(this)" style="text-align:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);border-radius:9px;padding:9px;font-size:11.5px;font-weight:700;cursor:pointer">✅ 我已經完成官網註冊了，通知秘書</div>
+      <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:13px 13px 12px">
+        <div style="font-size:14px;font-weight:800;margin-bottom:10px">📚 開通線上課程，只要 4 步</div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:11px"><div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#fff;color:#8A6410;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center">1</div><div style="flex:1;min-width:0;font-size:13px;line-height:1.7;font-weight:600">到元代謝官網註冊會員。請用<b>您平常會看的 Email</b>，並記下是哪一個。<a href="https://www.isometabolix.com/" target="_blank" style="display:block;text-align:center;background:#fff;color:#8A6410;border-radius:9px;padding:10px;font-size:13px;font-weight:800;text-decoration:none;margin-top:7px">前往元代謝官網註冊 →</a></div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:11px"><div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#fff;color:#8A6410;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center">2</div><div style="flex:1;min-width:0;font-size:13px;line-height:1.7;font-weight:600">回到這裡，填入<b>剛剛註冊的 Email</b>，按「通知秘書」。Email 要和官網註冊的<b>一個字都不能差</b>，秘書才找得到您。<input id="course-email" type="email" inputmode="email" autocomplete="email" placeholder="例：abc@gmail.com" style="display:block;width:100%;box-sizing:border-box;margin-top:7px;border:none;border-radius:9px;padding:10px;font-size:14px;color:#333"></div></div>
+        <div id="course-registered-btn" onclick="notifyCourseRegistered(this)" style="text-align:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.5);border-radius:9px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;margin:-2px 0 12px 36px">✅ 我註冊好了，通知秘書</div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:11px"><div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#fff;color:#8A6410;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center">3</div><div style="flex:1;min-width:0;font-size:13px;line-height:1.7;font-weight:600">等秘書開通。秘書會到官網後台，把課程加進您的學習中心，加好之後會傳訊息告訴您。</div></div>
+        <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:11px"><div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:#fff;color:#8A6410;font-size:14px;font-weight:800;display:flex;align-items:center;justify-content:center">4</div><div style="flex:1;min-width:0;font-size:13px;line-height:1.7;font-weight:600">收到「已開通」後，登入官網 → 進入<b>「學習中心」</b>，就會看到課程，從<b>第 1 課</b>開始聽。</div></div>
+        <div style="background:rgba(0,0,0,.14);border-radius:9px;padding:10px 12px;font-size:12.5px;line-height:1.7">⚠️ <b>看不到課程時</b>：先確認官網登入的 Email，和第 2 步填的是不是同一個；還是看不到，直接點上方「傳訊息給你的健康秘書」。</div>
       </div>
     </div>
 
@@ -7988,16 +7991,21 @@ function askUnlockCoaching(el){
 // 🎁 限時加贈線上課程：客人在官網完成註冊後按這顆通知秘書/行政/管理者，
 // 讓他們知道要去官網後台把課程加進客人的學習中心（同一批人會在後台「客人互動信箱」看到，
 // 跟諮詢預約/禮物請求同一套機制，見 final_apps_script.js 的 getClientInteractions）
-var _courseNotifyAsked = false;
+var _courseNotifiedEmail = '';
 function notifyCourseRegistered(el){
-  if (_courseNotifyAsked) { toast('已經通知過秘書囉，加好課程會再通知你 😊'); return; }
-  _courseNotifyAsked = true;
+  var inp = document.getElementById('course-email');
+  var em = ((inp && inp.value) || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { toast('請先填入您在官網註冊的 Email（例：abc@gmail.com）'); if (inp) inp.focus(); return; }
+  if (em.toLowerCase() === _courseNotifiedEmail) { toast('這個 Email 已經通知過秘書囉，課程加好會再通知你 😊'); return; }
+  var prev = _courseNotifiedEmail; _courseNotifiedEmail = em.toLowerCase();
+  var oldTxt = '✅ 我註冊好了，通知秘書';
   if (el) { el.style.opacity = '.6'; el.textContent = '通知中…'; }
-  callAPI({ action: 'addNote', clientId: CLIENT_ID, content: '客人在「我的陪跑權益」頁按了「已完成官網註冊」，請幫忙到元代謝官網後台把線上課程加進客人的學習中心', type: '線上課程註冊', secretary: '系統' }, function(d){
-    if (d && d.status === 'ok') { toast('✅ 已通知秘書，課程加好會再通知你！'); if (el) el.textContent = '✅ 已通知秘書，請等待課程開通'; }
-    else { toast('⚠️ 送出失敗，請直接 LINE 秘書'); _courseNotifyAsked = false; if (el) { el.style.opacity = ''; el.textContent = '✅ 我已經完成官網註冊了，通知秘書'; } }
+  callAPI({ action: 'addNote', clientId: CLIENT_ID, content: '客人在「我的陪跑權益」頁按了「已完成官網註冊」。官網註冊 Email：' + em + '。請到元代謝官網後台（線上課程→參與者）用這個 Email 把線上課程加進客人的學習中心，加好後通知客人；若官網找不到這個 Email，請聯絡客人確認。', type: '線上課程註冊', secretary: '系統' }, function(d){
+    if (d && d.status === 'ok') { toast('✅ 已通知秘書，課程加好會再通知你！'); if (el) { el.style.opacity = ''; el.textContent = '✅ 已通知秘書（' + em + '），請等待課程開通'; } }
+    else { toast('⚠️ 送出失敗，請直接 LINE 秘書'); _courseNotifiedEmail = prev; if (el) { el.style.opacity = ''; el.textContent = oldTxt; } }
   });
 }
+
 function removeLockBanners() {
   document.querySelectorAll('.lock-cta').forEach(function(el){ el.remove(); });
   document.querySelectorAll('.lock-content-wrap').forEach(function(wrap){
