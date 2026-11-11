@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>線上課程開通示範</title>
+<style>
+:root{--o:#B8860B;--o2:#D9A521;--bg:#FFF8ED;--ink:#222;--red:#E53935;--g:#17883A}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:var(--bg);font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",sans-serif;color:var(--ink);overscroll-behavior:none}
+#app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+.top{flex:none;display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px;color:#7A5A12}
+.top .n{background:var(--o);color:#fff;border-radius:20px;padding:2px 11px}
+.dots{flex:1;display:flex;gap:4px;justify-content:flex-end}
+.dots i{width:8px;height:8px;border-radius:50%;background:#e4d6b4}.dots i.on{background:var(--o)}.dots i.done{background:var(--o);opacity:.45}
+.say{flex:none;font-size:clamp(19px,5.4vw,24px);font-weight:900;line-height:1.35;margin:8px 0 2px}
+.say b{background:linear-gradient(transparent 58%,#ffe29a 58%)}
+.hint{flex:none;font-size:clamp(13px,3.7vw,15.5px);color:#555;line-height:1.5;font-weight:600;min-height:1px;margin-bottom:6px}
+.stage{flex:1;min-height:0;position:relative}
+.site{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff;border:2px solid #cdbf9a;border-radius:12px;overflow:hidden;container-type:inline-size;font-size:3.6cqw}
+.bar{display:flex;align-items:center;gap:2cqw;padding:2.6cqw 3.4cqw;border-bottom:.4cqw solid #eee;font-weight:800}
+.bar .logo{color:#1f3c88;font-size:4cqw}.bar .logo em{font-style:normal;color:#f0782a}
+.bar .sp{flex:1}
+.bar .login{display:flex;align-items:center;gap:1.4cqw;font-size:3.6cqw;font-weight:700;color:#333;padding:1cqw 1.6cqw}
+.bar .menu{border:.4cqw solid #999;border-radius:1cqw;padding:.8cqw 2.2cqw;font-weight:700;font-size:3.4cqw}
+.ava{width:5.4cqw;height:5.4cqw;border-radius:50%;background:#7aa6d8;display:inline-block}
+.hero{padding:7cqw 5cqw;background:linear-gradient(160deg,#eaf3f1,#fff);flex:1}
+.hero h2{margin:0 0 2cqw;font-size:8cqw;color:#1f3c88;font-weight:900}
+.hero p{margin:0;font-size:4.6cqw;color:#555;font-weight:700}
+.dd{position:absolute;right:2cqw;top:13cqw;background:#fff;border:.4cqw solid #ddd;border-radius:2cqw;box-shadow:0 2cqw 5cqw rgba(0,0,0,.18);width:36cqw;font-weight:700;font-size:3.8cqw;z-index:2}
+.dd div{padding:2.4cqw 3.4cqw;border-bottom:.3cqw solid #f0f0f0}.dd div:last-child{border:0}
+.dlg{position:absolute;inset:0;background:#fff;z-index:3;padding:9cqw 7cqw;text-align:center}
+.dlg h3{margin:4cqw 0 2cqw;font-size:8.4cqw;font-weight:600}
+.dlg .sub{font-size:3.6cqw;color:#444;margin-bottom:5cqw}.dlg .sub u{color:#f0782a;text-decoration:none;font-weight:700}
+.sbtn{border:.4cqw solid #bbb;border-radius:1.2cqw;padding:3cqw;font-size:3.8cqw;margin-bottom:2.6cqw;font-weight:700;background:#fff}
+.sbtn.fb{background:#1877f2;color:#fff;border-color:#1877f2}
+.or{font-size:3.4cqw;color:#666;margin:3cqw 0}
+.fld{text-align:left;border-bottom:.4cqw solid #777;padding:1cqw 0 1.6cqw;margin-bottom:4cqw;font-size:4cqw;font-weight:800}
+.fld small{display:block;font-weight:600;color:#666;font-size:3.2cqw;margin-bottom:.6cqw}
+.cap{display:flex;align-items:center;gap:2.4cqw;border:.4cqw solid #ddd;background:#fafafa;border-radius:1.2cqw;padding:2.4cqw 3cqw;margin:2cqw 0 4cqw;font-size:3.4cqw;font-weight:700;text-align:left}
+.cap i{width:5.6cqw;height:5.6cqw;border:.5cqw solid #888;background:#fff;border-radius:.8cqw;display:flex;align-items:center;justify-content:center;color:#17883A;font-style:normal;font-size:4.6cqw;font-weight:900}
+.reg{background:#f0782a;color:#fff;border-radius:1.2cqw;padding:3.2cqw;font-size:4.4cqw;font-weight:900}
+.pg{padding:5cqw;flex:1;overflow:hidden}
+.pg h2{margin:0;font-size:7cqw;font-weight:900}.pg .s{font-size:3.6cqw;color:#666;font-weight:700;margin:1cqw 0 3cqw}
+.tabs{display:flex;gap:6cqw;border-bottom:.4cqw solid #ddd;font-weight:800;font-size:4cqw;margin-bottom:3cqw}.tabs span{padding:1cqw 0}.tabs .on{border-bottom:.8cqw solid #333}
+.card{display:flex;gap:3cqw;align-items:center;border-bottom:.3cqw solid #eee;padding:3cqw 0}
+.th{flex:none;width:17cqw;height:13cqw;background:#f4ecd0;border-radius:1.4cqw;display:flex;align-items:center;justify-content:center;font-size:7cqw}
+.card .nm{flex:1;font-size:3.7cqw;font-weight:800;line-height:1.35}.card .nm small{display:block;color:#888;font-weight:700;font-size:3cqw;margin-top:.6cqw}
+.card .go{font-size:3.5cqw;font-weight:800;text-decoration:underline;white-space:nowrap}
+.course{display:flex;flex:1;min-height:0}
+.side{flex:none;width:36%;border-right:.4cqw solid #eee;padding:3cqw;font-size:3.1cqw;font-weight:700;background:#fafafa}
+.side b{display:block;font-size:3.3cqw;margin-bottom:2cqw;line-height:1.3}
+.side div.it{padding:2cqw;border-radius:1.2cqw;margin-bottom:1.2cqw;background:#fff;border:.3cqw solid #e6e6e6}.side div.it.on{background:#fdebd8;border-color:#f0b27a}
+.main2{flex:1;min-width:0;padding:3.4cqw;position:relative;font-size:3.4cqw;font-weight:700;line-height:1.5}
+.main2 h4{margin:0 0 2cqw;font-size:4.2cqw;font-weight:900}
+.blk{border:.4cqw solid #e2e2e2;border-radius:1.6cqw;padding:2.2cqw 2.6cqw;margin-bottom:2cqw;background:#fff}
+.done{position:absolute;right:3cqw;bottom:3cqw;background:#f0782a;color:#fff;border-radius:1.2cqw;padding:2.4cqw 3.4cqw;font-size:3.5cqw;font-weight:900}
+.card2{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6cqw;background:#fff;gap:3.4cqw}
+.card2 .big{font-size:13cqw}.card2 h3{margin:0;font-size:6cqw;font-weight:900;line-height:1.35}.card2 p{margin:0;font-size:4cqw;font-weight:700;line-height:1.6;color:#444}
+.card2 ol{margin:0;padding-left:6cqw;text-align:left;font-size:4cqw;font-weight:800;line-height:1.75}
+.tg{position:absolute;z-index:8;cursor:pointer;border-radius:1.6cqw}
+.tg::before{content:"";position:absolute;inset:-1cqw;border:1cqw solid var(--red);border-radius:2.4cqw;animation:pulse 1.1s infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:1}100%{transform:scale(1.1);opacity:0}}
+.fing{position:absolute;z-index:9;font-size:9cqw;pointer-events:none;animation:bob 1s ease-in-out infinite;filter:drop-shadow(0 .6cqw .8cqw rgba(0,0,0,.35))}
+@keyframes bob{0%,100%{transform:translate(0,0)}50%{transform:translate(-1.4cqw,-1.8cqw)}}
+.ctl{flex:none;display:flex;gap:8px;padding-top:8px}
+.ctl button{border:0;border-radius:12px;font-family:inherit;font-weight:800;font-size:16px;padding:11px 12px;background:#e9e1d3;color:#555}
+.ctl .nx{flex:1;background:var(--o);color:#fff;font-size:17px}
+.ctl button[disabled]{opacity:.35}
+.in{animation:si .3s ease-out}@keyframes si{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+</style></head><body>
+<div id="app">
+<div class="top"><span class="n" id="nn">示範</span><span id="tt"></span><div class="dots" id="dots"></div></div>
+<div class="say" id="say"></div>
+<div class="hint" id="hint"></div>
+<div class="stage"><div class="site in" id="site"></div></div>
+<div class="ctl"><button id="bk">◀ 上一步</button><button class="nx" id="nx">下一步 ▶</button></div>
+</div>
+<script>
+(function(){
+var HEAD='<div class="bar"><span class="logo">元代謝健康 <em>| isometabolix.com</em></span><span class="sp"></span>';
+var HEADOUT=HEAD+'<span class="login" data-tg><span class="ava"></span>登入</span></div>';
+var HEADIN=HEAD+'<span class="menu">More ▾</span><span class="ava"></span></div>';
+var STEPS=[
+{say:'先到官網，點右上角的<b>「登入」</b>',hint:'用手機、平板、電腦都可以。這裡是示範畫面，請點紅框。',html:function(){return HEADOUT+'<div class="hero"><h2>代謝篇章<br>Chapter Metabolica</h2><p>讓代謝，說出你的生命故事</p></div>'}},
+{say:'還沒有帳號：點<b>「使用電子郵件註冊」</b>',hint:'也可以用 Google 註冊，但要記得：之後告訴秘書的 Email，就是這個 Google 的 Email。',html:function(){return HEADOUT+'<div class="dlg"><h3>註冊</h3><div class="sub">已經是會員嗎？ <u>登入</u></div><div class="sbtn">使用 Google 註冊</div><div class="sbtn fb">用臉書帳號註冊</div><div class="or">─── 或者 ───</div><div class="sbtn" data-tg>使用電子郵件註冊</div></div>'}},
+{say:'填<b>電子郵件</b>和<b>密碼</b>，勾「我不是機器人」，按<b>「註冊」</b>',hint:'這個電子郵件要記好，等一下要在 APP 裡填給秘書。密碼自己記住。',html:function(){return HEADOUT+'<div class="dlg"><h3>註冊</h3><div class="sub">已經是會員嗎？ <u>登入</u></div><div class="fld"><small>電子郵件</small>abc@gmail.com</div><div class="fld"><small>密碼</small>••••••••</div><div class="cap"><i>✓</i>進行人機身分驗證</div><div class="reg" data-tg>註冊</div></div>'}},
+{say:'<b>先回到 APP</b>，通知秘書',hint:'註冊完不會自動有課程，要等秘書幫你開通。',html:function(){return '<div class="card2"><div class="big">📲</div><h3>回到 APP 這一頁，往下看第 3 步</h3><ol><li>填入剛剛註冊的 Email</li><li>按「通知秘書」</li><li>等秘書傳訊息說「已開通」</li></ol><p>收到「已開通」，再按下面的「下一步」。</p></div>'},nogo:true},
+{say:'登入官網，點選單<b>「More」</b>，再點<b>「學習中心」</b>',hint:'手機版的選單排列可能不太一樣，找「學習中心」這四個字就對了。',html:function(){return HEADIN+'<div class="hero"><h2>代謝篇章<br>Chapter Metabolica</h2></div><div class="dd"><div>線上商店</div><div>會員專區</div><div>購買紀錄</div><div>我的預訂</div><div style="background:#fdebd8" data-tg>學習中心</div></div>'}},
+{say:'看到<b>兩個課程</b>：方案一、方案二。點<b>「查看計劃」</b>',hint:'方案一＝基礎班、方案二＝進階班，兩個都要看得到。只看到一個或都沒有，請回 APP 傳訊息給秘書。',html:function(){return HEADIN+'<div class="pg"><h2>計劃</h2><div class="s">追蹤計劃進度。</div><div class="tabs"><span class="on">進行中</span><span>已完成</span></div><div class="card"><div class="th">🎓</div><div class="nm">方案一：【代謝覺醒】逆轉胰島素阻抗大師-基礎班<small>你是參與者</small></div><div class="go" data-tg>查看計劃</div></div><div class="card"><div class="th">🎓</div><div class="nm">方案二 【代謝實務】逆轉胰島素阻抗大師-進階班<small>你是參與者</small></div><div class="go">查看計劃</div></div></div>'}},
+{say:'從<b>第 1 課</b>開始，看完按<b>「完成步驟」</b>',hint:'課程有講義（PDF）、聲音講課、小測驗。每一課看完按「完成步驟」，就會進下一課。',html:function(){return HEADIN+'<div class="course"><div class="side"><b>方案一：基礎班</b><div class="it on">第 1 課</div><div class="it">第 2 課</div><div class="it">第 3 課</div><div class="it">⋯</div></div><div class="main2"><h4>第 1 課</h4><div class="blk">📄 講義（可下載 PDF）</div><div class="blk">🎧 聲音講課</div><div class="blk">✍️ 小測驗</div><div class="done" data-tg>完成步驟 ›</div></div></div>'}},
+{say:'完成！<b>之後隨時回來上課</b>',hint:'',html:function(){return '<div class="card2"><div class="big">🎉</div><h3>下次這樣進去</h3><p>官網登入 → 選單「More」→「學習中心」</p><p>看不到課程、打不開、不知道怎麼按，<br>回 APP 傳訊息給你的健康秘書就可以。</p></div>'},last:true}
+];
+var i=0, $=function(x){return document.getElementById(x)};
+function render(){
+var s=STEPS[i]; $('tt').textContent=(i+1)+' ／ '+STEPS.length;
+$('say').innerHTML=s.say; $('hint').textContent=s.hint||'';
+var d=''; for(var k=0;k<STEPS.length;k++) d+='<i class="'+(k===i?'on':(k<i?'done':''))+'"></i>'; $('dots').innerHTML=d;
+var site=$('site'); site.className='site'; void site.offsetWidth; site.className='site in'; site.innerHTML=s.html();
+$('bk').disabled=(i===0); $('nx').disabled=!!s.last; $('nx').textContent=s.last?'已看完':(s.nogo?'秘書說已開通了 ▶':'下一步 ▶');
+var all=site.querySelectorAll('[data-tg]'); var el=all.length?all[all.length-1]:null;
+if(el && !s.nogo){
+var sr=site.getBoundingClientRect(), r=el.getBoundingClientRect();
+var o=document.createElement('div'); o.className='tg'; o.style.cssText='left:'+(r.left-sr.left)+'px;top:'+(r.top-sr.top)+'px;width:'+r.width+'px;height:'+r.height+'px';
+var f=document.createElement('div'); f.className='fing'; f.textContent='👆'; f.style.cssText='left:'+(r.left-sr.left+r.width*0.55)+'px;top:'+(r.top-sr.top+r.height*0.45)+'px';
+site.appendChild(o); site.appendChild(f); o.onclick=next; el.style.cursor='pointer'; el.onclick=next; }
+}
+function next(){ if(i<STEPS.length-1){i++;render()} }
+$('nx').onclick=next; $('bk').onclick=function(){ if(i>0){i--;render()} };
+function fromHash(){var h=(location.hash||'').match(/#s(\d)/); if(h){i=Math.min(STEPS.length-1,Math.max(0,+h[1]-1)); render()}}
+window.addEventListener('hashchange',fromHash);
+var h0=(location.hash||'').match(/#s(\d)/); if(h0){i=Math.min(STEPS.length-1,Math.max(0,+h0[1]-1))}
+render();
+})();
+</script></body></html>
