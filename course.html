@@ -86,7 +86,10 @@ var STEPS=[
 {say:'<b>先回到 APP</b>，通知秘書',hint:'註冊完不會自動有課程，要等秘書幫你開通。',html:function(){return '<div class="card2"><div class="big">📲</div><h3>回到 APP 這一頁，往下看第 3 步</h3><ol><li>填入剛剛註冊的 Email</li><li>按「通知秘書」</li><li>等秘書傳訊息說「已開通」</li></ol><p>收到「已開通」，再按下面的「下一步」。</p></div>'},nogo:true},
 {say:'登入官網，點選單<b>「More」</b>，再點<b>「學習中心」</b>',hint:'手機版的選單排列可能不太一樣，找「學習中心」這四個字就對了。',html:function(){return HEADIN+'<div class="hero"><h2>代謝篇章<br>Chapter Metabolica</h2></div><div class="dd"><div>線上商店</div><div>會員專區</div><div>購買紀錄</div><div>我的預訂</div><div style="background:#fdebd8" data-tg>學習中心</div></div>'}},
 {say:'看到<b>兩個課程</b>：方案一、方案二。點<b>「查看計劃」</b>',hint:'方案一＝基礎班、方案二＝進階班，兩個都要看得到。只看到一個或都沒有，請回 APP 傳訊息給秘書。',html:function(){return HEADIN+'<div class="pg"><h2>計劃</h2><div class="s">追蹤計劃進度。</div><div class="tabs"><span class="on">進行中</span><span>已完成</span></div><div class="card"><div class="th">🎓</div><div class="nm">方案一：【代謝覺醒】逆轉胰島素阻抗大師-基礎班<small>你是參與者</small></div><div class="go" data-tg>查看計劃</div></div><div class="card"><div class="th">🎓</div><div class="nm">方案二 【代謝實務】逆轉胰島素阻抗大師-進階班<small>你是參與者</small></div><div class="go">查看計劃</div></div></div>'}},
-{say:'從<b>第 1 課</b>開始，看完按<b>「完成步驟」</b>',hint:'課程有講義（PDF）、聲音講課、小測驗。每一課看完按「完成步驟」，就會進下一課。',html:function(){return HEADIN+'<div class="course"><div class="side"><b>方案一：基礎班</b><div class="it on">第 1 課</div><div class="it">第 2 課</div><div class="it">第 3 課</div><div class="it">⋯</div></div><div class="main2"><h4>第 1 課</h4><div class="blk">📄 講義（可下載 PDF）</div><div class="blk">🎧 聲音講課</div><div class="blk">✍️ 小測驗</div><div class="done" data-tg>完成步驟 ›</div></div></div>'}},
+{say:'進去後，從<b>前言</b>、<b>第 1 課</b>開始，一課一課往下',hint:'左邊（手機是上面）是目錄：前言 → 第 1 課 → 第 1 課測驗 → 第 2 課⋯。先點「第 1 課」。',html:function(){return HEADIN+'<div class="course"><div class="side"><b>方案一：基礎班</b><div class="it">前言：游藥師的課程說明</div><div class="it on" data-tg>第 1 課</div><div class="it">第 1 課 測驗</div><div class="it">第 2 課</div><div class="it">⋯</div></div><div class="main2"><h4>課程目錄</h4><div class="blk">📖 先看「前言」，再從「第 1 課」開始。</div><div class="blk">每一課後面都有一個「測驗」。</div></div></div>'}},
+{say:'每一課有<b>兩樣</b>，都要點開。先點<b>「下載 PDF」</b>看簡報',hint:'有人只看 PDF、有人只聽聲音，這樣會漏掉內容。PDF 是重點簡報，聲音是完整講解，兩個要搭配，缺一個就少一半。',html:function(){return HEADIN+'<div class="course"><div class="side"><b>方案一：基礎班</b><div class="it">前言：游藥師的課程說明</div><div class="it on">第 1 課</div><div class="it">第 1 課 測驗</div><div class="it">第 2 課</div><div class="it">⋯</div></div><div class="main2"><h4>第 1 課</h4><div class="blk" data-tg>📄 第1課-簡報-PPT.pdf<br><u>下載 PDF</u></div><div class="blk">🎧 第1課-聲音　▶ 21:24</div></div></div>'}},
+{say:'再按<b>▶</b>，聽<b>聲音講課</b>（約 20 分鐘）',hint:'請聽完整段。PDF 看過、聲音沒聽，或只聽聲音不看 PDF，都算沒上完。',html:function(){return HEADIN+'<div class="course"><div class="side"><b>方案一：基礎班</b><div class="it">前言：游藥師的課程說明</div><div class="it on">第 1 課</div><div class="it">第 1 課 測驗</div><div class="it">第 2 課</div><div class="it">⋯</div></div><div class="main2"><h4>第 1 課</h4><div class="blk">📄 第1課-簡報-PPT.pdf<br>✓ 已看</div><div class="blk" data-tg>🎧 第1課-聲音　▶ 21:24</div></div></div>'}},
+{say:'都看完、聽完，按<b>「完成步驟」</b>，再做<b>測驗</b>',hint:'「第 1 課 測驗」是目錄裡的下一個項目，做完才算這一課完成，接著上第 2 課。',html:function(){return HEADIN+'<div class="course"><div class="side"><b>方案一：基礎班</b><div class="it">前言：游藥師的課程說明</div><div class="it on">第 1 課</div><div class="it">第 1 課 測驗</div><div class="it">第 2 課</div><div class="it">⋯</div></div><div class="main2"><h4>第 1 課</h4><div class="blk">📄 簡報 PDF　✓ 已看</div><div class="blk">🎧 聲音講課　✓ 已聽</div><div class="done" data-tg>完成步驟 ›</div></div></div>'}},
 {say:'完成！<b>之後隨時回來上課</b>',hint:'',html:function(){return '<div class="card2"><div class="big">🎉</div><h3>下次這樣進去</h3><p>官網登入 → 選單「More」→「學習中心」</p><p>看不到課程、打不開、不知道怎麼按，<br>回 APP 傳訊息給你的健康秘書就可以。</p></div>'},last:true}
 ];
 var i=0, $=function(x){return document.getElementById(x)};
@@ -105,9 +108,9 @@ site.appendChild(o); site.appendChild(f); o.onclick=next; el.style.cursor='point
 }
 function next(){ if(i<STEPS.length-1){i++;render()} }
 $('nx').onclick=next; $('bk').onclick=function(){ if(i>0){i--;render()} };
-function fromHash(){var h=(location.hash||'').match(/#s(\d)/); if(h){i=Math.min(STEPS.length-1,Math.max(0,+h[1]-1)); render()}}
+function fromHash(){var h=(location.hash||'').match(/#s(\d+)/); if(h){i=Math.min(STEPS.length-1,Math.max(0,+h[1]-1)); render()}}
 window.addEventListener('hashchange',fromHash);
-var h0=(location.hash||'').match(/#s(\d)/); if(h0){i=Math.min(STEPS.length-1,Math.max(0,+h0[1]-1))}
+var h0=(location.hash||'').match(/#s(\d+)/); if(h0){i=Math.min(STEPS.length-1,Math.max(0,+h0[1]-1))}
 render();
 })();
 </script></body></html>
