@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-13b';
+var MX_BUILD = '2026-11-13c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -2840,7 +2840,7 @@ function bkGoStep5(){
   // 這樣下面算planNames/planSummary時，_irctPricingClient已經是正確的價格
   if(typeof bkApplyClinicPricing==='function') bkApplyClinicPricing(locClinicName);
   var _bkRetestNow = bkIsRetest(); // 要在下面把 LOCAL_REPORT_STATUS 改成 booked 之前先判斷
-  var planSummary = bkPlanPriceText(_bkType === 't1' ? 't1' : 't2', _bkRetestNow); // 2026-11-13：複測含電解質顯示 6,900，第一次照 t1／t2 價格
+  var planSummary = bkPlanPriceText(_bkType === 't1' ? 't1' : 't2', _bkRetestNow); // 2026-11-13：複測含電解質 t1 4,900／t2 6,900，第一次照 t1／t2 價格
   bkRememberRetest(_bkRetestNow);
 
   var timeEl = document.querySelector('#bk-step4 [onclick="bkSelTime(this)"][data-sel="1"]');
@@ -3013,14 +3013,15 @@ function bkMedNoneToggled(){
 var _irctPricingDefault = { t1: 4800, t2: 6800 };
 var _irctClinicOverrides = {};
 var _irctPricingClient = { t1: 4800, t2: 6800 };
-// 2026-11-13 創辦人：「複測加了電解質，價格變成6900」——複測一律建議加測電解質（見 updateExtraTestsSuggestion 規則①），
-// 所以複測客人的預約畫面顯示含電解質的總價；第一次檢測照舊（t1／t2 各自的價格）。要改金額只改這一個數字。
-var IRCT_RETEST_ELEC_PRICE = 6900;
+// 2026-11-13 創辦人：「複測加了電解質，價格變成6900」「t1的複測是4900」——複測一律建議加測電解質（見 updateExtraTestsSuggestion 規則①），
+// 所以複測客人的預約畫面顯示含電解質的總價（t1＝4,900、t2＝6,900）；第一次檢測照舊（t1／t2 各自的價格）。要改金額只改這裡。
+var IRCT_RETEST_ELEC_PRICE = { t1: 4900, t2: 6900 };
+function bkRetestPrice(type){ return (type === 't1') ? IRCT_RETEST_ELEC_PRICE.t1 : IRCT_RETEST_ELEC_PRICE.t2; }
 function bkIsRetest(){ return !(!LOCAL_REPORT_STATUS || LOCAL_REPORT_STATUS === 'never' || LOCAL_REPORT_STATUS === 'booked'); } // 跟 updateExtraTestsSuggestion 的「不是第一次」同一個判斷
 // 預約送出之後 LOCAL_REPORT_STATUS 會變成 'booked'，「查看預約詳情」就判斷不出是複測了——所以送出當下記住這筆是不是複測（也存手機，重新整理還在）
 var LOCAL_BOOKED_RETEST = (function(){ try { return localStorage.getItem('mx_booked_retest_' + (localStorage.getItem('mx_client_id') || '')) === '1'; } catch(e){ return false; } })();
 function bkRememberRetest(v){ LOCAL_BOOKED_RETEST = !!v; try { localStorage.setItem('mx_booked_retest_' + (CLIENT_ID || ''), v ? '1' : '0'); } catch(e){} }
-function bkPlanPriceText(type, retest){ if (retest === undefined) retest = bkIsRetest(); return retest ? 'IRCT 動態胰島素複測（含電解質）・NT$' + IRCT_RETEST_ELEC_PRICE.toLocaleString() : 'IRCT 動態胰島素檢測・NT$' + ((type === 't1') ? _irctPricingClient.t1 : _irctPricingClient.t2).toLocaleString(); }
+function bkPlanPriceText(type, retest){ if (retest === undefined) retest = bkIsRetest(); return retest ? 'IRCT 動態胰島素複測（含電解質）・NT$' + bkRetestPrice(type).toLocaleString() : 'IRCT 動態胰島素檢測・NT$' + ((type === 't1') ? _irctPricingClient.t1 : _irctPricingClient.t2).toLocaleString(); }
 function loadIRCTPricingClient(){
   callAPI({ action: 'getIRCTPricing' }, function(d){
     if (d && d.status === 'ok' && d.pricing) {
@@ -8869,7 +8870,7 @@ function updateExtraTestsSuggestion() {
   // 規則①：電解質一定測（所有複測客人）
   suggestions.push({
     icon: '🧂', title: '電解質檢測（鈉鉀鎂鈣）',
-    reason: '陪跑期間流失量較大，建議每次複測都追蹤（複測加測電解質後，總價 NT$' + IRCT_RETEST_ELEC_PRICE.toLocaleString() + '）'
+    reason: '陪跑期間流失量較大，建議每次複測都追蹤（複測加測電解質後，總價 NT$' + bkRetestPrice(_bkType).toLocaleString() + '）'
   });
 
   // 規則②：腎臟問題 → 腎指數
