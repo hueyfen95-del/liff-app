@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-13c';
+var MX_BUILD = '2026-11-13d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4527,12 +4527,30 @@ var _mxGo = (function(){
     return sessionStorage.getItem('mx_go') || '';
   } catch(e){ return ''; }
 })();
+// 2026-11-13c 客人回報「跳轉的頁面怪怪的」（螢幕錄影）：帶 go= 開啟後，會先看到首頁（健康旅程、花園任務）好幾秒，
+// 等後端回覆開通狀態才突然跳到預約頁。所以：已登入的客人帶 go= 進來時，立刻蓋一層「正在帶你前往○○」的畫面，
+// 跳轉完成（或最多 12 秒、或跳轉失敗）就拿掉，客人不會再看到中間的首頁。沒登入的人不蓋（要看得到登入畫面）。
+function mxGoCoverShow(){
+  try {
+    if (!_mxGo || !MX_GO_PAGES[_mxGo] || document.getElementById('mx-go-cover')) return;
+    if (!localStorage.getItem('mx_client_id')) return;
+    var c = document.createElement('div');
+    c.id = 'mx-go-cover';
+    c.style.cssText = 'position:fixed;left:0;top:0;right:0;bottom:0;z-index:99999;background:#f4faf6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#1f7a4d;font-size:16px;font-weight:600;text-align:center;padding:24px;';
+    c.innerHTML = '<div style="font-size:42px">🌱</div><div>正在帶你前往「' + MX_GO_PAGES[_mxGo] + '」…</div><div style="font-size:13px;font-weight:400;color:#6b7f74">第一次連線可能要等幾秒鐘</div>';
+    (document.body || document.documentElement).appendChild(c);
+    setTimeout(mxGoCoverHide, 12000);
+  } catch(e){}
+}
+function mxGoCoverHide(){ try { var c = document.getElementById('mx-go-cover'); if (c && c.parentNode) c.parentNode.removeChild(c); } catch(e){} }
+mxGoCoverShow();
 function mxGoDeepLink(){
   try {
-    if (!_mxGo || !CLIENT_ID || !MX_GO_PAGES[_mxGo]) return;
+    if (!_mxGo || !CLIENT_ID || !MX_GO_PAGES[_mxGo]) { mxGoCoverHide(); return; }
     var id = _mxGo; _mxGo = ''; try { sessionStorage.removeItem('mx_go'); } catch(e){}
     if (document.getElementById('p-' + id) && typeof goPage === 'function') goPage(id, MX_GO_PAGES[id]);
   } catch(e){}
+  mxGoCoverHide();
 }
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
