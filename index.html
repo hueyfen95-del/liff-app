@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-01d';
+var MX_BUILD = '2026-11-13a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4506,6 +4506,24 @@ var _mxPreId = (function(){
     return localStorage.getItem('mx_pre_id') || '';
   } catch(e){ return ''; }
 })();
+// 2026-11-13 陪跑群「預約檢測／更多功能」的按鈕：網址帶 go=頁面（例如 …?id=C00123&go=shop）→ 登入、查完開通狀態後直接跳到那一頁。
+// 只認下面這張表裡的頁面；用 sessionStorage 記著，LINE 登入轉址或第一次登入重新整理後還跳得到；跳過一次就清掉。
+var MX_GO_PAGES = { booking: '預約 IRCT 檢測', shop: '好物推薦', roadmap: '我的療程地圖', media: '代謝學習之路', pledge: '我的療程承諾', journey: '粒線體健康旅程', progress: '我的進度', 'progress-share': '分享我的進度', garden: '代謝花園' };
+var _mxGo = (function(){
+  try {
+    var q = location.search; try { q = decodeURIComponent(q); } catch(e){}
+    var m = q.match(/[?&]go=([a-z-]{2,20})(?![a-z-])/i);
+    if (m && m[1] && MX_GO_PAGES[m[1].toLowerCase()]) { var v = m[1].toLowerCase(); sessionStorage.setItem('mx_go', v); return v; }
+    return sessionStorage.getItem('mx_go') || '';
+  } catch(e){ return ''; }
+})();
+function mxGoDeepLink(){
+  try {
+    if (!_mxGo || !CLIENT_ID || !MX_GO_PAGES[_mxGo]) return;
+    var id = _mxGo; _mxGo = ''; try { sessionStorage.removeItem('mx_go'); } catch(e){}
+    if (document.getElementById('p-' + id) && typeof goPage === 'function') goPage(id, MX_GO_PAGES[id]);
+  } catch(e){}
+}
 var CLIENT_ID = (function(){ try { return localStorage.getItem('mx_client_id') || ""; } catch(e){ return ""; } })();
 var CLIENT_NAME = (function(){ try { return localStorage.getItem('mx_client_name') || ""; } catch(e){ return ""; } })();
 // 2026-08-17 新增：clientAuth登入成功時後端會核發一組clientToken，之後每次呼叫查/改個人資料的
@@ -8047,6 +8065,7 @@ function loadClientAccess(isRetry) {
     }
     USER_STATUS = (d && d.status === 'ok' && d.active) ? 'active' : 'locked';
     if (USER_STATUS === 'active') removeLockBanners(); else applyLockStatus();
+    if (typeof mxGoDeepLink === 'function') mxGoDeepLink(); // 2026-11-13：陪跑群按鈕帶 go=頁面 → 查完開通狀態後直接跳到那一頁（鎖住的頁面照樣顯示鎖）
   });
 }
 document.addEventListener('DOMContentLoaded', function(){ setTimeout(loadClientAccess, 900); });
