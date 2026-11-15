@@ -103,10 +103,12 @@ var d=''; for(var k=0;k<STEPS.length;k++) d+='<i class="'+(k===i?'on':(k<i?'done
 var site=$('site'); site.className='site'; void site.offsetWidth; site.className='site in'; site.innerHTML=s.html();
 $('bk').disabled=(i===0); $('nx').disabled=!!s.last; $('nx').textContent=s.last?'已看完':(s.nogo?'秘書說已開通了 ▶':'下一步 ▶');
 var all=site.querySelectorAll('[data-tg]'); var el=all.length?all[all.length-1]:null;
+// 2026-11-15 創辦人回報「點不到」：示範畫面在 APP 裡比較矮，紅框常被切在下面看不到——先把示範畫面捲到紅框那裡（只捲示範畫面本身，不動外面的 APP）
+if(el){ var sc=el.parentElement, sc0=null; while(sc){ if(sc.scrollHeight>sc.clientHeight+2){ sc0=sc; break; } if(sc===site) break; sc=sc.parentElement; } if(sc0){ var sb=sc0.getBoundingClientRect(), eb=el.getBoundingClientRect(); if(eb.bottom>sb.bottom-6||eb.top<sb.top){ sc0.scrollTop+=Math.round(eb.top-sb.top-Math.max(8,(sb.height-eb.height)/2)); } } }
 if(el && !s.nogo){
 var sr=site.getBoundingClientRect(), r=el.getBoundingClientRect();
-var o=document.createElement('div'); o.className='tg'; o.style.cssText='left:'+(r.left-sr.left)+'px;top:'+(r.top-sr.top)+'px;width:'+r.width+'px;height:'+r.height+'px';
-var f=document.createElement('div'); f.className='fing'; f.textContent='👆'; f.style.cssText='left:'+(r.left-sr.left+r.width*0.55)+'px;top:'+(r.top-sr.top+r.height*0.45)+'px';
+var o=document.createElement('div'); o.className='tg'; o.style.cssText='left:'+(r.left-sr.left)+'px;top:'+(r.top-sr.top+site.scrollTop)+'px;width:'+r.width+'px;height:'+r.height+'px';
+var f=document.createElement('div'); f.className='fing'; f.textContent='👆'; f.style.cssText='left:'+(r.left-sr.left+r.width*0.55)+'px;top:'+(r.top-sr.top+site.scrollTop+r.height*0.45)+'px';
 site.appendChild(o); site.appendChild(f); o.onclick=next; el.style.cursor='pointer'; el.onclick=next; }
 }
 function next(){ if(i<STEPS.length-1){i++;render()} }
