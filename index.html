@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15f';
+var MX_BUILD = '2026-11-15g';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4261,9 +4261,31 @@ function loadTreatmentRoadmapClientUI(){
       return;
     }
     wrap.style.display='';
-    wrap.innerHTML = d.stages.map(function(st){
+    // 2026-11-15 改成路線圖：上面一條 5 站的路線（起點→終點，📍標出你現在在哪一站），下面每一站一張卡
+    var icons = ['🚩','🌱','🌿','🌳','🏁'];
+    var cur = (typeof d.current === 'number') ? d.current : 0;
+    var n = d.stages.length;
+    var route = '<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 10px 10px;margin-bottom:12px">'
+      + '<div style="font-size:12.5px;font-weight:700;color:var(--text);margin:0 4px 10px">🗺️ 你的療程路線' + (d.testCount ? '<span style="font-weight:500;color:var(--text3);font-size:11px">（已完成 ' + d.testCount + ' 次完整檢測' + (d.basedOn ? '，用 ' + escHtml(d.basedOn) + ' 的數值推算' : '') + '）</span>' : '') + '</div>'
+      + '<div style="position:relative;display:flex;justify-content:space-between;align-items:flex-start;padding:0 6px">'
+      + '<div style="position:absolute;left:24px;right:24px;top:17px;height:4px;background:#E5E7EB;border-radius:2px"></div>'
+      + '<div style="position:absolute;left:24px;top:17px;height:4px;background:var(--g);border-radius:2px;width:calc((100% - 48px) * ' + (n > 1 ? (cur / (n - 1)) : 0) + ')"></div>'
+      + d.stages.map(function(st, i){
+          var done = i < cur, here = i === cur;
+          var bg = here ? 'var(--g)' : (done ? '#D1FAE5' : '#fff');
+          var bd = here ? 'var(--g)' : (done ? 'var(--g)' : '#D1D5DB');
+          return '<div onclick="var e=document.getElementById(\'rm-st-' + i + '\');if(e)e.scrollIntoView({behavior:\'smooth\',block:\'center\'})" style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:48px;cursor:pointer">'
+            + '<div style="width:36px;height:36px;border-radius:50%;background:' + bg + ';border:2px solid ' + bd + ';display:flex;align-items:center;justify-content:center;font-size:17px' + (here ? ';box-shadow:0 0 0 4px rgba(29,158,117,.18)' : '') + '">' + (done ? '✓' : icons[i] || '•') + '</div>'
+            + '<div style="font-size:11.5px;margin-top:5px;font-weight:' + (here ? '800;color:var(--g3)' : '600;color:var(--text2)') + '">' + escHtml(st.label) + '</div>'
+            + (here ? '<div style="font-size:10.5px;color:#fff;background:var(--g);border-radius:8px;padding:1px 6px;margin-top:3px;white-space:nowrap">📍 你在這裡</div>' : '')
+            + '</div>';
+        }).join('')
+      + '</div></div>';
+    wrap.innerHTML = route + d.stages.map(function(st, i){
       var isBaseline = st.key==='期初';
-      var head = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">'+escHtml(st.label)+'</div>';
+      var here = i === cur, done = i < cur;
+      var tag = here ? '<span style="font-size:10.5px;color:#fff;background:var(--g);border-radius:8px;padding:1px 7px;margin-left:6px">📍 你在這裡</span>' : (done ? '<span style="font-size:10.5px;color:var(--g3);margin-left:6px">✓ 走過了</span>' : '<span style="font-size:10.5px;color:var(--text3);margin-left:6px">目標</span>');
+      var head = '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">' + (icons[i] || '') + ' ' + escHtml(st.label) + tag + '</div>';
       var rows = (st.indicators||[]).map(function(ind){
         var valTxt;
         if(isBaseline){
@@ -4275,7 +4297,7 @@ function loadTreatmentRoadmapClientUI(){
         }
         return '<div style="font-size:12px;color:var(--text2);display:flex;justify-content:space-between;gap:6px;padding:3px 0;border-bottom:1px dashed var(--border)"><span>'+escHtml(ind.name)+'</span><span style="font-weight:600">'+escHtml(valTxt)+'</span></div>';
       }).join('');
-      return '<div style="background:'+(isBaseline?'#EFF6FF':'#fff')+';border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px">'+head+rows+'</div>';
+      return '<div id="rm-st-' + i + '" style="background:'+(here?'#ECFDF5':(isBaseline?'#EFF6FF':'#fff'))+';border:'+(here?'2px solid var(--g)':'1px solid var(--border)')+';border-radius:12px;padding:12px 14px;margin-bottom:10px">'+head+rows+'</div>';
     }).join('');
   });
 }
