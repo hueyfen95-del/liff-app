@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15h';
+var MX_BUILD = '2026-11-15i';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -893,6 +893,17 @@ window.openHealthForm = function() {
 <!-- ══ 趨勢 ══ -->
 <div class="page" id="p-trend">
   <div class="tb">
+    <!-- 2026-11-15 創辦人：「一個是每天檢測的內容、一個是 IRCT 的趨勢，要怎麼讓客戶理解」→ 分成兩個分頁，各自一條說明，資料來源不混在一起 -->
+    <div id="trend-tabs" style="display:flex;background:#F3F4F6;border-radius:12px;padding:4px;gap:4px;margin-bottom:10px">
+      <button id="trend-tab-daily" onclick="trendTab('daily')" style="flex:1;border:none;border-radius:9px;padding:9px 6px;font-size:13.5px;font-weight:800;cursor:pointer;background:#fff;color:var(--g3);box-shadow:0 1px 3px rgba(0,0,0,.08)">📅 每天的記錄</button>
+      <button id="trend-tab-irct" onclick="trendTab('irct')" style="flex:1;border:none;border-radius:9px;padding:9px 6px;font-size:13.5px;font-weight:700;cursor:pointer;background:transparent;color:var(--text3)">🔬 檢測報告</button>
+    </div>
+    <div id="trend-note-daily" style="background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.6"><b>你自己每天量、每天填的</b>血酮、體重、腰圍、碳水…<br>看的是<b>這幾天、這幾週</b>生活習慣帶來的變化。</div>
+    <div id="trend-irct-pane" style="display:none">
+      <div style="background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.6"><b>在診所抽血做的 IRCT 檢測</b>，大約 2～3 個月一次。<br>看的是身體代謝<b>好幾個月的長期改善</b>，數字都是檢測報告上的真實數值。</div>
+      <div id="trend-irct-charts"><div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div></div>
+      <button onclick="goPage('roadmap','我的療程地圖')" style="width:100%;background:var(--g);color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;margin:4px 0 14px">🗺️ 看我的療程地圖 →</button>
+    </div>
     <!-- 目前體重（大數字）＋ 距離目標，仿照體重紀錄App的呈現方式 -->
     <div id="mw-hero-card" style="display:none;background:linear-gradient(135deg,#085041,#158066);border-radius:16px;padding:18px 20px;margin-bottom:14px;color:#fff">
       <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -920,7 +931,7 @@ window.openHealthForm = function() {
       <div id="sweetspot-card-body" style="font-size:12px;color:#6B4900;line-height:1.7"></div>
     </div>
     <!-- 2026-09-05新增：對照手冊「健康趨勢：七大關鍵指標變化趨勢圖」功能描述新增——沿用IRCT完整檢測數據對照表同一個action(getIRCTFullTable)，不用另開後端action；這7項數字客人本來就在「完整檢測數據對照表」頁看得到原始值，這裡只是換個走勢圖畫法，跟下面「本週」的每日自我記錄趨勢是不同資料來源(這裡是每次IRCT檢測才有的數據) -->
-    <div id="kit-trend-wrap" style="display:none;margin-bottom:14px">
+    <div id="kit-trend-wrap" style="display:none!important;margin-bottom:14px">
       <div class="cw-t" style="margin-bottom:6px">📈 七大關鍵指標檢測趨勢</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:10px;line-height:1.5">依你每一次 IRCT 檢測結果畫成的走勢圖，跟下面「本週」的每日記錄是不同的資料（那個是你自己每天填的）</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -4277,6 +4288,30 @@ function rmChartSvg(ser, tests){
   return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="display:block">'+g+'</svg>';
 }
 function rmInTarget(v,tg){ if(v===null||v===undefined) return null; v=Number(v); if(tg.min!==null&&tg.min!==undefined&&v<Number(tg.min)) return false; if(tg.max!==null&&tg.max!==undefined&&v>Number(tg.max)) return false; return true; }
+function rmChartsHtml(d){
+  var html='';
+    html+='<div style="font-size:11.5px;color:var(--text3);margin:0 2px 8px;line-height:1.6">每一張圖都是你歷次檢測的實際數字連成的線，<span style="background:#D1FAE5;color:#047857;border-radius:4px;padding:0 4px;font-weight:700">淺綠色</span>是治療目標區間。</div>';
+    d.series.forEach(function(ser){
+      var vs=ser.values.filter(function(v){return v!==null&&v!==undefined;}); if(!vs.length) return;
+      var first=vs[0], last=vs[vs.length-1], diff=Math.round((Number(last)-Number(first))*10)/10, ok=rmInTarget(last,ser.target||{});
+      var unit=ser.unit||'';
+      var sumTxt = vs.length>1 ? ('第一次 '+rmFmtNum(first)+unit+' → 最新 '+rmFmtNum(last)+unit+'（'+(diff>0?'+':'')+rmFmtNum(diff)+'）') : ('目前 '+rmFmtNum(last)+unit+'，下一次複測後就會畫出變化線');
+      html+='<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 12px 6px;margin-bottom:10px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:2px"><div style="font-size:13.5px;font-weight:800;color:var(--text)">'+escHtml(ser.name)+(unit?'<span style="font-size:11px;color:var(--text3);font-weight:500">（'+escHtml(unit)+'）</span>':'')+'</div>'
+        +(ok===true?'<span style="font-size:11px;font-weight:700;color:#047857;background:#D1FAE5;border-radius:8px;padding:2px 8px">✓ 在目標內</span>':(ok===false?'<span style="font-size:11px;font-weight:700;color:#B45309;background:#FEF3C7;border-radius:8px;padding:2px 8px">再加油</span>':''))+'</div>'
+        +'<div style="font-size:11.5px;color:var(--text2);margin-bottom:2px">'+escHtml(sumTxt)+'</div>'
+        +rmChartSvg(ser, d.tests)+'</div>';
+    });
+    if(d.checks && d.checks.length){
+      html+='<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;overflow-x:auto">'
+        +'<div style="font-size:13.5px;font-weight:800;color:var(--text);margin-bottom:4px">每次有沒有達標</div>'
+        +'<div style="font-size:11px;color:var(--text3);margin-bottom:8px">這幾項的數字由醫師／秘書為你解讀，這裡只顯示有沒有達到目標。</div>'
+        +'<table style="width:100%;border-collapse:collapse;font-size:11.5px"><tr><td></td>'+d.tests.map(function(t){ return '<td style="text-align:center;color:var(--text2);font-weight:700;padding:3px 2px">'+escHtml(t.stage||'')+'<div style="font-weight:400;color:var(--text3);font-size:9.5px">'+rmShortDate(t.date)+'</div></td>'; }).join('')+'</tr>'
+        +d.checks.map(function(c){ return '<tr style="border-top:1px dashed var(--border)"><td style="padding:6px 4px 6px 0;color:var(--text);white-space:nowrap">'+escHtml(c.name)+'</td>'+c.met.map(function(m){ return '<td style="text-align:center;font-size:14px">'+(m===true?'<span style="color:#059669">✓</span>':(m===false?'<span style="color:#D97706">●</span>':'<span style="color:#D1D5DB">—</span>'))+'</td>'; }).join('')+'</tr>'; }).join('')
+        +'</table><div style="font-size:10.5px;color:var(--text3);margin-top:6px">✓ 達標　● 還在努力　— 這次沒有驗</div></div>';
+    }
+  return html;
+}
 function loadTreatmentRoadmapClientUI(){
   var loading = document.getElementById('roadmap-loading');
   var empty = document.getElementById('roadmap-empty');
@@ -4303,29 +4338,49 @@ function loadTreatmentRoadmapClientUI(){
         +'<div style="font-size:11.5px;margin-top:5px;font-weight:'+(here?'800;color:var(--g3)':'600;color:var(--text2)')+'">'+escHtml(st)+'</div>'
         +(here?'<div style="font-size:10.5px;color:#fff;background:var(--g);border-radius:8px;padding:1px 6px;margin-top:3px;white-space:nowrap">📍 你在這裡</div>':'')+'</div>'; }).join('')
       +'</div></div>';
-    html+='<div style="font-size:11.5px;color:var(--text3);margin:0 2px 8px;line-height:1.6">每一張圖都是你歷次檢測的實際數字連成的線，<span style="background:#D1FAE5;color:#047857;border-radius:4px;padding:0 4px;font-weight:700">淺綠色</span>是治療目標區間。</div>';
-    d.series.forEach(function(ser){
-      var vs=ser.values.filter(function(v){return v!==null&&v!==undefined;}); if(!vs.length) return;
-      var first=vs[0], last=vs[vs.length-1], diff=Math.round((Number(last)-Number(first))*10)/10, ok=rmInTarget(last,ser.target||{});
-      var unit=ser.unit||'';
-      var sumTxt = vs.length>1 ? ('第一次 '+rmFmtNum(first)+unit+' → 最新 '+rmFmtNum(last)+unit+'（'+(diff>0?'+':'')+rmFmtNum(diff)+'）') : ('目前 '+rmFmtNum(last)+unit+'，下一次複測後就會畫出變化線');
-      html+='<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 12px 6px;margin-bottom:10px">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:2px"><div style="font-size:13.5px;font-weight:800;color:var(--text)">'+escHtml(ser.name)+(unit?'<span style="font-size:11px;color:var(--text3);font-weight:500">（'+escHtml(unit)+'）</span>':'')+'</div>'
-        +(ok===true?'<span style="font-size:11px;font-weight:700;color:#047857;background:#D1FAE5;border-radius:8px;padding:2px 8px">✓ 在目標內</span>':(ok===false?'<span style="font-size:11px;font-weight:700;color:#B45309;background:#FEF3C7;border-radius:8px;padding:2px 8px">再加油</span>':''))+'</div>'
-        +'<div style="font-size:11.5px;color:var(--text2);margin-bottom:2px">'+escHtml(sumTxt)+'</div>'
-        +rmChartSvg(ser, d.tests)+'</div>';
-    });
-    if(d.checks && d.checks.length){
-      html+='<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;overflow-x:auto">'
-        +'<div style="font-size:13.5px;font-weight:800;color:var(--text);margin-bottom:4px">每次有沒有達標</div>'
-        +'<div style="font-size:11px;color:var(--text3);margin-bottom:8px">這幾項的數字由醫師／秘書為你解讀，這裡只顯示有沒有達到目標。</div>'
-        +'<table style="width:100%;border-collapse:collapse;font-size:11.5px"><tr><td></td>'+d.tests.map(function(t){ return '<td style="text-align:center;color:var(--text2);font-weight:700;padding:3px 2px">'+escHtml(t.stage||'')+'<div style="font-weight:400;color:var(--text3);font-size:9.5px">'+rmShortDate(t.date)+'</div></td>'; }).join('')+'</tr>'
-        +d.checks.map(function(c){ return '<tr style="border-top:1px dashed var(--border)"><td style="padding:6px 4px 6px 0;color:var(--text);white-space:nowrap">'+escHtml(c.name)+'</td>'+c.met.map(function(m){ return '<td style="text-align:center;font-size:14px">'+(m===true?'<span style="color:#059669">✓</span>':(m===false?'<span style="color:#D97706">●</span>':'<span style="color:#D1D5DB">—</span>'))+'</td>'; }).join('')+'</tr>'; }).join('')
-        +'</table><div style="font-size:10.5px;color:var(--text3);margin-top:6px">✓ 達標　● 還在努力　— 這次沒有驗</div></div>';
-    }
+    html+=rmChartsHtml(d);
     wrap.innerHTML=html; wrap.style.display='';
   });
 }
+
+var MX_TREND_TAB = 'daily', _trendIrctLoaded = false;
+function trendTabInit(){
+  try {
+    var tb = document.querySelector('#p-trend .tb'); if (!tb || document.getElementById('trend-daily-pane')) return;
+    var pane = document.createElement('div'); pane.id = 'trend-daily-pane';
+    var keep = { 'trend-tabs':1, 'trend-note-daily':1, 'trend-irct-pane':1 };
+    Array.prototype.slice.call(tb.children).forEach(function(ch){ if (!keep[ch.id]) pane.appendChild(ch); });
+    tb.appendChild(pane);
+  } catch(e){}
+}
+function trendTab(t){
+  trendTabInit();
+  MX_TREND_TAB = t;
+  var daily = (t !== 'irct');
+  var on = 'flex:1;border:none;border-radius:9px;padding:9px 6px;font-size:13.5px;font-weight:800;cursor:pointer;background:#fff;color:var(--g3);box-shadow:0 1px 3px rgba(0,0,0,.08)';
+  var off = 'flex:1;border:none;border-radius:9px;padding:9px 6px;font-size:13.5px;font-weight:700;cursor:pointer;background:transparent;color:var(--text3)';
+  var bd = document.getElementById('trend-tab-daily'), bi = document.getElementById('trend-tab-irct');
+  if (bd) bd.style.cssText = daily ? on : off;
+  if (bi) bi.style.cssText = daily ? off : on.replace('var(--g3)', '#1E40AF');
+  var pd = document.getElementById('trend-daily-pane'), nd = document.getElementById('trend-note-daily'), pi = document.getElementById('trend-irct-pane');
+  if (pd) pd.style.display = daily ? '' : 'none';
+  if (nd) nd.style.display = daily ? '' : 'none';
+  if (pi) pi.style.display = daily ? 'none' : '';
+  if (!daily) loadTrendIrctCharts();
+}
+function loadTrendIrctCharts(){
+  var box = document.getElementById('trend-irct-charts'); if (!box) return;
+  if (_trendIrctLoaded) return;
+  callAPI({action:'getRoadmapChartClient', clientId:CLIENT_ID}, function(d){
+    if (!d || d.status !== 'ok' || !d.found || !d.series) {
+      box.innerHTML = '<div style="text-align:center;padding:22px 16px;color:var(--text3);font-size:12.5px;line-height:1.7">還沒有檢測報告的資料。<br>做完第一次 IRCT 檢測後，這裡就會畫出你的變化。</div>';
+      return;
+    }
+    _trendIrctLoaded = true;
+    box.innerHTML = rmChartsHtml(d);
+  });
+}
+document.addEventListener('DOMContentLoaded', trendTabInit);
 function loadTreatmentRoadmapClientUI_legacy(){
   var loading = document.getElementById('roadmap-loading');
   var empty = document.getElementById('roadmap-empty');
