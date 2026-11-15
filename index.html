@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15e';
+var MX_BUILD = '2026-11-15f';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1152,11 +1152,11 @@ window.openHealthForm = function() {
     <div style="background:var(--g2);border-radius:14px;padding:16px;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <i class="ti ti-clock" style="color:var(--g3);font-size:16px"></i>
-        <span id="irct-booked-time" style="font-size:13px;color:var(--g3);font-weight:600">2026/06/25 09:00</span>
+        <span id="irct-booked-time" style="font-size:13px;color:var(--g3);font-weight:600">時間秘書會再跟你確認</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <i class="ti ti-map-pin" style="color:var(--g3);font-size:16px"></i>
-        <span id="irct-booked-location" style="font-size:13px;color:var(--g3);font-weight:600">台北診所</span>
+        <span id="irct-booked-location" style="font-size:13px;color:var(--g3);font-weight:600">檢測地點秘書會再跟你確認</span>
       </div>
     </div>
 
@@ -3022,7 +3022,7 @@ var _irctPricingClient = { t1: 4800, t2: 6800 };
 // 所以複測客人的預約畫面顯示含電解質的總價（t1＝4,900、t2＝6,900）；第一次檢測照舊（t1／t2 各自的價格）。要改金額只改這裡。
 var IRCT_RETEST_ELEC_PRICE = { t1: 4900, t2: 6900 };
 function bkRetestPrice(type){ return (type === 't1') ? IRCT_RETEST_ELEC_PRICE.t1 : IRCT_RETEST_ELEC_PRICE.t2; }
-function bkIsRetest(){ return !(!LOCAL_REPORT_STATUS || LOCAL_REPORT_STATUS === 'never' || LOCAL_REPORT_STATUS === 'booked'); } // 跟 updateExtraTestsSuggestion 的「不是第一次」同一個判斷
+function bkIsRetest(){ if (MX_IRCT_COUNT > 0) return true; return !(!LOCAL_REPORT_STATUS || LOCAL_REPORT_STATUS === 'never' || LOCAL_REPORT_STATUS === 'booked'); } // 跟 updateExtraTestsSuggestion 的「不是第一次」同一個判斷
 // 預約送出之後 LOCAL_REPORT_STATUS 會變成 'booked'，「查看預約詳情」就判斷不出是複測了——所以送出當下記住這筆是不是複測（也存手機，重新整理還在）
 var LOCAL_BOOKED_RETEST = (function(){ try { return localStorage.getItem('mx_booked_retest_' + (localStorage.getItem('mx_client_id') || '')) === '1'; } catch(e){ return false; } })();
 function bkRememberRetest(v){ LOCAL_BOOKED_RETEST = !!v; try { localStorage.setItem('mx_booked_retest_' + (CLIENT_ID || ''), v ? '1' : '0'); } catch(e){} }
@@ -5139,6 +5139,10 @@ function updateHomeCarbTask(done){
 
 // ── IRCT預約完成 ──
 var LOCAL_REPORT_STATUS = null;
+// 2026-11-15：系統裡這位客人已經有幾次 IRCT 檢測（後端 reportStatus 一起回傳）。有檢測記錄就一定給看報告，
+// 不會因為「狀態」標成已預約／沒標過，就把舊報告蓋掉或顯示「從未預約」。
+var MX_IRCT_COUNT = 0;
+var MX_NEXT_BOOKING = null;
 var LAST_DIET_RECORD = null; // 上次填的飲食模式，由後台/API更新
 var LOCAL_BOOKED_TIME = null;
 var LOCAL_BOOKED_LOCATION = null; // 本地端記住最新狀態，避免API時間差問題
@@ -8667,11 +8671,21 @@ function loadReportStatus() {
   }
   
   callAPI({action:'getRecords', clientId:CLIENT_ID, type:'reportStatus'}, function(d) {
-    var apiStatus = (d.status === 'ok' && d.reportStatus) ? d.reportStatus : null;
+    var apiStatus = (d && d.status === 'ok' && d.reportStatus) ? d.reportStatus : null;
+    if (d && d.status === 'ok') {
+      MX_IRCT_COUNT = parseInt(d.irctCount, 10) || 0;
+      MX_NEXT_BOOKING = d.booking || null;
+      if (MX_NEXT_BOOKING && !LOCAL_BOOKED_TIME) {
+        var bkT = [MX_NEXT_BOOKING.clinic, MX_NEXT_BOOKING.slot].filter(Boolean).join('・');
+        if (bkT) { LOCAL_BOOKED_TIME = bkT; LOCAL_BOOKED_LOCATION = MX_NEXT_BOOKING.clinic || ''; }
+      }
+    }
     if (apiStatus) {
       // API有回傳真實狀態，以它為準（秘書可能已經更新了更新的狀態）
       LOCAL_REPORT_STATUS = apiStatus;
       showIRCTScene(apiStatus);
+    } else if (MX_IRCT_COUNT > 0) {
+      showIRCTScene('ready'); // 沒標過狀態、但系統裡有檢測記錄 → 直接給看報告
     } else if (!LOCAL_REPORT_STATUS) {
       // API沒有資料，且本地端也沒有 -> 才顯示"從未預約"
       showIRCTScene('never');
@@ -8730,7 +8744,7 @@ function showIRCTScene(status) {
   var homeLabel = document.getElementById('home-irct-label');
   var homeBadge = document.getElementById('home-irct-badge');
   if (homeLabel && homeBadge) {
-    if (status === 'never' || status === 'locked' || !status) {
+    if ((status === 'never' || status === 'locked' || !status) && !(MX_IRCT_COUNT > 0)) {
       homeLabel.textContent = 'IRCT 檢測';
       homeBadge.textContent = '立即預約';
       homeBadge.style.color = 'var(--r)';
@@ -8765,8 +8779,22 @@ function showIRCTScene(status) {
     recheck: 'ready'
   };
   var targetScene = sceneMap[status] || 'never';
+  // 2026-11-15：有檢測記錄的客人，就算狀態是「已預約／整理中／沒標」也照樣給看最新報告，上面再加一條提示
+  var mxNote = '';
+  if (MX_IRCT_COUNT > 0 && targetScene !== 'ready') {
+    if (targetScene === 'booked') mxNote = '📅 你已預約下一次 IRCT 檢測' + (LOCAL_BOOKED_TIME ? '：' + LOCAL_BOOKED_TIME : '（時間地點秘書會再跟你確認）') + '。下面是你目前最新一次的報告。';
+    else if (targetScene === 'processing') mxNote = '🧪 你最新一次的檢測報告正在整理中，出來後會通知你。下面是上一次的報告。';
+    targetScene = 'ready';
+  }
   var targetEl = document.getElementById('irct-scene-' + targetScene);
   if (targetEl) targetEl.style.display = 'block';
+  (function(){ try {
+    var rd = document.getElementById('irct-scene-ready'); if (!rd) return;
+    var nb = document.getElementById('irct-next-note');
+    if (!mxNote) { if (nb) nb.style.display = 'none'; return; }
+    if (!nb) { nb = document.createElement('div'); nb.id = 'irct-next-note'; nb.style.cssText = 'background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF;border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:12.5px;line-height:1.6;font-weight:600'; rd.insertBefore(nb, rd.firstChild); }
+    nb.textContent = mxNote; nb.style.display = '';
+  } catch(e){} })();
   if (targetScene === 'ready' && typeof loadIrctContext === 'function') loadIrctContext();
   if (targetScene === 'ready' && typeof loadIrctSummary === 'function') loadIrctSummary();
 
@@ -8804,7 +8832,7 @@ function showIRCTScene(status) {
 <script>
 // ── 預約頁面標題動態調整（第一次 vs 複檢）──
 function updateBookingTitle() {
-  var isFirstTime = !LOCAL_REPORT_STATUS || LOCAL_REPORT_STATUS === 'never' || LOCAL_REPORT_STATUS === 'booked';
+  var isFirstTime = !(MX_IRCT_COUNT > 0) && (!LOCAL_REPORT_STATUS || LOCAL_REPORT_STATUS === 'never' || LOCAL_REPORT_STATUS === 'booked');
   var titleEl = document.getElementById('booking-title');
   var subtitleEl = document.getElementById('booking-subtitle');
   var compareHint = document.getElementById('bk-compare-hint');
@@ -8894,7 +8922,7 @@ function updateExtraTestsSuggestion() {
   var listEl = document.getElementById('bk-extra-tests-list');
   if (!card || !listEl) return;
 
-  var isFirstTime = !LOCAL_REPORT_STATUS || LOCAL_REPORT_STATUS === 'never' || LOCAL_REPORT_STATUS === 'booked';
+  var isFirstTime = !(MX_IRCT_COUNT > 0) && (!LOCAL_REPORT_STATUS || LOCAL_REPORT_STATUS === 'never' || LOCAL_REPORT_STATUS === 'booked');
 
   // 規則一：所有複測客人，電解質一定建議（唯一不需條件的項目）
   if (isFirstTime) {
