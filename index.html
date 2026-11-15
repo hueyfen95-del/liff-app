@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15c';
+var MX_BUILD = '2026-11-15d';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4551,19 +4551,19 @@ function mxGoCoverShow(){
   } catch(e){}
 }
 // ── 2026-11-15 從 LINE 進 APP 之後「回到 LINE」──
-// 在 LINE 內建瀏覽器裡才顯示（UA 有 Line/）：標題列「‹ 回 LINE」、預約成功頁「回到 LINE」。按下去用 LIFF 的 closeWindow 關掉 APP，
-// 直接回到打開它的那個聊天室／群組。LIFF 還沒初始化（已登入的客人不會跑登入流程）就先 init 再關；
-// 如果 1.5 秒後畫面還在（這個環境關不掉），就提示「按右上角 ✕」，不讓客人卡住。
+// 依 LINE 官方文件（LIFF API reference）：liff.closeWindow() 在「LIFF 瀏覽器」（從 liff.line.me 連結打開）一定能關掉並回到原本的聊天室／群組；
+// 在外部瀏覽器或一般 LINE 內建瀏覽器「不保證有效」；SDK 2.4.0 以上不用等 liff.init 就能呼叫；liff.isInClient() 也能在 init 前判斷是不是 LIFF 瀏覽器。
+// 所以：按鈕在 LINE 裡（UA 有 Line/）才顯示；按下去直接 closeWindow；若不是 LIFF 瀏覽器、或 1.2 秒後畫面還在，就提示「按右上角 ✕」，不讓客人卡住。
 function mxInLine(){ try { return /\bLine\//i.test(navigator.userAgent || ''); } catch(e){ return false; } }
 function mxBackToLine(){
-  var hint = setTimeout(function(){ try { toast('請按畫面右上角的 ✕，就會回到 LINE 囉 😊'); } catch(e){} }, 1500);
-  var fail = function(){ /* 提示由上面的計時器負責 */ };
+  var tip = function(){ try { toast('請按畫面右上角的 ✕，就會回到 LINE 囉 😊'); } catch(e){} };
+  var inClient = false;
+  try { inClient = (typeof liff !== 'undefined' && typeof liff.isInClient === 'function') ? !!liff.isInClient() : false; } catch(e){}
+  var hint = setTimeout(tip, inClient ? 1200 : 300);
   try {
-    if (typeof liff === 'undefined') { return; }
-    var close = function(){ try { liff.closeWindow(); } catch(e){ fail(); } };
-    if (liff.id) close();
-    else if (typeof LIFF_ID === 'string' && LIFF_ID) liff.init({ liffId: LIFF_ID }).then(close).catch(fail);
-  } catch(e){ fail(); }
+    if (typeof liff !== 'undefined' && typeof liff.closeWindow === 'function') liff.closeWindow();
+    else tip();
+  } catch(e){ tip(); }
 }
 document.addEventListener('DOMContentLoaded', function(){
   if (!mxInLine()) return;
