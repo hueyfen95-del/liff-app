@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15i';
+var MX_BUILD = '2026-11-15j';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1891,10 +1891,9 @@ window.openHealthForm = function() {
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:11px 13px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start">
       <i class="ti ti-target" style="font-size:22px;color:var(--g);flex-shrink:0;margin-top:1px"></i>
       <div style="flex:1">
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px">下一個目標：穩酮期</div>
-        <div style="font-size:11px;color:var(--text2);line-height:1.5" id="jn-goal-desc">持續記錄，一步步往穩酮期前進</div>
-        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px"><div id="jn-goal-bar" style="height:100%;width:0%;background:var(--g);border-radius:3px"></div></div>
-        <div style="font-size:12px;color:var(--g);margin-top:4px" id="jn-goal-progress">—</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px" id="jn-goal-title">下一個目標</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.5" id="jn-goal-desc">秘書確認你目前的階段後，這裡會顯示下一步</div>
+        <div style="font-size:12px;color:var(--g);margin-top:4px" id="jn-goal-progress"></div>
       </div>
     </div>
 
@@ -1911,13 +1910,13 @@ window.openHealthForm = function() {
         <div style="font-size:22px;font-weight:700;color:var(--g3);line-height:1;margin-bottom:3px" id="jn-w-val">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:2px">體重下降</div>
         <div style="font-size:12px;color:#0F6E56"><span id="jn-w-detail">—</span></div>
-        <div style="position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
+        <div id="jn-w-badge" style="display:none;position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">有進步</div>
       </div>
       <div style="background:#F1EFE8;border:1px solid #B4B2A9;border-radius:12px;padding:11px 12px;position:relative">
         <div style="font-size:22px;font-weight:700;color:#444441;line-height:1;margin-bottom:3px" id="jn-waist-val">–</div>
         <div style="font-size:11px;font-weight:600;color:#444441;margin-bottom:2px">腰圍縮小</div>
         <div style="font-size:12px;color:#5F5E5A"><span id="jn-waist-detail">—</span></div>
-        <div style="position:absolute;top:8px;right:8px;background:#5F5E5A;color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
+        <div id="jn-waist-badge" style="display:none;position:absolute;top:8px;right:8px;background:#5F5E5A;color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">有進步</div>
       </div>
       <div style="background:var(--b2);border:1px solid #85B7EB;border-radius:12px;padding:11px 12px">
         <div style="font-size:22px;font-weight:700;color:var(--b3);line-height:1;margin-bottom:3px" id="jn-homa">–</div>
@@ -1925,21 +1924,21 @@ window.openHealthForm = function() {
         <div style="font-size:12px;color:#185FA5" id="jn-homa-detail">完成檢驗後顯示</div>
       </div>
       <div style="background:var(--a2);border:1px solid #FAC775;border-radius:12px;padding:11px 12px">
-        <div style="font-size:22px;font-weight:700;color:var(--a3);line-height:1;margin-bottom:3px">1.8<span style="font-size:13px">mmol</span></div>
-        <div style="font-size:11px;font-weight:600;color:var(--a3);margin-bottom:2px">今日血酮</div>
-        <div style="font-size:12px;color:#854F0B">本週均酮 1.74</div>
+        <div style="font-size:22px;font-weight:700;color:var(--a3);line-height:1;margin-bottom:3px" id="jn-ketone">–</div>
+        <div style="font-size:11px;font-weight:600;color:var(--a3);margin-bottom:2px">血酮（近 7 天平均）</div>
+        <div style="font-size:12px;color:#854F0B" id="jn-ketone-detail">每天記錄後顯示</div>
       </div>
       <div style="background:var(--g2);border:1px solid #9FE1CB;border-radius:12px;padding:11px 12px;position:relative">
         <div style="font-size:20px;font-weight:700;color:var(--g3);line-height:1;margin-bottom:3px" id="jn-tg">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--g3);margin-bottom:2px">TG 三酸甘油脂</div>
         <div style="font-size:12px;color:#0F6E56" id="jn-tg-detail">待檢測</div>
-        <div style="position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
+        <div id="jn-tg-badge" style="display:none;position:absolute;top:8px;right:8px;background:var(--g);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
       </div>
       <div style="background:var(--p2);border:1px solid #AFA9EC;border-radius:12px;padding:11px 12px;position:relative">
         <div style="font-size:20px;font-weight:700;color:var(--p3);line-height:1;margin-bottom:3px" id="jn-hdl">–</div>
         <div style="font-size:11px;font-weight:600;color:var(--p3);margin-bottom:2px">HDL 好膽固醇</div>
         <div style="font-size:12px;color:#534AB7" id="jn-hdl-detail">待檢測</div>
-        <div style="position:absolute;top:8px;right:8px;background:var(--p);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
+        <div id="jn-hdl-badge" style="display:none;position:absolute;top:8px;right:8px;background:var(--p);color:#fff;border-radius:20px;padding:1px 6px;font-size:11px;font-weight:600">達標</div>
       </div>
     </div>
 
@@ -4528,6 +4527,13 @@ function loadClientStage(){
     }
     badge.textContent = stage;
     if(textEl) textEl.textContent = KETO_STAGE_DESC[stage] || '';
+    // 2026-11-15：下一個目標依秘書確認的「目前階段」往下一階走（原本寫死「穩酮期」，創辦人已在營養性生酮還被叫去拚穩酮期）
+    var order = Object.keys(KETO_STAGE_DESC), idx = order.indexOf(stage);
+    var gt = document.getElementById('jn-goal-title'), gd = document.getElementById('jn-goal-desc');
+    if (idx >= 0 && gt && gd) {
+      if (idx < order.length - 1) { var nx = order[idx + 1]; gt.textContent = '下一個目標：' + nx.replace(/^[0-9一二三四五六七八九十]+階[a-c]?/, ''); gd.textContent = KETO_STAGE_DESC[nx]; }
+      else { gt.textContent = '目前目標：維持現在的好狀態'; gd.textContent = '你已經走到最後一階，持續記錄、定期複測，把代謝健康變成一輩子的習慣'; }
+    }
   });
 }
 function itcTab(tab,id){
@@ -9757,27 +9763,21 @@ function loadMyStats(){
     if(hsd && d.dayCount) hsd.textContent = '你的健康旅程・第 '+d.dayCount+' 天';
     // 2026-08-28：血酮狀態訊息依真實均酮顯示（沒有數據就整塊隱藏）
     if (typeof updateKetoneMsg === 'function') updateKetoneMsg(d.avgKetone);
-    // ── 旅程頁：下一目標進度（以血酮穩定為目標，用連續打卡與均酮估算）──
-    var gbar=document.getElementById('jn-goal-bar'), gprog=document.getElementById('jn-goal-progress'), gdesc=document.getElementById('jn-goal-desc');
-    if(gbar && d.avgKetone!==null && d.avgKetone!==undefined){
-      // 目標：均酮≥1.0 且連續打卡≥14 → 進穩酮期
-      var kProg = Math.min(100, Math.round((d.avgKetone/1.0)*50));
-      var sProg = Math.min(50, Math.round((d.streak/14)*50));
-      var prog = Math.min(100, kProg + sProg);
-      gbar.style.width = prog+'%';
-      if(gprog) gprog.textContent = '進度 '+prog+'%・目前均酮 '+d.avgKetone+'、連續打卡 '+d.streak+' 天';
-      if(gdesc){
-        if(d.avgKetone>=1.0 && d.streak>=14) gdesc.textContent = '很棒！血酮穩定、記錄持續，已具備進入穩酮期的條件';
-        else gdesc.textContent = '目標：血酮穩定在 1.0 以上、持續記錄，往穩酮期前進';
-      }
-    }
+    // ── 旅程頁：2026-11-15 創辦人：「不可以用推算」——拿掉用均酮＋打卡「估算」的進度百分比，只放真實數字；下一個目標改由 loadClientStage 依秘書確認的階段決定 ──
+    var gprog=document.getElementById('jn-goal-progress');
+    if(gprog){ var facts=[]; if(d.avgKetone!==null&&d.avgKetone!==undefined) facts.push('近 7 天平均血酮 '+d.avgKetone); if(d.streak) facts.push('連續記錄 '+d.streak+' 天'); gprog.textContent = facts.join('・'); }
+    var jk=document.getElementById('jn-ketone'), jkd=document.getElementById('jn-ketone-detail');
+    if(jk) jk.innerHTML = (d.avgKetone!==null&&d.avgKetone!==undefined) ? d.avgKetone+'<span style="font-size:13px">mmol</span>' : '–';
+    if(jkd) jkd.textContent = (d.avgKetone!==null&&d.avgKetone!==undefined) ? (d.ketoneDelta!==null&&d.ketoneDelta!==undefined ? '比上週 '+(d.ketoneDelta>0?'↑ +':(d.ketoneDelta<0?'↓ ':'→ '))+Math.abs(d.ketoneDelta) : '你自己每天記錄的') : '每天記錄後顯示';
     // ── 旅程頁：成就數字牆 ──
     var wv=document.getElementById('jn-w-val'), wd=document.getElementById('jn-w-detail');
     if(wv) wv.innerHTML = (d.weightChange!==null&&d.weightChange!==undefined) ? (d.weightChange>0?'+':'')+d.weightChange+'<span style="font-size:14px">kg</span>' : '–';
     if(wd) wd.textContent = (d.weightFirst!==null&&d.weightLast!==null) ? d.weightFirst+' → '+d.weightLast+' kg' : '尚無資料';
+    var wb=document.getElementById('jn-w-badge'); if(wb) wb.style.display = (d.weightChange!==null&&d.weightChange!==undefined&&d.weightChange<0) ? '' : 'none';
     var wav=document.getElementById('jn-waist-val'), wad=document.getElementById('jn-waist-detail');
     if(wav) wav.innerHTML = (d.waistChange!==null&&d.waistChange!==undefined) ? (d.waistChange>0?'+':'')+d.waistChange+'<span style="font-size:14px">cm</span>' : '–';
     if(wad) wad.textContent = (d.waistFirst!==null&&d.waistLast!==null) ? d.waistFirst+' → '+d.waistLast+' cm' : '尚無資料';
+    var wab=document.getElementById('jn-waist-badge'); if(wab) wab.style.display = (d.waistChange!==null&&d.waistChange!==undefined&&d.waistChange<0) ? '' : 'none';
     // ── 旅程頁：里程碑時間軸 ──
     var tl=document.getElementById('jn-timeline');
     if(tl && d.timeline){
@@ -9802,10 +9802,12 @@ function loadMyStats(){
     var tgEl=document.getElementById('jn-tg'), tgD=document.getElementById('jn-tg-detail');
     if(tgEl) tgEl.innerHTML = (labs.tg!==null&&labs.tg!==undefined) ? labs.tg+'<span style="font-size:12px"> mg/dL</span>' : '<span style="font-size:14px">待檢測</span>';
     if(tgD) tgD.textContent = (labs.tg!==null&&labs.tg!==undefined) ? '最新檢驗值' : '完成檢驗後顯示';
+    var tgb=document.getElementById('jn-tg-badge'); if(tgb) tgb.style.display = (labs.tg!==null&&labs.tg!==undefined&&Number(labs.tg)<80) ? '' : 'none'; // 治療目標 TG<80
     var hdlEl=document.getElementById('jn-hdl');
     if(hdlEl) hdlEl.innerHTML = (labs.hdl!==null&&labs.hdl!==undefined) ? labs.hdl+'<span style="font-size:13px">mg/dL</span>' : '待檢測';
     var hdlD=document.getElementById('jn-hdl-detail');
     if(hdlD) hdlD.textContent = (labs.hdl!==null&&labs.hdl!==undefined) ? '最新 '+labs.hdl+' mg/dL' : '完成檢驗後顯示';
+    var hdb=document.getElementById('jn-hdl-badge'); if(hdb) hdb.style.display = (labs.hdl!==null&&labs.hdl!==undefined&&Number(labs.hdl)>=60) ? '' : 'none'; // 治療目標 HDL 女≥60／男≥50，前台不知道性別，只在 ≥60 時標達標（不會誤標）
     // ── 分享文字（真實）──
     var parts = ['🌱 我正在元代謝找回身體的原廠設定'];
     if(d.dayCount) parts[0] += '，第 '+d.dayCount+' 天！';
