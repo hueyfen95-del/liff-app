@@ -13,6 +13,8 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 .phone{width:100%;max-width:480px;background:var(--card);min-height:100vh;margin:0 auto;overflow-x:hidden;overflow-y:auto}
 .tbar{padding:12px 16px 11px;background:var(--g);color:#fff;display:flex;align-items:center;gap:9px}
 .tbar-t{font-size:15px;font-weight:600;flex:1}
+.mx-back{flex:none;display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.22);color:#fff;border-radius:16px;padding:5px 10px 5px 8px;font-size:12px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.mx-back:active{background:rgba(255,255,255,.38)}
 .tbar-av{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
 .page{display:none;padding-bottom:80px;min-height:420px}
 .page.on{display:block}
@@ -269,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15b';
+var MX_BUILD = '2026-11-15c';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -328,6 +330,8 @@ window.openHealthForm = function() {
 <!-- v7.0 -->
 <div class="phone">
 <div class="tbar">
+  <!-- 2026-11-15 創辦人：「從 LINE 跑到 APP，要怎麼回到 LINE，流程要更順暢、更直觀」——在 LINE 裡開的時候，標題列最左邊多一顆「‹ 回 LINE」，一按就關掉 APP 回到原本的聊天室／群組 -->
+  <div id="mx-back-line" class="mx-back" onclick="mxBackToLine()" style="display:none">‹ 回 LINE</div>
   <div class="tbar-t" id="page-title">元代謝健康管理</div>
   <div onclick="openMsgInbox()" style="position:relative;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-right:2px;-webkit-tap-highlight-color:transparent">
     <span style="font-size:19px">🔔</span>
@@ -1844,6 +1848,7 @@ window.openHealthForm = function() {
         <div id="bk-confirm-error" style="display:none;background:#FDEDEC;border:1px solid #F5B7B1;border-radius:9px;padding:9px 11px;font-size:11.5px;color:#A93226;line-height:1.7;margin-bottom:11px">⚠️ 剛剛這筆預約資料在傳送時發生問題，秘書那邊可能沒有收到，麻煩你直接用 LINE 跟秘書確認一下，或按下面按鈕再試一次<br><button onclick="bkRetrySubmit()" style="margin-top:6px;width:100%;background:#A93226;color:#fff;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:700;cursor:pointer">🔁 再送一次</button></div>
         <div id="bk-confirm-ok-hint" style="background:var(--b2);border-radius:9px;padding:9px 11px;font-size:11px;color:var(--b3);line-height:1.7;margin-bottom:11px">📩 預約已送出給健康秘書<br>💬 已幫你傳訊息給秘書，秘書會在 LINE 回覆你，確認實際檢測日期<br>🌙 確認日期後，記得檢測前一晚要空腹唷</div>
         <a href="https://youtu.be/hOEKfWTbOp4" target="_blank" style="display:block;background:var(--g);color:#fff;border-radius:11px;padding:11px;text-align:center;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:11px">▶️ 檢測前必看：IRCT 檢前說明影片</a>
+        <button id="bk-back-line" onclick="mxBackToLine()" style="display:none;width:100%;background:#06C755;color:#fff;border:none;border-radius:11px;padding:13px;font-size:14px;font-weight:700;margin-bottom:9px;cursor:pointer">💬 好了，回到 LINE</button>
         <button onclick="goPage('irct','IRCT 報告')" style="width:100%;background:none;border:1px solid var(--border2);border-radius:11px;padding:11px;font-size:13px;cursor:pointer;color:var(--text2)">返回報告頁</button>
       </div>
     </div>
@@ -4545,6 +4550,25 @@ function mxGoCoverShow(){
     setTimeout(mxGoCoverHide, 12000);
   } catch(e){}
 }
+// ── 2026-11-15 從 LINE 進 APP 之後「回到 LINE」──
+// 在 LINE 內建瀏覽器裡才顯示（UA 有 Line/）：標題列「‹ 回 LINE」、預約成功頁「回到 LINE」。按下去用 LIFF 的 closeWindow 關掉 APP，
+// 直接回到打開它的那個聊天室／群組。LIFF 還沒初始化（已登入的客人不會跑登入流程）就先 init 再關；
+// 如果 1.5 秒後畫面還在（這個環境關不掉），就提示「按右上角 ✕」，不讓客人卡住。
+function mxInLine(){ try { return /\bLine\//i.test(navigator.userAgent || ''); } catch(e){ return false; } }
+function mxBackToLine(){
+  var hint = setTimeout(function(){ try { toast('請按畫面右上角的 ✕，就會回到 LINE 囉 😊'); } catch(e){} }, 1500);
+  var fail = function(){ /* 提示由上面的計時器負責 */ };
+  try {
+    if (typeof liff === 'undefined') { return; }
+    var close = function(){ try { liff.closeWindow(); } catch(e){ fail(); } };
+    if (liff.id) close();
+    else if (typeof LIFF_ID === 'string' && LIFF_ID) liff.init({ liffId: LIFF_ID }).then(close).catch(fail);
+  } catch(e){ fail(); }
+}
+document.addEventListener('DOMContentLoaded', function(){
+  if (!mxInLine()) return;
+  ['mx-back-line', 'bk-back-line'].forEach(function(id){ var el = document.getElementById(id); if (el) el.style.display = (id === 'mx-back-line') ? 'inline-flex' : 'block'; });
+});
 function mxGoCoverHide(){ try { var c = document.getElementById('mx-go-cover'); if (c && c.parentNode) c.parentNode.removeChild(c); } catch(e){} }
 mxGoCoverShow();
 function mxGoDeepLink(){
