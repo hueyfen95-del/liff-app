@@ -269,7 +269,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15a';
+var MX_BUILD = '2026-11-15b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -1075,7 +1075,7 @@ window.openHealthForm = function() {
     </div>
     </div>
     <div class="f-content on" id="fc-conv">
-      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">① 蔬菜沙拉盒（超商實戰）</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">可以</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">一日野菜（海藻沙拉底）</div><div class="fr-desc">海苔沙拉、高苣基底，低碳安全</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">彩蔬沙拉</div><div class="fr-desc">需手動挑除根莖類（紅蘿蔔、玉米、南瓜等）</div></div><div class="fr-tag a">挑除根莖</div></div><div class="ftip">醬料選油醋或和風醬。可自帶 MINIOLIVA 橄欖油隨行包淋上補油。</div></div></div>
+      <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">① 蔬菜沙拉盒（超商實戰）</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">可以</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">一日野菜（海藻沙拉底）</div><div class="fr-desc">海苔沙拉、萵苣基底，低碳安全</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot a"></div><div style="flex:1"><div class="fr-name">彩蔬沙拉</div><div class="fr-desc">需手動挑除根莖類（紅蘿蔔、玉米、南瓜等）</div></div><div class="fr-tag a">挑除根莖</div></div><div class="ftip">醬料選油醋或和風醬。可自帶 MINIOLIVA 橄欖油隨行包淋上補油。</div></div></div>
       <div class="f-card"><div class="f-card-hd" onclick="toggleFCard(this)"><div class="fc-lbl">② 帶皮烤雞翅 / 烤雞腿</div><span style="font-size:12px;background:var(--g2);color:var(--g3);border-radius:20px;padding:2px 8px;font-weight:600">強力推薦</span><i class="ti ti-chevron-down fc-arr"></i></div><div class="f-card-body"><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">美式肯瓊翅、紐奧良、蒜蒜辣</div><div class="fr-desc">以天然油脂為主，蛋白質＋油脂好來源</div></div><div class="fr-tag ok">推薦</div></div><div class="frow"><div class="fr-dot g"></div><div style="flex:1"><div class="fr-name">麻辣雞心</div><div class="fr-desc">高油脂、高蛋白，適合粒線體</div></div><div class="fr-tag ok">可以</div></div><div class="ftip">品牌：<div class="brand-row"><div class="brand-tag">媽媽煮藝</div><div class="brand-tag">御料小館</div><div class="brand-tag">小松哥</div><div class="brand-tag">鑽魚蛋家</div></div></div></div></div>
       <div class="ftip warn" style="margin-bottom:9px">超商飲料：黑咖啡、無糖茶、氣泡水最安全。飯糰、麵包完全避免。</div>
     </div>
@@ -4011,15 +4011,14 @@ function loadIRCTOverview(){
         + (d.specialCase ? '<div style="font-size:10.5px;color:#6366F1;margin-top:6px">💡 這個分型結果僅供參考，實際狀況會依你的個別化背景另外調整</div>' : '')
         + '</div>';
     }
-    if(d.retestGuidance){
+    // 2026-11-15 檢查 APP 檢測結果頁：後端給的「複測說明」「用藥提示」是寫給秘書／醫師看的口吻（「客人自選的飲食模式…請照一般標準判讀」
+    // 「另外服用了無」「請補齊三個時間點」「建議由醫師評估營養性生酮」），而且提到 ESI 這個不外傳的指標。客人這一頁只留
+    // 「標準生酮反應正常」那一種（改成對客人說的口吻）；其他情況與用藥提示不顯示給客人（秘書／醫師後台看得到）。
+    if(d.retestGuidance && d.retestGuidance.scenario === '標準生酮反應正常'){
+      var rgNote = String(d.retestGuidance.note || '').replace(/客人確實/g, '你確實').replace(/客人/g, '你').replace(/；\s*$/, '。');
       html += '<div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:13px;padding:14px;margin-bottom:14px">'
-        + '<div style="font-size:12px;font-weight:700;color:#15803D;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">'+escHtml(d.retestGuidance.scenario)+'</div>'
-        + '<div style="font-size:12px;line-height:1.8;color:#166534">'+escHtml(d.retestGuidance.note)+'</div>'
-        + '</div>';
-    }
-    if(d.medContext){
-      html += '<div style="background:#FFF7ED;border:1px solid #FDBA74;border-radius:13px;padding:14px;margin-bottom:14px">'
-        + '<div style="font-size:12px;line-height:1.8;color:#9A3412">💊 '+escHtml(d.medContext.note)+'</div>'
+        + '<div style="font-size:12px;font-weight:700;color:#15803D;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px">複測說明</div>'
+        + '<div style="font-size:12px;line-height:1.8;color:#166534">'+escHtml(rgNote)+'</div>'
         + '</div>';
     }
     html += '<div style="font-size:12px;font-weight:700;color:#6B7280;letter-spacing:.05em;text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid #E5E7EB;margin-bottom:12px">✦ 各項分類觀察</div>';
@@ -4042,6 +4041,10 @@ function loadIRCTOverview(){
       html += '<div style="font-size:12px;line-height:1.8;color:#0369A1;font-weight:700;margin-top:8px">'+escHtml(d.longitudinal.summary||'')+'</div></div>';
     }
     // ── 上次目標對照（第二次以上檢測才有）──
+    // 2026-11-15 ESI／GPT／胰島素總和不外傳給客人（創辦人手冊規定）：目標與對照裡只要是這幾項就不顯示
+    var _hideIdx = function(g){ return g && /ESI|GPT|胰島素總和/i.test(String(g.label || '')); };
+    if(d.goalReview) d.goalReview = d.goalReview.filter(function(g){ return !_hideIdx(g); });
+    if(d.nextGoals) d.nextGoals = d.nextGoals.filter(function(g){ return !_hideIdx(g); });
     if(d.goalReview && d.goalReview.length){
       var grEmoji = { '達標':'🎉', '維持':'💚', '進步':'👍', '加油':'💪', '退步':'⚠️' };
       var grWord = { '達標':'達標了！', '維持':'穩穩維持在理想範圍', '進步':'有進步，繼續！', '加油':'還差一點，加油', '退步':'要留意，找秘書聊聊' };
