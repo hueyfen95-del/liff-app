@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15j';
+var MX_BUILD = '2026-11-15k';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4526,7 +4526,7 @@ function loadClientStage(){
       return;
     }
     badge.textContent = stage;
-    if(textEl) textEl.textContent = KETO_STAGE_DESC[stage] || '';
+    if(textEl) textEl.textContent = (KETO_STAGE_DESC[stage] || '') + (d.source === 'system' ? '（這是系統依你最近的血酮與碳水記錄判定的，秘書確認後會更新）' : '');
     // 2026-11-15：下一個目標依秘書確認的「目前階段」往下一階走（原本寫死「穩酮期」，創辦人已在營養性生酮還被叫去拚穩酮期）
     var order = Object.keys(KETO_STAGE_DESC), idx = order.indexOf(stage);
     var gt = document.getElementById('jn-goal-title'), gd = document.getElementById('jn-goal-desc');
