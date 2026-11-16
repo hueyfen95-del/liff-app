@@ -55,6 +55,7 @@ textarea{min-height:84px;resize:vertical}
 <div class="top"><h1 id="ttl">🧑‍💼 秘書工作台</h1><div class="who" id="who"></div></div>
 <div id="acts" hidden style="display:flex;gap:8px;margin:0 0 10px"><button class="sm" style="flex:1" onclick="toClient()">👤 切換成客人</button><button class="sm" style="flex:1" onclick="backToLine()">‹ 回 LINE</button><button class="sm" id="top-logout" style="flex:1" onclick="topLogout(this)">登出</button></div>
 
+<div id="v-boot" style="text-align:center;padding:60px 16px;color:var(--t2);font-size:16px;line-height:1.8">⏳ 正在打開工作台…<br><span style="font-size:13px">第一次或網路慢時，最多約 20 秒，請稍等</span><div id="boot-slow" hidden style="margin-top:16px"><button class="pri" onclick="location.reload()">重新整理</button></div></div>
 <div id="v-login" class="login" hidden>
   <div class="card">
     <h2>登入</h2>
@@ -124,10 +125,11 @@ function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){retu
 function toast(m,ms){ var t=document.createElement('div'); t.className='toast'; t.textContent=m; document.body.appendChild(t); setTimeout(function(){t.remove();}, ms||2600); }
 // 2026-11-16：一次最多同時 3 個請求排隊送出——一口氣送太多會把後端塞住，連 LINE 群組的 AI 都會跟著卡住
 var _qA=0,_qL=[]; function qfetch(u,o){ return new Promise(function(res,rej){ _qL.push([u,o,res,rej]); _qN(); }); }
-function _qN(){ while(_qA<3 && _qL.length){ var it=_qL.shift(); _qA++; fetch(it[0],it[1]).then(function(r){ _qA--; _qN(); return r; },function(e){ _qA--; _qN(); throw e; }).then(it[2],it[3]); } }
+function _qN(){ while(_qA<3 && _qL.length){ var it=_qL.shift(); _qA++; var o=Object.assign({}, it[1]||{}), ac=null, tm=null; try { ac=new AbortController(); o.signal=ac.signal; tm=setTimeout(function(c){ return function(){ try{ c.abort(); }catch(e){} }; }(ac), 25000); } catch(e){} // 2026-11-16：後端卡住時 25 秒就放棄重試，不要讓畫面一直空白
+    (function(tm){ return fetch(it[0],o).then(function(r){ clearTimeout(tm); return r; },function(e){ clearTimeout(tm); throw e; }); })(tm).then(function(r){ _qA--; _qN(); return r; },function(e){ _qA--; _qN(); throw e; }).then(it[2],it[3]); } }
 function api(params, post){
   params = Object.assign({}, params); if (S.token && !params.token) params.token = S.token;
-  var go = function(){ return (post ? qfetch(API,{method:'POST',body:JSON.stringify(params)}) : qfetch(API+'?'+Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&'))).then(function(r){return r.text();}).then(function(t){ try{ return JSON.parse(t); }catch(e){ return null; } }); };
+  var go = function(){ return (post ? qfetch(API,{method:'POST',body:JSON.stringify(params)}) : qfetch(API+'?'+Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&'))).then(function(r){return r.text();}).then(function(t){ try{ return JSON.parse(t); }catch(e){ return null; } }, function(){ return null; }); }; // 逾時或斷線＝null → 下面會自動再試一次
   return go().then(function(d){
     if (!d || (d.status==='ok' && d.message==='API 正在執行' && Object.keys(d).length<=2)) return new Promise(function(res){setTimeout(res,1500);}).then(go); // 系統忙碌：等一下再試一次
     return d;
@@ -137,7 +139,7 @@ function api(params, post){
   }).catch(function(e){ if (e && e.message==='auth') throw e; return { status:'error', message:'連線失敗，請檢查網路' }; });
 }
 function saveSess(d){ S = { token:d.token, name:d.name||d.username, role:d.role||'', user:d.username||'', extraPages:d.extraPages||[], canEditClients:d.canEditClients!==false, otherRoles:d.otherRoles||[] }; try{ localStorage.setItem('mx_staff_sess', JSON.stringify(S)); }catch(e){} }
-function showLogin(msg){ $('v-main').hidden = true; if ($('acts')) $('acts').hidden = true; $('v-login').hidden = false; $('who').textContent=''; if (msg) $('login-note').textContent = msg; if (!LT) $('login-note').textContent = '用後台的帳號和密碼登入。（現在不是從 LINE 打開，所以不會綁定；從 LINE 打「工作台」打開，下次就能自動登入。）'; }
+function showLogin(msg){ if ($('v-boot')) $('v-boot').hidden = true; $('v-main').hidden = true; if ($('acts')) $('acts').hidden = true; $('v-login').hidden = false; $('who').textContent=''; if (msg) $('login-note').textContent = msg; if (!LT) $('login-note').textContent = '用後台的帳號和密碼登入。（現在不是從 LINE 打開，所以不會綁定；從 LINE 打「工作台」打開，下次就能自動登入。）'; }
 var MODE='sec';
 // 2026-11-16 創辦人：醫師、教練也要能從 LINE 打開。依帳號角色給不同的工作台：
 //   教練＝只看指派給自己的學員（後端本來就有教練白名單，拿不到其他客人）；醫師＝打卡、客人問醫師的題目（醫師可以自己寫回覆）、交接、完整後台；其他＝原本的秘書工作台。
@@ -147,7 +149,7 @@ function applyMode(){ MODE=pickMode(); var show = MODE==='coach' ? ['c-co'] : (M
   $('ttl').textContent = MODE==='coach' ? '🏃 教練工作台' : (MODE==='doctor' ? '🩺 醫師工作台' : '🧑‍💼 秘書工作台'); document.title='元代謝・'+$('ttl').textContent.replace(/^\S+\s/,'');
   if (MODE==='doctor') { $('adm-chips').innerHTML = [['dashboard','🏠 後台首頁'],['clients','👤 客人檔案'],['all-tests','🧪 全部客人檢測總表'],['lab-integrate','🔬 檢測整合'],['extra-test','➕ 功能醫學加測建議'],['duty','🗓 排班']].map(function(x){ return '<span class="chip" onclick="openAdmin(\''+x[0]+'\')">'+x[1]+'</span>'; }).join('');
     var h2=document.querySelector('#c-uq h2'); if(h2) h2.firstChild.textContent='🩺 客人問醫師的問題 '; var sb=document.querySelector('#c-uq .sub'); if(sb) sb.textContent='客人在 APP 指定問醫師的題目。直接寫下你的回覆按送出，客人就會在 APP 收到，這題也會結案。'; } }
-function showMain(){ $('v-login').hidden = true; $('v-main').hidden = false; $('who').innerHTML = esc(S.name)+'<br>'+esc(S.role)+(S.bound?'・已綁定 LINE':''); try { localStorage.setItem('mx_pref_role','staff'); } catch(e){} $('acts').hidden=false; applyMode(); loadAll(); }
+function showMain(){ if ($('v-boot')) $('v-boot').hidden = true; $('v-login').hidden = true; $('v-main').hidden = false; $('who').innerHTML = esc(S.name)+'<br>'+esc(S.role)+(S.bound?'・已綁定 LINE':''); try { localStorage.setItem('mx_pref_role','staff'); } catch(e){} $('acts').hidden=false; applyMode(); loadAll(); }
 function doLogin(){
   var u=$('lu').value.trim(), p=$('lp').value; if(!u||!p){ $('lerr').textContent='請輸入帳號和密碼'; return; }
   $('lbtn').disabled=true; $('lerr').textContent='登入中…（第一次比較慢，請稍等）';
@@ -164,12 +166,13 @@ function topLogout(a){ if (a.getAttribute('data-sure')!=='1') { a.setAttribute('
 function logout(){ try{ localStorage.removeItem('mx_staff_sess'); }catch(e){} S={token:''}; showLogin('已登出這支手機。'); }
 function unbindLine(){ if(!S.token) return; api({action:'staffLineUnbind'}, true).then(function(d){ toast(d.status==='ok' ? '已解除 LINE 綁定' : (d.message||'解除失敗')); logout(); }); }
 function boot(){
+  setTimeout(function(){ if ($('v-boot') && !$('v-boot').hidden && $('boot-slow')) $('boot-slow').hidden = false; }, 20000);
   var saved=null; try{ saved = JSON.parse(localStorage.getItem('mx_staff_sess')||'null'); }catch(e){}
   if (LT) {
     api({action:'staffLineAuto', lineToken:LT}, true).then(function(d){
       if (d.status==='ok' && d.token) { saveSess(d); S.bound=true; showMain(); }
       else if (saved && saved.token) { S=saved; showMain(); }
-      else showLogin(d.message || '');
+      else showLogin(d.code==='needbind' ? (d.message||'') : '連線比較慢，沒有自動登入成功。請輸入帳號密碼，或按右上角重新整理再試一次。');
     });
   } else if (saved && saved.token) { S=saved; showMain(); }
   else showLogin('');
