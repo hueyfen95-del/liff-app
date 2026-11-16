@@ -51,7 +51,7 @@ textarea{min-height:84px;resize:vertical}
 [hidden]{display:none!important}
 </style></head>
 <body><div class="wrap">
-<div class="top"><h1>🧑‍💼 秘書工作台</h1><div class="who" id="who"></div></div>
+<div class="top"><h1 id="ttl">🧑‍💼 秘書工作台</h1><div class="who" id="who"></div></div>
 
 <div id="v-login" class="login" hidden>
   <div class="card">
@@ -66,9 +66,12 @@ textarea{min-height:84px;resize:vertical}
 
 <div id="v-main" hidden>
   <div class="nav" id="nav"></div>
-  <div class="card"><h2>📂 完整後台（所有功能）</h2>
+  <div class="card" id="c-co" hidden><h2>🏃 我的學員 <span class="badge" id="n-co">…</span></h2>
+    <div class="sub">只會看到指派給你的學員。點「📂 學員卡」看近期記錄、檢測、運動甜蜜點，也可以寫運動建議（秘書和醫師都看得到）。學員要先在 APP 按「同意分享給教練」，你才看得到內容。</div>
+    <div id="b-co"><div class="empty">讀取中…</div></div></div>
+  <div class="card" id="c-adm"><h2>📂 完整後台（所有功能）</h2>
     <div class="sub">跟電腦版後台一模一樣、不用再登入。用完按左下角「← 回秘書工作台」回來。</div>
-    <div class="chips">
+    <div class="chips" id="adm-chips">
       <span class="chip" onclick="openAdmin('dashboard')">🏠 後台首頁（全部卡片）</span>
       <span class="chip" onclick="openAdmin('clients')">👤 客戶管理／客人檔案</span>
       <span class="chip" onclick="openAdmin('alerts')">🚨 警示看板</span>
@@ -78,7 +81,7 @@ textarea{min-height:84px;resize:vertical}
       <span class="chip" onclick="openAdmin('stored-value')">💳 儲值消費</span>
       <span class="chip" onclick="openAdmin('qa-list')">📚 QA 症狀編輯</span>
     </div></div>
-  <div class="card"><h2>⏰ 上下班打卡</h2>
+  <div class="card" id="c-clk"><h2>⏰ 上下班打卡</h2>
     <div class="clock"><div class="st" id="clk-st">讀取中…</div><button class="sm pri" onclick="clockDo('clockIn')">上班打卡</button><button class="sm" onclick="clockDo('clockOut')">下班打卡</button></div>
   </div>
   <div class="card" id="c-grp"><h2>💬 群組裡等你回 <span class="badge" id="n-grp">…</span></h2>
@@ -129,7 +132,16 @@ function api(params, post){
 }
 function saveSess(d){ S = { token:d.token, name:d.name||d.username, role:d.role||'', user:d.username||'', extraPages:d.extraPages||[], canEditClients:d.canEditClients!==false, otherRoles:d.otherRoles||[] }; try{ localStorage.setItem('mx_staff_sess', JSON.stringify(S)); }catch(e){} }
 function showLogin(msg){ $('v-main').hidden = true; $('v-login').hidden = false; $('who').textContent=''; if (msg) $('login-note').textContent = msg; if (!LT) $('login-note').textContent = '用後台的帳號和密碼登入。（現在不是從 LINE 打開，所以不會綁定；從 LINE 打「工作台」打開，下次就能自動登入。）'; }
-function showMain(){ $('v-login').hidden = true; $('v-main').hidden = false; $('who').innerHTML = esc(S.name)+'<br>'+esc(S.role)+(S.bound?'・已綁定 LINE':''); loadAll(); }
+var MODE='sec';
+// 2026-11-16 創辦人：醫師、教練也要能從 LINE 打開。依帳號角色給不同的工作台：
+//   教練＝只看指派給自己的學員（後端本來就有教練白名單，拿不到其他客人）；醫師＝打卡、客人問醫師的題目（醫師可以自己寫回覆）、交接、完整後台；其他＝原本的秘書工作台。
+function pickMode(){ var other=(S.otherRoles||[]).join(','); if (S.role==='教練') return 'coach'; if (S.role==='醫師' && other.indexOf('秘書')<0) return 'doctor'; return 'sec'; }
+function applyMode(){ MODE=pickMode(); var show = MODE==='coach' ? ['c-co'] : (MODE==='doctor' ? ['c-adm','c-clk','c-uq','c-ho'] : null);
+  document.querySelectorAll('#v-main > .card').forEach(function(c){ c.hidden = show ? show.indexOf(c.id)<0 : (c.id==='c-co'); });
+  $('ttl').textContent = MODE==='coach' ? '🏃 教練工作台' : (MODE==='doctor' ? '🩺 醫師工作台' : '🧑‍💼 秘書工作台'); document.title='元代謝・'+$('ttl').textContent.replace(/^\S+\s/,'');
+  if (MODE==='doctor') { $('adm-chips').innerHTML = [['dashboard','🏠 後台首頁'],['clients','👤 客人檔案'],['all-tests','🧪 全部客人檢測總表'],['lab-integrate','🔬 檢測整合'],['extra-test','➕ 功能醫學加測建議'],['duty','🗓 排班']].map(function(x){ return '<span class="chip" onclick="openAdmin(\''+x[0]+'\')">'+x[1]+'</span>'; }).join('');
+    var h2=document.querySelector('#c-uq h2'); if(h2) h2.firstChild.textContent='🩺 客人問醫師的問題 '; var sb=document.querySelector('#c-uq .sub'); if(sb) sb.textContent='客人在 APP 指定問醫師的題目。直接寫下你的回覆按送出，客人就會在 APP 收到，這題也會結案。'; } }
+function showMain(){ $('v-login').hidden = true; $('v-main').hidden = false; $('who').innerHTML = esc(S.name)+'<br>'+esc(S.role)+(S.bound?'・已綁定 LINE':''); applyMode(); loadAll(); }
 function doLogin(){
   var u=$('lu').value.trim(), p=$('lp').value; if(!u||!p){ $('lerr').textContent='請輸入帳號和密碼'; return; }
   $('lbtn').disabled=true; $('lerr').textContent='登入中…（第一次比較慢，請稍等）';
@@ -173,11 +185,15 @@ function waitTxt(min){ min=Math.max(0,Math.round(min)); return min>=2880 ? ('已
 function setN(id,n,hot){ var b=$(id); b.textContent=n; b.className='badge'+(hot&&n?' red':''); renderNav(); }
 // ── 讀取 ──
 var CI=[], MH=[], NR=[], HO=[];
-var NAMES={}, CNT={}; var NAVS=[['c-grp','💬 群組','n-grp'],['c-ci','💌 客人','n-ci'],['c-uq','❓ 問題','n-uq'],['c-mh','🍽 飲食','n-mh'],['c-bk','📅 預約','n-bk'],['c-dx','🩺 交辦','n-dx'],['c-nr','📝 沒記錄','n-nr'],['c-ho','📋 交接','n-ho']];
+var NAMES={}, CNT={}; var NAVS_ALL=[['c-grp','💬 群組','n-grp'],['c-ci','💌 客人','n-ci'],['c-uq','❓ 問題','n-uq'],['c-mh','🍽 飲食','n-mh'],['c-bk','📅 預約','n-bk'],['c-dx','🩺 交辦','n-dx'],['c-nr','📝 沒記錄','n-nr'],['c-ho','📋 交接','n-ho']], NAVS=NAVS_ALL;
 function renderNav(){ $('nav').innerHTML = NAVS.map(function(x){ var n=$(x[2])?$(x[2]).textContent:''; return '<a href="#" onclick="jump(\''+x[0]+'\');return false">'+x[1]+(n&&n!=='0'&&n!=='…'?' <b>'+esc(n)+'</b>':'')+'</a>'; }).join(''); }
 function jump(id){ var el=$(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
 function nm(cid){ return NAMES[String(cid||'').toUpperCase()] || cid || ''; }
-function loadAll(){ loadClock(); loadGroup(); loadCI(); loadMH(); loadNR(); loadHO(); loadBK(); loadDX(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); }
+function loadCoach(){ api({action:'getClients'}).then(function(d){ var L=(d&&d.items)||[]; setN('n-co', L.length);
+  $('b-co').innerHTML = L.length ? L.map(function(c){ var ok=String(c.coachConsent||'')==='Y'; return '<div class="it"><div class="meta"><b>'+esc(c.name||c.id)+'</b><span>'+esc(c.id)+'</span>'+(ok?'<span class="tag" style="background:var(--g2);color:var(--g3)">已同意分享</span>':'<span class="tag" style="background:#FDECC8;color:#8A5A0A">還沒同意分享</span>')+'</div><div class="row"><button class="sm pri" onclick="openAdmin(\'clients\',\''+esc(c.id)+'\',\''+esc(c.name||'')+'\')">📂 學員卡</button></div></div>'; }).join('') : '<div class="empty">目前沒有指派給你的學員。請秘書在客人檔案的「負責教練」選你的名字。</div>'; }); }
+function loadAll(){ if (MODE==='coach') { NAVS=[]; renderNav(); loadCoach(); return; }
+  if (MODE==='doctor') { NAVS=NAVS_ALL.filter(function(x){ return x[0]==='c-uq'||x[0]==='c-ho'; }); loadClock(); loadHO(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); return; }
+  NAVS=NAVS_ALL; loadClock(); loadGroup(); loadCI(); loadMH(); loadNR(); loadHO(); loadBK(); loadDX(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); }
 function loadClock(){ api({action:'getClockStatus', secretary:S.name}).then(function(d){ var items=(d&&d.items)||[]; var sh=(d&&d.shifts)||{}, f=function(a){return (a||[]).map(function(x){return x.start+'～'+x.end;}).join('、');};
   var s = items.length ? items.map(function(it){ return (it.type==='上班'?'🟢 上班 ':'🔴 下班 ')+it.time; }).join('　') : '今天還沒有打卡';
   if (sh.today&&sh.today.length) s += '<br>📅 今天你有班：'+esc(f(sh.today)); $('clk-st').innerHTML = s; }); }
@@ -222,7 +238,7 @@ function hoRef(h){ var m=/（原：([NUCBD])第(\d+)列）/.exec(String(h.note||
 function goRef(ref){ var el=$('it-'+ref); if(!el){ toast('這件已經處理好了（或已經結案），按「已看過」就可以', 3500); return; } el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 // ── ❓ 客人問了答不出的問題（跟電腦版後台「客人未回答的問題」同一套動作）──
 var UQ=[], UQ_PRO=false, UQ_ART={};
-function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=(d&&d.items)||[]; UQ_PRO=!!(d&&d.canPro); setN('n-uq', UQ.length, UQ.length>0);
+function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=((d&&d.items)||[]).filter(function(q){ return MODE!=='doctor' || q.askTo==='醫師'; }); UQ_PRO=!!(d&&d.canPro); setN('n-uq', UQ.length, UQ.length>0);
   $('b-uq').innerHTML = UQ.length ? UQ.map(function(q,i){
     var copied=q.status==='copied', doc=q.askTo==='醫師', proLock = q.pro && !doc && !UQ_PRO;
     var h='<div class="it" id="it-U-'+q.row+'"><div class="meta"><b>'+esc(nm(q.clientId))+'</b><span>'+esc(q.date)+'</span>'+fileLink(q.clientId,nm(q.clientId))
@@ -237,16 +253,17 @@ function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=(d&&
       h+='<div class="hint" style="background:#FCE7F3;color:#9D174D">這題涉及用藥／保健品，請不要自己回答。先安撫客人，再轉給專業秘書。</div><textarea id="uqn-'+i+'" placeholder="給專業秘書的一句話（選填，例如：客人很緊張，已先安撫）" style="min-height:60px;margin-top:8px"></textarea>'
         +'<div class="row"><button class="pri" onclick="uqPro('+i+',this)">💊 已安撫，轉專業秘書</button><button onclick="uqDismiss('+i+',this)">已另外處理，標記完成</button></div>';
     } else {
-      if (doc) h+='<div class="hint" style="background:#FEE2E2;color:#991B1B">醫師不用登入系統：請你通知醫師 → 醫師回覆後，把回覆打在下面送出，客人就會收到。</div>'+(q.notified?'':'<div class="row"><button onclick="uqNotify('+i+',this)">📣 我已通知醫師</button></div>');
-      h+='<div class="hint" style="margin-top:8px">兩種回法擇一：①自己寫答案 → 按「送出答案」（會存進問答庫，下次有人問 AI 就會自己答）　②最下面「🔍 找文章」→ 直接把部落格文章傳給客人，不用貼。</div>'
-        +'<label style="font-size:12px;color:var(--t2);display:block;margin-top:8px">問答庫分類（存檔用，可不改）</label><input id="uqs-'+i+'" value="'+esc(qKey(q.question).slice(0,8))+'" placeholder="分類關鍵字（例：便秘、頭暈）"><textarea id="uqa-'+i+'" placeholder="'+(doc?'輸入醫師的回覆（代記）':'輸入回答…（也可以先按下面找文章，把文章放進來再補一句）')+'" style="margin-top:6px"></textarea>'
+      if (doc && MODE!=='doctor') h+='<div class="hint" style="background:#FEE2E2;color:#991B1B">醫師不用登入系統：請你通知醫師 → 醫師回覆後，把回覆打在下面送出，客人就會收到。</div>'+(q.notified?'':'<div class="row"><button onclick="uqNotify('+i+',this)">📣 我已通知醫師</button></div>');
+      h+=(MODE==='doctor'?'':'<div class="hint" style="margin-top:8px">兩種回法擇一：①自己寫答案 → 按「送出答案」（會存進問答庫，下次有人問 AI 就會自己答）　②最下面「🔍 找文章」→ 直接把部落格文章傳給客人，不用貼。</div>')
+        +(MODE==='doctor'?'<input type="hidden" id="uqs-'+i+'" value="'+esc(qKey(q.question).slice(0,8))+'">':'<label style="font-size:12px;color:var(--t2);display:block;margin-top:8px">問答庫分類（存檔用，可不改）</label><input id="uqs-'+i+'" value="'+esc(qKey(q.question).slice(0,8))+'" placeholder="分類關鍵字（例：便秘、頭暈）">')+'<textarea id="uqa-'+i+'" placeholder="'+(doc?(MODE==='doctor'?'輸入你的回覆…':'輸入醫師的回覆（代記）'):'輸入回答…（也可以先按下面找文章，把文章放進來再補一句）')+'" style="margin-top:6px"></textarea>'
         +'<div class="row"><button class="pri" onclick="uqApprove('+i+',this)">✅ 送出答案（加入問答庫並傳給客人）</button><button onclick="uqDismiss('+i+',this)">已另外回覆，標記完成</button></div>';
     }
-    h+='<label style="font-size:12px;color:var(--t2);display:block;margin-top:10px">找部落格文章的關鍵字（可改短一點）</label><div class="row" style="flex-wrap:nowrap;margin-top:2px"><input id="uqk-'+i+'" placeholder="找文章：關鍵字" value="'+esc(qKey(q.question).slice(0,12))+'" style="flex:1;min-width:0"><button class="sm" style="flex:none" onclick="uqSearch('+i+',this)">🔍 找文章</button></div><div id="uqr-'+i+'"></div></div>';
+    if (MODE!=='doctor') h+='<label style="font-size:12px;color:var(--t2);display:block;margin-top:10px">找部落格文章的關鍵字（可改短一點）</label><div class="row" style="flex-wrap:nowrap;margin-top:2px"><input id="uqk-'+i+'" placeholder="找文章：關鍵字" value="'+esc(qKey(q.question).slice(0,12))+'" style="flex:1;min-width:0"><button class="sm" style="flex:none" onclick="uqSearch('+i+',this)">🔍 找文章</button></div><div id="uqr-'+i+'"></div>';
+    h+='</div>';
     return h; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
 function cleanQ(t){ return String(t||'').replace(/^\s*【[^】]*】\s*/,'').trim(); }
 function qKey(t){ return cleanQ(t).replace(/[?？!！。，,「」]/g,'').replace(/(是什麼|是甚麼|怎麼辦|怎麼|如何|可以嗎|嗎|呢)$/,''); }
-function uqMsg(q,ans){ return nm(q.clientId)+'，你之前問的「'+cleanQ(q.question)+'」，我幫你問過了：\n\n'+ans; }
+function uqMsg(q,ans){ if (MODE==='doctor') return nm(q.clientId)+'，關於你問的「'+cleanQ(q.question)+'」，'+S.name+'回覆你：\n\n'+ans; return nm(q.clientId)+'，你之前問的「'+cleanQ(q.question)+'」，我幫你問過了：\n\n'+ans; }
 function uqApprove(i,btn){ var q=UQ[i]; if(!q) return; var a=$('uqa-'+i).value.trim(), sy=$('uqs-'+i).value.trim(); if(!a){ toast('請先輸入答案'); return; } btn.disabled=true;
   api({action:'approveUnknown', row:q.row, answer:a, symptom:sy||q.question}, true).then(function(d){ if(d.status!=='ok'){ btn.disabled=false; toast(d.message||'送出失敗'); return; }
     api({action:'sendGift', clientId:q.clientId, giftType:'message', message:'💬 '+uqMsg(q,a), secretary:S.name}, true).then(function(d2){
@@ -291,7 +308,7 @@ function openAdmin(page, cid, name){
   } catch(e){}
   location.href = 'admin.html';
 }
-function fileLink(cid, name){ return cid ? '<a href="#" onclick="openAdmin(\'clients\',\''+esc(cid)+'\',\''+esc(name||'')+'\');return false" style="font-size:12px;color:var(--g);white-space:nowrap">📂 客人檔案</a>' : ''; }
+function fileLink(cid, name){ return cid ? '<a href="#" onclick="openAdmin(\'clients\',\''+esc(cid)+'\',\''+esc(name||'')+'\');return false" style="font-size:12px;color:var(--g);white-space:nowrap">'+(MODE==='coach'?'📂 學員卡':'📂 客人檔案')+'</a>' : ''; }
 
 boot();
 </script>

@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>元代謝・工作台使用說明</title>
+<style>
+:root{--g:#0F6E56;--g2:#E1F5EE;--t:#1F2937;--t2:#6B7280;--red:#E53935;--bg:#F5F7F6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--t);font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;font-size:17px;line-height:1.7}
+.top{background:var(--g);color:#fff;padding:18px 16px 14px;text-align:center}
+.top h1{margin:0;font-size:22px}.top p{margin:4px 0 0;font-size:14px;opacity:.9}
+.tabs{position:sticky;top:0;z-index:5;display:flex;gap:8px;padding:10px 12px;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.tabs a{flex:1;text-align:center;padding:10px 4px;border-radius:12px;border:2px solid var(--g);color:var(--g);font-weight:700;text-decoration:none;font-size:16px}
+.tabs a.on{background:var(--g);color:#fff}
+.wrap{max-width:520px;margin:0 auto;padding:14px 16px 40px}
+.intro{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:16px}
+.step{background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.step h2{margin:0 0 6px;font-size:19px;display:flex;gap:10px;align-items:center}
+.num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--g);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px}
+.step p{margin:6px 0}
+.say{display:inline-block;background:#86E25B;border-radius:14px;padding:4px 12px;font-weight:700;margin:2px 0}
+.img{display:block;width:100%;max-width:340px;margin:12px auto 4px;border-radius:14px;border:1px solid #ddd;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.note{background:#FFF4E5;border-radius:10px;padding:8px 12px;font-size:15px;color:#8A5A0A;margin-top:8px}
+.ok{background:var(--g2);border-radius:10px;padding:8px 12px;font-size:15px;color:#085041;margin-top:8px}
+.faq{background:#fff;border-radius:16px;padding:16px}
+.faq h2{margin:0 0 8px;font-size:19px}
+.faq b{display:block;margin-top:10px}
+.faq span{color:var(--t2);font-size:15px}
+[hidden]{display:none!important}
+</style></head>
+<body>
+<div class="top"><h1>📱 工作台使用說明</h1><p>在 LINE 上就能值班、回客人，不用開電腦</p></div>
+<div class="tabs"><a href="#sec" data-r="sec">💁 秘書</a><a href="#doctor" data-r="doctor">🩺 醫師</a><a href="#coach" data-r="coach">🏃 教練</a></div>
+<div class="wrap">
+<div class="intro">請照順序做，<b>第 1～4 步只要做一次</b>。之後每次只要在 LINE 打「工作台」就能打開。<br>帳號和密碼請看私訊。</div>
+
+<!-- 共同步驟 -->
+<div class="step"><h2><span class="num">1</span>加「元代謝健康」好友</h2>
+<p>LINE 主頁 → 右上角「加入好友」→「搜尋」→ 選「ID」，輸入 <b>@702iovsx</b>，按「加入」。</p>
+<p style="font-size:15px;color:var(--t2)">已經是好友的跳過這步。</p>
+<img class="img" src="sg-add.jpg" alt="搜尋 @702iovsx 加入元代謝健康"></div>
+
+<div class="step"><h2><span class="num">2</span>告訴系統你是同事</h2>
+<p>打開「元代謝健康」的聊天視窗，打這句話送出：</p>
+<p><span class="say">同事登記 你的全名</span></p>
+<p style="font-size:15px;color:var(--t2)">「同事登記」後面空一格，接你的<b>全名</b>（跟後台帳號的名字一樣）。例如：<span id="regex">同事登記 吳婷婷</span></p>
+<img class="img r-sec" src="sg-reg-sec.jpg" alt="同事登記">
+<img class="img r-doctor" src="sg-reg-doc.jpg" alt="同事登記" hidden>
+<img class="img r-coach" src="sg-reg-coach.jpg" alt="同事登記" hidden>
+<div class="ok">✅ 看到「已登記」就完成了。之後你在客人的 LINE 群組說話，AI 小秘書會自動安靜、讓你來回。</div></div>
+
+<div class="step"><h2><span class="num">3</span>打開工作台</h2>
+<p>在同一個聊天視窗打 <span class="say">工作台</span> 送出，會跳出一張卡片，按「打開工作台」。</p>
+<img class="img" src="sg-card.jpg" alt="打工作台後點打開工作台">
+<p class="r-doctor r-coach" hidden style="font-size:15px;color:var(--t2)">卡片上寫「秘書工作台」沒關係，進去後會自動變成<span class="r-doctor">醫師</span><span class="r-coach">教練</span>專用的畫面。</p></div>
+
+<div class="step"><h2><span class="num">4</span>第一次登入</h2>
+<p>輸入私訊給你的<b>帳號</b>和<b>密碼</b>，按「登入」。</p>
+<img class="img r-sec" src="sg-login-sec.jpg" alt="登入畫面">
+<img class="img r-doctor" src="sg-login-doc.jpg" alt="登入畫面" hidden>
+<img class="img r-coach" src="sg-login-coach.jpg" alt="登入畫面" hidden>
+<div class="ok">✅ 只有第一次要輸入。之後打開就會自動登入。</div></div>
+
+<!-- 秘書 -->
+<div class="r-sec">
+<div class="step"><h2><span class="num">5</span>確認名字、上班打卡</h2>
+<p>右上角出現你的名字就成功了。開始值班先按「上班打卡」。</p>
+<p>最上面一排是分類，數字代表有幾件事在等你，點了會直接跳過去。</p>
+<img class="img" src="sg-sec-main.jpg" alt="秘書工作台首頁"></div>
+
+<div class="step"><h2><span class="num">6</span>回覆客人</h2>
+<p>「客人在等你回」裡：點一句現成的話，或自己打字 → 可以附一個小禮物 → 按「送出回覆」。客人會在 APP 收到。</p>
+<p>想看這位客人的完整資料，點名字旁的「📂 客人檔案」。</p>
+<img class="img" src="sg-sec-reply.jpg" alt="回覆客人">
+<div class="note">💬「群組裡等你回」的事，請直接打開那個 LINE 群組回覆，不用回來按。</div></div>
+
+<div class="step"><h2><span class="num">7</span>要用電腦版後台的功能</h2>
+<p>點「📂 完整後台」裡的按鈕，不用再登入就能進電腦版後台。看完按左下角「← 回秘書工作台」回來。</p>
+<img class="img" src="sg-sec-admin.jpg" alt="完整後台"></div>
+
+<div class="step"><h2><span class="num">8</span>下班</h2>
+<p>按「下班打卡」就好，不用登出。</p></div>
+</div>
+
+<!-- 醫師 -->
+<div class="r-doctor" hidden>
+<div class="step"><h2><span class="num">5</span>確認名字</h2>
+<p>右上角出現你的名字就成功了。要看客人檔案、全部客人檢測總表、檢測整合，點「📂 完整後台」裡的按鈕。</p>
+<img class="img" src="sg-doc-main.jpg" alt="醫師工作台首頁"></div>
+
+<div class="step"><h2><span class="num">6</span>回覆客人問醫師的問題</h2>
+<p>客人在 APP 指定問醫師的題目，會出現在「🩺 客人問醫師的問題」。直接寫下你的回覆，按「送出答案」，客人就會在 APP 收到。</p>
+<img class="img" src="sg-doc-reply.jpg" alt="回覆問醫師的問題">
+<div class="note">如果你已經用別的方式回覆客人，按「已另外回覆，標記完成」。</div></div>
+</div>
+
+<!-- 教練 -->
+<div class="r-coach" hidden>
+<div class="step"><h2><span class="num">5</span>看我的學員</h2>
+<p>右上角出現你的名字就成功了。這裡只會看到指派給你的學員。點「📂 學員卡」可以看近期記錄、檢測、運動甜蜜點，也可以寫運動建議（秘書和醫師都看得到）。</p>
+<img class="img" src="sg-coach-main.jpg" alt="教練工作台">
+<div class="note">學員旁邊寫「還沒同意分享」的，要等學員在 APP 按「同意分享給教練」，你才看得到他的記錄。</div></div>
+</div>
+
+<div class="faq"><h2>❓ 常見問題</h2>
+<b>又要我輸入密碼？</b><span>密碼改過、換手機，或帳號被停用時會這樣。重新輸入一次就好；還是不行請找管理人。</span>
+<b>畫面一直轉、沒有資料？</b><span>按最下面「🔄 重新整理」。網路慢的時候第一次會比較久。</span>
+<b>換新手機？</b><span>在新手機的 LINE 打「工作台」，再登入一次就好。</span>
+<b>測試時會不會傳給客人？</b><span>按「送出」的東西客人真的會收到，測試時請不要按。</span>
+<b>有問題找誰？</b><span>截圖傳給管理人。</span></div>
+</div>
+<script>
+var NAMES={sec:'吳婷婷',doctor:'郭展維醫師',coach:'智謙'};
+function show(){ var r=(location.hash||'#sec').slice(1); if(!NAMES[r]) r='sec';
+  document.querySelectorAll('.tabs a').forEach(function(a){ a.classList.toggle('on', a.getAttribute('data-r')===r); });
+  ['sec','doctor','coach'].forEach(function(k){ document.querySelectorAll('.r-'+k).forEach(function(el){ el.hidden = !(el.className.split(' ').some(function(c){ return c==='r-'+r; })); }); });
+  document.getElementById('regex').textContent='同事登記 '+NAMES[r];
+}
+window.addEventListener('hashchange', show); show();
+</script>
+</body></html>
