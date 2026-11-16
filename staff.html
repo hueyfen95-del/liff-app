@@ -230,7 +230,7 @@ function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=(d&&
       +(doc?'<span class="tag" style="background:#FEE2E2;color:#991B1B">🩺 問醫師'+(q.cost?'（已扣 '+q.cost+' 點）':'')+'</span>':'')
       +(q.pro&&!doc?'<span class="tag" style="background:#FCE7F3;color:#9D174D">💊 用藥／保健品</span>':'')
       +(q.notified?'<span class="tag" style="background:var(--g2);color:var(--g3)">✅ 已通知醫師 '+esc(q.notified)+'</span>':'')+'</div>'
-      +'<div class="txt">「'+esc(q.question)+'」</div>';
+      +'<div class="txt">「'+esc(cleanQ(q.question))+'」'+(/^\s*【群組】/.test(q.question)?' <span class="tag">在群組問的</span>':'')+'</div>';
     if (copied) {
       h+='<div class="hint" style="background:var(--g2);color:var(--g3)">'+esc(q.answer)+'</div><div class="row"><button class="pri" onclick="uqSendCopied('+i+',this)">💌 直接傳給客人並結案</button><button onclick="uqConfirm('+i+',this)">已經傳過了，確認結案</button></div>';
     } else if (proLock) {
@@ -238,12 +238,15 @@ function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=(d&&
         +'<div class="row"><button class="pri" onclick="uqPro('+i+',this)">💊 已安撫，轉專業秘書</button><button onclick="uqDismiss('+i+',this)">已另外處理，標記完成</button></div>';
     } else {
       if (doc) h+='<div class="hint" style="background:#FEE2E2;color:#991B1B">醫師不用登入系統：請你通知醫師 → 醫師回覆後，把回覆打在下面送出，客人就會收到。</div>'+(q.notified?'':'<div class="row"><button onclick="uqNotify('+i+',this)">📣 我已通知醫師</button></div>');
-      h+='<input id="uqs-'+i+'" value="'+esc(String(q.question).slice(0,6))+'" placeholder="分類關鍵字（例：便秘、頭暈）" style="margin-top:8px"><textarea id="uqa-'+i+'" placeholder="'+(doc?'輸入醫師的回覆（代記）':'輸入回答…')+'" style="margin-top:6px"></textarea>'
+      h+='<div class="hint" style="margin-top:8px">兩種回法擇一：①自己寫答案 → 按「送出答案」（會存進問答庫，下次有人問 AI 就會自己答）　②最下面「🔍 找文章」→ 直接把部落格文章傳給客人，不用貼。</div>'
+        +'<label style="font-size:12px;color:var(--t2);display:block;margin-top:8px">問答庫分類（存檔用，可不改）</label><input id="uqs-'+i+'" value="'+esc(qKey(q.question).slice(0,8))+'" placeholder="分類關鍵字（例：便秘、頭暈）"><textarea id="uqa-'+i+'" placeholder="'+(doc?'輸入醫師的回覆（代記）':'輸入回答…（也可以先按下面找文章，把文章放進來再補一句）')+'" style="margin-top:6px"></textarea>'
         +'<div class="row"><button class="pri" onclick="uqApprove('+i+',this)">✅ 送出答案（加入問答庫並傳給客人）</button><button onclick="uqDismiss('+i+',this)">已另外回覆，標記完成</button></div>';
     }
-    h+='<div class="row" style="flex-wrap:nowrap"><input id="uqk-'+i+'" placeholder="找文章：關鍵字" value="'+esc(String(q.question).replace(/[?？!！。，,「」]/g,'').replace(/(是什麼|怎麼辦|怎麼|如何|嗎|呢)$/,'').slice(0,12))+'" style="flex:1"><button class="sm" style="flex:none" onclick="uqSearch('+i+',this)">🔍 找文章</button></div><div id="uqr-'+i+'"></div></div>';
+    h+='<label style="font-size:12px;color:var(--t2);display:block;margin-top:10px">找部落格文章的關鍵字（可改短一點）</label><div class="row" style="flex-wrap:nowrap;margin-top:2px"><input id="uqk-'+i+'" placeholder="找文章：關鍵字" value="'+esc(qKey(q.question).slice(0,12))+'" style="flex:1;min-width:0"><button class="sm" style="flex:none" onclick="uqSearch('+i+',this)">🔍 找文章</button></div><div id="uqr-'+i+'"></div></div>';
     return h; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
-function uqMsg(q,ans){ return nm(q.clientId)+'，你之前問的「'+q.question+'」，我幫你問過了：\n\n'+ans; }
+function cleanQ(t){ return String(t||'').replace(/^\s*【[^】]*】\s*/,'').trim(); }
+function qKey(t){ return cleanQ(t).replace(/[?？!！。，,「」]/g,'').replace(/(是什麼|是甚麼|怎麼辦|怎麼|如何|可以嗎|嗎|呢)$/,''); }
+function uqMsg(q,ans){ return nm(q.clientId)+'，你之前問的「'+cleanQ(q.question)+'」，我幫你問過了：\n\n'+ans; }
 function uqApprove(i,btn){ var q=UQ[i]; if(!q) return; var a=$('uqa-'+i).value.trim(), sy=$('uqs-'+i).value.trim(); if(!a){ toast('請先輸入答案'); return; } btn.disabled=true;
   api({action:'approveUnknown', row:q.row, answer:a, symptom:sy||q.question}, true).then(function(d){ if(d.status!=='ok'){ btn.disabled=false; toast(d.message||'送出失敗'); return; }
     api({action:'sendGift', clientId:q.clientId, giftType:'message', message:'💬 '+uqMsg(q,a), secretary:S.name}, true).then(function(d2){
@@ -255,10 +258,11 @@ function uqDismiss(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({a
 function uqNotify(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({action:'notifyDoctorDone', row:q.row}, true).then(function(d){ toast(d.status==='ok'?(d.already?'已經有人通知過了':'✅ 已記錄你通知了醫師'+(d.pts?'（+'+d.pts+' 點）':'')):(d.message||'失敗')); loadUQ(); }); }
 function uqPro(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({action:'transferToPro', row:q.row, note:($('uqn-'+i)||{value:''}).value.trim()}, true).then(function(d){ toast(d.status==='ok'?'✅ 已轉給專業秘書'+(d.pts?'（+'+d.pts+' 點）':''):(d.message||'失敗')); loadUQ(); loadHO(); }); }
 function uqSearch(i,btn){ var q=UQ[i]; if(!q) return; var kw=$('uqk-'+i).value.trim(); var box=$('uqr-'+i); box.innerHTML='<div class="empty">比對文章中…</div>';
-  api({action:'searchArticles', q:(kw+' '+q.question).slice(0,200), limit:6}).then(function(d){ var arts=(d&&d.status==='ok'&&d.items)?d.items:[]; UQ_ART[i]=arts;
-    box.innerHTML = arts.length ? arts.map(function(a,j){ return '<div class="it"><div class="meta"><a href="'+esc(a.link)+'" target="_blank" rel="noopener" style="color:var(--t);font-weight:700;font-size:14px">'+esc(a.title)+'</a></div>'+(a.snippet?'<div class="txt" style="font-size:13px">💡 '+esc(a.snippet)+'</div>':'')+'<div class="row"><button class="sm pri" onclick="uqSendArt('+i+','+j+',this)">💌 傳給客人（這題結案）</button></div></div>'; }).join('') : '<div class="empty">沒有比對到，換個關鍵字試試（拆短一點）</div>'; }); }
+  api({action:'searchArticles', q:(kw+' '+cleanQ(q.question)).slice(0,200), limit:6}).then(function(d){ var arts=(d&&d.status==='ok'&&d.items)?d.items:[]; UQ_ART[i]=arts;
+    box.innerHTML = arts.length ? arts.map(function(a,j){ return '<div class="it"><div class="meta"><a href="'+esc(a.link)+'" target="_blank" rel="noopener" style="color:var(--t);font-weight:700;font-size:14px">'+esc(a.title)+'</a></div>'+(a.snippet?'<div class="txt" style="font-size:13px">💡 '+esc(a.snippet)+'</div>':'')+'<div class="row"><button class="sm pri" onclick="uqSendArt('+i+','+j+',this)">💌 直接傳給客人（這題結案）</button>'+($('uqa-'+i)?'<button class="sm" onclick="uqPutArt('+i+','+j+')">📋 放進回答框（再加一句話）</button>':'')+'</div></div>'; }).join('') : '<div class="empty">沒有比對到，換個關鍵字試試（拆短一點）</div>'; }); }
+function uqPutArt(i,j){ var a=(UQ_ART[i]||[])[j], ta=$('uqa-'+i); if(!a||!ta) return; var add='推薦你看這篇《'+a.title+'》'+(a.snippet?'\n💡 重點：「'+a.snippet+'」':'')+'\n'+a.link; ta.value=(ta.value.trim()?ta.value.trim()+'\n\n':'')+add; ta.focus(); ta.scrollIntoView({block:'center',behavior:'smooth'}); toast('已放進回答框，可以在前面補一句你的話再送出'); }
 function uqSendArt(i,j,btn){ var q=UQ[i], a=(UQ_ART[i]||[])[j]; if(!q||!a) return; btn.disabled=true;
-  api({action:'sendGift', clientId:q.clientId, giftType:'message', message:'📚 關於你問的「'+q.question+'」，秘書推薦你看：\n《'+a.title+'》'+(a.snippet?'\n💡 文章裡這段跟你的問題有關：「'+a.snippet+'」':'')+'\n'+a.link, secretary:S.name}, true).then(function(d){
+  api({action:'sendGift', clientId:q.clientId, giftType:'message', message:'📚 關於你問的「'+cleanQ(q.question)+'」，秘書推薦你看：\n《'+a.title+'》'+(a.snippet?'\n💡 文章裡這段跟你的問題有關：「'+a.snippet+'」':'')+'\n'+a.link, secretary:S.name}, true).then(function(d){
     if(d.status!=='ok'){ btn.disabled=false; toast(d.message||'傳送失敗'); return; }
     api({action:'dismissUnknown', row:q.row}, true).then(function(){ toast('💌 文章已傳給 '+nm(q.clientId)+'，這題已結案'); loadUQ(); }); }); }
 // ── 📅 新的檢測預約 ──
