@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-16a';
+var MX_BUILD = '2026-11-16b';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4645,8 +4645,24 @@ var _mxForceManualLogin = false;
 // 又要用測試帳號看畫面），需要能在同一支手機／瀏覽器上換身分，不能只靠在網址加 ?switchtest=1 這種秘書才知道的方法。
 // 做法直接沿用下面 switchtest=1 那條已經驗證過的路徑（清掉編號／姓名／憑證、跳過LINE自動登入、回到手動登入畫面），
 // 不另外寫一套清除邏輯，避免兩邊漏東漏西。先跳一個確認框避免誤點；取消就什麼都不做。
+// 2026-11-16 創辦人實測：「沒有看到工作人員的登入入口，以及登出的功能」——頭像改成跳出帳號選單：工作人員入口／登出換帳號／取消
 function mxSwitchAccount(){
-  if(!confirm('要切換帳號嗎？\n切換後要重新輸入客人編號與姓名才能進來。')) return;
+  var old = document.getElementById('mx-acct-sheet'); if (old) old.remove();
+  var d = document.createElement('div'); d.id = 'mx-acct-sheet';
+  d.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center';
+  d.onclick = function(e){ if (e.target === d) d.remove(); };
+  var who = (CLIENT_NAME || '') + (CLIENT_ID ? '（' + CLIENT_ID + '）' : '');
+  d.innerHTML = '<div style="background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));font-family:inherit">'
+    + '<div style="font-size:13px;color:#8A9992;text-align:center;margin-bottom:12px">' + (who ? '目前登入：' + who.replace(/[<>&]/g,'') : '帳號') + '</div>'
+    + '<button onclick="mxGoStaff()" style="width:100%;padding:14px;margin-bottom:10px;background:#0F6E56;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700">🧑‍💼 工作人員入口（秘書／醫師／教練工作台）</button>'
+    + '<button onclick="mxLogoutClient()" style="width:100%;padding:14px;margin-bottom:10px;background:#fff;color:#C0392B;border:1.5px solid #F1C4BE;border-radius:12px;font-size:16px;font-weight:700">🔄 登出／換另一個客人帳號</button>'
+    + '<button onclick="document.getElementById(\'mx-acct-sheet\').remove()" style="width:100%;padding:12px;background:#F2F4F3;color:#555;border:none;border-radius:12px;font-size:15px">取消</button>'
+    + '<div style="font-size:11.5px;color:#8A9992;text-align:center;line-height:1.6;margin-top:10px">同事可以同時是客人和工作人員：同一個 LINE，客人用 APP、工作時點上面的「工作人員入口」。</div></div>';
+  document.body.appendChild(d);
+}
+function mxLogoutClient(){
+  var b = document.querySelector('#mx-acct-sheet button[onclick="mxLogoutClient()"]');
+  if (b && b.getAttribute('data-sure') !== '1') { b.setAttribute('data-sure','1'); b.textContent = '再按一次確定登出（之後要重新輸入姓名＋手機）'; return; }
   location.href = location.pathname + '?switchtest=1';
 }
 (function(){
@@ -4867,14 +4883,36 @@ function mxDoBind(){
 // 2026-11-15 秘書在 LINE 裡值班：同事從官方帳號一對一打「工作台」→ 卡片連到 liff.line.me/…?staff=1 → 這裡拿到 LINE 身分後轉到秘書工作台（staff.html）
 function mxIsStaffEntry(){ var q = location.search || ''; if (/[?&]staff=1(&|$)/.test(q)) return true; try { return /staff(=|%3D)1/.test(new URLSearchParams(q).get('liff.state') || ''); } catch(e){ return false; } }
 function mxGoStaff(){
+  try { localStorage.setItem('mx_pref_role','staff'); } catch(e){} // 記住：這支手機上次用工作人員身分
   try { document.body.innerHTML = '<div style="padding:60px 20px;text-align:center;font-size:17px;color:#0F6E56;font-family:sans-serif">🧑‍💼 正在打開秘書工作台…</div>'; } catch(e){}
   var go = function(tok){ try { if (tok) sessionStorage.setItem('mx_staff_lt', tok); } catch(e){} location.replace('staff.html'); };
   if (LIFF_ID && typeof liff !== 'undefined') {
     liff.init({ liffId: LIFF_ID }).then(function(){ if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; } go(liff.getAccessToken() || ''); }).catch(function(){ go(''); });
   } else go('');
 }
+// 2026-11-16 創辦人：「要能同時切換客人／工作人員的身分、自由切換…下次要登入時的釘選或什麼機制」
+// 這支手機上次用工作人員身分 → 打開 APP 先問一下（3 秒後自動進工作台，可以改用客人身分）；上次用客人身分就照舊。
+var _mxPrefSkip = false;
+try { if (/[?&]client=1(&|$)/.test(location.search)) localStorage.setItem('mx_pref_role','client'); } catch(e){}
+function mxPrefStaffPrompt(){
+  var pref = ''; try { pref = localStorage.getItem('mx_pref_role') || ''; } catch(e){}
+  if (pref !== 'staff' || _mxPrefSkip || /[?&]client=1(&|$)/.test(location.search)) return false;
+  var d = document.createElement('div'); d.id = 'mx-pref-ov';
+  d.style.cssText = 'position:fixed;inset:0;z-index:100001;background:#F4F8F6;display:flex;align-items:center;justify-content:center;padding:24px';
+  d.innerHTML = '<div style="background:#fff;border-radius:18px;padding:26px 22px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.08)">'
+    + '<div style="font-size:30px">🧑‍💼</div><div style="font-size:17px;font-weight:800;margin:6px 0 4px;color:#1E2B27">上次你用的是工作人員身分</div>'
+    + '<div id="mx-pref-cd" style="font-size:13px;color:#8A9992;margin-bottom:16px">3 秒後自動進入工作台…</div>'
+    + '<button onclick="mxGoStaff()" style="width:100%;padding:14px;margin-bottom:10px;background:#0F6E56;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:700">進入工作台</button>'
+    + '<button onclick="mxPrefToClient(false)" style="width:100%;padding:14px;margin-bottom:12px;background:#fff;color:#0F6E56;border:1.5px solid #CFE3D9;border-radius:12px;font-size:16px;font-weight:700">👤 這次用客人身分</button>'
+    + '<a href="#" onclick="mxPrefToClient(true);return false" style="font-size:12.5px;color:#8A9992">以後打開都先用客人身分</a></div>';
+  document.body.appendChild(d);
+  var n = 3; window._mxPrefT = setInterval(function(){ n--; var c = document.getElementById('mx-pref-cd'); if (!document.getElementById('mx-pref-ov')) { clearInterval(window._mxPrefT); return; } if (n <= 0) { clearInterval(window._mxPrefT); mxGoStaff(); } else if (c) c.textContent = n + ' 秒後自動進入工作台…'; }, 1000);
+  return true;
+}
+function mxPrefToClient(always){ clearInterval(window._mxPrefT); if (always) { try { localStorage.setItem('mx_pref_role','client'); } catch(e){} } _mxPrefSkip = true; var o = document.getElementById('mx-pref-ov'); if (o) o.remove(); mxStartAuth(); }
 function mxStartAuth(){
   if (mxIsStaffEntry()) { mxGoStaff(); return; }
+  if (mxPrefStaffPrompt()) return;
   if (CLIENT_ID) return; // 已登入過（記在這支手機裡）
   if (_mxForceManualLogin) { mxShowLogin(''); return; } // 用 ?switchtest=1 進來：跳過LINE登入，直接手動輸入客人編號
   // 有設定 LIFF：走 LINE 登入
@@ -10330,6 +10368,7 @@ function mxCellPop(msg){
     <button onclick="mxDoBind()" style="width:100%;padding:13px;background:#0F6E56;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">開始使用</button>
     <div id="mx-login-err" style="font-size:12px;color:#C0392B;text-align:center;margin-top:10px;min-height:16px;line-height:1.5"></div>
     <!-- 2026-11-06 新朋友自助註冊（需要 LINE 帳號驗證；後端會通知行政核實） -->
+    <div style="text-align:center;margin-top:14px;padding-top:12px;border-top:1px solid #EEF2F0"><a href="#" onclick="mxGoStaff();return false" style="font-size:13px;color:#555;font-weight:700">🧑‍💼 我是工作人員 ➜ 進入工作台</a></div>
     <div id="mx-reg-link" style="text-align:center;margin-top:8px"><a href="#" onclick="mxShowReg();return false" style="font-size:13px;color:#0F6E56;font-weight:700;text-decoration:underline">我是新朋友，還沒有編號 ➜ 自己註冊</a></div>
     <div id="mx-reg-box" style="display:none;margin-top:12px;border-top:1.5px dashed #CFE3D9;padding-top:12px">
       <div style="font-size:13px;font-weight:800;color:#1E2B27;margin-bottom:4px">新朋友註冊</div>

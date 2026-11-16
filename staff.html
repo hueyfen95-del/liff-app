@@ -2,6 +2,7 @@
 <html lang="zh-Hant"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>元代謝・秘書工作台</title>
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <style>
 :root{--g:#0F6E56;--g2:#E6F4EF;--g3:#0B5A46;--bg:#F6F7F5;--card:#fff;--line:#E3E7E4;--t:#1F2937;--t2:#4B5563;--t3:#8A9490;--red:#C62828;--amber:#B26A00;--blue:#1F4E9C}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -52,6 +53,7 @@ textarea{min-height:84px;resize:vertical}
 </style></head>
 <body><div class="wrap">
 <div class="top"><h1 id="ttl">🧑‍💼 秘書工作台</h1><div class="who" id="who"></div></div>
+<div id="acts" hidden style="display:flex;gap:8px;margin:0 0 10px"><button class="sm" style="flex:1" onclick="toClient()">👤 切換成客人</button><button class="sm" style="flex:1" onclick="backToLine()">‹ 回 LINE</button><button class="sm" id="top-logout" style="flex:1" onclick="topLogout(this)">登出</button></div>
 
 <div id="v-login" class="login" hidden>
   <div class="card">
@@ -61,6 +63,7 @@ textarea{min-height:84px;resize:vertical}
     <label for="lp">密碼</label><input id="lp" type="password" autocomplete="current-password">
     <div class="row"><button class="pri" id="lbtn" onclick="doLogin()">登入</button></div>
     <div class="err" id="lerr"></div>
+    <div style="text-align:center;margin-top:14px;font-size:13px"><a href="#" onclick="toClient();return false" style="color:var(--g)">👤 我是客人 ➜ 回到客人 APP</a></div>
   </div>
 </div>
 
@@ -134,7 +137,7 @@ function api(params, post){
   }).catch(function(e){ if (e && e.message==='auth') throw e; return { status:'error', message:'連線失敗，請檢查網路' }; });
 }
 function saveSess(d){ S = { token:d.token, name:d.name||d.username, role:d.role||'', user:d.username||'', extraPages:d.extraPages||[], canEditClients:d.canEditClients!==false, otherRoles:d.otherRoles||[] }; try{ localStorage.setItem('mx_staff_sess', JSON.stringify(S)); }catch(e){} }
-function showLogin(msg){ $('v-main').hidden = true; $('v-login').hidden = false; $('who').textContent=''; if (msg) $('login-note').textContent = msg; if (!LT) $('login-note').textContent = '用後台的帳號和密碼登入。（現在不是從 LINE 打開，所以不會綁定；從 LINE 打「工作台」打開，下次就能自動登入。）'; }
+function showLogin(msg){ $('v-main').hidden = true; if ($('acts')) $('acts').hidden = true; $('v-login').hidden = false; $('who').textContent=''; if (msg) $('login-note').textContent = msg; if (!LT) $('login-note').textContent = '用後台的帳號和密碼登入。（現在不是從 LINE 打開，所以不會綁定；從 LINE 打「工作台」打開，下次就能自動登入。）'; }
 var MODE='sec';
 // 2026-11-16 創辦人：醫師、教練也要能從 LINE 打開。依帳號角色給不同的工作台：
 //   教練＝只看指派給自己的學員（後端本來就有教練白名單，拿不到其他客人）；醫師＝打卡、客人問醫師的題目（醫師可以自己寫回覆）、交接、完整後台；其他＝原本的秘書工作台。
@@ -144,7 +147,7 @@ function applyMode(){ MODE=pickMode(); var show = MODE==='coach' ? ['c-co'] : (M
   $('ttl').textContent = MODE==='coach' ? '🏃 教練工作台' : (MODE==='doctor' ? '🩺 醫師工作台' : '🧑‍💼 秘書工作台'); document.title='元代謝・'+$('ttl').textContent.replace(/^\S+\s/,'');
   if (MODE==='doctor') { $('adm-chips').innerHTML = [['dashboard','🏠 後台首頁'],['clients','👤 客人檔案'],['all-tests','🧪 全部客人檢測總表'],['lab-integrate','🔬 檢測整合'],['extra-test','➕ 功能醫學加測建議'],['duty','🗓 排班']].map(function(x){ return '<span class="chip" onclick="openAdmin(\''+x[0]+'\')">'+x[1]+'</span>'; }).join('');
     var h2=document.querySelector('#c-uq h2'); if(h2) h2.firstChild.textContent='🩺 客人問醫師的問題 '; var sb=document.querySelector('#c-uq .sub'); if(sb) sb.textContent='客人在 APP 指定問醫師的題目。直接寫下你的回覆按送出，客人就會在 APP 收到，這題也會結案。'; } }
-function showMain(){ $('v-login').hidden = true; $('v-main').hidden = false; $('who').innerHTML = esc(S.name)+'<br>'+esc(S.role)+(S.bound?'・已綁定 LINE':''); applyMode(); loadAll(); }
+function showMain(){ $('v-login').hidden = true; $('v-main').hidden = false; $('who').innerHTML = esc(S.name)+'<br>'+esc(S.role)+(S.bound?'・已綁定 LINE':''); try { localStorage.setItem('mx_pref_role','staff'); } catch(e){} $('acts').hidden=false; applyMode(); loadAll(); }
 function doLogin(){
   var u=$('lu').value.trim(), p=$('lp').value; if(!u||!p){ $('lerr').textContent='請輸入帳號和密碼'; return; }
   $('lbtn').disabled=true; $('lerr').textContent='登入中…（第一次比較慢，請稍等）';
@@ -154,6 +157,10 @@ function doLogin(){
     else $('lerr').textContent = d.message || '登入失敗';
   });
 }
+// 2026-11-16 創辦人：客人／工作人員自由切換、要能回到 LINE
+function toClient(){ try { localStorage.setItem('mx_pref_role','client'); } catch(e){} location.href = 'index.html?client=1'; }
+function backToLine(){ var tip=function(){ toast('請按畫面右上角的 ✕，就會回到 LINE 😊'); }; var inC=false; try { inC = typeof liff!=='undefined' && liff.isInClient && liff.isInClient(); } catch(e){} var h=setTimeout(tip, inC?1200:300); try { if (typeof liff!=='undefined' && liff.closeWindow) liff.closeWindow(); else tip(); } catch(e){ tip(); } }
+function topLogout(a){ if (a.getAttribute('data-sure')!=='1') { a.setAttribute('data-sure','1'); a.textContent='再按一次確定登出'; setTimeout(function(){ if(a){ a.removeAttribute('data-sure'); a.textContent='登出'; } },4000); return; } if (S.bound) unbindLine(); else logout(); }
 function logout(){ try{ localStorage.removeItem('mx_staff_sess'); }catch(e){} S={token:''}; showLogin('已登出這支手機。'); }
 function unbindLine(){ if(!S.token) return; api({action:'staffLineUnbind'}, true).then(function(d){ toast(d.status==='ok' ? '已解除 LINE 綁定' : (d.message||'解除失敗')); logout(); }); }
 function boot(){
