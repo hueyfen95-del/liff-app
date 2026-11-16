@@ -43,6 +43,9 @@ textarea{min-height:84px;resize:vertical}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#1F2937;color:#fff;padding:10px 18px;border-radius:24px;font-size:15px;z-index:20;max-width:90%;text-align:center}
 .clock{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .clock .st{flex:1;font-size:14px;color:var(--t2);min-width:160px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;margin:-2px 0 12px}.nav a{font-size:13px;text-decoration:none;color:var(--t);background:#fff;border:1px solid var(--line);border-radius:20px;padding:5px 10px}.nav a b{color:var(--red)}
+.flash{animation:fl 2.4s ease}@keyframes fl{0%,60%{background:#FFF1C2}100%{background:transparent}}
+.goto{font-size:13px;padding:6px 10px;background:#FFF7E6;border-color:#F0C674;color:#8A5A0A;font-weight:700}
 .foot{text-align:center;font-size:13px;color:var(--t3);margin-top:18px}
 .foot a{color:var(--g)}
 [hidden]{display:none!important}
@@ -62,21 +65,30 @@ textarea{min-height:84px;resize:vertical}
 </div>
 
 <div id="v-main" hidden>
+  <div class="nav" id="nav"></div>
   <div class="card"><h2>⏰ 上下班打卡</h2>
     <div class="clock"><div class="st" id="clk-st">讀取中…</div><button class="sm pri" onclick="clockDo('clockIn')">上班打卡</button><button class="sm" onclick="clockDo('clockOut')">下班打卡</button></div>
   </div>
-  <div class="card"><h2>💬 群組裡等你回 <span class="badge" id="n-grp">…</span></h2>
+  <div class="card" id="c-grp"><h2>💬 群組裡等你回 <span class="badge" id="n-grp">…</span></h2>
     <div class="sub">AI 在客人的陪跑群裡請真人處理的。請直接到那個 LINE 群組回覆，回了系統會自動記錄是誰、幾點回的。</div>
     <div id="b-grp"><div class="empty">讀取中…</div></div></div>
-  <div class="card"><h2>💌 客人在等你回 <span class="badge" id="n-ci">…</span></h2>
+  <div class="card" id="c-ci"><h2>💌 客人在等你回 <span class="badge" id="n-ci">…</span></h2>
     <div class="sub">心情不順、禮物請求、諮詢預約、進階服務、線上課程。回覆會送到客人 APP 的秘書訊息（鈴鐺亮紅點）。</div>
     <div id="b-ci"><div class="empty">讀取中…</div></div></div>
-  <div class="card"><h2>🍽 飲食判斷求助 <span class="badge" id="n-mh">…</span></h2>
+  <div class="card" id="c-uq"><h2>❓ 客人問了答不出的問題 <span class="badge" id="n-uq">…</span></h2>
+    <div class="sub">寫好答案按送出：會加進問答庫，並直接傳到客人 APP 的秘書訊息，這題就結案。也可以找部落格文章傳給他。</div>
+    <div id="b-uq"><div class="empty">讀取中…</div></div></div>
+  <div class="card" id="c-mh"><h2>🍽 飲食判斷求助 <span class="badge" id="n-mh">…</span></h2>
     <div id="b-mh"><div class="empty">讀取中…</div></div></div>
-  <div class="card"><h2>📝 今天還沒記錄 <span class="badge" id="n-nr">…</span></h2>
+  <div class="card" id="c-bk"><h2>📅 新的檢測預約 <span class="badge" id="n-bk">…</span></h2>
+    <div class="sub">跟客人確認時間後按「已聯繫確認」。</div>
+    <div id="b-bk"><div class="empty">讀取中…</div></div></div>
+  <div class="card" id="c-dx"><h2>🩺 醫師交辦 <span class="badge" id="n-dx">…</span></h2>
+    <div id="b-dx"><div class="empty">讀取中…</div></div></div>
+  <div class="card" id="c-nr"><h2>📝 今天還沒記錄 <span class="badge" id="n-nr">…</span></h2>
     <div class="sub">客人記錄後才會從名單消失；已提醒的會標出來。</div>
     <div id="b-nr"><div class="empty">讀取中…</div></div></div>
-  <div class="card"><h2>📋 交接留言 <span class="badge" id="n-ho">…</span></h2>
+  <div class="card" id="c-ho"><h2>📋 交接留言 <span class="badge" id="n-ho">…</span></h2>
     <div id="b-ho"><div class="empty">讀取中…</div></div></div>
   <div class="row"><button onclick="loadAll()">🔄 重新整理</button></div>
   <div class="foot">要看更多（客人檔案、排班、檢測）請用<a href="admin.html" target="_blank" rel="noopener">電腦版後台</a><br>
@@ -146,10 +158,14 @@ function pickTpl(key,set,i){ var ta=$('ta-'+key); if(!ta) return; var s=(TPL[set
 function pickGift(key,el){ var box=$('gf-'+key); box.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');}); el.classList.add('on'); box.setAttribute('data-g', el.getAttribute('data-g')); }
 function readReply(key){ var ta=$('ta-'+key), box=$('gf-'+key); return { text: ta ? ta.value.trim() : '', gift: box ? box.getAttribute('data-g') : '' }; }
 function waitTxt(min){ min=Math.max(0,Math.round(min)); return min>=2880 ? ('已等 '+Math.round(min/1440)+' 天') : min>=60 ? ('已等 '+Math.round(min/60)+' 小時') : ('已等 '+min+' 分鐘'); }
-function setN(id,n,hot){ var b=$(id); b.textContent=n; b.className='badge'+(hot&&n?' red':''); }
+function setN(id,n,hot){ var b=$(id); b.textContent=n; b.className='badge'+(hot&&n?' red':''); renderNav(); }
 // ── 讀取 ──
 var CI=[], MH=[], NR=[], HO=[];
-function loadAll(){ loadClock(); loadGroup(); loadCI(); loadMH(); loadNR(); loadHO(); }
+var NAMES={}, CNT={}; var NAVS=[['c-grp','💬 群組','n-grp'],['c-ci','💌 客人','n-ci'],['c-uq','❓ 問題','n-uq'],['c-mh','🍽 飲食','n-mh'],['c-bk','📅 預約','n-bk'],['c-dx','🩺 交辦','n-dx'],['c-nr','📝 沒記錄','n-nr'],['c-ho','📋 交接','n-ho']];
+function renderNav(){ $('nav').innerHTML = NAVS.map(function(x){ var n=$(x[2])?$(x[2]).textContent:''; return '<a href="#" onclick="jump(\''+x[0]+'\');return false">'+x[1]+(n&&n!=='0'&&n!=='…'?' <b>'+esc(n)+'</b>':'')+'</a>'; }).join(''); }
+function jump(id){ var el=$(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+function nm(cid){ return NAMES[String(cid||'').toUpperCase()] || cid || ''; }
+function loadAll(){ loadClock(); loadGroup(); loadCI(); loadMH(); loadNR(); loadHO(); loadBK(); loadDX(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); }
 function loadClock(){ api({action:'getClockStatus', secretary:S.name}).then(function(d){ var items=(d&&d.items)||[]; var sh=(d&&d.shifts)||{}, f=function(a){return (a||[]).map(function(x){return x.start+'～'+x.end;}).join('、');};
   var s = items.length ? items.map(function(it){ return (it.type==='上班'?'🟢 上班 ':'🔴 下班 ')+it.time; }).join('　') : '今天還沒有打卡';
   if (sh.today&&sh.today.length) s += '<br>📅 今天你有班：'+esc(f(sh.today)); $('clk-st').innerHTML = s; }); }
@@ -159,7 +175,7 @@ function loadGroup(){ api({action:'getGroupCases'}).then(function(d){ var items=
     return '<div class="it'+(mine?' mine':'')+'"><div class="meta"><span class="wait'+(it.waitMin>=120?' hot':'')+'">'+waitTxt(it.waitMin)+'</span><b>'+esc(it.client||it.clientId)+'</b><span>'+esc(it.group)+'</span><span class="tag">'+esc(it.type||'問題')+'</span>'+(mine?'<span class="tag" style="background:#FDECC8;color:#8A5A0A">指派給你</span>':'')+'</div><div class="txt">'+esc(it.text)+'</div></div>'; }).join('') + '<div class="hint">打開 LINE 找到這個群組直接回覆就好，不用回來按。</div>' : '<div class="empty">目前沒有 🎉</div>'; }); }
 function loadCI(){ api({action:'getClientInteractions'}).then(function(d){ CI=(d&&d.items)||[]; setN('n-ci', CI.length, CI.some(function(x){return x.src==='mood';}));
   $('b-ci').innerHTML = CI.length ? CI.map(function(it,i){ var set = it.src==='mood' ? 'mood' : (it.noteType==='禮物請求' ? 'gift' : 'other');
-    return '<div class="it"><div class="meta">'+(it.src==='mood'?'<span class="wait'+((+it.waitHours||0)>=2?' hot':'')+'">'+waitTxt((+it.waitHours||0)*60)+'</span>':'')+'<span class="tag">'+esc(it.kind)+'</span><b>'+esc(it.name||it.clientId)+'</b><span>'+esc(it.time)+'</span></div><div class="txt">'+esc(it.content)+'</div>'
+    return '<div class="it" id="'+(it.src==='mood'?'it-M-':'it-N-')+it.row+'"><div class="meta">'+(it.src==='mood'?'<span class="wait'+((+it.waitHours||0)>=2?' hot':'')+'">'+waitTxt((+it.waitHours||0)*60)+'</span>':'')+'<span class="tag">'+esc(it.kind)+'</span><b>'+esc(it.name||it.clientId)+'</b><span>'+esc(it.time)+'</span></div><div class="txt">'+esc(it.content)+'</div>'
       + replyBox('ci'+i, set, it.noteType==='禮物請求'?'sprout':'')
       + '<div class="row"><button class="pri" onclick="ciSend('+i+',this)">💌 送出回覆</button><button onclick="ciMark('+i+',this)">已在 LINE 回了，標記完成</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
 function ciSend(i,btn){ var it=CI[i]; if(!it) return; var r=readReply('ci'+i); if(!r.text){ toast('先點一句或自己打字'); return; }
@@ -169,7 +185,7 @@ function ciSend(i,btn){ var it=CI[i]; if(!it) return; var r=readReply('ci'+i); i
     api({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId, secretary:S.name}, true).then(function(){ toast('💌 已回覆 '+(it.name||it.clientId)); loadCI(); }); }); }
 function ciMark(i,btn){ var it=CI[i]; if(!it) return; btn.disabled=true; api({action:'markInteractionHandled', src:it.src, row:it.row, clientId:it.clientId, secretary:S.name}, true).then(function(d){ toast(d.status==='ok'?'✅ 已標記完成':(d.message||'標記失敗')); loadCI(); }); }
 function loadMH(){ api({action:'getMealHelpRequests'}).then(function(d){ MH=((d&&d.items)||[]).filter(function(x){return !x.replied;}); setN('n-mh', MH.length);
-  $('b-mh').innerHTML = MH.length ? MH.map(function(it,i){ return '<div class="it"><div class="meta"><b>'+esc(it.name||it.clientId)+'</b><span>'+esc(it.time)+'</span></div><div class="txt">'+esc(it.content)+'</div>'+replyBox('mh'+i,'meal','')
+  $('b-mh').innerHTML = MH.length ? MH.map(function(it,i){ return '<div class="it" id="it-N-'+it.row+'"><div class="meta"><b>'+esc(it.name||it.clientId)+'</b><span>'+esc(it.time)+'</span></div><div class="txt">'+esc(it.content)+'</div>'+replyBox('mh'+i,'meal','')
     + '<div class="row"><button class="pri" onclick="mhSend('+i+',this)">💌 送出回覆</button><button onclick="mhMark('+i+',this)">已在 LINE 回了，標記完成</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
 function mhSend(i,btn){ var it=MH[i]; if(!it) return; var r=readReply('mh'+i); if(!r.text){ toast('先點一句或自己打字'); return; } btn.disabled=true;
   api({action:'sendGift', clientId:it.clientId, giftType:r.gift||'message', message:'🍽 飲食建議：'+r.text, secretary:S.name}, true).then(function(d){
@@ -187,8 +203,68 @@ function hoVisible(h){ var to=String(h.toSecretary||''); if(!to || /大家|全�
 function loadHO(){ api({action:'getHandover'}).then(function(d){ HO=((d&&d.items)||[]).filter(hoVisible).slice(0,30); setN('n-ho', HO.length);
   $('b-ho').innerHTML = HO.length ? HO.map(function(h,i){ return '<div class="it"><div class="meta"><b>'+esc(h.fromSecretary||'前一班')+'</b><span>'+esc(h.date)+'</span>'+(h.toSecretary?'<span class="tag">給 '+esc(h.toSecretary)+'</span>':'')+'</div>'
     + (h.important?'<div class="txt" style="color:var(--red);font-weight:700">⚠️ '+esc(h.important)+'</div>':'') + (h.pendingClients?'<div class="txt">👤 '+esc(h.pendingClients)+'</div>':'') + (h.note?'<div class="txt">'+esc(h.note)+'</div>':'')
-    + '<div class="row"><button class="sm" onclick="hoAck('+i+',this)">✅ 已看過</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
+    + '<div class="row">'+(hoRef(h)?'<button class="goto" onclick="goRef(\''+hoRef(h)+'\')">👉 去處理</button>':'')+'<button class="sm" onclick="hoAck('+i+',this)">✅ 已看過</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
 function hoAck(i,btn){ var h=HO[i]; if(!h) return; btn.disabled=true; api({action:'ackHandover', row:h.row, secretary:S.name}, true).then(function(d){ toast(d.status==='ok'?'✅ 已看過':(d.message||'失敗')); loadHO(); }); }
+// ── 交接留言「（原：X第N列）」→ 直接跳到可以處理的那一筆（N＝客人留言／飲食求助，U／C＝答不出的問題，B＝預約，D＝醫師交辦）──
+function hoRef(h){ var m=/（原：([NUCBD])第(\d+)列）/.exec(String(h.note||'')+String(h.important||'')); return m ? ((m[1]==='C'?'U':m[1])+'-'+m[2]) : ''; }
+function goRef(ref){ var el=$('it-'+ref); if(!el){ toast('這件已經處理好了（或已經結案），按「已看過」就可以', 3500); return; } el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+// ── ❓ 客人問了答不出的問題（跟電腦版後台「客人未回答的問題」同一套動作）──
+var UQ=[], UQ_PRO=false, UQ_ART={};
+function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=(d&&d.items)||[]; UQ_PRO=!!(d&&d.canPro); setN('n-uq', UQ.length, UQ.length>0);
+  $('b-uq').innerHTML = UQ.length ? UQ.map(function(q,i){
+    var copied=q.status==='copied', doc=q.askTo==='醫師', proLock = q.pro && !doc && !UQ_PRO;
+    var h='<div class="it" id="it-U-'+q.row+'"><div class="meta"><b>'+esc(nm(q.clientId))+'</b><span>'+esc(q.date)+'</span>'
+      +(copied?'<span class="tag" style="background:#FDECEC;color:var(--red)">🔴 答案寫好了，還沒確認傳給客人</span>':'')
+      +(doc?'<span class="tag" style="background:#FEE2E2;color:#991B1B">🩺 問醫師'+(q.cost?'（已扣 '+q.cost+' 點）':'')+'</span>':'')
+      +(q.pro&&!doc?'<span class="tag" style="background:#FCE7F3;color:#9D174D">💊 用藥／保健品</span>':'')
+      +(q.notified?'<span class="tag" style="background:var(--g2);color:var(--g3)">✅ 已通知醫師 '+esc(q.notified)+'</span>':'')+'</div>'
+      +'<div class="txt">「'+esc(q.question)+'」</div>';
+    if (copied) {
+      h+='<div class="hint" style="background:var(--g2);color:var(--g3)">'+esc(q.answer)+'</div><div class="row"><button class="pri" onclick="uqSendCopied('+i+',this)">💌 直接傳給客人並結案</button><button onclick="uqConfirm('+i+',this)">已經傳過了，確認結案</button></div>';
+    } else if (proLock) {
+      h+='<div class="hint" style="background:#FCE7F3;color:#9D174D">這題涉及用藥／保健品，請不要自己回答。先安撫客人，再轉給專業秘書。</div><textarea id="uqn-'+i+'" placeholder="給專業秘書的一句話（選填，例如：客人很緊張，已先安撫）" style="min-height:60px;margin-top:8px"></textarea>'
+        +'<div class="row"><button class="pri" onclick="uqPro('+i+',this)">💊 已安撫，轉專業秘書</button><button onclick="uqDismiss('+i+',this)">已另外處理，標記完成</button></div>';
+    } else {
+      if (doc) h+='<div class="hint" style="background:#FEE2E2;color:#991B1B">醫師不用登入系統：請你通知醫師 → 醫師回覆後，把回覆打在下面送出，客人就會收到。</div>'+(q.notified?'':'<div class="row"><button onclick="uqNotify('+i+',this)">📣 我已通知醫師</button></div>');
+      h+='<input id="uqs-'+i+'" value="'+esc(String(q.question).slice(0,6))+'" placeholder="分類關鍵字（例：便秘、頭暈）" style="margin-top:8px"><textarea id="uqa-'+i+'" placeholder="'+(doc?'輸入醫師的回覆（代記）':'輸入回答…')+'" style="margin-top:6px"></textarea>'
+        +'<div class="row"><button class="pri" onclick="uqApprove('+i+',this)">✅ 送出答案（加入問答庫並傳給客人）</button><button onclick="uqDismiss('+i+',this)">已另外回覆，標記完成</button></div>';
+    }
+    h+='<div class="row" style="flex-wrap:nowrap"><input id="uqk-'+i+'" placeholder="找文章：關鍵字" value="'+esc(String(q.question).replace(/[?？!！。，,「」]/g,'').replace(/(是什麼|怎麼辦|怎麼|如何|嗎|呢)$/,'').slice(0,12))+'" style="flex:1"><button class="sm" style="flex:none" onclick="uqSearch('+i+',this)">🔍 找文章</button></div><div id="uqr-'+i+'"></div></div>';
+    return h; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
+function uqMsg(q,ans){ return nm(q.clientId)+'，你之前問的「'+q.question+'」，我幫你問過了：\n\n'+ans; }
+function uqApprove(i,btn){ var q=UQ[i]; if(!q) return; var a=$('uqa-'+i).value.trim(), sy=$('uqs-'+i).value.trim(); if(!a){ toast('請先輸入答案'); return; } btn.disabled=true;
+  api({action:'approveUnknown', row:q.row, answer:a, symptom:sy||q.question}, true).then(function(d){ if(d.status!=='ok'){ btn.disabled=false; toast(d.message||'送出失敗'); return; }
+    api({action:'sendGift', clientId:q.clientId, giftType:'message', message:'💬 '+uqMsg(q,a), secretary:S.name}, true).then(function(d2){
+      if (d2.status!=='ok'){ toast('答案已存，但傳給客人失敗，請按「直接傳給客人並結案」再試'); loadUQ(); return; }
+      api({action:'confirmUnknownSent', row:q.row}, true).then(function(){ toast('✅ 已回答 '+nm(q.clientId)+'，這題結案'); loadUQ(); }); }); }); }
+function uqSendCopied(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({action:'sendGift', clientId:q.clientId, giftType:'message', message:'💬 '+uqMsg(q,q.answer), secretary:S.name}, true).then(function(d){ if(d.status!=='ok'){ btn.disabled=false; toast(d.message||'傳送失敗'); return; } uqConfirm(i,btn); }); }
+function uqConfirm(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({action:'confirmUnknownSent', row:q.row}, true).then(function(d){ toast(d.status==='ok'?'✅ 這題結案了':(d.message||'失敗')); loadUQ(); }); }
+function uqDismiss(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({action:'dismissUnknown', row:q.row}, true).then(function(d){ toast(d.status==='ok'?('✅ 已標記完成'+(d.refunded?'，已退還客人 '+d.refunded+' 點':'')):(d.message||'失敗')); loadUQ(); }); }
+function uqNotify(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({action:'notifyDoctorDone', row:q.row}, true).then(function(d){ toast(d.status==='ok'?(d.already?'已經有人通知過了':'✅ 已記錄你通知了醫師'+(d.pts?'（+'+d.pts+' 點）':'')):(d.message||'失敗')); loadUQ(); }); }
+function uqPro(i,btn){ var q=UQ[i]; if(!q) return; btn.disabled=true; api({action:'transferToPro', row:q.row, note:($('uqn-'+i)||{value:''}).value.trim()}, true).then(function(d){ toast(d.status==='ok'?'✅ 已轉給專業秘書'+(d.pts?'（+'+d.pts+' 點）':''):(d.message||'失敗')); loadUQ(); loadHO(); }); }
+function uqSearch(i,btn){ var q=UQ[i]; if(!q) return; var kw=$('uqk-'+i).value.trim(); var box=$('uqr-'+i); box.innerHTML='<div class="empty">比對文章中…</div>';
+  api({action:'searchArticles', q:(kw+' '+q.question).slice(0,200), limit:6}).then(function(d){ var arts=(d&&d.status==='ok'&&d.items)?d.items:[]; UQ_ART[i]=arts;
+    box.innerHTML = arts.length ? arts.map(function(a,j){ return '<div class="it"><div class="meta"><a href="'+esc(a.link)+'" target="_blank" rel="noopener" style="color:var(--t);font-weight:700;font-size:14px">'+esc(a.title)+'</a></div>'+(a.snippet?'<div class="txt" style="font-size:13px">💡 '+esc(a.snippet)+'</div>':'')+'<div class="row"><button class="sm pri" onclick="uqSendArt('+i+','+j+',this)">💌 傳給客人（這題結案）</button></div></div>'; }).join('') : '<div class="empty">沒有比對到，換個關鍵字試試（拆短一點）</div>'; }); }
+function uqSendArt(i,j,btn){ var q=UQ[i], a=(UQ_ART[i]||[])[j]; if(!q||!a) return; btn.disabled=true;
+  api({action:'sendGift', clientId:q.clientId, giftType:'message', message:'📚 關於你問的「'+q.question+'」，秘書推薦你看：\n《'+a.title+'》'+(a.snippet?'\n💡 文章裡這段跟你的問題有關：「'+a.snippet+'」':'')+'\n'+a.link, secretary:S.name}, true).then(function(d){
+    if(d.status!=='ok'){ btn.disabled=false; toast(d.message||'傳送失敗'); return; }
+    api({action:'dismissUnknown', row:q.row}, true).then(function(){ toast('💌 文章已傳給 '+nm(q.clientId)+'，這題已結案'); loadUQ(); }); }); }
+// ── 📅 新的檢測預約 ──
+var BK=[];
+function loadBK(){ api({action:'getBookings'}).then(function(d){ BK=((d&&d.items)||[]).filter(function(b){ return !b.status || b.status==='新預約'; }); setN('n-bk', BK.length, BK.length>0);
+  $('b-bk').innerHTML = BK.length ? BK.map(function(b,i){ return '<div class="it" id="it-B-'+b.row+'"><div class="meta"><b>'+esc(nm(b.clientId))+'</b><span>'+esc(b.clinic)+(b.time?'・'+esc(b.time):'')+'</span><span>'+esc(b.date)+' 送出</span>'+(b.planType?'<span class="tag">'+esc(b.planType)+'</span>':'')+'</div>'
+    +(b.medications?'<div class="txt" style="font-size:13px">💊 用藥：'+esc(b.medications)+'</div>':'')
+    +'<div id="bkbox'+i+'" hidden><textarea id="ta-bk'+i+'">'+esc(nm(b.clientId)+' 你好 😊 收到你的檢測預約（'+(b.clinic||'')+(b.time?'・'+b.time:'')+'）。想跟你確認這個時間可以嗎？檢測前一晚 10 點後請空腹（可以喝白開水）。')+'</textarea><div class="row"><button class="pri" onclick="bkSend('+i+',this)">💌 傳給客人</button></div></div>'
+    +'<div class="row"><button class="sm" id="bkb'+i+'" onclick="$(\'bkbox'+i+'\').hidden=false;this.hidden=true">💌 傳訊息確認時間</button><button class="sm pri" onclick="bkSet('+i+',\'已聯繫確認\',this)">✅ 已聯繫確認</button><button class="sm" onclick="bkCancel('+i+',this)">取消預約</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
+function bkSend(i,btn){ var b=BK[i]; if(!b) return; var t=$('ta-bk'+i).value.trim(); if(!t) return; btn.disabled=true; api({action:'sendGift', clientId:b.clientId, giftType:'message', message:'📅 檢測預約：'+t, secretary:S.name}, true).then(function(d){ toast(d.status==='ok'?'💌 已傳給 '+nm(b.clientId):(d.message||'傳送失敗')); btn.disabled=false; }); }
+function bkSet(i,st,btn){ var b=BK[i]; if(!b) return; btn.disabled=true; api({action:'updateBooking', row:b.row, newStatus:st, secretary:S.name}, true).then(function(d){ toast(d.status==='ok'?('✅ '+st):(d.message||'失敗')); loadBK(); }); }
+function bkCancel(i,btn){ if(btn.getAttribute('data-sure')!=='1'){ btn.setAttribute('data-sure','1'); btn.textContent='再按一次確定取消'; btn.style.color='var(--red)'; return; } bkSet(i,'已取消',btn); }
+// ── 🩺 醫師交辦 ──
+var DX=[];
+function loadDX(){ api({action:'getMyDoctorTasks', staffName:S.name}).then(function(d){ DX=(d&&d.items)||[]; setN('n-dx', DX.length, DX.length>0);
+  $('b-dx').innerHTML = DX.length ? DX.map(function(t,i){ return '<div class="it" id="it-D-'+t.row+'"><div class="meta"><b>'+esc(t.clientName||t.clientId)+'</b>'+(t.staffName?'<span>醫師：'+esc(t.staffName)+'</span>':'')+'</div><div class="txt">'+esc(t.taskContent)+'</div><div class="row"><button class="sm pri" onclick="dxDone('+i+',this)">✅ 完成</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
+function dxDone(i,btn){ var t=DX[i]; if(!t) return; btn.disabled=true; api({action:'completeDoctorTask', row:t.row, staffName:S.name}, true).then(function(d){ toast(d.status==='ok'?'✅ 已完成':(d.message||'失敗')); loadDX(); }); }
+
 boot();
 </script>
 </body></html>
