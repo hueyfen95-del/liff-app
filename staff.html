@@ -82,7 +82,7 @@ textarea{min-height:84px;resize:vertical}
       <span class="chip" onclick="openAdmin('qa-list')">📚 QA 症狀編輯</span>
     </div></div>
   <div class="card" id="c-clk"><h2>⏰ 上下班打卡</h2>
-    <div class="clock"><div class="st" id="clk-st">讀取中…</div><button class="sm pri" onclick="clockDo('clockIn')">上班打卡</button><button class="sm" onclick="clockDo('clockOut')">下班打卡</button></div>
+    <div class="clock"><div class="st" id="clk-st">讀取中…</div><button class="sm pri" id="clk-in" onclick="clockDo('clockIn',this)">上班打卡</button><button class="sm" id="clk-out" onclick="clockDo('clockOut',this)">下班打卡</button></div>
   </div>
   <div class="card" id="c-grp"><h2>💬 群組裡等你回 <span class="badge" id="n-grp">…</span></h2>
     <div class="sub">AI 在客人的陪跑群裡請真人處理的。請直接到那個 LINE 群組回覆，回了系統會自動記錄是誰、幾點回的。</div>
@@ -119,9 +119,12 @@ try { LT = sessionStorage.getItem('mx_staff_lt') || ''; } catch(e){}
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function toast(m,ms){ var t=document.createElement('div'); t.className='toast'; t.textContent=m; document.body.appendChild(t); setTimeout(function(){t.remove();}, ms||2600); }
+// 2026-11-16：一次最多同時 3 個請求排隊送出——一口氣送太多會把後端塞住，連 LINE 群組的 AI 都會跟著卡住
+var _qA=0,_qL=[]; function qfetch(u,o){ return new Promise(function(res,rej){ _qL.push([u,o,res,rej]); _qN(); }); }
+function _qN(){ while(_qA<3 && _qL.length){ var it=_qL.shift(); _qA++; fetch(it[0],it[1]).then(function(r){ _qA--; _qN(); return r; },function(e){ _qA--; _qN(); throw e; }).then(it[2],it[3]); } }
 function api(params, post){
   params = Object.assign({}, params); if (S.token && !params.token) params.token = S.token;
-  var go = function(){ return (post ? fetch(API,{method:'POST',body:JSON.stringify(params)}) : fetch(API+'?'+Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&'))).then(function(r){return r.text();}).then(function(t){ try{ return JSON.parse(t); }catch(e){ return null; } }); };
+  var go = function(){ return (post ? qfetch(API,{method:'POST',body:JSON.stringify(params)}) : qfetch(API+'?'+Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&'))).then(function(r){return r.text();}).then(function(t){ try{ return JSON.parse(t); }catch(e){ return null; } }); };
   return go().then(function(d){
     if (!d || (d.status==='ok' && d.message==='API 正在執行' && Object.keys(d).length<=2)) return new Promise(function(res){setTimeout(res,1500);}).then(go); // 系統忙碌：等一下再試一次
     return d;
@@ -194,10 +197,18 @@ function loadCoach(){ api({action:'getClients'}).then(function(d){ var L=(d&&d.i
 function loadAll(){ if (MODE==='coach') { NAVS=[]; renderNav(); loadCoach(); return; }
   if (MODE==='doctor') { NAVS=NAVS_ALL.filter(function(x){ return x[0]==='c-uq'||x[0]==='c-ho'; }); loadClock(); loadHO(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); return; }
   NAVS=NAVS_ALL; loadClock(); loadGroup(); loadCI(); loadMH(); loadNR(); loadHO(); loadBK(); loadDX(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); }
+var CLK={on:false,last:'',busy:false};
 function loadClock(){ api({action:'getClockStatus', secretary:S.name}).then(function(d){ var items=(d&&d.items)||[]; var sh=(d&&d.shifts)||{}, f=function(a){return (a||[]).map(function(x){return x.start+'～'+x.end;}).join('、');};
-  var s = items.length ? items.map(function(it){ return (it.type==='上班'?'🟢 上班 ':'🔴 下班 ')+it.time; }).join('　') : '今天還沒有打卡';
-  if (sh.today&&sh.today.length) s += '<br>📅 今天你有班：'+esc(f(sh.today)); $('clk-st').innerHTML = s; }); }
-function clockDo(a){ api({action:a, secretary:S.name}, true).then(function(d){ toast(d.status==='ok' ? (a==='clockIn'?'🟢 上班打卡完成':'🔴 下班打卡完成') : (d.message||'打卡失敗')); loadClock(); }); }
+  var last=items.length?items[items.length-1]:null, firstIn=items.filter(function(x){return x.type==='上班';})[0];
+  CLK.on=!!(last&&last.type==='上班'); CLK.last=last?last.time:'';
+  var s = !last ? '今天還沒有打卡' : (CLK.on ? '🟢 <b>上班中</b>（'+esc(last.time)+' 打卡）' : '🔴 <b>已下班</b>（'+esc(last.time)+' 打卡）'+(firstIn?'　今天 '+esc(firstIn.time)+' 上班':''));
+  if (sh.today&&sh.today.length) s += '<br>📅 今天你有班：'+esc(f(sh.today)); $('clk-st').innerHTML = s;
+  if (!CLK.busy) { $('clk-in').disabled=CLK.on; $('clk-in').textContent=CLK.on?'✅ 上班中':'上班打卡'; $('clk-out').disabled=!CLK.on; $('clk-out').textContent='下班打卡'; } }); }
+function clockDo(a,btn){ if (CLK.busy) { toast('正在打卡，請稍等幾秒…'); return; }
+  if (a==='clockIn' && CLK.on) { toast('你已經在上班中了（'+CLK.last+' 打卡），不用再按'); return; }
+  if (a==='clockOut' && !CLK.on) { toast('你目前不是上班中，不用按下班'); return; }
+  CLK.busy=true; $('clk-in').disabled=true; $('clk-out').disabled=true; if(btn) btn.textContent='⏳ 打卡中…'; $('clk-st').innerHTML='⏳ <b>打卡中，請稍等幾秒</b>（按一次就好，不用再按）';
+  api({action:a, secretary:S.name}, true).then(function(d){ CLK.busy=false; toast(d.status==='ok' ? (d.dup?'剛剛已經打過卡了，這次不重複記':(a==='clockIn'?'🟢 上班打卡完成':'🔴 下班打卡完成')) : (d.message||'打卡失敗，請再按一次')); loadClock(); }); }
 function loadGroup(){ api({action:'getGroupCases'}).then(function(d){ var items=(d&&d.items)||[]; setN('n-grp', items.length, true);
   $('b-grp').innerHTML = items.length ? items.map(function(it){ var mine = S.name && it.assignee.indexOf(S.name)>=0;
     return '<div class="it'+(mine?' mine':'')+'"><div class="meta"><span class="wait'+(it.waitMin>=120?' hot':'')+'">'+waitTxt(it.waitMin)+'</span><b>'+esc(it.client||it.clientId)+'</b>'+fileLink(it.clientId,it.client)+'<span>'+esc(it.group)+'</span><span class="tag">'+esc(it.type||'問題')+'</span>'+(mine?'<span class="tag" style="background:#FDECC8;color:#8A5A0A">指派給你</span>':'')+'</div><div class="txt">'+esc(it.text)+'</div></div>'; }).join('') + '<div class="hint">打開 LINE 找到這個群組直接回覆就好，不用回來按。</div>' : '<div class="empty">目前沒有 🎉</div>'; }); }
