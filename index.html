@@ -271,7 +271,7 @@ body{background:var(--bg);min-height:100vh;margin:0;padding:0}
 // ＝GitHub 上有新版 → 立刻用全新網址參數強制重新載入一次。只在剛開頁面時檢查，
 // 不會打斷使用中的輸入；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
 // 網址參數用 URL API 附加，原本的參數（例如 LINE 登入的 liff.state）都會保留，不影響登入流程。
-var MX_BUILD = '2026-11-15k';
+var MX_BUILD = '2026-11-16a';
 (function(){
   try {
     var page = location.pathname.split('/').pop() || 'index.html';
@@ -4864,7 +4864,17 @@ function mxDoBind(){
     else { if(er) er.textContent = (d && d.message) || '驗證失敗，請再試一次'; }
   });
 }
+// 2026-11-15 秘書在 LINE 裡值班：同事從官方帳號一對一打「工作台」→ 卡片連到 liff.line.me/…?staff=1 → 這裡拿到 LINE 身分後轉到秘書工作台（staff.html）
+function mxIsStaffEntry(){ var q = location.search || ''; if (/[?&]staff=1(&|$)/.test(q)) return true; try { return /staff(=|%3D)1/.test(new URLSearchParams(q).get('liff.state') || ''); } catch(e){ return false; } }
+function mxGoStaff(){
+  try { document.body.innerHTML = '<div style="padding:60px 20px;text-align:center;font-size:17px;color:#0F6E56;font-family:sans-serif">🧑‍💼 正在打開秘書工作台…</div>'; } catch(e){}
+  var go = function(tok){ try { if (tok) sessionStorage.setItem('mx_staff_lt', tok); } catch(e){} location.replace('staff.html'); };
+  if (LIFF_ID && typeof liff !== 'undefined') {
+    liff.init({ liffId: LIFF_ID }).then(function(){ if (!liff.isLoggedIn()) { liff.login({ redirectUri: location.href }); return; } go(liff.getAccessToken() || ''); }).catch(function(){ go(''); });
+  } else go('');
+}
 function mxStartAuth(){
+  if (mxIsStaffEntry()) { mxGoStaff(); return; }
   if (CLIENT_ID) return; // 已登入過（記在這支手機裡）
   if (_mxForceManualLogin) { mxShowLogin(''); return; } // 用 ?switchtest=1 進來：跳過LINE登入，直接手動輸入客人編號
   // 有設定 LIFF：走 LINE 登入
