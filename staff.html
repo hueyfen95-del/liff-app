@@ -210,15 +210,33 @@ var TPL = {
   mood:['辛苦了，謝謝你願意說出來 🤍 這些感覺都很真實，不用硬撐。','調整身體本來就不是一條直線，有起伏很正常，我們一起慢慢來 💚','今天先照顧好自己就好：吃飽、補水、早點睡，其他的明天再說。'],
   gift:['送你一個小禮物 🌱 這陣子你很努力，我們都看到了！','你每一天的記錄都是進步，這個禮物給你 ⭐'],
   meal:['這一餐判斷得很好 👍 繼續保持！','油脂可以再多一點，例如加一匙橄欖油或奶油，吃得飽、酮才上得來。','蛋白質約一掌心就好，多了反而會影響血酮。','醬料和勾芡容易藏糖，下次可以請店家醬料分開放。'],
-  remind:['今天還沒看到你的記錄喔 😊 有空量一下血酮、拍一下餐點，30 秒就好。','忙的話先記一項就好，例如血酮或體重，有記錄就是進步 💚','如果今天比較累，回我一句「今天累」也可以，我們陪你。'],
+  remind:['今天還沒看到你的記錄喔 😊 有空量一下血酮、拍一下餐點，30 秒就好。','忙的話先記一項就好，例如血酮或體重，有記錄就是進步 💚','如果今天比較累，回我一句「今天累」也可以，我們陪你。',
+    '早安 ☀️ 起床先量個血酮、喝杯溫水，今天就有好的開始！',
+    '午餐吃了什麼呢？拍一張給我看看，我幫你一起看油脂和蛋白質夠不夠 🍽',
+    '最近好像比較忙？記錄斷了沒關係，今天重新開始就好 🌱',
+    '好幾天沒看到你了，有點想你 😊 身體還好嗎？有任何狀況都可以跟我說。',
+    '小提醒：記錄不是考試，是幫我們一起找出你的代謝甜蜜點，哪怕只記一個數字都很有幫助 💪',
+    '睡前花 30 秒記一下今天的血酮和體感，明天的建議就能更準 🌙',
+    '你的花園今天還在等你澆水喔 🌱 記一筆就能幫它長大！',
+    '量血酮不方便的話，先記體重或「今天感覺怎麼樣」也可以 😊',
+    '你之前的努力我們都看得到，別讓這幾天的空白打斷它，今天一起補上一筆吧 ✨',
+    '有遇到什麼困難嗎？像是試紙用完、不知道怎麼記，跟我說，我來幫你 🙌',
+    '週末也別忘了照顧自己喔 😊 吃了大餐也沒關係，記下來，我們一起調整。',
+    '在 LINE 群組直接打「血酮 1.2」或拍照，小秘書就會幫你記好，很快的 📲'],
   other:['收到 😊 我幫你確認一下，晚點回覆你。','謝謝你告訴我，我們一起來調整 💪','好的，我已經幫你安排，有消息馬上跟你說。']
 };
 var GIFTS=[['','不加'],['star','⭐ 星星'],['flower','🌸 花朵'],['sprout','🌱 新芽'],['leaf','🍃 新葉'],['sunshine','☀️ 陽光']];
 function replyBox(key, tplSet, defGift){
-  var t = (TPL[tplSet]||TPL.other).map(function(s,i){ return '<span class="chip" onclick="pickTpl(\''+key+'\',\''+tplSet+'\','+i+')">'+esc(Array.from(s).length>14?Array.from(s).slice(0,14).join('')+'…':s)+'</span>'; }).join('');
+  var t = tplChips(key, tplSet, 0);
   var g = GIFTS.map(function(x){ return '<span class="chip'+(x[0]===(defGift||'')?' on':'')+'" data-g="'+x[0]+'" onclick="pickGift(\''+key+'\',this)">'+x[1]+'</span>'; }).join('');
   return '<div class="chips">'+t+'</div><textarea id="ta-'+key+'" placeholder="點上面的句子，或自己打字"></textarea><div class="sub" style="margin:6px 0 0">附上小禮物（客人 APP 會跳出會眨眼的動畫）：</div><div class="chips" id="gf-'+key+'" data-g="'+(defGift||'')+'">'+g+'</div>';
 }
+// 2026-11-17 創辦人「多弄幾句給我選」：句子變多，一次顯示 4 句完整句子，按「🔄 換幾句」看下一批
+function tplChips(key, set, start){ var L=(TPL[set]||TPL.other), n=L.length, per=4, out=[];
+  for (var k=0; k<Math.min(per,n); k++){ var i=(start+k)%n; out.push('<span class="chip" style="white-space:normal;text-align:left;line-height:1.5" onclick="pickTpl(\''+key+'\',\''+set+'\','+i+')">'+esc(L[i])+'</span>'); }
+  if (n>per) out.push('<span class="chip" style="background:#fff;color:var(--g);font-weight:700" onclick="moreTpl(\''+key+'\',\''+set+'\','+((start+per)%n)+',this)">🔄 換幾句（共 '+n+' 句）</span>');
+  return '<span id="tp-'+key+'" style="display:contents">'+out.join('')+'</span>'; }
+function moreTpl(key,set,start,el){ var w=$('tp-'+key); if (w) w.outerHTML = tplChips(key,set,start); }
 function pickTpl(key,set,i){ var ta=$('ta-'+key); if(!ta) return; var s=(TPL[set]||[])[i]||''; ta.value = ta.value ? (ta.value+'\n'+s) : s; ta.focus(); }
 function pickGift(key,el){ var box=$('gf-'+key); box.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');}); el.classList.add('on'); box.setAttribute('data-g', el.getAttribute('data-g')); }
 function readReply(key){ var ta=$('ta-'+key), box=$('gf-'+key); return { text: ta ? ta.value.trim() : '', gift: box ? box.getAttribute('data-g') : '' }; }
