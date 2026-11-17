@@ -138,7 +138,7 @@ function api(params, post){
     return d || { status:'error', message:'連線失敗，請稍後再試' };
   }).catch(function(e){ if (e && e.message==='auth') throw e; return { status:'error', message:'連線失敗，請檢查網路' }; });
 }
-function saveSess(d){ S = { token:d.token, name:d.name||d.username, role:d.role||'', user:d.username||'', extraPages:d.extraPages||[], canEditClients:d.canEditClients!==false, otherRoles:d.otherRoles||[] }; try{ localStorage.setItem('mx_staff_sess', JSON.stringify(S)); }catch(e){} }
+function saveSess(d){ S = { token:d.token, name:d.name||d.username, role:d.role||'', user:d.username||'', extraPages:d.extraPages||[], canEditClients:d.canEditClients!==false, otherRoles:d.otherRoles||[], t:Date.now() }; try{ localStorage.setItem('mx_staff_sess', JSON.stringify(S)); }catch(e){} }
 function showLogin(msg){ if ($('v-boot')) $('v-boot').hidden = true; $('v-main').hidden = true; if ($('acts')) $('acts').hidden = true; $('v-login').hidden = false; $('who').textContent=''; if (msg) $('login-note').textContent = msg; if (!LT) $('login-note').textContent = '用後台的帳號和密碼登入。（現在不是從 LINE 打開，所以不會綁定；從 LINE 打「工作台」打開，下次就能自動登入。）'; }
 var MODE='sec';
 // 2026-11-16 創辦人：醫師、教練也要能從 LINE 打開。依帳號角色給不同的工作台：
@@ -168,6 +168,15 @@ function unbindLine(){ if(!S.token) return; api({action:'staffLineUnbind'}, true
 function boot(){
   setTimeout(function(){ if ($('v-boot') && !$('v-boot').hidden && $('boot-slow')) $('boot-slow').hidden = false; }, 20000);
   var saved=null; try{ saved = JSON.parse(localStorage.getItem('mx_staff_sess')||'null'); }catch(e){}
+  // 2026-11-16 創辦人問怎麼改善速度：5 小時內登入過，直接用這支手機記住的登入打開（不用等後端），同時在背景跟後端確認一次
+  if (saved && saved.token && saved.t && (Date.now() - saved.t) < 5*3600*1000) {
+    S = saved; showMain();
+    if (LT) api({action:'staffLineAuto', lineToken:LT}, true).then(function(d){
+      if (d.status==='ok' && d.token) { var b=S.bound; saveSess(d); S.bound=true; }
+      else if (d.code==='needbind') { logout(); showLogin(d.message||''); }
+    });
+    return;
+  }
   if (LT) {
     api({action:'staffLineAuto', lineToken:LT}, true).then(function(d){
       if (d.status==='ok' && d.token) { saveSess(d); S.bound=true; showMain(); }
