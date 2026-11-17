@@ -357,7 +357,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-11-17c';
+var MX_BUILD = '2026-11-17d';
 // 2026-11-16：後台一打開會同時送出 30 幾個請求，Apps Script 一次塞太多會全部變慢（實測每個要 2 分鐘），
 // 連 LINE 群組的 AI 小秘書都收不到客人的訊息。改成同時最多 4 個，其餘排隊依序送出。
 // 2026-11-17 創辦人「先小改」：①同一個讀取請求同時要好幾次（客人名單 3 次、排班 2 次…）只送一次大家共用
@@ -15441,7 +15441,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if (_go) { sessionStorage.removeItem('mx_admin_go'); var _g = JSON.parse(_go);
         setTimeout(function(){ try { if (_g.where) { try { ovGo(_g.where); } catch(e){ goPg(_g.page); } } else if (_g.page && _g.page !== 'dashboard') goPg(_g.page); if (_g.cid) setTimeout(function(){ try { openClientDetail(_g.cid, _g.name || ''); } catch(e){} }, 700); } catch(e){} }, 500); }
       if (sessionStorage.getItem('mx_from_staff') === '1') {
-        var _bk = document.createElement('a'); _bk.href = 'staff.html'; _bk.textContent = '← 回秘書工作台';
+        var _bk = document.createElement('a'); _bk.href = 'staff.html'; _bk.textContent = '← 回工作台';
         _bk.style.cssText = 'position:fixed;left:12px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:9998;background:#0F6E56;color:#fff;font-size:15px;font-weight:700;padding:10px 14px;border-radius:24px;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.18)';
         document.body.appendChild(_bk);
       }
