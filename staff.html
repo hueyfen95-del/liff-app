@@ -223,10 +223,12 @@ function pickTpl(key,set,i){ var ta=$('ta-'+key); if(!ta) return; var s=(TPL[set
 function pickGift(key,el){ var box=$('gf-'+key); box.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');}); el.classList.add('on'); box.setAttribute('data-g', el.getAttribute('data-g')); }
 function readReply(key){ var ta=$('ta-'+key), box=$('gf-'+key); return { text: ta ? ta.value.trim() : '', gift: box ? box.getAttribute('data-g') : '' }; }
 function waitTxt(min){ min=Math.max(0,Math.round(min)); return min>=2880 ? ('已等 '+Math.round(min/1440)+' 天') : min>=60 ? ('已等 '+Math.round(min/60)+' 小時') : ('已等 '+min+' 分鐘'); }
-function setN(id,n,hot){ var b=$(id); b.textContent=n; b.className='badge'+(hot&&n?' red':''); renderNav(); }
+function setN(id,n,hot){ var b=$(id); b.textContent=n; b.className='badge'+(hot&&n?' red':''); renderNav(); setTimeout(fillNames,0); }
+// 2026-11-17 創辦人：「可以直接把客人的名字列出來嗎，這樣我不知道他是誰」——客人名單比較晚回來時，先顯示的編號事後補成名字；名單也記在手機裡，下次一打開就有名字
+function fillNames(){ document.querySelectorAll('.it .meta b').forEach(function(b){ var t=(b.textContent||'').trim(); if (/^C\d{4,6}$/i.test(t) && NAMES[t.toUpperCase()]) { b.innerHTML = esc(NAMES[t.toUpperCase()]) + ' <span style="font-weight:400;font-size:12px;color:var(--t2)">' + esc(t) + '</span>'; } }); }
 // ── 讀取 ──
 var CI=[], MH=[], NR=[], HO=[];
-var NAMES={}, CNT={}; var NAVS_ALL=[['c-grp','💬 群組','n-grp'],['c-ci','💌 客人','n-ci'],['c-uq','❓ 問題','n-uq'],['c-mh','🍽 飲食','n-mh'],['c-bk','📅 預約','n-bk'],['c-dx','🩺 交辦','n-dx'],['c-nr','📝 沒記錄','n-nr'],['c-ho','📋 交接','n-ho']], NAVS=NAVS_ALL;
+var NAMES={}, CNT={}; try { var _nc = JSON.parse(localStorage.getItem('mx_staff_names')||'{}'); for (var _k in _nc) NAMES[_k] = _nc[_k]; } catch(e){} var NAVS_ALL=[['c-grp','💬 群組','n-grp'],['c-ci','💌 客人','n-ci'],['c-uq','❓ 問題','n-uq'],['c-mh','🍽 飲食','n-mh'],['c-bk','📅 預約','n-bk'],['c-dx','🩺 交辦','n-dx'],['c-nr','📝 沒記錄','n-nr'],['c-ho','📋 交接','n-ho']], NAVS=NAVS_ALL;
 function renderNav(){ $('nav').innerHTML = NAVS.map(function(x){ var n=$(x[2])?$(x[2]).textContent:''; return '<a href="#" onclick="jump(\''+x[0]+'\');return false">'+x[1]+(n&&n!=='0'&&n!=='…'?' <b>'+esc(n)+'</b>':'')+'</a>'; }).join(''); }
 function jump(id){ var el=$(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
 function nm(cid){ return NAMES[String(cid||'').toUpperCase()] || cid || ''; }
@@ -234,7 +236,7 @@ function loadCoach(){ api({action:'getClients'}).then(function(d){ var L=(d&&d.i
   $('b-co').innerHTML = L.length ? L.map(function(c){ var ok=String(c.coachConsent||'')==='Y'; return '<div class="it"><div class="meta"><b>'+esc(c.name||c.id)+'</b><span>'+esc(c.id)+'</span>'+(ok?'<span class="tag" style="background:var(--g2);color:var(--g3)">已同意分享</span>':'<span class="tag" style="background:#FDECC8;color:#8A5A0A">還沒同意分享</span>')+'</div><div class="row"><button class="sm pri" onclick="openAdmin(\'clients\',\''+esc(c.id)+'\',\''+esc(c.name||'')+'\')">📂 學員卡</button></div></div>'; }).join('') : '<div class="empty">目前沒有指派給你的學員。請秘書在客人檔案的「負責教練」選你的名字。</div>'; }); }
 function loadAll(){ if (MODE==='coach') { NAVS=[]; renderNav(); loadCoach(); return; }
   if (MODE==='doctor') { NAVS=NAVS_ALL.filter(function(x){ return x[0]==='c-uq'||x[0]==='c-ho'; }); loadClock(); loadHO(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); return; }
-  NAVS=NAVS_ALL; loadClock(); loadGroup(); loadCI(); loadMH(); loadNR(); loadHO(); loadBK(); loadDX(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); loadUQ(); }); renderNav(); }
+  NAVS=NAVS_ALL; loadClock(); loadGroup(); loadCI(); loadMH(); loadNR(); loadHO(); loadBK(); loadDX(); api({action:'getClients'}).then(function(d){ ((d&&d.items)||[]).forEach(function(c){ NAMES[String(c.id||'').toUpperCase()]=c.name; }); try { localStorage.setItem('mx_staff_names', JSON.stringify(NAMES)); } catch(e){} fillNames(); loadUQ(); }); renderNav(); }
 var CLK={on:false,last:'',busy:false};
 function loadClock(){ api({action:'getClockStatus', secretary:S.name}).then(function(d){ var items=(d&&d.items)||[]; var sh=(d&&d.shifts)||{}, f=function(a){return (a||[]).map(function(x){return x.start+'～'+x.end;}).join('、');};
   var last=items.length?items[items.length-1]:null, firstIn=items.filter(function(x){return x.type==='上班';})[0];
