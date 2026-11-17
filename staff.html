@@ -50,6 +50,7 @@ textarea{min-height:84px;resize:vertical}
 .foot{text-align:center;font-size:13px;color:var(--t3);margin-top:18px}
 .foot a{color:var(--g)}
 [hidden]{display:none!important}
+.golink{display:inline-block;background:var(--g2);color:var(--g3,#085041);font-weight:700;border-radius:8px;padding:1px 8px;margin:2px 0;text-decoration:none;border:1px solid var(--g)}
 </style></head>
 <body><div class="wrap">
 <div class="top"><h1 id="ttl">🧑‍💼 秘書工作台</h1><div class="who" id="who"></div></div>
@@ -299,10 +300,16 @@ function loadNR(){ api({action:'getNoRecordClients'}).then(function(d){ NR=(d&&d
       + '<div class="row" id="nrbtn'+i+'"><button class="sm" onclick="$(\'nrbox'+i+'\').hidden=false;$(\'nrbtn'+i+'\').hidden=true">'+(rm?'再傳一次':'💌 傳提醒')+'</button></div></div>'; }).join('') : '<div class="empty">今天大家都記錄了 🎉</div>'; }); }
 function nrSend(i,btn){ var c=NR[i]; if(!c) return; var r=readReply('nr'+i); if(!r.text){ toast('先點一句或自己打字'); return; } btn.disabled=true;
   api({action:'sendGift', clientId:c.clientId, giftType:r.gift||'message', message:'📝 秘書提醒：'+r.text, secretary:S.name}, true).then(function(d){ toast(d.status==='ok'?'💌 已提醒 '+(c.name||c.clientId):(d.message||'送出失敗')); loadNR(); }); }
+// 2026-11-17 交接留言裡「👉 財務登記 → 客人方案 → 新增方案」這種指引，變成可以點的連結：直接打開完整後台的那一頁、捲到那張卡片
+var HO_PG=[['客戶管理','clients'],['客人名單','clients'],['客人檔案','clients'],['財務登記','finance-entry'],['帳號管理','accounts'],['排班交接','duty'],['排班','duty'],['全域設定','global'],['系統設定','global'],['月結算','settlement'],['分帳規則','rules'],['分帳角色','roles'],['儲值','stored-value'],['會計核查','review'],['警示看板','alerts'],['複檢提醒','remind'],['診所管理','clinic-slots'],['檢測整合','lab-integrate']];
+function hoPage(w){ var f=String(w||'').split('→')[0].trim(); for (var i=0;i<HO_PG.length;i++) if (f.indexOf(HO_PG[i][0])===0) return HO_PG[i][1]; return ''; }
+function hoLink(s){ return esc(s).replace(/👉\s*([^👉🔴🟡\n，,。；;（(]+)/g, function(m, w){ var w2=w.replace(/\s+$/,''); var pg=hoPage(w2); if (!pg) return m;
+  return '<a href="#" class="golink" data-pg="'+pg+'" data-w="'+w2+'" onclick="goAdminWhere(this);return false">👉 '+w2+' ↗</a>'+m.slice(m.indexOf(w)+w2.length); }); }
+function goAdminWhere(a){ openAdmin(a.getAttribute('data-pg'), '', '', a.getAttribute('data-w')); }
 function hoVisible(h){ var to=String(h.toSecretary||''); if(!to || /大家|全部|所有/.test(to)) return true; if (S.name && to.indexOf(S.name)>=0) return true; if (S.role && to.indexOf(S.role)>=0) return true; return /秘書/.test(to) && /秘書/.test(S.role); }
 function loadHO(){ api({action:'getHandover'}).then(function(d){ HO=((d&&d.items)||[]).filter(hoVisible).slice(0,30); setN('n-ho', HO.length);
   $('b-ho').innerHTML = HO.length ? HO.map(function(h,i){ return '<div class="it"><div class="meta"><b>'+esc(h.fromSecretary||'前一班')+'</b><span>'+esc(h.date)+'</span>'+(h.toSecretary?'<span class="tag">給 '+esc(h.toSecretary)+'</span>':'')+'</div>'
-    + (h.important?'<div class="txt" style="color:var(--red);font-weight:700">⚠️ '+esc(h.important)+'</div>':'') + (h.pendingClients?'<div class="txt">👤 '+esc(h.pendingClients)+'</div>':'') + (h.note?'<div class="txt">'+esc(h.note)+'</div>':'')
+    + (h.important?'<div class="txt" style="color:var(--red);font-weight:700">⚠️ '+hoLink(h.important)+'</div>':'') + (h.pendingClients?'<div class="txt">👤 '+esc(h.pendingClients)+'</div>':'') + (h.note?'<div class="txt">'+hoLink(h.note)+'</div>':'')
     + '<div class="row">'+(hoRef(h)?'<button class="goto" onclick="goRef(\''+hoRef(h)+'\')">👉 去處理</button>':'')+'<button class="sm" onclick="hoAck('+i+',this)">✅ 已看過</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
 // ── 🆕 新朋友待核實（2026-11-17）──
 var UV=[], UVS=[];
@@ -395,11 +402,11 @@ function loadDX(){ api({action:'getMyDoctorTasks', staffName:S.name}).then(funct
 function dxDone(i,btn){ var t=DX[i]; if(!t) return; btn.disabled=true; api({action:'completeDoctorTask', row:t.row, staffName:S.name}, true).then(function(d){ toast(d.status==='ok'?'✅ 已完成':(d.message||'失敗')); loadDX(); }); }
 
 // ── 完整後台：把這次的登入交給電腦版後台（同一個網站、同一個 token），直接跳到指定頁面或客人檔案 ──
-function openAdmin(page, cid, name){
+function openAdmin(page, cid, name, where){
   if (!S.token) { toast('請先登入'); return; }
   try {
     sessionStorage.setItem('mx_admin_sess', JSON.stringify({ user:{ username:S.user, role:S.role, name:S.name, extraPages:S.extraPages||[], canEditClients:S.canEditClients!==false, otherRoles:S.otherRoles||[] }, token:S.token }));
-    sessionStorage.setItem('mx_admin_go', JSON.stringify({ page: page||'dashboard', cid: cid||'', name: name||'' }));
+    sessionStorage.setItem('mx_admin_go', JSON.stringify({ page: page||'dashboard', cid: cid||'', name: name||'', where: where||'' }));
     sessionStorage.setItem('mx_from_staff', '1');
   } catch(e){}
   location.href = 'admin.html';
