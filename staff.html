@@ -88,6 +88,9 @@ textarea{min-height:84px;resize:vertical}
   <div class="card" id="c-clk"><h2>⏰ 上下班打卡</h2>
     <div class="clock"><div class="st" id="clk-st">讀取中…</div><button class="sm pri" id="clk-in" onclick="clockDo('clockIn',this)">上班打卡</button><button class="sm" id="clk-out" onclick="clockDo('clockOut',this)">下班打卡</button></div>
   </div>
+  <div class="card" id="c-uv"><h2>🆕 新朋友待核實 <span class="badge" id="n-uv">…</span></h2>
+    <div class="sub">在 APP 自己註冊的新朋友。確認是真人（對手機、打電話或問介紹單位）後：補全名、指定負責秘書、選陪跑狀態，按「核實完成」。不是真人就刪除。相關的紅字急件提醒會自動消失。</div>
+    <div id="b-uv"><div class="empty">讀取中…</div></div></div>
   <div class="card" id="c-grp"><h2>💬 群組裡等你回 <span class="badge" id="n-grp">…</span></h2>
     <div class="sub">AI 在客人的陪跑群裡請真人處理的。請直接到那個 LINE 群組回覆，回了系統會自動記錄是誰、幾點回的。</div>
     <div id="b-grp"><div class="empty">讀取中…</div></div></div>
@@ -107,9 +110,6 @@ textarea{min-height:84px;resize:vertical}
   <div class="card" id="c-nr"><h2>📝 今天還沒記錄 <span class="badge" id="n-nr">…</span></h2>
     <div class="sub">客人記錄後才會從名單消失；已提醒的會標出來。</div>
     <div id="b-nr"><div class="empty">讀取中…</div></div></div>
-  <div class="card" id="c-uv"><h2>🆕 新朋友待核實 <span class="badge" id="n-uv">…</span></h2>
-    <div class="sub">在 APP 自己註冊的新朋友。確認是真人（對手機、打電話或問介紹單位）後：補全名、指定負責秘書、選陪跑狀態，按「核實完成」。不是真人就刪除。相關的紅字急件提醒會自動消失。</div>
-    <div id="b-uv"><div class="empty">讀取中…</div></div></div>
   <div class="card" id="c-ho"><h2>📋 交接留言 <span class="badge" id="n-ho">…</span></h2>
     <div id="b-ho"><div class="empty">讀取中…</div></div></div>
   <div class="row"><button onclick="loadAll()">🔄 重新整理</button></div>
@@ -249,7 +249,7 @@ function setN(id,n,hot){ var b=$(id); b.textContent=n; b.className='badge'+(hot&
 function fillNames(){ document.querySelectorAll('.it .meta b').forEach(function(b){ var t=(b.textContent||'').trim(); if (/^C\d{4,6}$/i.test(t) && NAMES[t.toUpperCase()]) { b.innerHTML = esc(NAMES[t.toUpperCase()]) + ' <span style="font-weight:400;font-size:12px;color:var(--t2)">' + esc(t) + '</span>'; } }); }
 // ── 讀取 ──
 var CI=[], MH=[], NR=[], HO=[];
-var NAMES={}, CNT={}; try { var _nc = JSON.parse(localStorage.getItem('mx_staff_names')||'{}'); for (var _k in _nc) NAMES[_k] = _nc[_k]; } catch(e){} var NAVS_ALL=[['c-grp','💬 群組','n-grp'],['c-ci','💌 客人','n-ci'],['c-uq','❓ 問題','n-uq'],['c-mh','🍽 飲食','n-mh'],['c-bk','📅 預約','n-bk'],['c-dx','🩺 交辦','n-dx'],['c-nr','📝 沒記錄','n-nr'],['c-uv','🆕 核實','n-uv'],['c-ho','📋 交接','n-ho']], NAVS=NAVS_ALL;
+var NAMES={}, CNT={}; try { var _nc = JSON.parse(localStorage.getItem('mx_staff_names')||'{}'); for (var _k in _nc) NAMES[_k] = _nc[_k]; } catch(e){} var NAVS_ALL=[['c-uv','🆕 核實','n-uv'],['c-grp','💬 群組','n-grp'],['c-ci','💌 客人','n-ci'],['c-uq','❓ 問題','n-uq'],['c-mh','🍽 飲食','n-mh'],['c-bk','📅 預約','n-bk'],['c-dx','🩺 交辦','n-dx'],['c-nr','📝 沒記錄','n-nr'],['c-ho','📋 交接','n-ho']], NAVS=NAVS_ALL;
 function renderNav(){ $('nav').innerHTML = NAVS.map(function(x){ var n=$(x[2])?$(x[2]).textContent:''; return '<a href="#" onclick="jump(\''+x[0]+'\');return false">'+x[1]+(n&&n!=='0'&&n!=='…'?' <b>'+esc(n)+'</b>':'')+'</a>'; }).join(''); }
 function jump(id){ var el=$(id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
 function nm(cid){ return NAMES[String(cid||'').toUpperCase()] || cid || ''; }
@@ -312,10 +312,11 @@ function loadUV(){ api({action:'getUnverifiedClients'}).then(function(d){ UV=(d&
     return '<div class="it" id="it-V-'+esc(c.id)+'"><div class="meta"><b>'+esc(c.name)+'</b><span>'+esc(c.id)+'</span>'+fileLink(c.id,c.name)+'<span>'+esc(c.joined)+' 註冊</span></div>'
       + '<div class="txt">📱 '+(ph?'<a href="tel:'+ph+'" style="color:var(--g)">'+esc(c.phone)+'</a>':'（沒有填手機）')+'</div>'
       + (c.dupOf?'<div class="hint" style="background:#FDECC8;color:#8A5A0A">⚠️ 跟已有的客人「'+esc(c.dupOf)+'」手機或名字一樣，可能是同一個人重複註冊——是的話請刪除這筆，或告訴管理人合併。</div>':'')
+      + '<div class="row" id="uvbtn'+i+'"><button class="sm pri" onclick="$(\'uvbox'+i+'\').hidden=false;$(\'uvbtn'+i+'\').hidden=true">✍️ 核實這位</button></div><div id="uvbox'+i+'" hidden>'
       + '<label style="font-size:12px;color:var(--t2);display:block;margin-top:8px">全名</label><input id="uvn-'+i+'" value="'+esc(c.name)+'" maxlength="20">'
       + '<label style="font-size:12px;color:var(--t2);display:block;margin-top:6px">負責秘書</label><select id="uvs-'+i+'" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)">'+secOpt+'</select>'
       + '<label style="font-size:12px;color:var(--t2);display:block;margin-top:6px">陪跑狀態</label><select id="uvt-'+i+'" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--line)"><option value="一般客人">一般客人（還沒買方案，只有免費功能）</option><option value="陪跑中">陪跑中（已付費，打開全部功能）</option></select>'
-      + '<div class="row"><button class="pri" onclick="uvDo('+i+',\'ok\',this)">✅ 核實完成</button><button onclick="uvDo('+i+',\'fake\',this)">🗑 不是真人，刪除</button></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
+      + '<div class="row"><button class="pri" onclick="uvDo('+i+',\'ok\',this)">✅ 核實完成</button><button onclick="uvDo('+i+',\'fake\',this)">🗑 不是真人，刪除</button></div></div></div>'; }).join('') : '<div class="empty">目前沒有 🎉</div>'; }); }
 function uvDo(i,res,btn){ var c=UV[i]; if(!c) return;
   if (res==='fake' && btn.getAttribute('data-sure')!=='1') { btn.setAttribute('data-sure','1'); btn.textContent='再按一次確定刪除'; btn.style.color='var(--red)'; return; }
   var nm=$('uvn-'+i).value.trim(); if (res==='ok' && Array.from(nm).length<2) { toast('請填全名（至少 2 個字）'); return; }
@@ -330,7 +331,7 @@ function hoAck(i,btn){ var h=HO[i]; if(!h) return; btn.disabled=true; api({actio
 // ── 交接留言「（原：X第N列）」→ 直接跳到可以處理的那一筆（N＝客人留言／飲食求助，U／C＝答不出的問題，B＝預約，D＝醫師交辦）──
 function hoRef(h){ var m=/（原：([NUCBD])第(\d+)列）/.exec(String(h.note||'')+String(h.important||'')); if (m) return (m[1]==='C'?'U':m[1])+'-'+m[2];
   var t=String(h.important||'')+String(h.note||''), c=/C\d{4,6}/i.exec(String(h.pendingClients||'')); return (/自助註冊/.test(t) && c) ? 'V-'+c[0].toUpperCase() : ''; }
-function goRef(ref){ var el=$('it-'+ref); if(!el){ toast('這件已經處理好了（或已經結案），按「已看過」就可以', 3500); return; } el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+function goRef(ref){ var el=$('it-'+ref); if (el && /^V-/.test(ref)) { var bx=el.querySelector('[id^=uvbox]'), bt=el.querySelector('[id^=uvbtn]'); if (bx) bx.hidden=false; if (bt) bt.hidden=true; } if(!el){ toast('這件已經處理好了（或已經結案），按「已看過」就可以', 3500); return; } el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 // ── ❓ 客人問了答不出的問題（跟電腦版後台「客人未回答的問題」同一套動作）──
 var UQ=[], UQ_PRO=false, UQ_ART={};
 function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=((d&&d.items)||[]).filter(function(q){ return MODE!=='doctor' || q.askTo==='醫師'; }); UQ_PRO=!!(d&&d.canPro); setN('n-uq', UQ.length, UQ.length>0);
