@@ -124,6 +124,25 @@ function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function toast(m,ms){ var t=document.createElement('div'); t.className='toast'; t.textContent=m; document.body.appendChild(t); setTimeout(function(){t.remove();}, ms||2600); }
 // 2026-11-16：一次最多同時 3 個請求排隊送出——一口氣送太多會把後端塞住，連 LINE 群組的 AI 都會跟著卡住
+// 2026-11-17：讀取請求（get…／check…）120 毫秒內每 8 個打包成一次送出（後端 action=batch），同一個請求同時要多次只送一次；打包失敗自動改回一個一個送
+(function(){ var _f=window.fetch.bind(window), inflight={}, pend=[], timer=null, BATCH=8;
+  function one(g){ _f(g.u).then(function(r){ return r.text(); }).then(g.res,g.rej); }
+  function flush(){ timer=null; var list=pend.splice(0); for (var s=0; s<list.length; s+=BATCH) send(list.slice(s,s+BATCH)); }
+  function send(group){ if (group.length===1) { one(group[0]); return; }
+    _f(String(group[0].u).split('?')[0],{method:'POST',body:JSON.stringify({action:'batch',calls:group.map(function(g,k){ return {k:String(k),p:g.p}; })})})
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if (!d || !d.batch || !d.results) throw new Error('nobatch'); group.forEach(function(g,k){ var x=d.results[String(k)]; if (x) g.res(JSON.stringify(x)); else one(g); }); })
+      .catch(function(){ group.forEach(one); }); }
+  window.fetch=function(u,o){ var us=String(u&&u.url||u);
+    if (us.indexOf('script.google.com/macros')<0 || (o && o.method && String(o.method).toUpperCase()!=='GET')) return _f(u,o);
+    var p={}; try { new URL(us).searchParams.forEach(function(v,k){ p[k]=v; }); } catch(e){}
+    if (!/^(get|check)/.test(String(p.action||''))) return _f(u,o);
+    if (!inflight[us]) { inflight[us]=new Promise(function(res,rej){ pend.push({u:us,p:p,res:res,rej:rej}); if (!timer) timer=setTimeout(flush,120); });
+      inflight[us].then(function(){ delete inflight[us]; },function(){ delete inflight[us]; }); }
+    var sig=o&&o.signal;
+    return new Promise(function(res,rej){ if (sig) { if (sig.aborted) return rej(new Error('abort')); sig.addEventListener('abort',function(){ rej(new Error('abort')); }); }
+      inflight[us].then(function(t){ res(new Response(t,{status:200,headers:{'Content-Type':'application/json'}})); },rej); }); };
+})();
 var _qA=0,_qL=[]; function qfetch(u,o){ return new Promise(function(res,rej){ _qL.push([u,o,res,rej]); _qN(); }); }
 function _qN(){ while(_qA<3 && _qL.length){ var it=_qL.shift(); _qA++; var o=Object.assign({}, it[1]||{}), ac=null, tm=null; try { ac=new AbortController(); o.signal=ac.signal; tm=setTimeout(function(c){ return function(){ try{ c.abort(); }catch(e){} }; }(ac), 25000); } catch(e){} // 2026-11-16：後端卡住時 25 秒就放棄重試，不要讓畫面一直空白
     (function(tm){ return fetch(it[0],o).then(function(r){ clearTimeout(tm); return r; },function(e){ clearTimeout(tm); throw e; }); })(tm).then(function(r){ _qA--; _qN(); return r; },function(e){ _qA--; _qN(); throw e; }).then(it[2],it[3]); } }
