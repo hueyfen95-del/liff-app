@@ -61,8 +61,8 @@ textarea{min-height:84px;resize:vertical}
   <div class="card">
     <h2>登入</h2>
     <div class="sub" id="login-note">用後台的帳號和密碼登入。從 LINE 打開時，第一次登入會把這個 LINE 綁定好，之後打開就自動登入。</div>
-    <label for="lu">帳號</label><input id="lu" autocomplete="username" autocapitalize="off">
-    <label for="lp">密碼</label><input id="lp" type="password" autocomplete="current-password">
+    <label for="lu">帳號</label><input id="lu" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();$('lp').focus();}">
+    <label for="lp">密碼</label><input id="lp" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();doLogin();}">
     <div class="row"><button class="pri" id="lbtn" onclick="doLogin()">登入</button></div>
     <div class="err" id="lerr"></div>
     <div style="text-align:center;margin-top:14px;font-size:13px"><a href="#" onclick="toClient();return false" style="color:var(--g)">👤 我是客人 ➜ 回到客人 APP</a></div>
@@ -173,14 +173,22 @@ function applyMode(){ MODE=pickMode(); var show = MODE==='coach' ? ['c-co'] : (M
   if (MODE==='doctor') { $('adm-chips').innerHTML = [['dashboard','🏠 後台首頁'],['clients','👤 客人檔案'],['all-tests','🧪 全部客人檢測總表'],['lab-integrate','🔬 檢測整合'],['extra-test','➕ 功能醫學加測建議'],['duty','🗓 排班']].map(function(x){ return '<span class="chip" onclick="openAdmin(\''+x[0]+'\')">'+x[1]+'</span>'; }).join('');
     var h2=document.querySelector('#c-uq h2'); if(h2) h2.firstChild.textContent='🩺 客人問醫師的問題 '; var sb=document.querySelector('#c-uq .sub'); if(sb) sb.textContent='客人在 APP 指定問醫師的題目。直接寫下你的回覆按送出，客人就會在 APP 收到，這題也會結案。'; } }
 function showMain(){ if ($('v-boot')) $('v-boot').hidden = true; $('v-login').hidden = true; $('v-main').hidden = false; $('who').innerHTML = esc(S.name)+'<br>'+esc(S.role)+(S.bound?'・已綁定 LINE':''); try { localStorage.setItem('mx_pref_role','staff'); } catch(e){} $('acts').hidden=false; applyMode(); loadAll(); }
+// 2026-11-18 婷婷反映：填帳號要試好幾次、字打了沒反應——①先讓輸入法把還在選字的字送出（blur）再讀欄位 ②全形英數字轉半形、去掉前後空白 ③按鍵盤「前往」也能登入 ④等待時顯示秒數，不會以為當掉 ⑤按過一次就不能重複按
+function _lnorm(s){ return String(s||'').replace(/[\uFF01-\uFF5E]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0xFEE0); }).replace(/[\u3000\u00A0\u200B]/g,' ').trim(); }
+var _lbusy=false;
 function doLogin(){
-  var u=$('lu').value.trim(), p=$('lp').value; if(!u||!p){ $('lerr').textContent='請輸入帳號和密碼'; return; }
-  $('lbtn').disabled=true; $('lerr').textContent='登入中…（第一次比較慢，請稍等）';
+  if (_lbusy) return;
+  try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch(e){}
+  setTimeout(function(){
+  var u=_lnorm($('lu').value), p=_lnorm($('lp').value); if(!u||!p){ $('lerr').textContent='請輸入帳號和密碼'; return; }
+  _lbusy=true; $('lbtn').disabled=true; var t0=Date.now(), tick=setInterval(function(){ var s=Math.round((Date.now()-t0)/1000); $('lerr').textContent='登入中… '+s+' 秒（第一次比較慢，最多約 30 秒，請不要關掉）'; },1000);
+  $('lerr').textContent='登入中…（第一次比較慢，請稍等）';
   api({action:'staffLineBind', username:u, password:p, lineToken:LT}, true).then(function(d){
-    $('lbtn').disabled=false;
+    clearInterval(tick); _lbusy=false; $('lbtn').disabled=false;
     if (d.status==='ok' && d.token) { $('lerr').textContent=''; saveSess(d); S.bound=!!d.bound; if (d.bound) toast('✅ 已綁定這個 LINE，下次打開會自動登入'); showMain(); }
-    else $('lerr').textContent = d.message || '登入失敗';
+    else $('lerr').textContent = (d.message || '登入失敗') + (/連線/.test(d.message||'') ? '（帳號密碼不用重打，直接再按一次「登入」）' : (/錯誤|不符|失敗/.test(d.message||'') ? '（請對照私訊給你的帳號密碼，大小寫沒關係）' : ''));
   });
+  }, 80);
 }
 // 2026-11-16 創辦人：客人／工作人員自由切換、要能回到 LINE
 function toClient(){ try { localStorage.setItem('mx_pref_role','client'); } catch(e){} location.href = 'index.html?client=1'; }
