@@ -357,7 +357,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-11-17d';
+var MX_BUILD = '2026-11-18a';
 // 2026-11-16：後台一打開會同時送出 30 幾個請求，Apps Script 一次塞太多會全部變慢（實測每個要 2 分鐘），
 // 連 LINE 群組的 AI 小秘書都收不到客人的訊息。改成同時最多 4 個，其餘排隊依序送出。
 // 2026-11-17 創辦人「先小改」：①同一個讀取請求同時要好幾次（客人名單 3 次、排班 2 次…）只送一次大家共用
@@ -6954,6 +6954,7 @@ function loadQAAdmin(){
   document.getElementById('qa-list-admin').innerHTML='<div style="text-align:center;padding:24px;color:var(--text3);font-size:12px">載入中…</div>';
   adminAPI({action:'getQAAdmin'}, function(d){
     _qaAdminData = d.items || [];
+    _qaAdminData.sort(function(a,b){ var pa=(a.learned&&!a.reviewed)?0:1, pb=(b.learned&&!b.reviewed)?0:1; return pa-pb; }); // 待抽查的排最上面
     var on=0, off=0;
     var html='';
     _qaAdminData.forEach(function(it,idx){
@@ -6961,10 +6962,11 @@ function loadQAAdmin(){
       if(active) on++; else off++;
       html += '<div class="symptom-row" style="'+(active?'':'opacity:.5')+'">'
         + '<div class="sr-em">💬</div>'
-        + '<div style="flex:1;min-width:0"><div class="sr-name">'+escH(it.symptom)+'</div>'
-        + '<div class="sr-meta" style="white-space:normal">'+escH(it.question)+'</div></div>'
+        + '<div style="flex:1;min-width:0"><div class="sr-name">'+escH(it.symptom)+(it.learned?' <span class="badge '+(it.reviewed?'g':'a')+'" style="font-weight:400">🤖 群組學習'+(it.reviewed?'・已抽查':'・待抽查')+'</span>':'')+'</div>'
+        + '<div class="sr-meta" style="white-space:normal">'+escH(it.question)+(it.learned?'<br><span style="opacity:.7">'+escH(it.source)+'</span>':'')+'</div></div>'
         + '<span class="badge '+(active?'g':'a')+'">'+(active?'上線中':'停用')+'</span>'
         + '<div class="sr-actions">'
+        + (it.learned&&!it.reviewed?'<button class="icon-btn" title="看過了，答案沒問題（2026-11-18 創辦人：群組學到的秘書回答要抽查）" onclick="reviewQAItem('+idx+')" style="color:var(--g3)"><i class="ti ti-checks"></i></button>':'')
         + '<button class="icon-btn" title="複製回覆（貼到LINE後再加上自己的話）" onclick="copyQAAnswer('+idx+')" style="color:var(--g3)"><i class="ti ti-copy"></i></button>'
         + '<button class="icon-btn" title="編輯" onclick="editQAItem('+idx+')"><i class="ti ti-edit"></i></button>'
         + '<button class="icon-btn del" title="'+(active?'停用':'重新上線')+'" onclick="toggleQAStatus('+idx+')"><i class="ti ti-'+(active?'eye-off':'eye')+'"></i></button>'
@@ -7015,6 +7017,13 @@ function saveQAItem(btn){
     if(btn){ btn.disabled=false; btn.style.opacity=''; }
     if(d.status==='ok'){toast(row?'✅ 已更新「'+symptom+'」':'✅ 已新增「'+symptom+'」');toggleQAForm(false);loadQAAdmin();}
     else toast('⚠️ 儲存失敗：'+(d.message||'請重試'));
+  });
+}
+function reviewQAItem(idx){
+  var it=_qaAdminData[idx]; if(!it)return;
+  adminAPIPost({action:'reviewQAItem',row:it.row}, function(d){
+    if(d.status==='ok'){toast('✅ 「'+it.symptom+'」已標示抽查過');loadQAAdmin();}
+    else toast('⚠️ 操作失敗，請重試');
   });
 }
 function toggleQAStatus(idx){
@@ -10784,7 +10793,7 @@ function loadOversight(){
   });
 }
 // 2026-11-03c 疏漏提醒的「👉 去處理」膠囊可以直接點：跳到對應頁面，並盡量捲到該區塊、閃一下金框提示
-var OV_PG=[['客戶管理','clients'],['客人名單','clients'],['客人檔案','clients'],['財務登記','finance-entry'],['帳號管理','accounts'],['排班交接','duty'],['排班','duty'],['全域設定','global'],['系統設定','global'],['月結算','settlement'],['分帳規則','rules'],['分帳角色','roles'],['儲值','stored-value'],['會計核查','review'],['警示看板','alerts'],['複檢提醒','remind'],['診所管理','clinic-slots']];
+var OV_PG=[['FAQ 問答','faq-mgmt'],['FAQ','faq-mgmt'],['問答','faq-mgmt'],['客戶管理','clients'],['客人名單','clients'],['客人檔案','clients'],['財務登記','finance-entry'],['帳號管理','accounts'],['排班交接','duty'],['排班','duty'],['全域設定','global'],['系統設定','global'],['月結算','settlement'],['分帳規則','rules'],['分帳角色','roles'],['儲值','stored-value'],['會計核查','review'],['警示看板','alerts'],['複檢提醒','remind'],['診所管理','clinic-slots']];
 function ovGo(w){
   w=String(w||'');
   var parts=w.split('→').map(function(x){return x.trim();}).filter(Boolean);
