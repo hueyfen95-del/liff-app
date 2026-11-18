@@ -1136,6 +1136,12 @@ window.openHealthForm = function() {
 #itc-ov,#itc-bg,#itc-ins,#itc-met,#itc-org,#itc-bod,#itc-matrix{padding:14px 16px 28px}
 .page#p-irct .resist-row{display:flex!important}
 </style><div class="page" id="p-irct">
+  <!-- 2026-11-18：我的採檢叮嚀（每位客人專屬的文字卡片；沒有這位客人的檔案就不顯示） -->
+  <div id="mx-pretest-card" style="display:none;margin:14px 14px 0">
+    <div style="font-size:15px;font-weight:800;color:#1f6f8b;margin-bottom:2px">📋 我的採檢叮嚀</div>
+    <div style="font-size:12px;color:#666;line-height:1.6">秘書為你整理的檢測前準備，請依日期照著做。</div>
+    <div id="mx-pretest-body"></div>
+  </div>
 
   <!-- ══════════════════════════════════ -->
   <!-- 情境一：從未預約過 IRCT -->
@@ -2664,6 +2670,7 @@ function loadMyRewards(){
   });
 }
 function goPage(id,title){
+  if(id==='irct' && typeof mxLoadPretest==='function') setTimeout(mxLoadPretest,50);
   if(id==='food' && typeof loadKetoRestaurants==='function') setTimeout(loadKetoRestaurants,150);
   if(id==='food' && typeof fCatsCheckEnd==='function') setTimeout(fCatsCheckEnd,150);
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on')});
@@ -10463,6 +10470,28 @@ function mxCellPop(msg){
     showShareSheet(text,'no-picker');
   };
 })();
+</script>
+<script>
+// 2026-11-18：每位客人的「採檢叮嚀」卡片。內容放在網站根目錄 pretest-客人編號.js，
+// 沒有這個檔案就不顯示；新增客人只要多放一個檔案，不用改這支程式。
+function mxLoadPretest(){
+  try{
+    var cid = (typeof CLIENT_ID!=='undefined') ? CLIENT_ID : '';
+    var card = document.getElementById('mx-pretest-card');
+    if(!cid || !card) return;
+    function show(){
+      var d = window.MX_PRETEST && window.MX_PRETEST[cid];
+      if(d){ document.getElementById('mx-pretest-body').innerHTML = d; card.style.display = 'block'; }
+    }
+    if(window.MX_PRETEST && window.MX_PRETEST[cid]){ show(); return; }
+    if(window['_mxPretestTried_'+cid]) return;
+    window['_mxPretestTried_'+cid] = true;
+    var sc = document.createElement('script');
+    sc.src = 'pretest-' + encodeURIComponent(cid) + '.js?v=20261118';
+    sc.onload = show; sc.onerror = function(){ window['_mxPretestTried_'+cid] = false; };
+    document.head.appendChild(sc);
+  }catch(e){}
+}
 </script>
 </body>
 </html>
