@@ -357,7 +357,7 @@ table.dt{width:100%;border-collapse:collapse;font-size:12px}
 // 最新的內容指紋（etag，檔案內容一變它就跟著變）：跟上次記住的不一樣＝GitHub 上有新版
 // → 立刻用全新的網址參數強制重新載入一次，保證拿到最新版。只在剛開頁面時檢查，
 // 不會在使用到一半突然刷新打斷工作；sessionStorage 防呆保證同一個新版最多只強制刷新一次。
-var MX_BUILD = '2026-11-18a';
+var MX_BUILD = '2026-11-18b';
 // 2026-11-16：後台一打開會同時送出 30 幾個請求，Apps Script 一次塞太多會全部變慢（實測每個要 2 分鐘），
 // 連 LINE 群組的 AI 小秘書都收不到客人的訊息。改成同時最多 4 個，其餘排隊依序送出。
 // 2026-11-17 創辦人「先小改」：①同一個讀取請求同時要好幾次（客人名單 3 次、排班 2 次…）只送一次大家共用
@@ -780,10 +780,7 @@ var MX_BUILD = '2026-11-18a';
           <input id="client-search" oninput="clientSearchFilter()" onkeydown="if(event.key==='Enter'){var _s=document.getElementById('client-select');if(_s&&_s.value)loadClientRecords();}" placeholder="🔍 打姓名或編號就能找到客人（例：王寶娟 或 C00194），按 Enter 直接查詢" style="width:100%;border:0.5px solid var(--border);border-radius:10px;padding:9px 11px;font-size:13px;margin-bottom:8px;background:var(--bg);color:var(--text)">
           <div style="display:flex;gap:9px;margin-bottom:11px">
             <select id="client-select" class="form-select" style="flex:1">
-              <option value="C001">陳小美</option>
-              <option value="C002">張建國</option>
-              <option value="C003">黃美華</option>
-              <option value="C004">王大明</option>
+              <option value="">載入客人名單中…</option>
             </select>
             <button class="btn-g" onclick="loadClientRecords()">查詢記錄</button>
           </div>
@@ -2029,10 +2026,7 @@ var MX_BUILD = '2026-11-18a';
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px">
         <select id="plan-client" class="form-select">
           <option value="">請選擇客人…</option>
-          <option value="C001">陳小美</option>
-          <option value="C002">張建國</option>
-          <option value="C003">黃美華</option>
-          <option value="C004">王大明</option>
+          <option value="">載入客人名單中…</option>
         </select>
         <input id="plan-name" placeholder="方案名稱（例如：3個月陪跑方案）" style="border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
       </div>
@@ -2072,10 +2066,7 @@ var MX_BUILD = '2026-11-18a';
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px">
         <select id="service-client" class="form-select">
           <option value="">請選擇客人…</option>
-          <option value="C001">陳小美</option>
-          <option value="C002">張建國</option>
-          <option value="C003">黃美華</option>
-          <option value="C004">王大明</option>
+          <option value="">載入客人名單中…</option>
         </select>
         <input id="service-amount" type="number" placeholder="這次收的金額 NT$" style="border:0.5px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;color:var(--text)">
       </div>
@@ -7271,7 +7262,7 @@ function fillClientSelects(){
     var sel = document.getElementById(id);
     if(!sel) return;
     var cur = sel.value;
-    var placeholder = sel.options.length && sel.options[0].value === '' ? '<option value="">'+escH(sel.options[0].textContent)+'</option>' : '';
+    var placeholder = sel.options.length && sel.options[0].value === '' && sel.options[0].textContent.indexOf('載入')<0 ? '<option value="">'+escH(sel.options[0].textContent)+'</option>' : (sel.options.length && sel.options[0].value === '' ? '<option value="">請選擇客人…</option>' : ''); // 2026-11-18 創辦人手機看到示範名（陳小美）：HTML 不再放假客人，載入前顯示「載入中」
     var html = placeholder;
     _clientsCache.forEach(function(c){
       html += '<option value="'+escH(c.id)+'">'+escH(c.name||c.id)+'（'+escH(c.id)+'）</option>';
