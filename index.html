@@ -4853,11 +4853,14 @@ function mxDoReg(){
   if (nm.length<2) { if(er) er.textContent='請輸入您的姓名'; return; }
   if (!/^0\d{8,9}$/.test(ph)) { if(er) er.textContent='請輸入正確的手機號碼（例：0912345678）'; return; }
   if (!document.getElementById('mx-reg-ok').checked) { if(er) er.textContent='請勾選同意聯絡'; return; }
+  var bd=(document.getElementById('mx-reg-birth').value||'').replace(/[^0-9]/g,''), idn=(document.getElementById('mx-reg-idno').value||'').replace(/\s/g,'').toUpperCase();
+  if (bd && !/^((19|20)\d{6}|\d{7})$/.test(bd)) { if(er) er.textContent='出生年月日請填 8 碼數字（例：19750123）'; return; }
+  if (idn && !/^[A-Z][0-9A-D]\d{8}$/.test(idn)) { if(er) er.textContent='身分證字號格式不對（1 個英文字母＋9 個數字）'; return; }
   var tok=''; try { tok = liff.getAccessToken() || ''; } catch(e){}
   if (!tok) { if(er) er.textContent='LINE 驗證失敗，請關掉本頁，從 LINE 重新開啟'; return; }
   if (btn) { btn.disabled=true; btn.style.opacity='.6'; }
   if (er) er.textContent='註冊中…';
-  callAPI({ action:'clientRegister', name:nm, phone:ph, hp:(document.getElementById('mx-reg-hp').value||''), lineAccessToken:tok, ref:_mxRefCode || '' }, function(d){
+  callAPI({ action:'clientRegister', name:nm, phone:ph, hp:(document.getElementById('mx-reg-hp').value||''), birth:bd, idno:idn, lineAccessToken:tok, ref:_mxRefCode || '' }, function(d){
     if (d && d.status==='ok' && d.clientId && d.clientToken) {
       _mxRegResult = d; if(er) er.textContent='';
       document.getElementById('mx-reg-box').style.display='none';
@@ -4866,7 +4869,7 @@ function mxDoReg(){
       document.getElementById('mx-reg-done').style.display='block';
     } else {
       if (btn) { btn.disabled=false; btn.style.opacity=''; }
-      if (er) er.textContent = (d && d.message) || '註冊失敗，請再試一次，或請現場工作人員協助';
+      if (er) er.textContent = (d && d.message) || '註冊失敗，請再試一次，或請現場工作人員協助'; if (d && d.code==='needid') { try { document.getElementById('mx-reg-birth').focus(); } catch(e){} }
     }
   });
 }
@@ -10382,6 +10385,9 @@ function mxCellPop(msg){
       <div style="font-size:11.5px;color:#8A9992;line-height:1.6;margin-bottom:8px">填姓名和手機，系統會自動給您一個客人編號。請填真實資料，工作人員會再跟您確認。</div>
       <input id="mx-reg-name" placeholder="姓名（真實姓名）" maxlength="20" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:8px">
       <input id="mx-reg-phone" placeholder="手機（例：0912345678）" inputmode="numeric" maxlength="12" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:8px">
+      <div style="font-size:11.5px;color:#8A9992;line-height:1.6;margin:2px 0 6px">下面兩欄選填，用來確認是不是已經有您的資料、避免重複建檔。身分證只存加密比對碼，看不到原號碼。</div>
+      <input id="mx-reg-birth" placeholder="出生年月日（例：19750123）" inputmode="numeric" maxlength="10" autocomplete="off" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:8px">
+      <input id="mx-reg-idno" placeholder="身分證字號（例：A123456789）" maxlength="10" autocomplete="off" autocapitalize="characters" style="width:100%;padding:12px 14px;border:1.5px solid #E2EDE7;border-radius:11px;font-size:15px;box-sizing:border-box;margin-bottom:8px">
       <input id="mx-reg-hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
       <label style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:#555;line-height:1.5;margin-bottom:10px"><input type="checkbox" id="mx-reg-ok" style="width:18px;height:18px;margin-top:1px;flex-shrink:0">我同意元代謝依「健康管理服務」使用我的姓名與手機聯絡我</label>
       <button id="mx-reg-btn" onclick="mxDoReg()" style="width:100%;padding:13px;background:#E08A00;color:#fff;border:none;border-radius:11px;font-size:15px;font-weight:700;cursor:pointer">註冊並取得編號</button>
