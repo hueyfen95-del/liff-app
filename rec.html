@@ -43,8 +43,8 @@ var app=document.getElementById('app'),bar=document.getElementById('bar'),go=doc
 var info=null,cur=null,sel={},touched={};
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
 function lab(x){return Array.isArray(x)?x[x.length-1]:String(x)}
-function getApi(){return fetch('index.html',{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){var m=t.match(/API_URL\s*=\s*['"]([^'"]+)['"]/);var lm=t.match(/var LIFF_ID\s*=\s*['"]([^'"]+)['"]/);if(lm&&window.liff){try{liff.init({liffId:lm[1]}).catch(function(){})}catch(e){}}if(!m)throw new Error('no api');return m[1]})}
-var API=null;
+function getApi(){return fetch('index.html',{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){var m=t.match(/API_URL\s*=\s*['"]([^'"]+)['"]/);var lm=t.match(/var LIFF_ID\s*=\s*['"]([^'"]+)['"]/);if(lm&&window.liff){try{LR=liff.init({liffId:lm[1]});LR.catch(function(){})}catch(e){}}if(!m)throw new Error('no api');return m[1]})}
+var API=null,LR=null;
 function call(p){return fetch(API,{method:'POST',body:JSON.stringify(p)}).then(function(r){return r.json()})}
 function showErr(t){bar.hidden=true;app.innerHTML='';var d=el('div','err',t);app.appendChild(d)}
 function mk(title,hint,arr,key,multi,opts){
@@ -113,7 +113,7 @@ go.onclick=function(){
       bar.hidden=true;app.innerHTML='';
       var d=el('div','done');d.appendChild(el('div','big','✅'));d.appendChild(el('h1','','記好了'));
       d.appendChild(el('pre','',r.summary||''));
-      var back=el('button','back','回聊天室');back.type='button';back.onclick=function(){try{if(window.liff&&liff.isInClient&&liff.isInClient()){liff.closeWindow();return}}catch(e){}try{window.close()}catch(e){}setTimeout(function(){back.textContent='請按左上角 ✕ 回到 LINE'},400)};d.appendChild(back);
+      var back=el('button','back','回聊天室');back.type='button';back.onclick=function(){back.disabled=true;var fin=function(){try{if(window.liff&&liff.isInClient&&liff.isInClient()){liff.closeWindow();return}}catch(e){}back.disabled=false;back.textContent='請按左上角 ✕ 回到 LINE'};Promise.resolve(LR).then(function(){try{if(liff.isInClient()&&liff.sendMessages){return liff.sendMessages([{type:'text',text:'✅ 今日記錄完成'}])}}catch(e){}}).then(fin,fin);return;try{window.close()}catch(e){}setTimeout(function(){back.textContent='請按左上角 ✕ 回到 LINE'},400)};d.appendChild(back);
       var again=el('button','o','再記一次');again.type='button';again.onclick=function(){init()};d.appendChild(again);
       app.appendChild(d);window.scrollTo(0,0);
     }else{go.disabled=false;msg.textContent=(r&&r.message)||'沒有存成功，請再按一次'}
