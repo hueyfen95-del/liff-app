@@ -28,6 +28,7 @@ button.o.on::before{content:"✓ "}
 .done .big{font-size:56px}
 .done pre{white-space:pre-wrap;text-align:left;font:inherit;font-size:19px;background:var(--gl);border-radius:14px;padding:14px;margin:16px 0}
 .err{padding:30px 10px;text-align:center;color:var(--warn)}
+button.back{display:block;width:100%;font:inherit;font-size:24px;font-weight:700;min-height:62px;border:0;border-radius:16px;background:var(--g);color:#fff;cursor:pointer;margin:12px 0}
 @media (prefers-color-scheme:dark){:root{--bg:#12191a;--card:#1b2526;--fg:#e8f0ec;--sub:#9db0a7;--line:#33433f;--gl:#1f3a31;--g:#1f9b78}button.o{background:#1b2526}#bar{background:rgba(18,25,26,.96)}}
 </style>
 </head>
@@ -111,7 +112,7 @@ go.onclick=function(){
       bar.hidden=true;app.innerHTML='';
       var d=el('div','done');d.appendChild(el('div','big','✅'));d.appendChild(el('h1','','記好了'));
       d.appendChild(el('pre','',r.summary||''));
-      d.appendChild(el('p','hint','可以關掉這一頁，回到 LINE。'));
+      var back=el('button','back','回 LINE');back.type='button';back.onclick=function(){try{window.close()}catch(e){}setTimeout(function(){location.href='https://line.me/R/'},400)};d.appendChild(back);
       var again=el('button','o','再記一次');again.type='button';again.onclick=function(){init()};d.appendChild(again);
       app.appendChild(d);window.scrollTo(0,0);
     }else{go.disabled=false;msg.textContent=(r&&r.message)||'沒有存成功，請再按一次'}
