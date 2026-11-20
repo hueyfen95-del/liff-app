@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>今日記錄</title>
+<style>
+:root{--bg:#f4f7f5;--card:#fff;--fg:#1d2b25;--sub:#5b6b63;--line:#d5ded9;--g:#0f6e56;--gl:#e3f3ec;--warn:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:20px;line-height:1.45;padding-bottom:110px}
+.wrap{max-width:560px;margin:0 auto;padding:16px}
+h1{font-size:26px;margin:8px 0 4px}
+.date{color:var(--sub);font-size:17px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 10px;margin-bottom:14px}
+.card h2{font-size:20px;margin:0 0 4px}
+.hint{font-size:15px;color:var(--sub);margin:0 0 8px}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+button.o{font:inherit;font-size:20px;min-height:54px;padding:8px 18px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;-webkit-tap-highlight-color:transparent}
+button.o.on{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
+button.o.on::before{content:"✓ "}
+.who button.o{flex:1 1 40%}
+#bar{position:fixed;left:0;right:0;bottom:0;background:rgba(244,247,245,.96);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+#bar .in{max-width:560px;margin:0 auto}
+#go{width:100%;font:inherit;font-size:24px;font-weight:700;min-height:62px;border:0;border-radius:16px;background:var(--g);color:#fff;cursor:pointer}
+#go:disabled{background:#9db8ae}
+#msg{color:var(--warn);font-size:17px;text-align:center;min-height:22px;margin-bottom:4px}
+.done{text-align:center;padding:30px 10px}
+.done .big{font-size:56px}
+.done pre{white-space:pre-wrap;text-align:left;font:inherit;font-size:19px;background:var(--gl);border-radius:14px;padding:14px;margin:16px 0}
+.err{padding:30px 10px;text-align:center;color:var(--warn)}
+@media (prefers-color-scheme:dark){:root{--bg:#12191a;--card:#1b2526;--fg:#e8f0ec;--sub:#9db0a7;--line:#33433f;--gl:#1f3a31;--g:#1f9b78}button.o{background:#1b2526}#bar{background:rgba(18,25,26,.96)}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="err" style="color:var(--sub)">載入中…</div></div>
+<div id="bar" hidden><div class="in"><div id="msg"></div><button id="go">✅ 記好了</button></div></div>
+<script>
+(function(){
+var Q=new URLSearchParams(location.search),G=Q.get('g')||'',K=Q.get('k')||'';
+var app=document.getElementById('app'),bar=document.getElementById('bar'),go=document.getElementById('go'),msg=document.getElementById('msg');
+var info=null,cur=null,sel={},touched={};
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function lab(x){return Array.isArray(x)?x[x.length-1]:String(x)}
+function getApi(){return fetch('index.html',{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){var m=t.match(/API_URL\s*=\s*['"]([^'"]+)['"]/);if(!m)throw new Error('no api');return m[1]})}
+var API=null;
+function call(p){return fetch(API,{method:'POST',body:JSON.stringify(p)}).then(function(r){return r.json()})}
+function showErr(t){bar.hidden=true;app.innerHTML='';var d=el('div','err',t);app.appendChild(d)}
+function mk(title,hint,arr,key,multi,opts){
+  var c=el('div','card');c.appendChild(el('h2','',title));if(hint)c.appendChild(el('p','hint',hint));
+  var box=el('div','opts');c.appendChild(box);
+  var btns=[];
+  function paint(){btns.forEach(function(b,i){var on=multi?(sel[key]||[]).indexOf(b._v)>=0:sel[key]===b._v;b.classList.toggle('on',on)})}
+  arr.forEach(function(x,i){
+    var v=(opts&&opts.vals)?opts.vals[i]:i;
+    var b=el('button','o',lab(x));b.type='button';b._v=v;
+    b.onclick=function(){
+      touched[key]=1;msg.textContent='';
+      if(multi){
+        var a=(sel[key]||[]).slice(),at=a.indexOf(v);
+        if(opts&&opts.exclusive!=null){
+          if(v===opts.exclusive){a=at>=0?[]:[v]}else{a=a.filter(function(z){return z!==opts.exclusive});if(at>=0)a.splice(a.indexOf(v),1);else a.push(v)}
+        }else{if(at>=0)a.splice(at,1);else a.push(v)}
+        sel[key]=a;
+      }else{sel[key]=v}
+      paint();
+    };
+    btns.push(b);box.appendChild(b);
+  });
+  paint();return c;
+}
+function render(){
+  app.innerHTML='';
+  var d=new Date();
+  app.appendChild(el('h1','','📝 今日記錄'));
+  app.appendChild(el('div','date',(d.getMonth()+1)+' 月 '+d.getDate()+' 日'));
+  if(info.clients.length>1){
+    var c=el('div','card who');c.appendChild(el('h2','','是哪一位？'));var box=el('div','opts');c.appendChild(box);
+    info.clients.forEach(function(cl){var b=el('button','o'+(cur&&cur.cid===cl.cid?' on':''),cl.name);b.type='button';b.onclick=function(){pick(cl)};box.appendChild(b)});
+    app.appendChild(c);
+  }
+  if(!cur){bar.hidden=true;return}
+  app.appendChild(mk('斷食','選一個',info.fast,'t',false,{vals:info.fast.map(function(x){return x[0]})}));
+  app.appendChild(mk('運動','選一個',info.exer,'x',false));
+  app.appendChild(mk('排便','選一個',info.bowel,'b',false));
+  app.appendChild(mk('電解質','有補的都點',info.elec,'e',true));
+  app.appendChild(mk('今天的感覺','有的都點',info.feel,'f',true));
+  if(cur.carb>0)app.appendChild(mk('碳水','今天吃了多少（克）',info.carbOpts.map(function(n){return n+' 克'}),'c',false,{vals:info.carbOpts}));
+  app.appendChild(mk('心情','有的都點',info.emotions.concat(['都還好']),'m',true,{vals:info.emotions.map(function(x,i){return i}).concat(['ok']),exclusive:'ok'}));
+  app.appendChild(mk('昨晚睡幾小時','選一個',info.sleepH,'s',false));
+  app.appendChild(mk('睡得好嗎','選一個',info.sleepQ,'q',false));
+  bar.hidden=false;go.disabled=false;
+}
+function pick(cl){
+  cur=cl;sel={};touched={};
+  var t=cl.today||{};
+  if(t.t)sel.t=t.t;if(t.x!=null)sel.x=t.x;if(t.b!=null)sel.b=t.b;if(t.c!=null)sel.c=t.c;
+  sel.e=(t.e||[]).slice();sel.f=(t.f||[]).slice();
+  render();window.scrollTo(0,0);
+}
+go.onclick=function(){
+  var P={},any=false;
+  ['t','x','b','c','e','f','m','s','q'].forEach(function(k){if(touched[k]&&sel[k]!=null){
+    var v=sel[k];
+    if(k==='m'){if(Array.isArray(v)&&v.indexOf('ok')>=0)v='ok';else if(Array.isArray(v)&&!v.length)return}
+    P[k]=v;any=true}});
+  if(!any){msg.textContent='還沒選任何一項，請先點選';return}
+  go.disabled=true;go.textContent='送出中…';msg.textContent='';
+  call({action:'gbRecSubmit',g:G,k:K,cid:cur.cid,picks:P}).then(function(r){
+    go.textContent='✅ 記好了';
+    if(r&&r.status==='ok'){
+      bar.hidden=true;app.innerHTML='';
+      var d=el('div','done');d.appendChild(el('div','big','✅'));d.appendChild(el('h1','','記好了'));
+      d.appendChild(el('pre','',r.summary||''));
+      d.appendChild(el('p','hint','可以關掉這一頁，回到 LINE。'));
+      var again=el('button','o','再記一次');again.type='button';again.onclick=function(){init()};d.appendChild(again);
+      app.appendChild(d);window.scrollTo(0,0);
+    }else{go.disabled=false;msg.textContent=(r&&r.message)||'沒有存成功，請再按一次'}
+  }).catch(function(){go.disabled=false;go.textContent='✅ 記好了';msg.textContent='網路不穩，請再按一次'});
+};
+function init(){
+  if(!G||!K){showErr('連結不完整，請回 LINE 點「今日記錄」');return}
+  (API?Promise.resolve(API):getApi().then(function(a){API=a;return a})).then(function(){
+    return call({action:'gbRecInfo',g:G,k:K})
+  }).then(function(r){
+    if(!r||r.status!=='ok'){showErr((r&&r.message)||'打不開，請回 LINE 再點一次');return}
+    info=r;cur=null;sel={};touched={};
+    if(info.clients.length===1)pick(info.clients[0]);else render();
+  }).catch(function(){showErr('網路不穩，請重新整理')});
+}
+init();
+})();
+</script>
+</body>
+</html>
