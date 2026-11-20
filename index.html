@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<script>(function(){try{var s=new URLSearchParams(location.search).get('liff.state');if(s&&s.indexOf('/rec.html')===0){location.replace('rec.html'+s.slice(9));}}catch(e){}})();</script>
+<script>(function(){try{var s=new URLSearchParams(location.search).get('liff.state');if(s&&s.indexOf('/rec.html')===0){var x=new XMLHttpRequest();x.open('GET','rec.html?_='+Date.now(),false);x.send();if(x.status===200&&x.responseText){window.stop();document.open();document.write(x.responseText);document.close();}}}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>元代謝健康管理 LIFF 前台 v9-garden-note</title>
