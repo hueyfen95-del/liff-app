@@ -38,7 +38,7 @@ button.back{display:block;width:100%;font:inherit;font-size:24px;font-weight:700
 <div id="bar" hidden><div class="in"><div id="msg"></div><button id="go">✅ 記好了</button></div></div>
 <script>
 (function(){
-var Q=new URLSearchParams(location.search),G=Q.get('g')||'',K=Q.get('k')||'';
+var Q0=new URLSearchParams(location.search),S0=Q0.get('liff.state')||'',Q=new URLSearchParams(S0.indexOf('?')>=0?S0.slice(S0.indexOf('?')):location.search),G=Q.get('g')||'',K=Q.get('k')||'';
 var app=document.getElementById('app'),bar=document.getElementById('bar'),go=document.getElementById('go'),msg=document.getElementById('msg');
 var info=null,cur=null,sel={},touched={};
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
