@@ -684,7 +684,7 @@ window.openHealthForm = function() {
       <input class="inp" type="number" step="1" min="0" placeholder="血糖 mg/dL（選填，有測再填）" id="glucose-inp" oninput="this.classList.remove('saved')" style="flex:1">
       <button onclick="quickSave('glucose')" style="background:var(--a);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
-    <div id="glucose-when" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><span style="font-size:11px;color:#6B7280">什麼時候量的？</span><button type="button" class="gw-chip" data-w="空腹" onclick="pickGlucoseWhen(this)">空腹</button><button type="button" class="gw-chip" data-w="飯後1小時" onclick="pickGlucoseWhen(this)">飯後1小時</button><button type="button" class="gw-chip" data-w="飯後2小時" onclick="pickGlucoseWhen(this)">飯後2小時</button><button type="button" class="gw-chip" data-w="飯後3小時" onclick="pickGlucoseWhen(this)">飯後3小時</button><button type="button" class="gw-chip" data-w="不確定" onclick="pickGlucoseWhen(this)">不確定</button></div><style>.gw-chip{border:1px solid #D1D5DB;background:#fff;color:#374151;border-radius:14px;padding:5px 10px;font-size:12px;cursor:pointer}.gw-chip.on{background:var(--a);color:#fff;border-color:var(--a)}</style>
+    <div id="glucose-when" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><span style="font-size:11px;color:#6B7280">什麼時候量的？（血酮、血糖都適用）</span><button type="button" class="gw-chip" data-w="空腹" onclick="pickGlucoseWhen(this)">空腹</button><button type="button" class="gw-chip" data-w="飯後1小時" onclick="pickGlucoseWhen(this)">飯後1小時</button><button type="button" class="gw-chip" data-w="飯後2小時" onclick="pickGlucoseWhen(this)">飯後2小時</button><button type="button" class="gw-chip" data-w="飯後3小時" onclick="pickGlucoseWhen(this)">飯後3小時</button><button type="button" class="gw-chip" data-w="不確定" onclick="pickGlucoseWhen(this)">不確定</button></div><style>.gw-chip{border:1px solid #D1D5DB;background:#fff;color:#374151;border-radius:14px;padding:5px 10px;font-size:12px;cursor:pointer}.gw-chip.on{background:var(--a);color:#fff;border-color:var(--a)}</style>
     <!-- 2026-08-12修正：體重/腰圍原本只靠placeholder標示欄位名稱，但欄位一開始就帶著預設數字，
          placeholder會被蓋掉，客人完全看不出「50」「65」代表體重還是腰圍，補上明確文字標籤
          2026-08-16再修正：光補文字標籤還不夠——欄位帶著預設數字「50」「65」這件事本身就有風險，
@@ -5122,6 +5122,7 @@ var _glucoseWhen = '';
 function pickGlucoseWhen(b) { var was = b.classList.contains('on'); [].forEach.call(document.querySelectorAll('#glucose-when .gw-chip'), function (x) { x.classList.remove('on'); }); _glucoseWhen = ''; if (!was) { b.classList.add('on'); _glucoseWhen = b.getAttribute('data-w') || ''; } }
 function callAPI(params, callback) {
   if (params && params.action === 'addDailyRecord' && params.glucose && !params.glucoseWhen && _glucoseWhen) params.glucoseWhen = _glucoseWhen;
+  if (params && params.action === 'addDailyRecord' && params.ketone && !params.ketoneWhen && _glucoseWhen) params.ketoneWhen = _glucoseWhen; // 血酮也記空腹／飯後
   // 2026-08-17 新增：只要這個裝置已經登入過（CLIENT_TOKEN存在），每次呼叫都自動帶上clientToken，
   // 不用每個呼叫的地方自己加，後端才能驗證「這真的是本人在操作」。clientAuth本身不需要token
   // （本來就是拿來換token的），已經帶了clientToken的呼叫也不覆蓋。
