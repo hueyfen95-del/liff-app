@@ -982,7 +982,8 @@ window.openHealthForm = function() {
       <svg id="combined-trend-svg" viewBox="0 0 300 130" style="width:100%;height:auto;overflow:visible"></svg>
       <div id="combined-trend-legend" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:10.5px"></div>
     </div>
-    <div class="chart-wrap">
+    <div class="chart-wrap" id="glucose-bars-wrap" style="display:none"><div class="cw-t">本週血糖趨勢（mg/dL）</div><svg id="glucose-bars-svg" viewBox="0 0 300 130" style="width:100%;height:auto;overflow:visible"></svg><div id="glucose-bars-legend" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:10.5px"></div></div>
+<div class="chart-wrap">
       <div class="cw-t">本週血酮趨勢（mmol/L）</div>
       <div class="bars" id="chart-ketone-bars">
         <div class="bc"><div class="bar-v" id="ck-v-0">–</div><div class="bar" id="ck-b-0" style="height:4%"></div><div class="bar-d" id="ck-d-0">–</div></div>
@@ -9957,7 +9958,7 @@ function loadMyStats(){
           if(wbEl) wbEl.style.height = '4%';
         }
       });
-      if(typeof renderCombinedTrendChart === 'function') renderCombinedTrendChart(d.last7Days);
+      if(typeof renderCombinedTrendChart === 'function') renderCombinedTrendChart(d.last7Days); if(typeof renderGlucoseBars === 'function') renderGlucoseBars(d.last7Days);
     }
   });
 }
@@ -9970,12 +9971,33 @@ function loadMyStats(){
 // 2026-09-14補：血糖排在血酮後面——這條線是否出現完全看renderCombinedTrendChart()裡「這7天有沒有
 // 任何資料」來決定，沒有天天測血糖習慣的客人，這條線不會畫出來、圖例也只會顯示「尚無記錄」
 var COMBINED_TREND_SERIES = [
-  { key:'ketone', label:'血酮', unit:'mmol/L', color:'#1D9E75' },
-  { key:'glucose', label:'血糖', unit:'mg/dL', color:'#E24B4A' },
+  { key:'ketone', label:'血酮', unit:'mmol/L', color:'#1D9E75', g:'ketone' }, { key:'ketoneP', label:'血酮', unit:'mmol/L', color:'#7FD1A8', g:'ketone', post:true },
+  { key:'glucose', label:'血糖', unit:'mg/dL', color:'#E24B4A', g:'glucose' }, { key:'glucoseP', label:'血糖', unit:'mg/dL', color:'#F0A39A', g:'glucose', post:true },
   { key:'weight', label:'體重', unit:'kg', color:'#378ADD' },
   { key:'waist', label:'腰圍', unit:'cm', color:'#534AB7' },
   { key:'carbs', label:'碳水', unit:'g', color:'#EF9F27' }
 ];
+// 2026-11-21 創辦人：「APP 趨勢頁要加上血糖」——本週血糖長條圖（空腹、飯後各一色；有測才出現）
+function renderGlucoseBars(last7Days){
+  var wrap = document.getElementById('glucose-bars-wrap'), svg = document.getElementById('glucose-bars-svg'), lg = document.getElementById('glucose-bars-legend');
+  if(!wrap || !svg || !lg || !last7Days || last7Days.length !== 7) return;
+  var has = function(v){ return v !== null && v !== undefined && !isNaN(v); };
+  var all = []; last7Days.forEach(function(d){ if(has(d.glucose)) all.push(d.glucose); if(has(d.glucoseP)) all.push(d.glucoseP); });
+  if(!all.length){ wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  var hasF = last7Days.some(function(d){ return has(d.glucose); }), hasP = last7Days.some(function(d){ return has(d.glucoseP); });
+  var vMax = Math.max.apply(null, all) * 1.15, w = 300, h = 130, padT = 16, padB = 22, plotH = h - padT - padB, slot = w / 7, parts = [];
+  var bar = function(x, bw, v, color){ var bh = Math.max(3, v / vMax * plotH), y = padT + plotH - bh; parts.push('<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" fill="'+color+'"></rect>'); parts.push('<text x="'+(x+bw/2).toFixed(1)+'" y="'+(y-2).toFixed(1)+'" font-size="7.5" fill="#6B7280" text-anchor="middle">'+Math.round(v)+'</text>'); };
+  last7Days.forEach(function(d, i){
+    var cx = slot * i + slot / 2;
+    if(hasF && hasP){ if(has(d.glucose)) bar(cx - 11, 10, d.glucose, '#E24B4A'); if(has(d.glucoseP)) bar(cx + 1, 10, d.glucoseP, '#F0A39A'); }
+    else { var v = has(d.glucose) ? d.glucose : d.glucoseP; if(has(v)) bar(cx - 7, 14, v, has(d.glucose) ? '#E24B4A' : '#F0A39A'); }
+    parts.push('<text x="'+cx.toFixed(1)+'" y="'+(h-6)+'" font-size="8" fill="#9CA3AF" text-anchor="middle">'+escHtml(d.label)+'</text>');
+  });
+  svg.innerHTML = parts.join('');
+  var dot = function(c, t){ return '<div style="display:flex;align-items:center;gap:5px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:'+c+';display:inline-block"></span>'+t+'</div>'; };
+  lg.innerHTML = (hasF && hasP) ? dot('#E24B4A','空腹') + dot('#F0A39A','飯後') : (hasF ? dot('#E24B4A','血糖（空腹）') : dot('#F0A39A','血糖（飯後）'));
+}
 function renderCombinedTrendChart(last7Days){
   var svg = document.getElementById('combined-trend-svg');
   var legendEl = document.getElementById('combined-trend-legend');
@@ -9987,16 +10009,16 @@ function renderCombinedTrendChart(last7Days){
   var xAt = function(i){ return padL + (n===1 ? plotW/2 : plotW * i/(n-1)); };
   var svgParts = [];
   var legendParts = [];
-  COMBINED_TREND_SERIES.forEach(function(s){
+  COMBINED_TREND_SERIES.forEach(function(s){ var _gk = s.g || s.key, _hasP = COMBINED_TREND_SERIES.some(function(o){ return o.post && (o.g || o.key) === _gk && last7Days.some(function(d){ return d[o.key] !== null && d[o.key] !== undefined && !isNaN(d[o.key]); }); }), lab = s.post ? s.label + '（飯後）' : (_hasP ? s.label + '（空腹）' : s.label);
     var vals = last7Days.map(function(d){ return d[s.key]; });
     var present = vals.filter(function(v){ return v!==null && v!==undefined && !isNaN(v); });
     var latest = null;
     for(var li=vals.length-1; li>=0; li--){ if(vals[li]!==null && vals[li]!==undefined && !isNaN(vals[li])){ latest = vals[li]; break; } }
-    if(present.length===0){
-      legendParts.push('<div style="display:flex;align-items:center;gap:5px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:'+s.color+';display:inline-block;opacity:.35"></span>'+s.label+'　尚無記錄</div>');
+    if(present.length===0){ if(s.post) return;
+      legendParts.push('<div style="display:flex;align-items:center;gap:5px;color:var(--text3)"><span style="width:9px;height:9px;border-radius:50%;background:'+s.color+';display:inline-block;opacity:.35"></span>'+lab+'　尚無記錄</div>');
       return;
     }
-    var vMin = Math.min.apply(null, present), vMax = Math.max.apply(null, present);
+    var _gAll = []; COMBINED_TREND_SERIES.forEach(function(o){ if((o.g || o.key) === _gk) last7Days.forEach(function(d){ var _v = d[o.key]; if(_v !== null && _v !== undefined && !isNaN(_v)) _gAll.push(_v); }); }); var vMin = Math.min.apply(null, _gAll), vMax = Math.max.apply(null, _gAll); // 2026-11-21 空腹、飯後同一把尺
     var vRange = (vMax - vMin) || 1;
     var yAt = function(v){ return padT + plotH - ((v - vMin) / vRange) * plotH; };
     var pts = [];
@@ -10009,7 +10031,7 @@ function renderCombinedTrendChart(last7Days){
       svgParts.push('<polyline points="'+poly+'" fill="none" stroke="'+s.color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>');
       pts.forEach(function(p){ svgParts.push('<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="2.2" fill="'+s.color+'"></circle>'); });
     }
-    legendParts.push('<div style="display:flex;align-items:center;gap:5px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:'+s.color+';display:inline-block"></span>'+s.label+'　最新 '+(latest!==null?latest:'–')+' '+s.unit+'</div>');
+    legendParts.push('<div style="display:flex;align-items:center;gap:5px;color:var(--text2)"><span style="width:9px;height:9px;border-radius:50%;background:'+s.color+';display:inline-block"></span>'+lab+'　最新 '+(latest!==null?latest:'–')+' '+s.unit+'</div>');
   });
   // X軸日期標籤
   last7Days.forEach(function(d, i){
