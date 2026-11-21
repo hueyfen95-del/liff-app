@@ -105,7 +105,7 @@ function pick(cl){
   cur=cl;sel={};touched={};if(MEAL){sel.mm=MEAL;render();window.scrollTo(0,0);return}
   var t=cl.today||{};
   if(t.t)sel.t=t.t;if(t.x!=null)sel.x=t.x;if(t.b!=null)sel.b=t.b;if(t.c!=null)sel.c=t.c;
-  sel.e=(t.e||[]).slice();sel.f=(t.f||[]).slice();
+  sel.e=(t.e||[]).slice();sel.f=(t.f||[]).slice();if(t.m)sel.m=t.m.slice();if(t.s!=null)sel.s=t.s;if(t.q!=null)sel.q=t.q;
   render();window.scrollTo(0,0);
 }
 go.onclick=function(){
