@@ -5266,7 +5266,7 @@ function submitDailyRecord() {
       // 2026-09-11修：這裡原本寫gsTasks[2]（打勾「飲食記錄」），但這段是電解質有勾選才進來的判斷，
       // 應該要打勾gt3（補電解質）才對，之前2是誤把飲食記錄的燈點亮，電解質自己的燈反而永遠不會透過
       // 這條路徑點亮——電解質勾選了就完成gt3
-      if(e.length > 0) {
+      if(f.length > 0) { gsTasks[4] = true; var gt4s = document.getElementById('gt4'); if(gt4s) gt4s.className = 'gs-task done'; updateHomeTask(4); syncGardenTask(GS_TASK_NAMES[4], true); } /* 2026-11-21 用「儲存今日記錄」存體感也要變綠 */ if(e.length > 0) {
         gsTasks[3] = true;
         var gt3 = document.getElementById('gt3');
         if(gt3) gt3.className = 'gs-task done';
