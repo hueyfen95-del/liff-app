@@ -673,14 +673,14 @@ window.openHealthForm = function() {
       <div class="k-badge" id="k-badge">—</div>
       <button onclick="quickSave('ketone')" style="background:var(--g);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
-    <div id="ketone-when" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><span style="font-size:11px;color:#6B7280">血酮什麼時候量的？</span><button type="button" class="gw-chip" data-w="空腹" onclick="pickKetoneWhen(this)">空腹</button><button type="button" class="gw-chip" data-w="飯後1小時" onclick="pickKetoneWhen(this)">飯後1小時</button><button type="button" class="gw-chip" data-w="飯後2小時" onclick="pickKetoneWhen(this)">飯後2小時</button><button type="button" class="gw-chip" data-w="飯後3小時" onclick="pickKetoneWhen(this)">飯後3小時</button><button type="button" class="gw-chip" data-w="不確定" onclick="pickKetoneWhen(this)">不確定</button></div>
+    <div id="ketone-when" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><span style="font-size:11px;color:#6B7280">血酮什麼時候量的？</span><button type="button" class="gw-chip" data-w="空腹" onclick="pickKetoneWhen(this)">空腹</button><button type="button" class="gw-chip" data-w="飯後1小時" onclick="pickKetoneWhen(this)">飯後1小時</button><button type="button" class="gw-chip" data-w="飯後2小時" onclick="pickKetoneWhen(this)">飯後2小時</button><button type="button" class="gw-chip" data-w="飯後3-4小時" onclick="pickKetoneWhen(this)">飯後3-4小時</button><button type="button" class="gw-chip" data-w="不確定" onclick="pickKetoneWhen(this)">不確定</button></div>
     <!-- 2026-09-14新增：創辦人指出很多糖尿病客人天天都要測血糖、血酮，血糖不該只限碳水回補期客人才看得到
          （不像下面碳水回補區的碳水克數/體脂%那幾欄，這欄開放給「所有」客人，有測的人才會填、沒有的人維持空白） -->
     <div class="inp-row" style="display:flex;gap:6px;align-items:center;margin-top:8px">
       <input class="inp" type="number" step="1" min="0" placeholder="血糖 mg/dL（選填，有測再填）" id="glucose-inp" oninput="this.classList.remove('saved')" style="flex:1">
       <button onclick="quickSave('glucose')" style="background:var(--a);color:#fff;border:none;border-radius:9px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">儲存</button>
     </div>
-    <div id="glucose-when" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><span style="font-size:11px;color:#6B7280">血糖什麼時候量的？</span><button type="button" class="gw-chip" data-w="空腹" onclick="pickGlucoseWhen(this)">空腹</button><button type="button" class="gw-chip" data-w="飯後1小時" onclick="pickGlucoseWhen(this)">飯後1小時</button><button type="button" class="gw-chip" data-w="飯後2小時" onclick="pickGlucoseWhen(this)">飯後2小時</button><button type="button" class="gw-chip" data-w="飯後3小時" onclick="pickGlucoseWhen(this)">飯後3小時</button><button type="button" class="gw-chip" data-w="不確定" onclick="pickGlucoseWhen(this)">不確定</button></div><style>.gw-chip{border:1px solid #D1D5DB;background:#fff;color:#374151;border-radius:14px;padding:5px 10px;font-size:12px;cursor:pointer}.gw-chip.on{background:var(--a);color:#fff;border-color:var(--a)}</style>
+    <div id="glucose-when" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center"><span style="font-size:11px;color:#6B7280">血糖什麼時候量的？</span><button type="button" class="gw-chip" data-w="空腹" onclick="pickGlucoseWhen(this)">空腹</button><button type="button" class="gw-chip" data-w="飯後1小時" onclick="pickGlucoseWhen(this)">飯後1小時</button><button type="button" class="gw-chip" data-w="飯後2小時" onclick="pickGlucoseWhen(this)">飯後2小時</button><button type="button" class="gw-chip" data-w="飯後3-4小時" onclick="pickGlucoseWhen(this)">飯後3-4小時</button><button type="button" class="gw-chip" data-w="不確定" onclick="pickGlucoseWhen(this)">不確定</button></div><style>.gw-chip{border:1px solid #D1D5DB;background:#fff;color:#374151;border-radius:14px;padding:5px 10px;font-size:12px;cursor:pointer}.gw-chip.on{background:var(--a);color:#fff;border-color:var(--a)}</style>
     <!-- 2026-08-12修正：體重/腰圍原本只靠placeholder標示欄位名稱，但欄位一開始就帶著預設數字，
          placeholder會被蓋掉，客人完全看不出「50」「65」代表體重還是腰圍，補上明確文字標籤
          2026-08-16再修正：光補文字標籤還不夠——欄位帶著預設數字「50」「65」這件事本身就有風險，
@@ -3902,8 +3902,8 @@ var IRCT_CLASS_STYLE = {
 // 取代原本連SVG折線圖座標都寫死demo的版本——原本手繪的折線圖先移除(座標需要真實依數值計算，
 // 之後有空間再加，現在數值本身正確、不誤導客人比較重要，用清楚的數值列表呈現)
 var IRCT_DETAIL_GROUPS = {
-  'itc-bg-content': ['糖化血色素', '空腹血糖', '飯後1小時血糖', '飯後2小時血糖', '飯後3小時血糖'],
-  'itc-ins-content': ['空腹胰島素', '飯後1小時胰島素', '飯後2小時胰島素', '飯後3小時胰島素', 'HOMA-IR'],
+  'itc-bg-content': ['糖化血色素', '空腹血糖', '飯後1小時血糖', '飯後2小時血糖', '飯後3-4小時血糖'],
+  'itc-ins-content': ['空腹胰島素', '飯後1小時胰島素', '飯後2小時胰島素', '飯後3-4小時胰島素', 'HOMA-IR'],
   'itc-met-content': ['三酸甘油脂 TG', '高密度膽固醇 HDL', '低密度膽固醇 LDL', '膽固醇', '腰圍', '內臟脂肪', 'sdLDL', '同半胱胺酸'],
   'itc-org-content': ['麩丙酮酸轉胺脢 GPT', '麩草酸轉氨脢 GOT', '腎絲球過濾速率 eGFR', '肌酸酐', '尿酸']
 };
