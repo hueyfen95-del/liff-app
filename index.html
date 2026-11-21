@@ -6811,7 +6811,7 @@ function quickSave(type) {
       if (!d || d.status !== 'ok') {
         toast('⚠️ 血糖數值剛剛沒有存成功，請到「每日記錄」重新輸入一次');
       } else {
-        var gInpQS = document.getElementById('glucose-inp'); if(gInpQS) gInpQS.classList.add('saved');
+        gsTasks[0] = true; var gt0g = document.getElementById('gt0'); if (gt0g) gt0g.className = 'gs-task done'; updateHomeTask(0); updateGardenProgress(); syncGardenTask(GS_TASK_NAMES[0], true); /* 2026-11-21 任務已改名「血酮／血糖記錄」：存血糖也要變綠色 */ var gInpQS = document.getElementById('glucose-inp'); if(gInpQS) gInpQS.classList.add('saved');
       }
     });
 
