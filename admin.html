@@ -2999,26 +2999,76 @@ function loadTodayRecords() {
 
 // ── 客戶管理：查詢客人記錄 ──
 function loadClientRecords() {
-  var clientId = document.getElementById('client-select') ? 
-    document.getElementById('client-select').value : 'C001';
-  document.getElementById('client-records-body').innerHTML = 
-    '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">載入中...</div>';
+  var clientId = document.getElementById('client-select') ? document.getElementById('client-select').value : 'C001';
+  window._crCid = clientId;
+  document.getElementById('client-records-body').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">載入中...</div>';
   adminAPI({ action: 'getRecords', clientId: clientId }, function(d) {
     if (d.records && d.records.length > 0) {
-      var html = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
-      html += '<tr style="background:var(--bg)"><th style="padding:8px;text-align:left;border-bottom:1px solid var(--border)">日期時間</th><th style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">血酮</th><th style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">體重</th><th style="padding:8px;text-align:left;border-bottom:1px solid var(--border)">體感</th></tr>';
-      d.records.slice(-10).reverse().forEach(function(r) {
-        var time = new Date(r.time).toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
-        var ketoneColor = parseFloat(r.ketone) >= 0.5 ? 'color:var(--g3);font-weight:700' : '';
-        html += '<tr><td style="padding:8px;border-bottom:1px solid var(--border)">' + time + '</td><td style="padding:8px;text-align:center;border-bottom:1px solid var(--border);' + ketoneColor + '">' + r.ketone + '</td><td style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">' + r.weight + '</td><td style="padding:8px;border-bottom:1px solid var(--border)">' + r.feeling + '</td></tr>';
+      window._crList = {};
+      var thS = 'padding:8px;border-bottom:1px solid var(--border)';
+      var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+      html += '<tr style="background:var(--bg)"><th style="' + thS + ';text-align:left">日期時間</th><th style="' + thS + ';text-align:center">血酮</th><th style="' + thS + ';text-align:center">血糖</th><th style="' + thS + ';text-align:center">體重</th><th style="' + thS + ';text-align:center">腰圍</th><th style="' + thS + ';text-align:left">體感</th><th style="' + thS + ';text-align:center">操作</th></tr>';
+      d.records.slice(-15).reverse().forEach(function(r) {
+        if (r.row) window._crList[r.row] = r;
+        html += crRowHtml(r);
       });
-      html += '</table>';
-      html += '<div style="font-size:11px;color:var(--text3);padding:8px;text-align:right">顯示最近 10 筆記錄</div>';
+      html += '</table></div>';
+      html += '<div style="font-size:11px;color:var(--text3);padding:8px;text-align:right">顯示最近 15 筆記錄；登記錯了按「修改」或「刪除」</div>';
       document.getElementById('client-records-body').innerHTML = html;
     } else {
-      document.getElementById('client-records-body').innerHTML = 
+      document.getElementById('client-records-body').innerHTML =
         '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">此客人還沒有記錄</div>';
     }
+  });
+}
+function crRowHtml(r) {
+  var tdS = 'padding:8px;text-align:center;border-bottom:1px solid var(--border)';
+  var time = new Date(r.time).toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+  var kColor = parseFloat(r.ketone) >= 0.5 ? 'color:var(--g3);font-weight:700;' : '';
+  var when = function(w) { return w ? '<div style="font-size:10px;color:var(--text3)">' + escH(w) + '</div>' : ''; };
+  var gColor = parseFloat(r.glucose) > 105 ? 'color:#c0392b;font-weight:700;' : '';
+  return '<tr id="cr-' + r.row + '"><td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(time) + '</td>' +
+    '<td style="' + tdS + ';' + kColor + '">' + escH(r.ketone) + when(r.ketoneWhen) + '</td>' +
+    '<td style="' + tdS + ';' + gColor + '">' + escH(r.glucose) + when(r.glucoseWhen) + '</td>' +
+    '<td style="' + tdS + '">' + escH(r.weight) + '</td>' +
+    '<td style="' + tdS + '">' + escH(r.waist) + '</td>' +
+    '<td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(r.feeling) + '</td>' +
+    '<td style="' + tdS + ';white-space:nowrap">' + (r.row ? '<button class="btn-ghost" onclick="crEdit(' + r.row + ')" style="padding:3px 8px;font-size:11px">修改</button> <button class="btn-ghost" onclick="crDel(' + r.row + ')" style="padding:3px 8px;font-size:11px;color:#c0392b">刪除</button>' : '') + '</td></tr>';
+}
+function crEdit(row) {
+  var r = (window._crList || {})[row]; var tr = document.getElementById('cr-' + row);
+  if (!r || !tr) return;
+  var inS = 'width:58px;padding:4px;font-size:12px;text-align:center;border:1px solid var(--border);border-radius:6px';
+  var opts = ['', '空腹', '飯前', '飯後1小時', '飯後2小時', '飯後3小時', '飯後3-4小時', '不確定'];
+  var mk = function(id, cur) {
+    var list = opts.slice(); if (cur && list.indexOf(cur) < 0) list.push(cur);
+    return '<select id="' + id + '" style="margin-top:3px;font-size:11px;padding:2px;max-width:92px">' + list.map(function(o) { return '<option value="' + escH(o) + '"' + (o === (cur || '') ? ' selected' : '') + '>' + (o ? escH(o) : '時機不填') + '</option>'; }).join('') + '</select>';
+  };
+  var time = new Date(r.time).toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+  var cell = function(id, v, extra) { return '<td style="padding:6px;text-align:center;border-bottom:1px solid var(--border)"><input id="' + id + '" value="' + escH(v === undefined || v === null ? '' : v) + '" inputmode="decimal" style="' + inS + '">' + (extra || '') + '</td>'; };
+  tr.innerHTML = '<td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(time) + '</td>' +
+    cell('cre-k-' + row, r.ketone, '<br>' + mk('cre-kw-' + row, r.ketoneWhen)) +
+    cell('cre-g-' + row, r.glucose, '<br>' + mk('cre-gw-' + row, r.glucoseWhen)) +
+    cell('cre-w-' + row, r.weight) + cell('cre-s-' + row, r.waist) +
+    '<td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(r.feeling) + '</td>' +
+    '<td style="padding:6px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap"><button class="btn-g" onclick="crSave(' + row + ')" style="padding:3px 8px;font-size:11px">儲存</button> <button class="btn-ghost" onclick="loadClientRecords()" style="padding:3px 8px;font-size:11px">取消</button></td>';
+}
+function crSave(row) {
+  var v = function(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
+  var p = { action: 'updateDailyRecord', clientId: window._crCid, row: row,
+    ketone: v('cre-k-' + row), glucose: v('cre-g-' + row), weight: v('cre-w-' + row), waist: v('cre-s-' + row),
+    ketoneWhen: v('cre-kw-' + row), glucoseWhen: v('cre-gw-' + row) };
+  adminAPI(p, function(d) {
+    if (d && d.status === 'ok') { toast('✅ 已修改'); } else { toast('⚠️ ' + ((d && d.message) || '修改失敗')); }
+    loadClientRecords();
+  });
+}
+function crDel(row) {
+  var r = (window._crList || {})[row]; if (!r) return;
+  if (!confirm('確定刪除這筆記錄？\n血酮 ' + (r.ketone || '-') + '／血糖 ' + (r.glucose || '-') + '／體重 ' + (r.weight || '-') + '\n（刪除後無法復原）')) return;
+  adminAPI({ action: 'deleteDailyRecord', clientId: window._crCid, row: row }, function(d) {
+    if (d && d.status === 'ok') { toast('✅ 已刪除'); } else { toast('⚠️ ' + ((d && d.message) || '刪除失敗')); }
+    loadClientRecords();
   });
 }
 
