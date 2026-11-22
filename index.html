@@ -593,7 +593,7 @@ window.openHealthForm = function() {
     <div class="week-card">
       <div style="font-size:12px;font-weight:600;color:var(--b3);margin-bottom:8px;display:flex;align-items:center;gap:6px"><i class="ti ti-calendar-stats"></i>本週小結</div>
       <div class="wc-grid">
-        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-ketone">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">平均血酮<br>mmol/L</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-ketone-sub">近 7 天</div></div>
+        <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-ketone">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">最近血酮<br>mmol/L</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-ketone-sub">近 7 天</div></div>
         <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-fillrate">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">記錄<br>填寫率</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px">本週</div></div>
         <div class="wci"><div style="font-size:17px;font-weight:700;color:var(--b3)" id="home-wk-weight">–</div><div style="font-size:12px;color:var(--b);margin-top:3px;line-height:1.4">體重<br>kg</div><div style="font-size:12px;font-weight:600;color:var(--g);margin-top:3px" id="home-wk-weight-sub">加入以來</div></div>
       </div>
@@ -916,7 +916,10 @@ window.openHealthForm = function() {
       </div>
     </div>
     <div class="stat-grid">
-      <div class="sc"><div class="sc-l">本週平均血酮</div><div class="sc-v" id="ms-ketone">–</div><div class="sc-s up" id="ms-ketone-sub">近 7 天</div></div>
+      <div class="sc"><div class="sc-l">空腹血酮</div><div class="sc-v" id="ms-ketone">–</div><div class="sc-s up" id="ms-ketone-sub">最近一次 · mmol/L</div></div>
+      <div class="sc"><div class="sc-l">飯後血酮</div><div class="sc-v" id="ms-ketoneP">–</div><div class="sc-s up">最近一次 · mmol/L</div></div>
+      <div class="sc"><div class="sc-l">空腹血糖</div><div class="sc-v" id="ms-glucose">–</div><div class="sc-s up">最近一次 · mg/dL</div></div>
+      <div class="sc"><div class="sc-l">飯後血糖</div><div class="sc-v" id="ms-glucoseP">–</div><div class="sc-s up">最近一次 · mg/dL</div></div>
       <div class="sc"><div class="sc-l">累計體重變化</div><div class="sc-v" id="ms-weight">–</div><div class="sc-s up">加入以來</div></div>
       <div class="sc"><div class="sc-l">記錄填寫率</div><div class="sc-v" id="ms-fillrate">–</div><div class="sc-s up">本週</div></div>
       <div class="sc"><div class="sc-l">連續打卡</div><div class="sc-v" id="ms-streak">–</div><div class="sc-s flat">繼續加油</div></div>
@@ -9829,10 +9832,10 @@ function loadMyStats(){
     if (typeof updateKetoneMsg === 'function') updateKetoneMsg(d.avgKetone);
     // ── 旅程頁：2026-11-15 創辦人：「不可以用推算」——拿掉用均酮＋打卡「估算」的進度百分比，只放真實數字；下一個目標改由 loadClientStage 依秘書確認的階段決定 ──
     var gprog=document.getElementById('jn-goal-progress');
-    if(gprog){ var facts=[]; if(d.avgKetone!==null&&d.avgKetone!==undefined) facts.push('近 7 天平均血酮 '+d.avgKetone); if(d.streak) facts.push('連續記錄 '+d.streak+' 天'); gprog.textContent = facts.join('・'); }
+    if(gprog){ var facts=[]; if(d.avgKetone!==null&&d.avgKetone!==undefined) facts.push('最近血酮 '+__lastKetone(d)+' mmol/L'); if(d.streak) facts.push('連續記錄 '+d.streak+' 天'); gprog.textContent = facts.join('・'); }
     var jk=document.getElementById('jn-ketone'), jkd=document.getElementById('jn-ketone-detail');
-    if(jk) jk.innerHTML = (d.avgKetone!==null&&d.avgKetone!==undefined) ? d.avgKetone+'<span style="font-size:13px">mmol</span>' : '–';
-    if(jkd) jkd.textContent = (d.avgKetone!==null&&d.avgKetone!==undefined) ? (d.ketoneDelta!==null&&d.ketoneDelta!==undefined ? '比上週 '+(d.ketoneDelta>0?'↑ +':(d.ketoneDelta<0?'↓ ':'→ '))+Math.abs(d.ketoneDelta) : '你自己每天記錄的') : '每天記錄後顯示';
+    if(jk) jk.innerHTML = (d.avgKetone!==null&&d.avgKetone!==undefined) ? __lastKetone(d)+'<span style="font-size:13px">mmol</span>' : '–';
+    if(jkd) jkd.textContent = (d.avgKetone!==null&&d.avgKetone!==undefined) ? '最近一次記錄' : '每天記錄後顯示';
     // ── 旅程頁：成就數字牆 ──
     var wv=document.getElementById('jn-w-val'), wd=document.getElementById('jn-w-detail');
     if(wv) wv.innerHTML = (d.weightChange!==null&&d.weightChange!==undefined) ? (d.weightChange>0?'+':'')+d.weightChange+'<span style="font-size:14px">kg</span>' : '–';
@@ -9880,13 +9883,7 @@ function loadMyStats(){
     if(d.streak>=7) parts.push('✅ 連續打卡 '+d.streak+' 天');
     _shareText = parts.join('\n') + '\n\n#元代謝 #粒線體健康 #代謝覺醒\nwww.isometabolix.com';
     var kEl=document.getElementById('ms-ketone'), kSub=document.getElementById('ms-ketone-sub');
-    if(kEl) kEl.textContent = (d.avgKetone!==null && d.avgKetone!==undefined) ? d.avgKetone : '–';
-    if(kSub){
-      if(d.ketoneDelta!==null && d.ketoneDelta!==undefined){
-        var sign = d.ketoneDelta>0?'↑ +':(d.ketoneDelta<0?'↓ ':'→ ');
-        kSub.textContent = '比上週 '+sign+Math.abs(d.ketoneDelta);
-      } else kSub.textContent = '近 7 天';
-    }
+    var l7=(d.last7Days||[]), lastOf=function(f){ for(var i=l7.length-1;i>=0;i--){ var v=l7[i]&&l7[i][f]; if(v!==null&&v!==undefined&&!isNaN(v)) return v; } return null; }; [['ms-ketone','ketone'],['ms-ketoneP','ketoneP'],['ms-glucose','glucose'],['ms-glucoseP','glucoseP']].forEach(function(p){ var el=document.getElementById(p[0]), lv=lastOf(p[1]); if(el) el.textContent=(lv===null)?'–':lv; });
     var wEl=document.getElementById('ms-weight');
     if(wEl) wEl.textContent = (d.weightChange!==null && d.weightChange!==undefined) ? (d.weightChange>0?'+':'')+d.weightChange+' kg' : '–';
     var fEl=document.getElementById('ms-fillrate');
@@ -9895,7 +9892,7 @@ function loadMyStats(){
     if(sEl) sEl.textContent = (d.streak!==null && d.streak!==undefined) ? d.streak+' 天' : '–';
     // ── 首頁「本週小結」卡片（2026-08-12修正：原本是寫死的展示假資料，跟這裡的真實數字接起來）──
     var hwK=document.getElementById('home-wk-ketone'), hwKSub=document.getElementById('home-wk-ketone-sub');
-    if(hwK) hwK.textContent = (d.avgKetone!==null && d.avgKetone!==undefined) ? d.avgKetone : '–';
+    if(hwK) hwK.textContent = __lastKetone(d); hwKSub = null; var hwKS0=document.getElementById('home-wk-ketone-sub'); if(hwKS0) hwKS0.textContent='最近一次';
     if(hwKSub){
       if(d.ketoneDelta!==null && d.ketoneDelta!==undefined){
         var hwSign = d.ketoneDelta>0?'↑ +':(d.ketoneDelta<0?'↓ ':'→ ');
@@ -9976,6 +9973,7 @@ var COMBINED_TREND_SERIES = [
   { key:'carbs', label:'碳水', unit:'g', color:'#EF9F27' }
 ];
 // 2026-11-21 創辦人：「APP 趨勢頁要加上血糖」——本週血糖長條圖（空腹、飯後各一色；有測才出現）
+function __lastKetone(d){ var a=(d&&d.last7Days)||[], i, v; for(i=a.length-1;i>=0;i--){ v=a[i]&&a[i].ketone; if(v!==null&&v!==undefined&&!isNaN(v)) return v; } for(i=a.length-1;i>=0;i--){ v=a[i]&&a[i].ketoneP; if(v!==null&&v!==undefined&&!isNaN(v)) return v; } return (d&&d.avgKetone!==null&&d.avgKetone!==undefined)?d.avgKetone:'–'; }
 function renderGlucoseBars(last7Days){
   var wrap = document.getElementById('glucose-bars-wrap'), svg = document.getElementById('glucose-bars-svg'), lg = document.getElementById('glucose-bars-legend');
   if(!wrap || !svg || !lg || !last7Days || last7Days.length !== 7) return;
