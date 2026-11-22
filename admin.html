@@ -3005,15 +3005,15 @@ function loadClientRecords() {
   adminAPI({ action: 'getRecords', clientId: clientId }, function(d) {
     if (d.records && d.records.length > 0) {
       window._crList = {};
-      var thS = 'padding:8px;border-bottom:1px solid var(--border)';
+      var thS = 'padding:8px;border-bottom:1px solid var(--border);white-space:nowrap';
       var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
-      html += '<tr style="background:var(--bg)"><th style="' + thS + ';text-align:left">日期時間</th><th style="' + thS + ';text-align:center">血酮</th><th style="' + thS + ';text-align:center">血糖</th><th style="' + thS + ';text-align:center">體重</th><th style="' + thS + ';text-align:center">腰圍</th><th style="' + thS + ';text-align:left">體感</th><th style="' + thS + ';text-align:center">操作</th></tr>';
-      d.records.slice(-15).reverse().forEach(function(r) {
+      html += '<tr style="background:var(--bg)"><th style="' + thS + ';text-align:left">日期時間</th><th style="' + thS + ';text-align:center">血酮</th><th style="' + thS + ';text-align:center">血糖</th><th style="' + thS + ';text-align:center">體重</th><th style="' + thS + ';text-align:center">腰圍</th><th style="' + thS + ';text-align:center">碳水(g)</th><th style="' + thS + ';text-align:left">飲食</th><th style="' + thS + ';text-align:center">照片</th><th style="' + thS + ';text-align:left">體感</th><th style="' + thS + ';text-align:center">操作</th></tr>';
+      d.records.slice(-20).reverse().forEach(function(r) {
         if (r.row) window._crList[r.row] = r;
         html += crRowHtml(r);
       });
       html += '</table></div>';
-      html += '<div style="font-size:11px;color:var(--text3);padding:8px;text-align:right">顯示最近 15 筆記錄；登記錯了按「修改」或「刪除」</div>';
+      html += '<div style="font-size:11px;color:var(--text3);padding:8px;text-align:right">顯示最近 20 筆；「（照片）」＝客人只PO照片還沒自評，秘書可按「修改」幫他填油脂／蛋白質／澱粉</div>';
       document.getElementById('client-records-body').innerHTML = html;
     } else {
       document.getElementById('client-records-body').innerHTML =
@@ -3021,17 +3021,39 @@ function loadClientRecords() {
     }
   });
 }
+function crMealText(r) {
+  var parts = [];
+  if (r.meal) parts.push(escH(r.meal));
+  var ops = [];
+  if (r.oil) ops.push('油 ' + escH(r.oil));
+  if (r.protein) ops.push('蛋白 ' + escH(r.protein));
+  if (r.starch) ops.push('澱粉 ' + escH(r.starch));
+  if (ops.length) parts.push('<span style="color:var(--text3)">' + ops.join('・') + '</span>');
+  if (!parts.length && r.feeling === undefined) return '';
+  var pend = /（照片）$/.test(String(r.meal || '')) ? ' <span style="color:#c0392b;font-size:10px">待自評</span>' : '';
+  return parts.join('<br>') + pend;
+}
+function crPhotoHtml(r) {
+  if (!r.photo) return '';
+  return String(r.photo).split(/\n/).filter(function(u) { return u; }).map(function(u) {
+    var safe = escH(u);
+    return '<a href="' + safe + '" target="_blank" rel="noopener" title="點開看大圖"><img src="' + safe + '=s120" loading="lazy" style="width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--border);margin:1px"></a>';
+  }).join('');
+}
 function crRowHtml(r) {
   var tdS = 'padding:8px;text-align:center;border-bottom:1px solid var(--border)';
   var time = new Date(r.time).toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
   var kColor = parseFloat(r.ketone) >= 0.5 ? 'color:var(--g3);font-weight:700;' : '';
   var when = function(w) { return w ? '<div style="font-size:10px;color:var(--text3)">' + escH(w) + '</div>' : ''; };
   var gColor = parseFloat(r.glucose) > 105 ? 'color:#c0392b;font-weight:700;' : '';
-  return '<tr id="cr-' + r.row + '"><td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(time) + '</td>' +
+  return '<tr id="cr-' + r.row + '"><td style="padding:8px;border-bottom:1px solid var(--border);white-space:nowrap">' + escH(time) + '</td>' +
     '<td style="' + tdS + ';' + kColor + '">' + escH(r.ketone) + when(r.ketoneWhen) + '</td>' +
     '<td style="' + tdS + ';' + gColor + '">' + escH(r.glucose) + when(r.glucoseWhen) + '</td>' +
     '<td style="' + tdS + '">' + escH(r.weight) + '</td>' +
     '<td style="' + tdS + '">' + escH(r.waist) + '</td>' +
+    '<td style="' + tdS + '">' + escH(r.carbs) + '</td>' +
+    '<td style="padding:8px;border-bottom:1px solid var(--border);min-width:120px">' + crMealText(r) + '</td>' +
+    '<td style="' + tdS + ';white-space:nowrap">' + crPhotoHtml(r) + '</td>' +
     '<td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(r.feeling) + '</td>' +
     '<td style="' + tdS + ';white-space:nowrap">' + (r.row ? '<button class="btn-ghost" onclick="crEdit(' + r.row + ')" style="padding:3px 8px;font-size:11px">修改</button> <button class="btn-ghost" onclick="crDel(' + r.row + ')" style="padding:3px 8px;font-size:11px;color:#c0392b">刪除</button>' : '') + '</td></tr>';
 }
@@ -3040,24 +3062,37 @@ function crEdit(row) {
   if (!r || !tr) return;
   var inS = 'width:58px;padding:4px;font-size:12px;text-align:center;border:1px solid var(--border);border-radius:6px';
   var opts = ['', '空腹', '飯前', '飯後1小時', '飯後2小時', '飯後3小時', '飯後3-4小時', '不確定'];
-  var mk = function(id, cur) {
-    var list = opts.slice(); if (cur && list.indexOf(cur) < 0) list.push(cur);
-    return '<select id="' + id + '" style="margin-top:3px;font-size:11px;padding:2px;max-width:92px">' + list.map(function(o) { return '<option value="' + escH(o) + '"' + (o === (cur || '') ? ' selected' : '') + '>' + (o ? escH(o) : '時機不填') + '</option>'; }).join('') + '</select>';
+  var mkSel = function(id, list, cur, blank) {
+    var l = list.slice(); if (cur && l.indexOf(cur) < 0) l.push(cur);
+    return '<select id="' + id + '" style="margin-top:3px;font-size:11px;padding:2px;max-width:96px">' + l.map(function(o) { return '<option value="' + escH(o) + '"' + (o === (cur || '') ? ' selected' : '') + '>' + (o ? escH(o) : blank) + '</option>'; }).join('') + '</select>';
   };
+  var mk = function(id, cur) { return mkSel(id, opts, cur, '時機不填'); };
   var time = new Date(r.time).toLocaleString('zh-TW', {month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
   var cell = function(id, v, extra) { return '<td style="padding:6px;text-align:center;border-bottom:1px solid var(--border)"><input id="' + id + '" value="' + escH(v === undefined || v === null ? '' : v) + '" inputmode="decimal" style="' + inS + '">' + (extra || '') + '</td>'; };
-  tr.innerHTML = '<td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(time) + '</td>' +
+  var mealName = String(r.meal || '').replace(/（照片）$|（自我判斷）$/, '');
+  var mealCell = '<td style="padding:6px;border-bottom:1px solid var(--border)">' +
+    mkSel('cre-m-' + row, ['', '早餐', '午餐', '晚餐', '點心'], mealName, '餐別') + '<br>' +
+    mkSel('cre-o-' + row, ['', '太少', '剛剛好', '加好加滿'], r.oil, '油脂') + '<br>' +
+    mkSel('cre-p-' + row, ['', '未滿掌心', '約一掌心', '超過掌心'], r.protein, '蛋白質') + '<br>' +
+    mkSel('cre-c-' + row, ['', '沒有', '有一點', '有'], r.starch, '澱粉') + '</td>';
+  tr.innerHTML = '<td style="padding:8px;border-bottom:1px solid var(--border);white-space:nowrap">' + escH(time) + '</td>' +
     cell('cre-k-' + row, r.ketone, '<br>' + mk('cre-kw-' + row, r.ketoneWhen)) +
     cell('cre-g-' + row, r.glucose, '<br>' + mk('cre-gw-' + row, r.glucoseWhen)) +
-    cell('cre-w-' + row, r.weight) + cell('cre-s-' + row, r.waist) +
+    cell('cre-w-' + row, r.weight) + cell('cre-s-' + row, r.waist) + cell('cre-cb-' + row, r.carbs) +
+    mealCell +
+    '<td style="padding:8px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap">' + crPhotoHtml(r) + '</td>' +
     '<td style="padding:8px;border-bottom:1px solid var(--border)">' + escH(r.feeling) + '</td>' +
     '<td style="padding:6px;text-align:center;border-bottom:1px solid var(--border);white-space:nowrap"><button class="btn-g" onclick="crSave(' + row + ')" style="padding:3px 8px;font-size:11px">儲存</button> <button class="btn-ghost" onclick="loadClientRecords()" style="padding:3px 8px;font-size:11px">取消</button></td>';
 }
 function crSave(row) {
+  var r = (window._crList || {})[row] || {};
   var v = function(id) { var e = document.getElementById(id); return e ? e.value.trim() : ''; };
+  var mealName = v('cre-m-' + row), oil = v('cre-o-' + row), prot = v('cre-p-' + row), starch = v('cre-c-' + row);
+  var mealVal = mealName ? mealName + ((oil || prot || starch) ? '（秘書判斷）' : (/（照片）$/.test(String(r.meal || '')) ? '（照片）' : '')) : '';
   var p = { action: 'updateDailyRecord', clientId: window._crCid, row: row,
-    ketone: v('cre-k-' + row), glucose: v('cre-g-' + row), weight: v('cre-w-' + row), waist: v('cre-s-' + row),
-    ketoneWhen: v('cre-kw-' + row), glucoseWhen: v('cre-gw-' + row) };
+    ketone: v('cre-k-' + row), glucose: v('cre-g-' + row), weight: v('cre-w-' + row), waist: v('cre-s-' + row), carbs: v('cre-cb-' + row),
+    ketoneWhen: v('cre-kw-' + row), glucoseWhen: v('cre-gw-' + row),
+    oil: oil, protein: prot, starch: starch, meal: mealVal };
   adminAPI(p, function(d) {
     if (d && d.status === 'ok') { toast('✅ 已修改'); } else { toast('⚠️ ' + ((d && d.message) || '修改失敗')); }
     loadClientRecords();
