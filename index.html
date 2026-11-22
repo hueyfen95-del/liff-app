@@ -7558,6 +7558,14 @@ function maybeShowOnboardingWizard(){
 <script>
 // ── 顯示秘書禮物 ──
 var giftConfigs = {
+    drumstick: { icon: '🍗', title: '雞腿', bg: '#FFF7ED', border: '#FDBA74', color: '#9A3412', fx: function(){} },
+    egg: { icon: '🥚', title: '雞蛋', bg: '#FFFBEB', border: '#E7D2A8', color: '#78350F', fx: function(){} },
+    butter: { icon: '🧈', title: '奶油', bg: '#FFFBEB', border: '#FCD34D', color: '#92400E', fx: function(){} },
+    cheese: { icon: '🧀', title: '起司', bg: '#FFFBEB', border: '#FCD34D', color: '#92400E', fx: function(){} },
+    macadamia: { icon: '🌰', title: '夏威夷果', bg: '#FEF3E2', border: '#E3C29B', color: '#7C2D12', fx: function(){} },
+    veggie: { icon: '🥬', title: '青菜', bg: '#F0FDF4', border: '#86EFAC', color: '#166534', fx: function(){} },
+    avocado: { icon: '🥑', title: '酪梨', bg: '#F7FEE7', border: '#BEF264', color: '#3F6212', fx: function(){} },
+    salmon: { icon: '🐟', title: '鮭魚', bg: '#FFF7ED', border: '#FDBA74', color: '#9A3412', fx: function(){} },
   sun: {
     icon: '☀️', title: '陽光', 
     bg: '#FFFBEB', border: '#FCD34D', color: '#92400E',
@@ -7707,8 +7715,8 @@ function requestGift(){
     type:'禮物請求', secretary:'系統'}, function(d){
     if (d && d.status === 'ok') {
       try { localStorage.setItem(key, '1'); } catch(e){}
-      if (btn) { btn.textContent = '💌 已經跟秘書說了，等秘書有空會送你'; btn.style.opacity = .75; }
-      toast('🌱 已經告訴秘書了，等秘書有空會送你小禮物');
+      if (btn) { btn.textContent = '🎁 禮物送到了，明天可以再要一次'; btn.style.opacity = .75; }
+      toast('🎁 小禮物來了！'); setTimeout(function(){ try { checkGifts(); } catch(e){} }, 1500); // 2026-11-22 創辦人：客人要禮物就自動送，不用等秘書
     } else {
       if (btn) { btn.disabled = false; btn.style.cursor = 'pointer'; btn.style.opacity = 1; btn.textContent = '🌱 請秘書送我花園小禮物'; }
       toast('⚠️ 送出失敗，請再試一次');
@@ -7758,7 +7766,7 @@ function _msgUnread(){
 // 禮物類型 → 訊息匣標籤（2026-08-30 她的回饋「為什麼沒有看到秘書給我的雨水或陽光」：
 // 動畫只在收到當下的花園頁出現，人在別頁就錯過了，訊息匣又只存文字——現在禮物跟著訊息一起存，
 // 每則訊息都看得到附了什麼禮物，點標籤隨時重看動畫）
-var GIFT_LABELS = { sunshine:'☀️ 陽光', rain:'🌧 雨水', sprout:'🌱 新芽', leaf:'🍃 新葉', star:'⭐ 星星', flower:'🌸 花朵', cell:'🫧 小細胞' };
+var GIFT_LABELS = { sunshine:'☀️ 陽光', rain:'🌧 雨水', sprout:'🌱 新芽', leaf:'🍃 新葉', star:'⭐ 星星', flower:'🌸 花朵', cell:'🫧 小細胞', drumstick:'🍗 雞腿', egg:'🥚 雞蛋', butter:'🧈 奶油', cheese:'🧀 起司', macadamia:'🌰 夏威夷果', veggie:'🥬 青菜', avocado:'🥑 酪梨', salmon:'🐟 鮭魚' };
 // who='c' 表示這是客人自己傳出去的訊息（不是秘書傳進來的），不用計入未讀數，畫面上也用不同樣式顯示
 function addToMsgInbox(text, gtype, who){
   if (!text) return;
@@ -7862,7 +7870,7 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(updateBellD
 function replayGift(i){
   var it = _msgInbox()[i];
   if (!it || !it.g) return;
-  var keyMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower', cell:'cell' };
+  var keyMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower', cell:'cell', drumstick:'drumstick', egg:'egg', butter:'butter', cheese:'cheese', macadamia:'macadamia', veggie:'veggie', avocado:'avocado', salmon:'salmon' };
   var key = keyMap[it.g];
   if (!key) return;
   markOneMsgRead(i);
@@ -7880,7 +7888,7 @@ function checkGifts() {
   // 這樣手機和電腦都會亮紅點，不會被先開的那台搶走。用列號去重，同一則不會重複跳
   callAPI({action:'getGift', clientId:CLIENT_ID, peek:1}, function(d) {
     if (d.status === 'ok' && d.gifts && d.gifts.length > 0) {
-      var giftMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower', cell:'cell' };
+      var giftMap = { sunshine:'sun', rain:'rain', sprout:'sprout', leaf:'leaf', star:'star', flower:'flower', cell:'cell', drumstick:'drumstick', egg:'egg', butter:'butter', cheese:'cheese', macadamia:'macadamia', veggie:'veggie', avocado:'avocado', salmon:'salmon' };
       var shown = false;
       var lastRow = 0;
       try { lastRow = parseInt(localStorage.getItem('mx_gift_lastrow') || '0', 10) || 0; } catch(e){}
@@ -10296,11 +10304,20 @@ function mxFaceSvg(type, size){
     sprout: '<path d="M50 95 L50 55" stroke="#16A34A" stroke-width="5" stroke-linecap="round"/><path d="M50 60 C30 60 18 45 20 25 C40 25 52 40 50 60 Z" fill="#4ADE80" stroke="#16A34A" stroke-width="2.5"/><path d="M50 50 C70 50 82 35 80 15 C60 15 48 30 50 50 Z" fill="#86EFAC" stroke="#16A34A" stroke-width="2.5"/><circle cx="50" cy="50" r="22" fill="#BBF7D0" stroke="#16A34A" stroke-width="2.5"/>',
     leaf:   '<path d="M15 85 C15 40 45 12 90 12 C90 58 60 88 15 85 Z" fill="#6EE7B7" stroke="#059669" stroke-width="3"/><path d="M20 82 C40 60 60 42 85 18" stroke="#059669" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
     sun:    '<g stroke="#F59E0B" stroke-width="5" stroke-linecap="round"><line x1="50" y1="4" x2="50" y2="16"/><line x1="50" y1="84" x2="50" y2="96"/><line x1="4" y1="50" x2="16" y2="50"/><line x1="84" y1="50" x2="96" y2="50"/><line x1="18" y1="18" x2="26" y2="26"/><line x1="74" y1="74" x2="82" y2="82"/><line x1="18" y1="82" x2="26" y2="74"/><line x1="74" y1="26" x2="82" y2="18"/></g><circle cx="50" cy="50" r="28" fill="#FDE047" stroke="#F59E0B" stroke-width="3"/>',
-    rain:   '<path d="M50 6 C62 30 82 44 82 64 A32 32 0 0 1 18 64 C18 44 38 30 50 6 Z" fill="#93C5FD" stroke="#2563EB" stroke-width="3"/>'
-  }[type];
+    rain:   '<path d="M50 6 C62 30 82 44 82 64 A32 32 0 0 1 18 64 C18 44 38 30 50 6 Z" fill="#93C5FD" stroke="#2563EB" stroke-width="3"/>',
+    drumstick: '<ellipse cx="42" cy="48" rx="34" ry="28" fill="#F59E0B" stroke="#B45309" stroke-width="3"/><path d="M68 64 L88 84" stroke="#FDE68A" stroke-width="10" stroke-linecap="round"/><circle cx="91" cy="79" r="7" fill="#FDE68A" stroke="#D6D3D1" stroke-width="2"/><circle cx="83" cy="90" r="7" fill="#FDE68A" stroke="#D6D3D1" stroke-width="2"/><path d="M20 36 C28 26 40 24 50 28" stroke="#FBBF24" stroke-width="4" fill="none" stroke-linecap="round"/>',
+    egg: '<ellipse cx="50" cy="54" rx="32" ry="40" fill="#FFF7ED" stroke="#D6B98C" stroke-width="3"/><path d="M32 30 C36 22 42 18 48 18" stroke="#FFFFFF" stroke-width="5" fill="none" stroke-linecap="round"/>',
+    butter: '<path d="M12 44 L46 28 L90 36 L58 54 Z" fill="#FDE68A" stroke="#D97706" stroke-width="3" stroke-linejoin="round"/><path d="M12 44 L58 54 L58 86 L12 76 Z" fill="#FCD34D" stroke="#D97706" stroke-width="3" stroke-linejoin="round"/><path d="M58 54 L90 36 L90 68 L58 86 Z" fill="#F59E0B" stroke="#D97706" stroke-width="3" stroke-linejoin="round"/>',
+    cheese: '<path d="M8 78 L92 78 L50 20 Z" fill="#FCD34D" stroke="#D97706" stroke-width="3" stroke-linejoin="round"/><circle cx="30" cy="68" r="5" fill="#F59E0B"/><circle cx="70" cy="66" r="4" fill="#F59E0B"/><circle cx="50" cy="34" r="3" fill="#F59E0B"/>',
+    macadamia: '<circle cx="50" cy="52" r="36" fill="#D4A373" stroke="#92400E" stroke-width="3"/><path d="M28 36 C40 24 60 24 72 36" stroke="#FFF1DB" stroke-width="5" fill="none" stroke-linecap="round"/>',
+    veggie: '<path d="M50 92 C20 92 8 65 14 40 C25 48 32 42 35 28 C45 35 52 20 50 8 C58 22 68 32 66 44 C74 38 84 46 86 40 C92 65 80 92 50 92 Z" fill="#4ADE80" stroke="#15803D" stroke-width="3" stroke-linejoin="round"/><path d="M50 90 L50 48" stroke="#15803D" stroke-width="3" stroke-linecap="round"/>',
+    avocado: '<path d="M50 6 C70 6 86 36 86 62 A36 36 0 0 1 14 62 C14 36 30 6 50 6 Z" fill="#65A30D" stroke="#365314" stroke-width="3"/><path d="M50 14 C66 14 78 40 78 62 A28 28 0 0 1 22 62 C22 40 34 14 50 14 Z" fill="#D9F99D"/><circle cx="50" cy="72" r="12" fill="#92400E"/>',
+    salmon: '<path d="M6 50 C24 20 70 20 84 50 C70 80 24 80 6 50 Z" fill="#FB923C" stroke="#C2410C" stroke-width="3"/><path d="M84 50 L98 34 L94 50 L98 66 Z" fill="#FB923C" stroke="#C2410C" stroke-width="3" stroke-linejoin="round"/><path d="M26 36 C40 46 40 54 26 64" stroke="#FED7AA" stroke-width="3" fill="none" stroke-linecap="round"/>'
+  }[type]; // 2026-11-22 創辦人：禮物多幾種——雞腿、雞蛋、奶油、起司、夏威夷果、青菜、酪梨、鮭魚（都會眨眼）
   if (!body) return '';
   var ey = (type === 'sprout' || type === 'flower') ? 50 : (type === 'rain' ? 62 : (type === 'leaf' ? 52 : 48));
   var ex = type === 'leaf' ? 46 : 50, dx = type === 'rain' ? 9 : 11;
+  var _fp = {drumstick:[42,46,10], egg:[50,52,10], butter:[35,64,9], cheese:[50,58,8], macadamia:[50,52,11], veggie:[50,64,10], avocado:[50,42,9], salmon:[58,48,8]}[type]; if (_fp) { ex = _fp[0]; ey = _fp[1]; dx = _fp[2]; }
   var mouthY = ey + 11;
   return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 100 100" style="vertical-align:middle;overflow:visible">'
     + body
