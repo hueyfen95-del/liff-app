@@ -643,6 +643,9 @@ window.openHealthForm = function() {
         <a href="https://www.facebook.com/profile.php?id=61567707208197&locale=zh_TW" target="_blank" id="fb-link" style="display:flex;align-items:center;gap:11px;background:#F3F9F6;border-radius:11px;padding:11px 13px;text-decoration:none;color:#2B3A35">
           <span style="font-size:18px">👍</span><div style="flex:1"><div style="font-size:13px;font-weight:700">Facebook 粉絲專頁</div><div style="font-size:10.5px;color:#8A9992">最新消息與活動</div></div><span style="color:#8A9992;font-size:12px">›</span>
         </a>
+        <a href="https://www.facebook.com/share/1Cvc2A2noJ/" target="_blank" id="fb-link2" style="display:flex;align-items:center;gap:11px;background:#F3F9F6;border-radius:11px;padding:11px 13px;text-decoration:none;color:#2B3A35">
+          <span style="font-size:18px">🧠</span><div style="flex:1"><div style="font-size:13px;font-weight:700">都是代謝惹的禍 粉絲專頁</div><div style="font-size:10.5px;color:#8A9992">胰島素阻抗與粒線體健康短影片</div></div><span style="color:#8A9992;font-size:12px">›</span>
+        </a>
       </div>
     </div>
   </div>
@@ -5190,6 +5193,9 @@ function callAPI(params, callback) {
 function selCarbExercise(el){
   document.querySelectorAll('#carb-exercise-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
   el.classList.add('on');
+  // 2026-11-23 創辦人：「運動沒法記錄，加一下」——點了就直接存，不用再按「儲存今日記錄」
+  var exVal = el.getAttribute('data-val') || ''; if (!exVal || !CLIENT_ID || !CLIENT_TOKEN || window._exSaved === exVal) return; window._exSaved = exVal;
+  callAPI({ action: 'addDailyRecord', clientId: CLIENT_ID, exercise: exVal, note: '運動（APP 點選）' }, function(d){ if (d && d.status === 'ok') toast(exVal === 'V' ? '✅ 有運動有喘，記好了' : '✅ 有運動沒喘，記好了'); else { window._exSaved = null; toast('⚠️ 沒存成功，請再點一次'); } });
 }
 // 2026-09-14補：排便原本是單一顆チップ用文字切換「尚未／已排便」，創辦人反應應該跟運動狀態一樣
 // 兩個選項同時顯示、點哪個就選哪個，比較清楚——改成跟selCarbExercise同一套「兩顆並排、點選高亮」
