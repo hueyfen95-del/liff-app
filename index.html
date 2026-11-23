@@ -5968,6 +5968,12 @@ function showMatrixTab(){
     if(!isNaN(esiV)) IRCT_MATRIX_VALUES.esi = esiV;
     if(!isNaN(hba1cV)) IRCT_MATRIX_VALUES.hba1c = hba1cV;
     if(!isNaN(glucoseV)) IRCT_MATRIX_VALUES.glucose = glucoseV;
+    // 2026-11-23 創辦人：橫向「受體體質」改用後台客人名單的「IRT模型」欄（創辦人／秘書判定的十二型）定位；還沒定型的維持中間值
+    try {
+      var mdl = String(d.matrixCoords.irtModel || '');
+      var colMap = {'自然燃脂型':0,'隱性警戒型':0,'疲勞纖細型':0,'發炎阻抗型':0,'活躍均衡型':1,'代謝轉折型':1,'標準阻抗型':1,'代謝症候群型':1,'肌肉爆發型':2,'囤積前期型':2,'脂肌並存型':2,'重度囤積型':2};
+      if (mdl && colMap[mdl] !== undefined) IRCT_MATRIX_VALUES.bodyType = colMap[mdl];
+    } catch(eMd) {}
     _matrixLoaded = true;
     renderMatrix();
   });
