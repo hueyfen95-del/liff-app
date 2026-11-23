@@ -10095,6 +10095,26 @@ function loadTodayGarden(){
     // 2026-09-14e：碳水記錄這項不在gsTasks[0..6]裡（不計入X/7進度），要另外單獨還原今天的打勾狀態，
     // 不然重新整理頁面後，今天明明記錄過碳水，卻又看起來變回沒記錄
     if(done.indexOf('碳水回補記錄')>=0 && typeof updateHomeCarbTask==='function') updateHomeCarbTask(true);
+    // 2026-11-23 創辦人：傅璐婷、雅都反映「記錄了然後重開 app，又全部記錄被清掉」——三餐的已記錄狀態（mealDone）以前只存在畫面變數裡，
+    // 重開 APP 就歸零，看起來像記錄不見了（其實後台都有）。後端現在會回今天記過哪幾餐／斷食模式，這裡照實還原成「已記錄 ✅／已完成 ✅」，
+    // 只補「已記錄」、絕不把客人剛按過的蓋回未記錄（跟上面花園任務同樣原則）
+    try {
+      var tm = d.meals || {};
+      ['b','l','d'].forEach(function(mc){
+        if (!tm[mc] || (mealDone && mealDone[mc])) return;
+        if (typeof _mealJudgeBypass !== 'undefined') _mealJudgeBypass[mc] = true;
+        mealDone[mc] = true;
+        var st = document.getElementById(mc + 's');
+        if (st) { st.textContent = '已記錄 ✅'; st.className = 'meal-st ok'; }
+        var bt = document.querySelector('[onclick="quickSaveMeal(\'' + mc + '\')"]');
+        if (bt) { bt.textContent = '已完成 ✅'; bt.style.background = 'var(--g)'; bt.style.cursor = 'default'; bt.disabled = true; }
+      });
+      if (d.fasting && !_fastingMode && ['168','186','204','none'].indexOf(String(d.fasting)) >= 0) {
+        _fastingMode = String(d.fasting);
+        ['168','186','204','none'].forEach(function(fm){ var fb = document.getElementById('fast-' + fm); if (!fb) return; var on = fm === _fastingMode; fb.style.background = on ? 'var(--g)' : 'var(--card)'; fb.style.color = on ? '#fff' : 'var(--text2)'; fb.style.borderColor = on ? 'var(--g3)' : 'var(--border)'; });
+      }
+      if (typeof updateDietProgress === 'function') updateDietProgress();
+    } catch(eMr) {}
     // 今天還沒任何記錄 → 花園是「清新的一天」狀態
     var hint=document.getElementById('gs-label');
     if(hint && gardenTasksDone===0) hint.textContent='新的一天開始了，今天也要好好照顧自己 🌱';
