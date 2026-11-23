@@ -10121,6 +10121,21 @@ function loadTodayGarden(){
       }
       if (typeof updateDietProgress === 'function') updateDietProgress();
     } catch(eMr) {}
+      // 2026-11-23 創辦人（傅璐婷）：重開 APP 後照片縮圖不見——把後端回傳的今天餐盤照片放回各餐縮圖區（已存好的照片，不給刪除鈕）
+      try {
+        var tp = d.photos || {};
+        ['b','l','d'].forEach(function(mc){
+          (tp[mc] || []).forEach(function(u){
+            var grid = document.getElementById(mc + '-grid'); if (!grid) return;
+            if (grid.querySelector('[data-rp="' + u + '"]')) return;
+            var zone = document.getElementById(mc + 'z'); if (zone) zone.style.display = 'none';
+            var cont = document.getElementById(mc + '-content'); if (cont) cont.style.display = 'block';
+            var th = document.createElement('div'); th.className = 'pt'; th.setAttribute('data-rp', u);
+            th.style.backgroundImage = 'url(' + u + ')'; th.style.backgroundSize = 'cover'; th.style.backgroundPosition = 'center';
+            var ab = grid.querySelector('.pt-add'); if (ab) grid.insertBefore(th, ab); else grid.appendChild(th);
+          });
+        });
+      } catch(ePh) {}
     // 今天還沒任何記錄 → 花園是「清新的一天」狀態
     var hint=document.getElementById('gs-label');
     if(hint && gardenTasksDone===0) hint.textContent='新的一天開始了，今天也要好好照顧自己 🌱';
