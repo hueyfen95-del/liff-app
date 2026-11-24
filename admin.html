@@ -471,6 +471,7 @@ var MX_BUILD = '2026-11-18b';
     </div>
     <div class="sb-cat sbc-test">
       <div class="sb-sec">🧪 檢測與診所</div>
+      <div class="si nav-item" onclick="goPg('bookings',this)"><i class="ti ti-calendar-heart"></i>檢測預約</div>
       <div class="si nav-item" onclick="goPg('lab-integrate',this)"><i class="ti ti-report-medical"></i>檢測整合</div>
       <div class="si nav-item" onclick="goPg('all-tests',this)"><i class="ti ti-table"></i>全部客人檢測總表</div>
       <div class="si nav-item" onclick="goPg('extra-test',this)"><i class="ti ti-flask"></i>功能醫學加測</div>
@@ -2192,6 +2193,14 @@ var MX_BUILD = '2026-11-18b';
   <div style="font-size:11px;color:var(--text3);margin-top:8px">💡 「傳關心」和「送禮物」都會寫入 🌱 秘書禮物，客人打開前台會即時看到，不需要另外傳 LINE。</div>
 </div>
 
+<div class="pg" id="pg-bookings">
+  <!-- 2026-11-24 創辦人：儀表板太亂不好找，檢測預約要單獨一頁，放在「檢測與診所」最上面 -->
+  <div class="hint-box">客人在 APP 送出的 IRCT 檢測預約都在這裡。按「✅ 已確認日期」銷案；APP 預約也會自動同步一列到 Google「動態胰島素檢測預約表 (回覆)」試算表。</div>
+  <div class="card" style="margin-bottom:14px;border:1px solid #D9C9F2">
+    <div class="card-hd"><div class="card-title" style="color:#6D4AA8"><i class="ti ti-calendar-heart"></i>新預約・待聯繫確認日期</div></div>
+    <div class="card-body" id="bkp-body" style="padding-top:4px"></div>
+  </div>
+</div>
 <div class="pg" id="pg-clinic-slots">
   <div class="hint-box">在這裡維護各診所的可預約時段，以及（創始人限定）IRCT 檢測費定價。<b>每月 25 日</b>更新下個月的時段，客人在前台預約 IRCT 複檢時就會看到正確的時間。改完馬上生效。<br>💡 診所名稱直接從「分帳角色名單」裡的診所選，跟分潤結算、加測檢測的送往、逾期提醒用的是同一份名單，名稱不會兜不起來。還沒登錄的診所，先到「分帳角色名單」新增再回來選。</div>
   <div class="card" style="margin-bottom:14px">
@@ -2686,6 +2695,7 @@ function goPg(id,el){
   if(id==='lab-integrate'){ setTimeout(function(){ liInitRows(); liLoadClients(); liLoadFamClients(); liLoadFamilyList(); }, 150); }
   if(id==='alerts' && typeof loadReportClients==='function') setTimeout(loadReportClients,150);
   if(id==='alerts' && typeof loadReportReadyList==='function') setTimeout(loadReportReadyList,150);
+  if(id==='bookings' && typeof loadBookings==='function') setTimeout(loadBookings,150);
   if(id==='clinic-slots' && typeof loadClinicSlots==='function') setTimeout(loadClinicSlots,150);
   if(id==='clinic-slots' && typeof loadCsClinicOptions==='function') setTimeout(loadCsClinicOptions,150);
   // 2026-09-21新增：IRCT定價卡片只有創始人角色看得到，切到「診所管理」頁時依角色切換顯示
@@ -2706,7 +2716,7 @@ function goPg(id,el){
   document.querySelectorAll('.si').forEach(function(s){s.classList.remove('on')});
   if(!el && typeof mxNavItemFor === 'function') el = mxNavItemFor(id); // 2026-10-12：從程式跳頁時側欄也亮對的那顆
   if(el)el.classList.add('on');
-  var titles={dashboard:'儀表板',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒線體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所管理','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表'};
+  var titles={dashboard:'儀表板',bookings:'檢測預約',clients:'客戶管理',alerts:'警示看板',duty:'排班交接',report:'月報生成',roles:'分帳角色名單',rules:'分帳規則設定',settlement:'月結算',global:'全域設定','qa-list':'QA 症狀編輯','food-mgmt':'外食速查管理','keto-rest-mgmt':'粒線體友善餐廳','faq-mgmt':'FAQ 問答管理','supplement-mgmt':'補充品資料庫管理','irct-mgmt':'IRCT 區間管理','sales-script':'銷售話術','extra-test':'功能醫學加測建議','diet-compare':'飲食模式對照',tracking:'自訂追蹤模組',remind:'複檢提醒警示',upload:'上傳外部報告','shop-mgmt':'好物推薦管理','irt-models':'IRT 建議模型','garden-mgmt':'代謝花園管理',inventory:'貨品進銷存','clinic-slots':'診所管理','lab-integrate':'檢測整合','stored-value':'儲值消費',review:'會計核查',accounts:'帳號管理','finance-entry':'財務登記','all-tests':'全部客人檢測總表'};
   document.getElementById('page-title').textContent=titles[id]||id;
   if (typeof mxApplyPageChrome === 'function') mxApplyPageChrome(id); // 2026-10-12：頂欄分類標籤＋頁首說明列
   // 切到分帳相關頁面時自動載入最新資料，不用手動點重新載入
@@ -4858,7 +4868,7 @@ var PAGE_CATALOG = [
   {id:'rules', label:'分帳規則設定'}, {id:'roles', label:'分帳角色名單'}, {id:'inventory', label:'貨品進銷存'},
   {id:'sales-script', label:'銷售話術'}, {id:'faq-mgmt', label:'FAQ管理'}, {id:'food-mgmt', label:'外食速查管理'},
   {id:'clinic-slots', label:'診所管理'}, {id:'shop-mgmt', label:'好物推薦管理'},
-  {id:'lab-integrate', label:'檢測整合'}, {id:'tracking', label:'自訂追蹤模組'}, {id:'remind', label:'複檢提醒警示'},
+  {id:'bookings', label:'檢測預約'}, {id:'lab-integrate', label:'檢測整合'}, {id:'tracking', label:'自訂追蹤模組'}, {id:'remind', label:'複檢提醒警示'},
   {id:'keto-rest-mgmt', label:'粒線體友善餐廳'}, {id:'garden-mgmt', label:'代謝花園管理'},
   {id:'qa-list', label:'QA症狀編輯'}, {id:'upload', label:'上傳外部報告'}, {id:'diet-compare', label:'飲食模式對照'},
   {id:'extra-test', label:'功能醫學加測建議'}, {id:'irct-mgmt', label:'IRCT區間管理'}
@@ -9519,7 +9529,7 @@ function loadBookings(){
     if(!card || !body) return;
     _bkgCache = (d && d.items) || [];
     _mxDashNavSet('bkg-card', _bkgCache.length, '新預約', 'ti ti-calendar-heart');
-    if(_bkgCache.length === 0){ card.style.display = 'none'; return; }
+    if(_bkgCache.length === 0){ card.style.display = 'none'; var bkp0 = document.getElementById('bkp-body'); if (bkp0) bkp0.innerHTML = '<div style="color:var(--text3);font-size:12px;padding:6px 0">目前沒有待處理的新預約 🎉 處理過的記錄在試算表「💉 IRCT預約」。</div>'; return; }
     card.style.display = '';
     body.innerHTML = _bkgCache.map(function(b, i){
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px dashed var(--border);font-size:12px;flex-wrap:wrap">'
@@ -9544,6 +9554,7 @@ function loadBookings(){
                 : ''))
         + '</div>';
     }).join('');
+    var bkpB = document.getElementById('bkp-body'); if (bkpB) bkpB.innerHTML = body.innerHTML; // 2026-11-24 創辦人：檢測預約有自己的頁，跟儀表板同一套畫面
   });
 }
 // 2026-10-10：直接在系統內傳訊息跟客人確認檢測日期（系統收到預約時已自動回一句「收到了」，這裡是秘書真的來約日期）
@@ -10864,8 +10875,17 @@ function loadOversight(){
     if(!d.items.length){ card.style.display='block'; card.style.borderColor='#10B981'; card.style.background='#ECFDF5'; body.style.color='#065F46'; body.innerHTML='<b>🔍 疏漏提醒</b>　目前沒有發現疏漏 ✅'; return; }
     card.style.borderColor = red.length?'#DC2626':'#F59E0B'; card.style.background = red.length?'#FEF2F2':'#FFFBEB'; body.style.color = red.length?'#7F1D1D':'#78350F';
     var h='<div style="font-size:15px;font-weight:800;margin-bottom:6px">🔍 疏漏提醒　<span style="font-size:12px;font-weight:600">'+(red.length?'<span style="color:#DC2626">'+red.length+' 項紅字</span>':'')+(red.length&&yel.length?'・':'')+(yel.length?'<span style="color:#B45309">'+yel.length+' 項要確認</span>':'')+'</span></div>';
-    h+=red.concat(yel).map(function(o){ return '<div style="padding:5px 0;border-top:1px dashed rgba(0,0,0,.08)"><span style="font-size:14px">'+(o.level==='red'?'🔴':'🟡')+'</span> '+escH(o.text)+(o.where?' <span onclick="ovGo(this.getAttribute(\'data-w\'))" data-w="'+escH(o.where)+'" title="點一下直接跳到該頁" style="display:inline-block;background:rgba(0,0,0,.06);border-radius:6px;padding:0 7px;font-size:11px;font-weight:700;margin-left:4px;cursor:pointer;text-decoration:underline dotted">👉 '+escH(o.where)+' ↗</span>':'')+'</div>'; }).join('');
+    window._ovCache=red.concat(yel);
+    h+=window._ovCache.map(function(o,oi){ return '<div style="padding:5px 0;border-top:1px dashed rgba(0,0,0,.08)"><button class="ai-btn gray" style="float:right;font-size:10.5px;padding:3px 9px;margin-left:8px" onclick="ovDismiss('+oi+')">✅ 已處理</button><span style="font-size:14px">'+(o.level==='red'?'🔴':'🟡')+'</span> '+escH(o.text)+(o.where?' <span onclick="ovGo(this.getAttribute(\'data-w\'))" data-w="'+escH(o.where)+'" title="點一下直接跳到該頁" style="display:inline-block;background:rgba(0,0,0,.06);border-radius:6px;padding:0 7px;font-size:11px;font-weight:700;margin-left:4px;cursor:pointer;text-decoration:underline dotted">👉 '+escH(o.where)+' ↗</span>':'')+'</div>'; }).join('');
     body.innerHTML=h; card.style.display='block';
+  });
+}
+// 2026-11-24 創辦人：「儀表板裡面右邊都要有一排：已處理，讓我點掉，不然每天一直出現很煩」——每項疏漏提醒加「✅ 已處理」，點掉後同一類 7 天內不再出現（還沒解決的 7 天後會再出現）
+function ovDismiss(i){
+  var o=(window._ovCache||[])[i]; if(!o) return;
+  adminAPIPost({action:'dismissOversight', text:o.text}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已處理，這一類提醒 7 天內不會再出現'); loadOversight(); }
+    else toast('⚠️ 操作失敗');
   });
 }
 // 2026-11-03c 疏漏提醒的「👉 去處理」膠囊可以直接點：跳到對應頁面，並盡量捲到該區塊、閃一下金框提示
@@ -15558,9 +15578,9 @@ var ROLE_PAGES = {
   // 「查不到key就當成沒有限制（全部頁面都能看）」所以沒有真的鎖住創始人帳號，但沒有明講很容易讓人誤以為
   // 創始人被漏掉、頁面權限沒開好，這裡明講出來，跟其他幾處同名判斷（isFinanceTier等）一起補齊
   '創始人': null,
-  '秘書': ['dashboard','clients','alerts','duty','lab-integrate','stored-value','tracking','remind','keto-rest-mgmt','garden-mgmt','qa-list','upload','diet-compare','extra-test','irct-mgmt','report','irt-models','sales-script','faq-mgmt','food-mgmt','supplement-mgmt','all-tests'],
+  '秘書': ['dashboard','bookings','clients','alerts','duty','lab-integrate','stored-value','tracking','remind','keto-rest-mgmt','garden-mgmt','qa-list','upload','diet-compare','extra-test','irct-mgmt','report','irt-models','sales-script','faq-mgmt','food-mgmt','supplement-mgmt','all-tests'],
   '會計': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
-  '行政': ['dashboard','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','supplement-mgmt','inventory'],
+  '行政': ['dashboard','bookings','clients','duty','sales-script','faq-mgmt','food-mgmt','clinic-slots','shop-mgmt','supplement-mgmt','inventory'],
   // 2026-08-16 新增：財務主管——側重合作單位收費模式、分帳比例、應收帳款、月結算，跟會計看的頁面一致，
   // 差別在於財務主管額外有 setPartnerFeatures／addRule 這兩個動作層級的權限（後端已限定管理人/財務主管才能呼叫）
   '財務主管': ['dashboard','clients','review','stored-value','settlement','rules','roles'],
