@@ -706,6 +706,7 @@ window.openHealthForm = function() {
          但「運動甜蜜點」要能分析所有客人，這格改成每位客人天天都能記、都會存進每日記錄的「運動狀態」欄位 -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:10px 0">
       <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:9px">🏃 今日運動</div>
+      <div id="ex-when" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center"><span style="font-size:11px;color:#6B7280">什麼時候運動的？</span><button type="button" class="gw-chip on" data-d="0" onclick="pickExDay(this)">今天</button><button type="button" class="gw-chip" data-d="-1" onclick="pickExDay(this)">昨天</button><span style="width:8px"></span><button type="button" class="gw-chip ex-t" data-t="早上" onclick="pickExTime(this)">早上</button><button type="button" class="gw-chip ex-t" data-t="下午" onclick="pickExTime(this)">下午</button><button type="button" class="gw-chip ex-t" data-t="晚上" onclick="pickExTime(this)">晚上</button></div>
       <div style="display:flex;gap:6px" id="carb-exercise-chips">
         <div class="carb-chip on" data-val="" onclick="selCarbExercise(this)" style="flex:1">沒運動</div>
         <div class="carb-chip" data-val="X" onclick="selCarbExercise(this)" style="flex:1">有運動沒喘</div>
@@ -5202,10 +5203,15 @@ function saveExercise(auto) {
   var on = document.querySelector('#carb-exercise-chips .carb-chip.on'); var exVal = on ? (on.getAttribute('data-val') || '') : '';
   if (!exVal) { if (!auto) toast('👌 今天沒運動，有運動再點就好'); return; }
   if (!CLIENT_ID || !CLIENT_TOKEN) { toast('⏳ 資料還在準備，等幾秒再按「儲存」'); return; }
-  if (window._exSaved === exVal) { if (!auto) toast('✅ 已經記好了'); return; }
-  window._exSaved = exVal;
-  callAPI({ action: 'addDailyRecord', clientId: CLIENT_ID, exercise: exVal, note: '運動（APP 點選）' }, function(d){ if (d && d.status === 'ok') toast(exVal === 'V' ? '✅ 有運動有喘，記好了' : '✅ 有運動沒喘，記好了'); else { window._exSaved = null; toast('⚠️ 沒存成功，請再按一次「儲存」'); } });
+  var exD = window._exDay || 0, exT = window._exTime || '', exKey = exVal + '|' + exD + '|' + exT, exLab = (exD === -1 ? '昨天' : '今天') + exT;
+  if (window._exSaved === exKey) { if (!auto) toast('✅ 已經記好了'); return; }
+  window._exSaved = exKey;
+  callAPI({ action: 'addDailyRecord', clientId: CLIENT_ID, exercise: exVal, dayOffset: exD, note: '運動（APP 點選）' + (exT ? '｜' + exT : '') + (exD === -1 ? '｜補記昨天' : '') }, function(d){ if (d && d.status === 'ok') toast('✅ ' + exLab + (exVal === 'V' ? ' 有運動有喘' : ' 有運動沒喘') + '，記好了'); else { window._exSaved = null; toast('⚠️ 沒存成功，請再按一次「儲存」'); } });
 }
+// 2026-11-24 創辦人：「運動可不可以讓他也可以選時間——昨天的運動今天才記、早上／下午／晚上」——先選日期、時段，再點運動（時段預設依現在時間）
+function pickExDay(b) { [].forEach.call(document.querySelectorAll('#ex-when .gw-chip[data-d]'), function (x) { x.classList.remove('on'); }); b.classList.add('on'); window._exDay = parseInt(b.getAttribute('data-d'), 10) || 0; }
+function pickExTime(b) { [].forEach.call(document.querySelectorAll('#ex-when .ex-t'), function (x) { x.classList.remove('on'); }); b.classList.add('on'); window._exTime = b.getAttribute('data-t') || ''; }
+(function () { try { var h = new Date().getHours(), t = h < 12 ? '早上' : (h < 18 ? '下午' : '晚上'); window._exDay = 0; window._exTime = t; var go = function () { var b = document.querySelector('#ex-when .ex-t[data-t="' + t + '"]'); if (b) b.classList.add('on'); }; if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go(); } catch (eEx) {} })();
 // 2026-09-14補：排便原本是單一顆チップ用文字切換「尚未／已排便」，創辦人反應應該跟運動狀態一樣
 // 兩個選項同時顯示、點哪個就選哪個，比較清楚——改成跟selCarbExercise同一套「兩顆並排、點選高亮」
 function selCarbBowel(el){
