@@ -1702,6 +1702,29 @@ window.openHealthForm = function() {
         <div id="bk-birthdate-warn" style="display:none;font-size:10.5px;color:#A32D2D;margin-top:6px">⚠️ 請填寫出生年月日，檢測診所需要核對</div>
       </div>
 
+      <!-- 2026-11-24 創辦人：APP預約也要收基本資料，跟Google預約表單一樣，秘書端才看得到 -->
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:13px 14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">📋 基本資料</div>
+        <div style="font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.6">檢測診所需要，跟現場紙本表格一樣</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <div class="bk-g" data-g="男" onclick="bkPickGender(this)" style="flex:1;text-align:center;border:1.5px solid var(--border2);border-radius:9px;padding:9px 0;font-size:13px;cursor:pointer;background:var(--card)">👨 男</div>
+          <div class="bk-g" data-g="女" onclick="bkPickGender(this)" style="flex:1;text-align:center;border:1.5px solid var(--border2);border-radius:9px;padding:9px 0;font-size:13px;cursor:pointer;background:var(--card)">👩 女</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="bk-height" class="form-input" placeholder="身高 cm" style="flex:1;min-width:0;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+          <input type="number" id="bk-weight" class="form-input" placeholder="體重 kg" style="flex:1;min-width:0;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        </div>
+        <input type="tel" id="bk-phone" class="form-input" placeholder="手機號碼" style="width:100%;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        <input id="bk-govid" class="form-input" placeholder="身分證字號（政府規定檢測需要）" style="width:100%;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        <input id="bk-addr" class="form-input" placeholder="地址" style="width:100%;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        <input id="bk-fallergy" class="form-input" placeholder="食物過敏（沒有可不填）" style="width:100%;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        <input id="bk-dallergy" class="form-input" placeholder="藥物過敏（沒有可不填）" style="width:100%;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        <input id="bk-history" class="form-input" placeholder="重大病史（沒有可不填）" style="width:100%;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        <input id="bk-concern" class="form-input" placeholder="最想改善的健康困擾（選填）" style="width:100%;font-size:13px;box-sizing:border-box;margin-bottom:8px">
+        <input id="bk-car" class="form-input" placeholder="車號（有停車需求才填）" style="width:100%;font-size:13px;box-sizing:border-box">
+        <div id="bk-basic-warn" style="display:none;font-size:10.5px;color:#A32D2D;margin-top:6px">⚠️ 請選性別、填手機號碼，檢測診所需要聯絡</div>
+      </div>
+
       <!-- IRCT方案選擇 -->
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
         <div id="bk-t1" onclick="bkSelectType('t1')" style="border:1.5px solid var(--border2);border-radius:12px;padding:12px 14px;cursor:pointer;transition:all .18s">
@@ -2768,6 +2791,9 @@ function bkGoStep1(){
   document.getElementById('bk-step2').style.display='none';
   bkSetStep(1);
 }
+var _bkGender='';
+function bkPickGender(el){ _bkGender=el.getAttribute('data-g'); document.querySelectorAll('.bk-g').forEach(function(x){ x.style.borderColor='var(--border2)'; x.style.background='var(--card)'; x.style.fontWeight='400'; }); el.style.borderColor='var(--g)'; el.style.background='var(--g2)'; el.style.fontWeight='700'; }
+function bkGv(id){ var e=document.getElementById(id); return e?String(e.value||'').trim():''; }
 function bkGoStep2(){
   document.getElementById('bk-step1').style.display='none';
   document.getElementById('bk-step2').style.display='block';
@@ -2804,6 +2830,12 @@ function bkGoStep3(){
     return;
   }
   _bkBirthDate = bdVal;
+  // 2026-11-24 創辦人：性別和手機必填（診所要聯絡客人），其他基本資料盡量填
+  if (!_bkGender || !bkGv('bk-phone')) {
+    var bw = document.getElementById('bk-basic-warn');
+    if (bw) { bw.style.display = 'block'; bw.scrollIntoView({behavior:'smooth', block:'center'}); }
+    return;
+  }
   if (_bkType === 't2') {
     var medInput = document.getElementById('bk-med-input');
     var medNone = document.getElementById('bk-med-none');
@@ -2921,7 +2953,8 @@ function bkGoStep5(){
     clinic: locText, time: timeText, diet: dietSummary + (((document.getElementById('bk-diet-note') || {}).value || '').trim() ? '｜補充：' + document.getElementById('bk-diet-note').value.trim() : ''), medications: medications, planType: _bkType, exerciseFreq: _bkExercise,
     fatigueLevel: _bkState.fatigue, stressLevel: _bkState.stress, longTermDiet: _bkState.ltdiet, smokingHabit: _bkState.smoke,
     dietSelfScore: _bkState.dietscore || '', dietPattern: _bkState.dietlabel || '', exerciseLowFreq: _bkState.exlow || '', mealVolume: _bkState.mealvol || '', mealsPerDay: _bkState.mealfreq || '',
-    birthDate: _bkBirthDate || ''
+    birthDate: _bkBirthDate || '',
+    gender: _bkGender, heightCm: bkGv('bk-height'), weightKg: bkGv('bk-weight'), phone: bkGv('bk-phone'), govId: bkGv('bk-govid'), address: bkGv('bk-addr'), foodAllergy: bkGv('bk-fallergy'), drugAllergy: bkGv('bk-dallergy'), majorHistory: bkGv('bk-history'), mainConcern: bkGv('bk-concern'), carPlate: bkGv('bk-car')
   };
   bkSubmitBooking();
 }
