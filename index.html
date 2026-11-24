@@ -711,6 +711,7 @@ window.openHealthForm = function() {
         <div class="carb-chip" data-val="X" onclick="selCarbExercise(this)" style="flex:1">有運動沒喘</div>
         <div class="carb-chip" data-val="V" onclick="selCarbExercise(this)" style="flex:1">有運動有喘</div>
       </div>
+      <button onclick="saveExercise(false)" style="width:100%;margin-top:8px;background:var(--g);color:#fff;border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer">儲存</button>
     </div>
 
     <button onclick="var el=document.getElementById('diet-section'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'});" style="width:100%;background:var(--b2);color:var(--b3);border:1px solid var(--b);border-radius:10px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px">
@@ -5194,8 +5195,16 @@ function selCarbExercise(el){
   document.querySelectorAll('#carb-exercise-chips .carb-chip').forEach(function(c){ c.classList.remove('on'); });
   el.classList.add('on');
   // 2026-11-23 創辦人：「運動沒法記錄，加一下」——點了就直接存，不用再按「儲存今日記錄」
-  var exVal = el.getAttribute('data-val') || ''; if (!exVal || !CLIENT_ID || !CLIENT_TOKEN || window._exSaved === exVal) return; window._exSaved = exVal;
-  callAPI({ action: 'addDailyRecord', clientId: CLIENT_ID, exercise: exVal, note: '運動（APP 點選）' }, function(d){ if (d && d.status === 'ok') toast(exVal === 'V' ? '✅ 有運動有喘，記好了' : '✅ 有運動沒喘，記好了'); else { window._exSaved = null; toast('⚠️ 沒存成功，請再點一次'); } });
+  saveExercise(true);
+}
+// 2026-11-24 創辦人：「運動也要可以儲存啊」——點選會自動存，另外加一顆「儲存」鈕；資料還沒準備好時要說，不要安靜不存
+function saveExercise(auto) {
+  var on = document.querySelector('#carb-exercise-chips .carb-chip.on'); var exVal = on ? (on.getAttribute('data-val') || '') : '';
+  if (!exVal) { if (!auto) toast('👌 今天沒運動，有運動再點就好'); return; }
+  if (!CLIENT_ID || !CLIENT_TOKEN) { toast('⏳ 資料還在準備，等幾秒再按「儲存」'); return; }
+  if (window._exSaved === exVal) { if (!auto) toast('✅ 已經記好了'); return; }
+  window._exSaved = exVal;
+  callAPI({ action: 'addDailyRecord', clientId: CLIENT_ID, exercise: exVal, note: '運動（APP 點選）' }, function(d){ if (d && d.status === 'ok') toast(exVal === 'V' ? '✅ 有運動有喘，記好了' : '✅ 有運動沒喘，記好了'); else { window._exSaved = null; toast('⚠️ 沒存成功，請再按一次「儲存」'); } });
 }
 // 2026-09-14補：排便原本是單一顆チップ用文字切換「尚未／已排便」，創辦人反應應該跟運動狀態一樣
 // 兩個選項同時顯示、點哪個就選哪個，比較清楚——改成跟selCarbExercise同一套「兩顆並排、點選高亮」
