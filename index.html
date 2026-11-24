@@ -5209,7 +5209,7 @@ function submitDailyRecord() {
   if (_submitDailySaving) return;
   var k = document.getElementById('k-inp') ? document.getElementById('k-inp').value : '';
   var w = document.getElementById('w-inp') ? document.getElementById('w-inp').value : '';
-  if(!k && !w){ toast('至少填血酮或體重其中一項，才能記錄喔'); return; }
+  var gChk0 = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : ''; if(!k && !w && !gChk0){ toast('至少填血酮、血糖或體重其中一項，才能記錄喔'); return; } /* 2026-11-24 創辦人：「只量血糖為什麼不能存檔」——只填血糖也要能按「儲存今日記錄」 */
   if(k && (Number(k) < 0 || Number(k) > 10)){ toast('血酮數值看起來不太合理，麻煩再確認一下'); return; }
   if(w && (Number(w) <= 0 || Number(w) > 300)){ toast('體重數值看起來不太合理，麻煩再確認一下'); return; }
   var waistCheck = document.getElementById('waist-inp') ? document.getElementById('waist-inp').value : '';
