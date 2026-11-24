@@ -9552,6 +9552,9 @@ function loadBookings(){
             : (b.planType === 't2'
                 ? '<div style="flex-basis:100%;font-size:10.5px;background:#FDEAEA;color:#A32D2D;border-radius:6px;padding:4px 8px;margin-top:2px">⚠️ 選了慢性病用藥方案，但沒填用藥資訊——請跟客人確認</div>'
                 : ''))
+        + ((b.basic || b.extra)
+            ? '<div style="flex-basis:100%;font-size:10.5px;background:var(--bg);color:var(--text2);border-radius:6px;padding:4px 8px;margin-top:2px;line-height:1.8">📋 ' + escH([b.extra, b.basic].filter(Boolean).join('｜')) + '</div>'
+            : '<div style="flex-basis:100%;font-size:10.5px;background:#FDF6E3;color:#8A6D1A;border-radius:6px;padding:4px 8px;margin-top:2px">📋 這筆預約沒有基本資料（舊版APP沒問），請在LINE跟客人補齊</div>')
         + '</div>';
     }).join('');
     var bkpB = document.getElementById('bkp-body'); if (bkpB) bkpB.innerHTML = body.innerHTML; // 2026-11-24 創辦人：檢測預約有自己的頁，跟儀表板同一套畫面
