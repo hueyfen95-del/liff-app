@@ -281,7 +281,13 @@ function clockDo(a,btn){ if (CLK.busy) { toast('正在打卡，請稍等幾秒�
   api({action:a, secretary:S.name}, true).then(function(d){ CLK.busy=false; toast(d.status==='ok' ? (d.dup?'剛剛已經打過卡了，這次不重複記':(a==='clockIn'?'🟢 上班打卡完成':'🔴 下班打卡完成')) : (d.message||'打卡失敗，請再按一次')); loadClock(); }); }
 function loadGroup(){ api({action:'getGroupCases'}).then(function(d){ var items=(d&&d.items)||[]; setN('n-grp', items.length, true);
   $('b-grp').innerHTML = items.length ? items.map(function(it){ var mine = S.name && it.assignee.indexOf(S.name)>=0;
-    return '<div class="it'+(mine?' mine':'')+'"><div class="meta"><span class="wait'+(it.waitMin>=120?' hot':'')+'">'+waitTxt(it.waitMin)+'</span><b>'+esc(it.client||it.clientId)+'</b>'+fileLink(it.clientId,it.client)+'<span>'+esc(it.group)+'</span><span class="tag">'+esc(it.type||'問題')+'</span>'+(mine?'<span class="tag" style="background:#FDECC8;color:#8A5A0A">指派給你</span>':'')+'</div><div class="txt">'+esc(it.text)+'</div></div>'; }).join('') + '<div class="hint">打開 LINE 找到這個群組直接回覆就好，不用回來按。</div>' : '<div class="empty">目前沒有 🎉</div>'; }); }
+    return '<div class="it'+(mine?' mine':'')+'"><div class="meta"><span class="wait'+(it.waitMin>=120?' hot':'')+'">'+waitTxt(it.waitMin)+'</span><b>'+esc(it.client||it.clientId)+'</b>'+fileLink(it.clientId,it.client)+'<span>'+esc(it.group)+'</span><span class="tag">'+esc(it.type||'問題')+'</span>'+(mine?'<span class="tag" style="background:#FDECC8;color:#8A5A0A">指派給你</span>':'')+'</div><div class="txt">'+esc(it.text)+'</div><div style="margin-top:6px;text-align:right"><button class="sm" onclick="grpDone(\''+esc(it.id)+'\',this)">✅ 已處理</button></div></div>'; }).join('') + '<div class="hint">去 LINE 回覆會自動銷案；不方便回的，直接按「✅ 已處理」也可以結案。</div>' : '<div class="empty">目前沒有 🎉</div>'; }); }
+// 2026-11-26 創辦人：手機工作台也要能按「已處理」——群組案件手動結案
+function grpDone(id,btn){ btn.disabled=true; btn.textContent='…';
+  api({action:'resolveGroupCase', id:id, secretary:(S&&S.name)||''}, true).then(function(d){
+    if(d&&d.status==='ok'){ loadGroup(); } else { btn.disabled=false; btn.textContent='✅ 已處理'; alert((d&&d.message)||'沒成功，再試一次'); }
+  });
+}
 function loadCI(){ api({action:'getClientInteractions'}).then(function(d){ CI=(d&&d.items)||[]; setN('n-ci', CI.length, CI.some(function(x){return x.src==='mood';}));
   $('b-ci').innerHTML = CI.length ? CI.map(function(it,i){ var set = it.src==='mood' ? 'mood' : (it.noteType==='禮物請求' ? 'gift' : 'other');
     return '<div class="it" id="'+(it.src==='mood'?'it-M-':'it-N-')+it.row+'"><div class="meta">'+(it.src==='mood'?'<span class="wait'+((+it.waitHours||0)>=2?' hot':'')+'">'+waitTxt((+it.waitHours||0)*60)+'</span>':'')+'<span class="tag">'+esc(it.kind)+'</span><b>'+esc(it.name||it.clientId)+'</b><span>'+esc(it.time)+'</span>'+fileLink(it.clientId,it.name)+'</div><div class="txt">'+esc(it.content)+'</div>'
