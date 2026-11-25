@@ -9299,6 +9299,7 @@ function loadUnknownQuestions(){
       box += '<div style="display:flex;gap:6px;margin-top:7px">'
         + '<input id="unq-kw-' + i + '" class="form-input" style="font-size:11.5px;flex:1;padding:6px 9px" placeholder="關鍵字（例：酮體）" value="' + escH(_unqKeyword(q.question)) + '">'
         + '<button class="ai-btn b" style="font-size:10.5px;padding:4px 10px;white-space:nowrap" onclick="unqSearchArticles(' + i + ')">🔍 找相關文章</button>'
+        + '<button class="ai-btn g" style="font-size:10.5px;padding:4px 10px;white-space:nowrap" onclick="dismissUnknownQuestion(' + i + ')">✅ 已完成</button>' /* 2026-11-25 創辦人：加一個已完成 */
         + '</div>'
         + '<div id="unq-art-' + i + '" style="margin-top:5px"></div>';
       return box + '</div>';
