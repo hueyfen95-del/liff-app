@@ -6976,6 +6976,13 @@ function recordServicePayment() {
   });
 }
 
+// 2026-11-25：方案到期「已處理」——點掉這筆（同客人＋同方案＋同到期日）就不再出現
+function peDismiss(i){
+  var p = (window._expCache || [])[i]; if(!p) return;
+  adminAPIPost({action:'dismissPlanExpiry', clientId:p.clientId, planName:p.planName, endDate:p.endDate}, function(d){
+    if(d && d.status==='ok'){ toast('✅ 已處理，這筆不再顯示'); loadExpiringPlans(); } else { toast('⚠️ 沒成功，再試一次'); }
+  });
+}
 // ── 載入真實的方案到期提醒清單 ──
 function loadExpiringPlans() {
   var listEl = document.getElementById('expiring-plans-list');
@@ -6989,7 +6996,8 @@ function loadExpiringPlans() {
         listEl.innerHTML = '<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px">目前沒有即將到期的方案 👍</div>';
         return;
       }
-      listEl.innerHTML = list.map(function(p) {
+      window._expCache = list; // 2026-11-25 創辦人：方案到期也要能點「已處理」
+      listEl.innerHTML = list.map(function(p, pei) {
         var overdue = p.daysLeft < 0;
         var urgent = p.daysLeft >= 0 && p.daysLeft <= 3;
         var badgeColor = overdue ? 'var(--r)' : (urgent ? 'var(--r)' : 'var(--a)');
@@ -6998,7 +7006,8 @@ function loadExpiringPlans() {
         return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:0.5px solid var(--border);border-radius:10px;padding:10px 13px">' +
           '<div><div style="font-size:13px;font-weight:700;color:var(--text)">' + escH(p.clientName || p.clientId) + '</div>' +
           '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + escH(p.planName || '') + '</div></div>' +
-          '<div style="background:' + badgeBg + ';color:' + badgeColor + ';border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700">' + badgeText + '</div>' +
+          '<div style="display:flex;align-items:center;gap:6px"><div style="background:' + badgeBg + ';color:' + badgeColor + ';border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700">' + badgeText + '</div>' +
+          '<button class="ai-btn gray" style="font-size:10.5px;padding:3px 9px" onclick="peDismiss(' + pei + ')">✅ 已處理</button></div>' +
           '</div>';
       }).join('');
     } else {
