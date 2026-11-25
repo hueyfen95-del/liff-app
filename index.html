@@ -835,6 +835,9 @@ window.openHealthForm = function() {
     <!-- 🍩 點心快記（原餐盤快記的點心選項保留在這裡：只記錄給秘書，不算每日任務） -->
     <div style="text-align:center;margin:-4px 0 14px">
       <button onclick="openJudge('s')" style="background:none;border:1px dashed var(--border2);border-radius:20px;padding:7px 16px;font-size:12px;color:var(--text2);cursor:pointer">🍩 點心也想記一筆？</button>
+      <!-- 2026-11-26 客人（Clara）問：點心能不能也拍照——加一顆拍照鈕，照片跟三餐一樣暫存，判斷完一起傳給秘書 -->
+      <input type="file" id="snack-photo-inp" accept="image/*" style="display:none" onchange="snackPhoto(this)">
+      <button onclick="document.getElementById('snack-photo-inp').click()" style="background:none;border:1px dashed var(--border2);border-radius:20px;padding:7px 16px;font-size:12px;color:var(--text2);cursor:pointer;margin-left:6px">📷 點心拍照</button>
     </div>
 
     <!-- 今日比例・我的判斷（2026-08-28：取代AI估算，累計客人自己的判斷） -->
@@ -3254,6 +3257,13 @@ var _mealJudgeBypass = {b:false, l:false, d:false};
 var _judgeMeal = '';
 var _judgeSel = {oil:'', prot:'', carb:''};
 var _carbPlanVal = '';
+// 2026-11-26 Clara問「點心也能拍照嗎」：點心照片走跟三餐一樣的暫存流程，判斷完成時一起上傳
+function snackPhoto(inp){ var f=inp.files&&inp.files[0]; if(!f) return; var rd=new FileReader();
+  rd.onload=function(e){ var b64=e.target.result.split(',')[1];
+    if(!window._pendingMeals) window._pendingMeals={}; if(!window._pendingMeals.s) window._pendingMeals.s=[];
+    window._pendingMeals.s.push({base64:b64, fileName:f.name||'snack.jpg', mimeType:f.type||'image/jpeg', meal:'點心'});
+    toast('📷 點心照片已加入'); inp.value=''; openJudge('s');
+  }; rd.readAsDataURL(f); }
 function openJudge(m){
   _judgeMeal = m;
   _judgeSel = {oil:'', prot:'', carb:''};
