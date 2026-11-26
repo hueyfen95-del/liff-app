@@ -362,7 +362,7 @@ function loadUQ(){ api({action:'getUnknownQuestions'}).then(function(d){ UQ=((d&
       +(copied?'<span class="tag" style="background:#FDECEC;color:var(--red)">🔴 答案寫好了，還沒確認傳給客人</span>':'')
       +(doc?'<span class="tag" style="background:#FEE2E2;color:#991B1B">🩺 問醫師'+(q.cost?'（已扣 '+q.cost+' 點）':'')+'</span>':'')
       +(q.pro&&!doc?'<span class="tag" style="background:#FCE7F3;color:#9D174D">💊 用藥／保健品</span>':'')
-      +(q.notified?'<span class="tag" style="background:var(--g2);color:var(--g3)">✅ 已通知醫師 '+esc(q.notified)+'</span>':'')+'</div>'
+      +(q.notified?'<span class="tag" style="background:var(--g2);color:var(--g3)">✅ 已通知醫師 '+esc(q.notified)+'</span>':'')+(copied?'':'<button class="sm" style="margin-left:auto" onclick="uqDismiss('+i+',this)">✅ 已處理</button>')+'</div>'
       +'<div class="txt">「'+esc(cleanQ(q.question))+'」'+(/^\s*【群組】/.test(q.question)?' <span class="tag">在群組問的</span>':'')+'</div>';
     if (copied) {
       h+='<div class="hint" style="background:var(--g2);color:var(--g3)">'+esc(q.answer)+'</div><div class="row"><button class="pri" onclick="uqSendCopied('+i+',this)">💌 直接傳給客人並結案</button><button onclick="uqConfirm('+i+',this)">已經傳過了，確認結案</button></div>';
