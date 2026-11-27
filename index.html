@@ -4627,6 +4627,17 @@ function doCopyText(){
   toast('✅ 文字已複製！可以貼到 LINE 或 IG 分享 😊');
 }
 var _activeToasts=[];
+// 2026-11-27 創辦人：血糖低於 78 要提醒熱量與蛋白質要足夠（字大、要按「知道了」才消失，長輩才看得到）
+function lowGluTip(g){
+  var v=parseFloat(g); if(!(v>0&&v<78)) return;
+  setTimeout(function(){
+    if(document.getElementById('low-glu-tip')) return;
+    var d=document.createElement('div'); d.id='low-glu-tip';
+    d.style.cssText='position:fixed;left:16px;right:16px;bottom:96px;background:#FFF4E5;color:#7A4B00;border:2px solid #F5A623;border-radius:16px;padding:16px 18px;font-size:17px;font-weight:700;line-height:1.6;z-index:10000;box-shadow:0 6px 20px rgba(0,0,0,.2)';
+    d.innerHTML='您今天熱量要充足，蛋白質也要足夠喔！以免熱量不足燃燒到肌肉，就不划算了。<div style="text-align:right;margin-top:10px"><button type="button" style="font-size:16px;padding:6px 18px;border-radius:20px;border:0;background:#F5A623;color:#fff;font-weight:700" onclick="this.parentNode.parentNode.remove()">知道了</button></div>';
+    document.body.appendChild(d);
+  },1200);
+}
 function toast(msg){
   // 2026-09-14補：昨天改成「多則toast往上堆疊、不互相蓋住」之後，發現頁面剛載入、後端比較慢時，
   // 好幾個不同的API（碳水計畫、花園任務、連續打卡…等）幾乎同時逾時2秒，各自獨立跳出同一句
@@ -5285,7 +5296,7 @@ function submitDailyRecord() {
   if(waistCheck && (Number(waistCheck) <= 0 || Number(waistCheck) > 200)){ toast('腰圍數值看起來不太合理，麻煩再確認一下'); return; }
   // 2026-09-14新增：血糖，開放所有客人填（不限碳水回補期）——很多糖尿病客人天天都要測血糖、血酮
   var glucoseVal = document.getElementById('glucose-inp') ? document.getElementById('glucose-inp').value : '';
-  if(glucoseVal && (Number(glucoseVal) <= 0 || Number(glucoseVal) > 600)){ toast('血糖數值看起來不太合理，麻煩再確認一下'); return; }
+  if(glucoseVal && (Number(glucoseVal) <= 0 || Number(glucoseVal) > 600)){ toast('血糖數值看起來不太合理，麻煩再確認一下'); return; } lowGluTip(glucoseVal);
   // 只收「今日體感」「電解質補充」這兩區自己的選項。原本是整頁所有 .chip.on / .t-box.on 都收，
   // 會把「傍晚晚餐前」這種時間選項當成體感、把花園任務的勾勾當成電解質，寫進秘書看到的記錄裡。
   var f = []; document.querySelectorAll('#feeling-section + .chips .chip.on').forEach(function(c) { f.push(c.textContent); });
@@ -6887,7 +6898,7 @@ function quickSave(type) {
     // 2026-09-14新增：血糖獨立的快速儲存按鈕，開放所有客人（不限碳水回補期）。
     // 血糖不是花園7個任務之一，這裡不動gsTasks/打勾，單純存值、給toast回饋
     if (!glucose || parseFloat(glucose) <= 0) { toast('請先輸入血糖數值'); return; }
-    toast('🩸 血糖 ' + glucose + ' mg/dL 已儲存！');
+    toast('🩸 血糖 ' + glucose + ' mg/dL 已儲存！'); lowGluTip(glucose);
     callAPI({
       action: 'addDailyRecord', clientId: CLIENT_ID,
       ketone: '', weight: '', waist: '', feeling: '', electrolyte: '', glucose: glucose
