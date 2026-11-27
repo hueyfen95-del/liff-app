@@ -7988,7 +7988,8 @@ function checkGifts() {
       var lastRow = 0;
       try { lastRow = parseInt(localStorage.getItem('mx_gift_lastrow') || '0', 10) || 0; } catch(e){}
       var maxRow = lastRow;
-      d.gifts.forEach(function(g) {
+      // 2026-11-27 創辦人：「每天要給不同的鼓勵和圖案」——後端是新的在前面回傳，這裡以前照順序跑，最後留在畫面上的是「最舊的未讀」（今天還在看昨天那張）。改成由舊到新處理，最後顯示的一定是最新的一則，訊息匣也照時間排。
+      d.gifts.slice().sort(function(a, b) { return (Number(a.row) || 0) - (Number(b.row) || 0); }).forEach(function(g) {
         var rw = Number(g.row) || 0;
         if (rw && rw <= lastRow) return; // 這台裝置已經處理過這一則
         if (rw > maxRow) maxRow = rw;
