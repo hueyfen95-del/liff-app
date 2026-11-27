@@ -6342,6 +6342,8 @@ function loadAllRSS(onDone) {
   });
 }
 
+// 2026-11-27 創辦人：問「血酮測量」要直接出現影片連結（固定連結，不管文章庫有沒有比到）
+var _PINNED_LINKS = [{ re: /血酮.{0,4}(測量|量測|怎麼量|怎麼測|操作)|(測量|量測).{0,4}血酮|md6|fora/i, title: '🩸 FORA MD6 血酮量測操作說明（影片）', link: 'https://www.youtube.com/watch?v=fYLgcM7q_kA' }];
 function searchContentByKeyword(keyword) {
   var kw = keyword.toLowerCase();
 
@@ -6361,6 +6363,7 @@ function searchContentByKeyword(keyword) {
 
 function appendContentResults(keyword, container, skipVocus) {
   var matched = searchContentByKeyword(keyword);
+  try { _PINNED_LINKS.forEach(function(p){ if (p.re.test(String(keyword))) { var pd = document.createElement('div'); pd.innerHTML = '<a href="' + p.link + '" target="_blank" style="display:block;margin-top:8px;text-decoration:none;background:var(--bg);border-radius:9px;padding:10px 12px;border:1px solid var(--g)"><div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.5">' + p.title + '</div><div style="font-size:12px;color:var(--g3);margin-top:3px;font-weight:600">點這裡看影片 ›</div></a>'; container.appendChild(pd); } }); } catch (ePin) {}
   var html = '';
   
   // 方格子文章（2026-10-11：全文比對有找到時，這段標題比對就不再重複列）
